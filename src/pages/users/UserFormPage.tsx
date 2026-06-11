@@ -236,7 +236,7 @@ export default function UserFormPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Link to="/users">
             <Button variant="outline" size="sm">
@@ -245,7 +245,7 @@ export default function UserFormPage() {
             </Button>
           </Link>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {isEditMode ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
             </h2>
             <p className="mt-1 text-gray-600">

@@ -29,17 +29,17 @@ export default function MenusListPage() {
 
   if (!canAccessFeature('manage_menus')) {
     return (
-      <div className= "flex items-center justify-center py-12" >
-      <p className="text-gray-500" > Accès non autorisé </p>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-500">Accès non autorisé</p>
+      </div>
     )
   }
 
   if (isLoading) {
     return (
-      <div className= "flex items-center justify-center py-12" >
-      <p className="text-gray-500" > Chargement...</p>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-500">Chargement...</p>
+      </div>
     )
   }
 
@@ -72,90 +72,85 @@ export default function MenusListPage() {
     const hasChildren = children.length > 0
 
     return (
-      <div key= { menuItem.id } >
-      <div className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded group" >
-        <button
-            onClick={ () => hasChildren && toggleExpand(menuItem.id) }
-    className = {`p-0.5 ${hasChildren ? '' : 'invisible'}`
-  }
+      <div key={menuItem.id}>
+        <div className="flex items-center gap-2 px-2 sm:px-4 py-2 hover:bg-gray-50 rounded overflow-x-auto scrollbar-thin">
+          <button
+            onClick={() => hasChildren && toggleExpand(menuItem.id)}
+            className={`shrink-0 p-0.5 ${hasChildren ? '' : 'invisible'}`}
           >
-    { isExpanded?<ChevronDown className = "h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
-</button>
-{ hasChildren ? <Folder className="h-4 w-4 text-blue-500" /> : <File className="h-4 w-4 text-gray-400" />}
-<span className="flex-1 text-sm text-gray-900" > { menuItem.name } </span>
-  < span className = "text-xs text-gray-400" > { menuItem.route ?? '—' } </span>
-    < span className = "text-xs text-gray-400" > pos: { menuItem.position } </span>
-      < div className = "hidden group-hover:flex items-center gap-1" >
-        <button
-              onClick={ () => navigate(`/menus/${menuItem.id}/edit`) }
-className = "p-1 text-gray-400 hover:text-blue-600"
-title = "Modifier"
-  >
-  <Edit className="h-3.5 w-3.5" />
-    </button>
-    < button
-onClick = {() => setDeleteTarget({ id: menuItem.id, label: menuItem.name })}
-className = "p-1 text-gray-400 hover:text-red-600"
-title = "Supprimer"
-  >
-  <Trash2 className="h-3.5 w-3.5" />
-    </button>
-    </div>
-    </div>
-{
-  hasChildren && isExpanded && (
-    <div className="ml-6 border-l border-gray-200" >
-      { children.map(renderTree) }
+            {isExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+          </button>
+          <span className="shrink-0">{hasChildren ? <Folder className="h-4 w-4 text-blue-500" /> : <File className="h-4 w-4 text-gray-400" />}</span>
+          <span className="min-w-0 shrink text-sm text-gray-900 truncate">{menuItem.name}</span>
+          <span className="hidden sm:inline text-xs text-gray-400 shrink-0 truncate max-w-[120px]">{menuItem.route ?? '—'}</span>
+          <span className="hidden sm:inline text-xs text-gray-400 shrink-0">pos:{menuItem.position}</span>
+          <div className="flex items-center gap-1 shrink-0 ml-auto">
+            <button
+              onClick={() => navigate(`/menus/${menuItem.id}/edit`)}
+              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+              title="Modifier"
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setDeleteTarget({ id: menuItem.id, label: menuItem.name })}
+              className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
+              title="Supprimer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        {hasChildren && isExpanded && (
+          <div className="ml-4 sm:ml-6 border-l border-gray-200">
+            {children.map(renderTree)}
+          </div>
+        )}
       </div>
-        )
-}
-</div>
     )
   }
 
-return (
-  <div className= "space-y-6" >
-  <div className="flex items-center justify-between" >
-    <div>
-    <h2 className="text-3xl font-bold text-gray-900" > Gestion des menus </h2>
-      < p className = "mt-1 text-gray-600" > Configuration de l'arborescence de navigation</p>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des menus</h2>
+          <p className="mt-1 text-sm text-gray-600">Configuration de l'arborescence de navigation</p>
         </div>
-        < Link to = "/menus/new" >
-          <Button><Plus className="h-5 w-5 mr-2" /> Nouveau menu </Button>
-            </Link>
+        <Link to="/menus/new" className="self-start sm:self-auto">
+          <Button><Plus className="h-5 w-5 mr-2" />Nouveau menu</Button>
+        </Link>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-gray-900">Arborescence ({menus?.length ?? 0})</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {rootMenus.length === 0 ? (
+            <div className="text-center py-8">
+              <MenuIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Aucun menu</p>
             </div>
-
-            < Card >
-            <CardHeader>
-            <CardTitle className="text-gray-900" > Arborescence({ menus?.length ?? 0}) </CardTitle>
-              </CardHeader>
-              <CardContent>
-{
-  rootMenus.length === 0 ? (
-    <div className= "text-center py-8" >
-    <MenuIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-      <p className="text-gray-500" > Aucun menu </p>
-        </div>
           ) : (
-    <div className= "divide-y divide-gray-100" >
-    { rootMenus.map(renderTree) }
-    </div>
-          )
-}
-</CardContent>
-  </Card>
+            <div className="divide-y divide-gray-100 min-w-[400px] sm:min-w-0">
+              {rootMenus.map(renderTree)}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-  < Modal isOpen = {!!deleteTarget} onClose = {() => setDeleteTarget(null)} title = "Confirmer la suppression" >
-    <div className="space-y-4" >
-      <p className="text-gray-600" >
-        Supprimer < strong > { deleteTarget?.label } </strong> ?
-        </p>
-        < div className = "flex justify-end gap-3" >
-          <Button variant="secondary" onClick = {() => setDeleteTarget(null)}> Annuler </Button>
-            < Button variant = "danger" onClick = { handleDelete } > Supprimer </Button>
-              </div>
-              </div>
-              </Modal>
-              </div>
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Confirmer la suppression">
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Supprimer <strong>{deleteTarget?.label}</strong> ?
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Annuler</Button>
+            <Button variant="danger" onClick={handleDelete}>Supprimer</Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
   )
 }

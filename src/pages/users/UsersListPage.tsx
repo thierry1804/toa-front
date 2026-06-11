@@ -150,19 +150,19 @@ export default function UsersListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {" "}
             {t("users.title")}{" "}
           </h2>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-sm text-gray-600">
             Gestion des utilisateurs et des accès à la plateforme
           </p>
         </div>
         {perms?.canCreate && (
-          <Link to="/users/new">
-            <Button>
+          <Link to="/users/new" className="self-start sm:self-auto">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
               <Plus className="h-5 w-5 mr-2" />
               Nouvel utilisateur
             </Button>
@@ -289,138 +289,217 @@ export default function UsersListPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      {" "}
-                      Utilisateur{" "}
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      {" "}
-                      Contact{" "}
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      {" "}
-                      Rôle{" "}
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      {" "}
-                      Statut{" "}
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                      {" "}
-                      Créé le{" "}
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                      {" "}
-                      Actions{" "}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredUsers.map((user) => {
-                    const role = getDisplayRole(user.roles);
-                    const config = ROLE_CONFIG[role];
-                    const Icon = config?.icon ?? Users;
-                    const actif = user.roles.length > 0;
+            <>
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {" "}
+                        Utilisateur{" "}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {" "}
+                        Contact{" "}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {" "}
+                        Rôle{" "}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {" "}
+                        Statut{" "}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {" "}
+                        Créé le{" "}
+                      </th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                        {" "}
+                        Actions{" "}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredUsers.map((user) => {
+                      const role = getDisplayRole(user.roles);
+                      const config = ROLE_CONFIG[role];
+                      const Icon = config?.icon ?? Users;
+                      const actif = user.roles.length > 0;
 
-                    return (
-                      <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-blue-700 font-semibold text-sm">
-                                {user.firstname.charAt(0)}
-                                {user.name.charAt(0)}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">
-                                {user.firstname} {user.name}
-                              </p>
-                              {String(user.id) === currentUser?.id && (
-                                <span className="text-xs text-blue-600">
-                                  {" "}
-                                  (Vous){" "}
+                      return (
+                        <tr key={user.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-blue-700 font-semibold text-sm">
+                                  {user.firstname.charAt(0)}
+                                  {user.name.charAt(0)}
                                 </span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {user.firstname} {user.name}
+                                </p>
+                                {String(user.id) === currentUser?.id && (
+                                  <span className="text-xs text-blue-600">
+                                    {" "}
+                                    (Vous){" "}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <p className="text-sm text-gray-900">
+                              {" "}
+                              {user.email}{" "}
+                            </p>
+                          </td>
+                          <td className="px-4 py-4">
+                            {config ? (
+                              <Badge variant={config.variant}>
+                                <Icon className="h-3 w-3 mr-1" />
+                                {t(config.labelKey)}
+                              </Badge>
+                            ) : (
+                              <Badge>{role} </Badge>
+                            )}
+                          </td>
+                          <td className="px-4 py-4">
+                            {actif ? (
+                              <Badge variant="success">
+                                <UserCheck className="h-3 w-3 mr-1" />
+                                Actif
+                              </Badge>
+                            ) : (
+                              <Badge variant="danger">
+                                <UserX className="h-3 w-3 mr-1" />
+                                Inactif
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-gray-600">
+                            {formatDate(user.createdAt)}
+                          </td>
+                          <td className="px-4 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {perms?.canEdit && (
+                                <button
+                                  onClick={() =>
+                                    navigate(`/users/${user.id}/edit`)
+                                  }
+                                  className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  title="Modifier"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                              )}
+                              {perms?.canDelete && (
+                                <button
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: user.id,
+                                      name: `${user.firstname} ${user.name}`,
+                                    })
+                                  }
+                                  disabled={String(user.id) === currentUser?.id}
+                                  className="p-1.5 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-600 enabled:hover:text-red-600 enabled:hover:bg-red-50"
+                                  title={
+                                    String(user.id) === currentUser?.id
+                                      ? "Vous ne pouvez pas supprimer votre propre compte"
+                                      : "Supprimer"
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               )}
                             </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="lg:hidden space-y-3">
+                {filteredUsers.map((user) => {
+                  const role = getDisplayRole(user.roles);
+                  const config = ROLE_CONFIG[role];
+                  const Icon = config?.icon ?? Users;
+                  const actif = user.roles.length > 0;
+
+                  return (
+                    <div key={user.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-700 font-semibold text-sm">
+                              {user.firstname.charAt(0)}
+                              {user.name.charAt(0)}
+                            </span>
                           </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <p className="text-sm text-gray-900">
-                            {" "}
-                            {user.email}{" "}
-                          </p>
-                        </td>
-                        <td className="px-4 py-4">
-                          {config ? (
-                            <Badge variant={config.variant}>
-                              <Icon className="h-3 w-3 mr-1" />
-                              {t(config.labelKey)}
-                            </Badge>
-                          ) : (
-                            <Badge>{role} </Badge>
-                          )}
-                        </td>
-                        <td className="px-4 py-4">
-                          {actif ? (
-                            <Badge variant="success">
-                              <UserCheck className="h-3 w-3 mr-1" />
-                              Actif
-                            </Badge>
-                          ) : (
-                            <Badge variant="danger">
-                              <UserX className="h-3 w-3 mr-1" />
-                              Inactif
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-600">
-                          {formatDate(user.createdAt)}
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {perms?.canEdit && (
-                              <button
-                                onClick={() =>
-                                  navigate(`/users/${user.id}/edit`)
-                                }
-                                className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Modifier"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                            )}
-                            {perms?.canDelete && (
-                              <button
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    id: user.id,
-                                    name: `${user.firstname} ${user.name}`,
-                                  })
-                                }
-                                disabled={String(user.id) === currentUser?.id}
-                                className="p-1.5 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-600 enabled:hover:text-red-600 enabled:hover:bg-red-50"
-                                title={
-                                  String(user.id) === currentUser?.id
-                                    ? "Vous ne pouvez pas supprimer votre propre compte"
-                                    : "Supprimer"
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {user.firstname} {user.name}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            {String(user.id) === currentUser?.id && (
+                              <span className="text-xs text-blue-600">(Vous)</span>
                             )}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                          {perms?.canEdit && (
+                            <button
+                              onClick={() => navigate(`/users/${user.id}/edit`)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                              title="Modifier"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                          {perms?.canDelete && (
+                            <button
+                              onClick={() => setDeleteTarget({ id: user.id, name: `${user.firstname} ${user.name}` })}
+                              disabled={String(user.id) === currentUser?.id}
+                              className="p-1.5 rounded-md disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-400 enabled:hover:text-red-600 enabled:hover:bg-red-50"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {config ? (
+                          <Badge variant={config.variant}>
+                            <Icon className="h-3 w-3 mr-1" />
+                            {t(config.labelKey)}
+                          </Badge>
+                        ) : (
+                          <Badge>{role}</Badge>
+                        )}
+                        {actif ? (
+                          <Badge variant="success">
+                            <UserCheck className="h-3 w-3 mr-1" />
+                            Actif
+                          </Badge>
+                        ) : (
+                          <Badge variant="danger">
+                            <UserX className="h-3 w-3 mr-1" />
+                            Inactif
+                          </Badge>
+                        )}
+                        <span className="text-xs text-gray-400 ml-auto">{formatDate(user.createdAt)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

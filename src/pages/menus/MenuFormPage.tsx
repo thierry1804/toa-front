@@ -91,7 +91,7 @@ export default function MenuFormPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link to="/menus"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Retour</Button></Link>
-        <h2 className="text-3xl font-bold text-gray-900">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
           {isEditMode ? 'Modifier le menu' : 'Nouveau menu'}
         </h2>
       </div>

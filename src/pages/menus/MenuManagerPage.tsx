@@ -201,7 +201,7 @@ export default function MenuManagerPage() {
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {/* Desktop table */}
-          <table className="hidden md:table w-full text-sm">
+          <table className="hidden lg:table w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="px-3 py-3 text-left font-semibold text-gray-900 sticky left-0 bg-white min-w-[160px] z-10">Menu</th>
@@ -254,7 +254,7 @@ export default function MenuManagerPage() {
           </table>
 
           {/* Mobile card layout */}
-          <div className="md:hidden space-y-4">
+          <div className="lg:hidden space-y-4">
             {menuItems.map((menu) => (
               <div key={menu.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-gray-900 text-sm">{menu.name}</h4>
