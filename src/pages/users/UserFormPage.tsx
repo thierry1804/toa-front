@@ -22,11 +22,13 @@ import {
   EyeOff,
 } from "lucide-react";
 import { roleOptions, ROLE_PERMISSIONS } from "@/data/constant/roles";
+import { useTranslation } from "react-i18next";
 
 export default function UserFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { canAccessFeature } = useAuthStore();
+  const { t } = useTranslation();
   const addToast = useUiStore((s) => s.addToast);
   const { data: users } = useUsers();
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
@@ -71,49 +73,49 @@ export default function UserFormPage() {
   useEffect(() => {
     if (!canAccessFeature(isEditMode ? "edit_users" : "create_users")) {
       navigate("/users");
-      addToast({ message: "Permission refusée", type: "error" });
+      addToast({ message: t('users.toast.permissionDenied'), type: "error" });
     }
   }, [isEditMode, navigate, addToast, canAccessFeature]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Le nom est obligatoire";
+    if (!formData.name.trim()) newErrors.name = t('users.validation.nameRequired');
     if (!formData.firstname.trim())
-      newErrors.firstname = "Le prénom est obligatoire";
+      newErrors.firstname = t('users.validation.firstnameRequired');
 
     if (!formData.email.trim()) {
-      newErrors.email = "L'email est obligatoire";
+      newErrors.email = t('users.validation.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "L'email n'est pas valide";
+      newErrors.email = t('users.validation.emailInvalid');
     } else if (!isEditMode && users) {
       const exists = users.some(
         (u) =>
           u.email.toLowerCase() === formData.email.toLowerCase() &&
           String(u.id) !== id,
       );
-      if (exists) newErrors.email = "Cet email est déjà utilisé";
+      if (exists) newErrors.email = t('users.validation.emailTaken');
     }
 
     if (!isEditMode) {
       if (!formData.plainPassword) {
-        newErrors.plainPassword = "Le mot de passe est obligatoire";
+        newErrors.plainPassword = t('users.validation.passwordRequired');
       } else if (formData.plainPassword.length < 6) {
         newErrors.plainPassword =
-          "Le mot de passe doit contenir au moins 6 caractères";
+          t('users.validation.passwordMin');
       }
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = "Veuillez confirmer le mot de passe";
+        newErrors.confirmPassword = t('users.validation.confirmRequired');
       } else if (formData.plainPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+        newErrors.confirmPassword = t('users.validation.confirmMismatch');
       }
     } else if (formData.plainPassword) {
       if (formData.plainPassword.length < 6) {
         newErrors.plainPassword =
-          "Le mot de passe doit contenir au moins 6 caractères";
+          t('users.validation.passwordMin');
       }
       if (formData.plainPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+        newErrors.confirmPassword = t('users.validation.confirmMismatch');
       }
     }
 
@@ -125,7 +127,7 @@ export default function UserFormPage() {
     e.preventDefault();
     if (!validateForm()) {
       addToast({
-        message: "Veuillez corriger les erreurs du formulaire",
+        message: t('users.validation.formErrors'),
         type: "error",
       });
       return;
@@ -150,12 +152,12 @@ export default function UserFormPage() {
         {
           onSuccess: () =>
             addToast({
-              message: "Utilisateur modifié avec succès",
+              message: t('users.toast.updated'),
               type: "success",
             }),
           onError: () =>
             addToast({
-              message: "Erreur lors de la modification",
+              message: t('users.toast.updateError'),
               type: "error",
             }),
         },
@@ -172,11 +174,11 @@ export default function UserFormPage() {
         {
           onSuccess: () =>
             addToast({
-              message: "Utilisateur créé avec succès",
+              message: t('users.toast.created'),
               type: "success",
             }),
           onError: () =>
-            addToast({ message: "Erreur lors de la création", type: "error" }),
+            addToast({ message: t('users.toast.createError'), type: "error" }),
         },
       );
     }
@@ -193,17 +195,17 @@ export default function UserFormPage() {
           <Link to="/users">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+              {t('common.back')}
             </Button>
           </Link>
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {isEditMode ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
+              {isEditMode ? t('users.form.editTitle') : t('users.form.createTitle')}
             </h2>
             <p className="mt-1 text-gray-600">
               {isEditMode
-                ? "Modifier les informations de l'utilisateur"
-                : "Créer un nouveau compte utilisateur"}
+                ? t('users.form.editDesc')
+                : t('users.form.createDesc')}
             </p>
           </div>
         </div>
@@ -214,41 +216,41 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="text-gray-900">
               {" "}
-              Informations personnelles{" "}
+              {t('users.form.personalInfo')}{" "}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Nom *"
+                label={t('users.form.name')}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
                 error={errors.name}
-                placeholder="Ex: RAKOTO"
+                placeholder={t('users.form.namePlaceholder')}
                 required
               />
               <Input
-                label="Prénom *"
+                label={t('users.form.firstname')}
                 value={formData.firstname}
                 onChange={(e) =>
                   setFormData({ ...formData, firstname: e.target.value })
                 }
                 error={errors.firstname}
-                placeholder="Ex: Jean"
+                placeholder={t('users.form.firstnamePlaceholder')}
                 required
               />
             </div>
             <Input
-              label="Email *"
+              label={t('users.form.email')}
               type="email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
               error={errors.email}
-              placeholder="exemple@entreprise.mg"
+              placeholder={t('users.form.emailPlaceholder')}
               required
             />
           </CardContent>
@@ -258,12 +260,12 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Shield className="h-5 w-5 text-blue-600" />
-              Rôle et permissions
+              {t('users.form.roleAndPermissions')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Select
-              label="Rôle *"
+              label={t('users.form.role')}
               options={roleOptions}
               value={formData.role}
               onChange={handleRoleChange}
@@ -278,22 +280,20 @@ export default function UserFormPage() {
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900 mb-2">
                       {" "}
-                      Informations prestataire
+                      {t('users.form.entreprise')}
                     </h4>
                     <Input
-                      label="Entreprise *"
+                      label={t('users.form.entreprise')}
                       value={formData.entreprise}
                       onChange={(e) =>
                         setFormData({ ...formData, entreprise: e.target.value })
                       }
                       error={errors.entreprise}
-                      placeholder="Ex: eTech Consulting"
+                      placeholder={t('users.form.entreprisePlaceholder')}
                       required
                     />
                     <p className="text-xs text-blue-700 mt-2">
-                      TOA travaille avec des prestataires partenaires.Chaque
-                      prestataire doit remplir un plan de prévention et obtenir
-                      un permis avant chaque intervention.
+                      {t('users.form.prestataireInfo')}
                     </p>
                   </div>
                 </div>
@@ -303,7 +303,7 @@ export default function UserFormPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">
                 {" "}
-                Permissions de ce rôle:{" "}
+                {t('users.form.rolePermissions')}{" "}
               </h4>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                 {(ROLE_PERMISSIONS[formData.role] ?? []).map((perm, i) => (
@@ -318,29 +318,28 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="text-gray-900">
               {" "}
-              Sécurité {!isEditMode && "*"}{" "}
+              {t('users.form.security')} {!isEditMode && "*"}{" "}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {isEditMode && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-yellow-800">
-                  Laissez les champs vides pour conserver le mot de passe
-                  actuel.
+                  {t('users.form.keepPassword')}
                 </p>
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <Input
-                  label={`Mot de passe ${!isEditMode ? "*" : ""}`}
+                  label={`${t('users.form.password')} ${!isEditMode ? "*" : ""}`}
                   type={showPassword ? "text" : "password"}
                   value={formData.plainPassword}
                   onChange={(e) =>
                     setFormData({ ...formData, plainPassword: e.target.value })
                   }
                   error={errors.plainPassword}
-                  placeholder="Minimum 6 caractères"
+                  placeholder={t('users.form.passwordPlaceholder')}
                   required={!isEditMode}
                 />
                 <button
@@ -356,14 +355,14 @@ export default function UserFormPage() {
                 </button>
               </div>
               <Input
-                label={`Confirmer le mot de passe ${!isEditMode ? "*" : ""}`}
+                label={`${t('users.form.confirmPassword')} ${!isEditMode ? "*" : ""}`}
                 type={showPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
                 error={errors.confirmPassword}
-                placeholder="Retaper le mot de passe"
+                placeholder={t('users.form.confirmPasswordPlaceholder')}
                 required={!isEditMode}
               />
             </div>
@@ -372,12 +371,12 @@ export default function UserFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-gray-900"> Statut du compte </CardTitle>
+            <CardTitle className="text-gray-900"> {t('users.form.accountStatus')} </CardTitle>
           </CardHeader>
           <CardContent>
             <Checkbox
-              label="Compte actif"
-              description="Un compte inactif ne pourra pas se connecter à la plateforme"
+              label={t('users.form.activeAccount')}
+              description={t('users.form.activeAccountDesc')}
               checked={formData.actif}
               onChange={(e) =>
                 setFormData({ ...formData, actif: e.target.checked })
@@ -390,19 +389,19 @@ export default function UserFormPage() {
           <Link to="/users">
             <Button type="button" variant="outline">
               {" "}
-              Annuler{" "}
+              {t('common.cancel')}{" "}
             </Button>
           </Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>
             {isEditMode ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Enregistrer les modifications
+                {t('common.saveChanges')}
               </>
             ) : (
               <>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Créer l'utilisateur
+                {t('users.form.create')}
               </>
             )}
           </Button>

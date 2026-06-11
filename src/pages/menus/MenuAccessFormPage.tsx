@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { useMenuAccesses, useCreateMenuAccess, useUpdateMenuAccess } from '@/features/menus/hooks/useMenuAccesses'
@@ -24,6 +25,7 @@ export default function MenuAccessFormPage() {
   const isEditMode = !!id
   const existing = isEditMode ? allAccesses?.find((a) => String(a.id) === id) : null
 
+  const { t } = useTranslation()
   const [menu, setMenu] = useState('')
   const [role, setRole] = useState('ROLE_PRESTATAIRE')
   const [canView, setCanView] = useState(true)
@@ -45,7 +47,7 @@ export default function MenuAccessFormPage() {
   useEffect(() => {
     if (!canAccessFeature('manage_menus')) {
       navigate('/menu-accesses')
-      addToast({ message: 'Permission refusée', type: 'error' })
+      addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
   }, [navigate, addToast, canAccessFeature])
 
@@ -57,7 +59,7 @@ export default function MenuAccessFormPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!menu) {
-      addToast({ message: 'Veuillez sélectionner un menu', type: 'error' })
+      addToast({ message: t('menus.accesses.form.selectMenu'), type: 'error' })
       return
     }
 
@@ -67,21 +69,21 @@ export default function MenuAccessFormPage() {
       updateAccess(
         { id: existing.id, data: payload },
         {
-          onSuccess: () => addToast({ message: 'Règle modifiée', type: 'success' }),
-          onError: () => addToast({ message: 'Erreur', type: 'error' }),
+          onSuccess: () => addToast({ message: t('menus.accesses.form.updated'), type: 'success' }),
+          onError: () => addToast({ message: t('common.error'), type: 'error' }),
         },
       )
     } else {
       const duplicate = allAccesses?.find((a) => a.menu === menu && a.role === role)
       if (duplicate) {
-        addToast({ message: 'Cette règle existe déjà, redirection vers l\'édition', type: 'warning' })
+        addToast({ message: t('menus.accesses.form.duplicate'), type: 'warning' })
         navigate(`/menu-accesses/${duplicate.id}/edit`)
         return
       }
 
       createAccess(payload, {
-        onSuccess: () => addToast({ message: 'Règle créée', type: 'success' }),
-        onError: () => addToast({ message: 'Erreur', type: 'error' }),
+        onSuccess: () => addToast({ message: t('menus.accesses.form.created'), type: 'success' }),
+        onError: () => addToast({ message: t('common.error'), type: 'error' }),
       })
     }
   }
@@ -89,9 +91,9 @@ export default function MenuAccessFormPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/menu-accesses"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Retour</Button></Link>
+        <Link to="/menu-accesses"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />{t('common.back')}</Button></Link>
         <h2 className="text-3xl font-bold text-gray-900">
-          {isEditMode ? 'Modifier la règle' : 'Nouvelle règle'}
+          {isEditMode ? t('menus.accesses.form.editTitle') : t('menus.accesses.form.createTitle')}
         </h2>
       </div>
 
@@ -100,27 +102,27 @@ export default function MenuAccessFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Shield className="h-5 w-5 text-blue-600" />
-              Permissions
+              {t('menus.accesses.form.permissions')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select label="Menu *" options={menuOptions} value={menu} onChange={(e) => setMenu(e.target.value)} placeholder="Sélectionner un menu" required />
-            <Select label="Rôle *" options={roleOptions} value={role} onChange={(e) => setRole(e.target.value)} required />
+            <Select label={t('menus.accesses.form.menu')} options={menuOptions} value={menu} onChange={(e) => setMenu(e.target.value)} placeholder={t('menus.accesses.form.menuPlaceholder')} required />
+            <Select label={t('menus.accesses.form.role')} options={roleOptions} value={role} onChange={(e) => setRole(e.target.value)} required />
 
             <div className="space-y-3 pt-2">
-              <Checkbox label="Voir" description="Afficher le menu dans la sidebar" checked={canView} onChange={(e) => setCanView(e.target.checked)} />
-              <Checkbox label="Créer" checked={canCreate} onChange={(e) => setCanCreate(e.target.checked)} />
-              <Checkbox label="Modifier" checked={canEdit} onChange={(e) => setCanEdit(e.target.checked)} />
-              <Checkbox label="Supprimer" checked={canDelete} onChange={(e) => setCanDelete(e.target.checked)} />
+              <Checkbox label={t('menus.accesses.form.voir')} description={t('menus.accesses.form.voirDesc')} checked={canView} onChange={(e) => setCanView(e.target.checked)} />
+              <Checkbox label={t('menus.accesses.form.creer')} checked={canCreate} onChange={(e) => setCanCreate(e.target.checked)} />
+              <Checkbox label={t('menus.accesses.form.modifier')} checked={canEdit} onChange={(e) => setCanEdit(e.target.checked)} />
+              <Checkbox label={t('menus.accesses.form.supprimer')} checked={canDelete} onChange={(e) => setCanDelete(e.target.checked)} />
             </div>
           </CardContent>
         </Card>
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t">
-          <Link to="/menu-accesses"><Button type="button" variant="outline">Annuler</Button></Link>
+          <Link to="/menu-accesses"><Button type="button" variant="outline">{t('common.cancel')}</Button></Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>
             <Save className="h-4 w-4 mr-2" />
-            {isEditMode ? 'Enregistrer' : 'Créer'}
+            {isEditMode ? t('common.save') : t('common.create')}
           </Button>
         </div>
       </form>

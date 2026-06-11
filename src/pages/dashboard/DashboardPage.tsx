@@ -3,16 +3,18 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ArrowRight, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { stats, quickLinks } from "@/data/constant/dashboard";
+import { useTranslation } from "react-i18next";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Bonjour${user?.nom ? `, ${user.nom}` : ""}`}
-        description="Vue d'ensemble de l'activité"
+        title={`${t('dashboard.greeting')}${user?.nom ? `, ${user.nom}` : ""}`}
+        description={t('dashboard.description')}
       />
 
       {/* Stats grid */}
@@ -50,7 +52,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900">
-              Accès rapide
+              {t('dashboard.quickAccess')}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -85,14 +87,14 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900">
-              Activité récente
+              {t('dashboard.recentActivity')}
             </h2>
           </div>
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Activity className="h-8 w-8 text-gray-200" />
               <p className="mt-3 text-sm text-gray-400">
-                Aucune activité récente
+                {t('dashboard.noActivity')}
               </p>
             </div>
           </div>

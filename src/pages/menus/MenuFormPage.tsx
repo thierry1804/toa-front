@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { useMenus, useCreateMenu, useUpdateMenu } from '@/features/menus/hooks/useMenus'
@@ -21,6 +22,7 @@ export default function MenuFormPage() {
   const isEditMode = !!id
   const existing = isEditMode ? allMenus?.find((m) => String(m.id) === id) : null
 
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('')
   const [route, setRoute] = useState('')
@@ -41,12 +43,12 @@ export default function MenuFormPage() {
   useEffect(() => {
     if (!canAccessFeature('manage_menus')) {
       navigate('/menus')
-      addToast({ message: 'Permission refusée', type: 'error' })
+      addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
   }, [navigate, addToast, canAccessFeature])
 
   const parentOptions = [
-    { value: '', label: 'Aucun (menu racine)' },
+    { value: '', label: t('menus.form.noParent') },
     ...(allMenus ?? [])
       .filter((m) => !isEditMode || String(m.id) !== id)
       .map((m) => ({ value: `/api/menus/${m.id}`, label: m.name })),
@@ -54,7 +56,7 @@ export default function MenuFormPage() {
 
   const validate = (): boolean => {
     const e: Record<string, string> = {}
-    if (!name.trim()) e.name = 'Le libellé est obligatoire'
+    if (!name.trim()) e.name = t('menus.validation.nameRequired')
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -75,14 +77,14 @@ export default function MenuFormPage() {
       updateMenu(
         { id: existing.id, data: payload },
         {
-          onSuccess: () => addToast({ message: 'Menu modifié', type: 'success' }),
-          onError: () => addToast({ message: 'Erreur', type: 'error' }),
+          onSuccess: () => addToast({ message: t('menus.form.updated'), type: 'success' }),
+          onError: () => addToast({ message: t('common.error'), type: 'error' }),
         },
       )
     } else {
       createMenu(payload, {
-        onSuccess: () => addToast({ message: 'Menu créé', type: 'success' }),
-        onError: () => addToast({ message: 'Erreur', type: 'error' }),
+        onSuccess: () => addToast({ message: t('menus.form.created'), type: 'success' }),
+        onError: () => addToast({ message: t('common.error'), type: 'error' }),
       })
     }
   }
@@ -90,9 +92,9 @@ export default function MenuFormPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/menus"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Retour</Button></Link>
+        <Link to="/menus"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />{t('common.back')}</Button></Link>
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          {isEditMode ? 'Modifier le menu' : 'Nouveau menu'}
+          {isEditMode ? t('menus.form.editTitle') : t('menus.form.createTitle')}
         </h2>
       </div>
 
@@ -101,27 +103,27 @@ export default function MenuFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Menu className="h-5 w-5 text-blue-600" />
-              Informations
+              {t('menus.form.information')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input label="Libellé *" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} placeholder="Ex: Dashboard" required />
+            <Input label={t('menus.form.label')} value={name} onChange={(e) => setName(e.target.value)} error={errors.name} placeholder={t('menus.form.labelPlaceholder')} required />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Icône" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Ex: LayoutDashboard" />
-              <Input label="Route" value={route} onChange={(e) => setRoute(e.target.value)} placeholder="Ex: /dashboard" />
+              <Input label={t('menus.form.icon')} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder={t('menus.form.iconPlaceholder')} />
+              <Input label={t('menus.form.route')} value={route} onChange={(e) => setRoute(e.target.value)} placeholder={t('menus.form.routePlaceholder')} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Position" type="number" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="0" />
-              <Select label="Parent" options={parentOptions} value={parent} onChange={(e) => setParent(e.target.value)} />
+              <Input label={t('menus.form.position')} type="number" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="0" />
+              <Select label={t('menus.form.parent')} options={parentOptions} value={parent} onChange={(e) => setParent(e.target.value)} />
             </div>
           </CardContent>
         </Card>
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t">
-          <Link to="/menus"><Button type="button" variant="outline">Annuler</Button></Link>
+          <Link to="/menus"><Button type="button" variant="outline">{t('common.cancel')}</Button></Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>
             <Save className="h-4 w-4 mr-2" />
-            {isEditMode ? 'Enregistrer' : 'Créer'}
+            {isEditMode ? t('common.save') : t('common.create')}
           </Button>
         </div>
       </form>

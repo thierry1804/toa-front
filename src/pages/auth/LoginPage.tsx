@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Shield, Globe, Eye, EyeOff } from "lucide-react";
+import { Globe, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import {
@@ -36,9 +36,9 @@ export default function LoginPage() {
     login(data, {
       onSuccess: () => navigate("/dashboard"),
       onError: (error: unknown) => {
-        const msg =
-          error instanceof Error ? error.message : "Identifiants incorrects";
-        setApiError(msg);
+        const err = error as { response?: { data?: { message?: string } } };
+        const key = err?.response?.data?.message ?? "incorrect_credentials";
+        setApiError(t(`errors.${key}`));
       },
     });
   };
@@ -51,7 +51,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 p-4">
       <div className="w-full max-w-md">
         {/* Language toggle */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-1">
           <button
             onClick={toggleLanguage}
             className="flex items-center gap-2 text-white hover:text-blue-100 transition-colors"
@@ -63,13 +63,17 @@ export default function LoginPage() {
           </button>
         </div>
 
+        {/* Logo circle above card */}
+        <div className="flex justify-center -mb-11 relative z-10">
+          <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center p-3">
+            <img src="/images/TOA.png" alt="TOA" className="w-full h-full object-contain" />
+          </div>
+        </div>
+
         <Card>
-          <CardHeader className="space-y-4 text-center">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <Shield className="h-8 w-8 text-blue-600" />
-            </div>
+          <CardHeader className="pt-12 text-center">
             <div>
-              <CardTitle className="text-black">TowerCo of Africa</CardTitle>
+              <CardTitle className="text-gray-900">TowerCo of Africa</CardTitle>
               <CardDescription className="mt-2">
                 Plateforme de gestion HSE
               </CardDescription>

@@ -11,7 +11,16 @@
     "filter": "Filtrer",
     "close": "Fermer",
     "back": "Retour",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "all": "Tous",
+    "noData": "Aucune donnée",
+    "noResults": "Aucun résultat",
+    "actions": "Actions",
+    "yes": "Oui",
+    "no": "Non",
+    "saving": "Enregistrement...",
+    "confirmDelete": "Confirmer la suppression",
+    "saveChanges": "Enregistrer les modifications"
   },
   "auth": {
     "login": "Connexion",
@@ -20,21 +29,290 @@
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié ?",
     "noAccount": "Pas de compte ?",
-    "signUp": "S'inscrire"
+    "signUp": "S'inscrire",
+    "loginButton": "Se connecter",
+    "loggingIn": "Connexion en cours..."
   },
-  "permits": {
-    "title": "Permis",
-    "newPermit": "Nouveau permis",
-    "permitDetails": "Détails du permis",
+  "dashboard": {
+    "title": "Tableau de bord",
+    "greeting": "Bonjour",
+    "description": "Vue d'ensemble de l'activité",
+    "quickAccess": "Accès rapide",
+    "recentActivity": "Activité récente",
+    "noActivity": "Aucune activité récente",
+    "stats": {
+      "activePermits": "Permis actifs",
+      "pending": "En attente",
+      "validatedThisMonth": "Validés ce mois",
+      "workers": "Intervenants"
+    },
+    "quickLinks": {
+      "planning": "Planification",
+      "planningDesc": "Gérer le planning des activités",
+      "permits": "Permis de travail",
+      "permitsDesc": "Consulter et créer des permis",
+      "prevention": "Prévention",
+      "preventionDesc": "Plans de prévention",
+      "interventions": "Interventions",
+      "interventionsDesc": "Suivi des interventions",
+      "users": "Utilisateurs",
+      "usersDesc": "Gestion des comptes"
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "newUser": "Nouvel utilisateur",
+    "description": "Gestion des utilisateurs et des accès à la plateforme",
+    "stats": {
+      "total": "Total",
+      "active": "Actifs",
+      "inactive": "Inactifs",
+      "prestataires": "Prestataires",
+      "teamToa": "Équipe TOA"
+    },
+    "search": "Rechercher par nom, prénom ou email...",
+    "filterRole": "Filtrer par rôle",
+    "filterStatus": "Filtrer par statut",
+    "table": {
+      "user": "Utilisateur",
+      "contact": "Contact",
+      "role": "Rôle",
+      "status": "Statut",
+      "createdAt": "Créé le",
+      "actions": "Actions"
+    },
+    "empty": "Aucun utilisateur trouvé",
+    "createAction": "Créer un utilisateur",
+    "deleteConfirm": {
+      "title": "Confirmer la suppression",
+      "message": "Supprimer l'utilisateur"
+    },
+    "form": {
+      "editTitle": "Modifier l'utilisateur",
+      "createTitle": "Nouvel utilisateur",
+      "editDesc": "Modifier les informations de l'utilisateur",
+      "createDesc": "Créer un nouveau compte utilisateur",
+      "personalInfo": "Informations personnelles",
+      "roleAndPermissions": "Rôle et permissions",
+      "rolePermissions": "Permissions de ce rôle :",
+      "security": "Sécurité",
+      "accountStatus": "Statut du compte",
+      "activeAccount": "Compte actif",
+      "activeAccountDesc": "Un compte inactif ne pourra pas se connecter à la plateforme",
+      "firstname": "Prénom *",
+      "name": "Nom *",
+      "email": "Email *",
+      "role": "Rôle *",
+      "entreprise": "Entreprise *",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "passwordPlaceholder": "Minimum 6 caractères",
+      "confirmPasswordPlaceholder": "Retaper le mot de passe",
+      "firstnamePlaceholder": "Ex: Jean",
+      "namePlaceholder": "Ex: RAKOTO",
+      "emailPlaceholder": "exemple@entreprise.mg",
+      "entreprisePlaceholder": "Ex: eTech Consulting",
+      "keepPassword": "Laissez les champs vides pour conserver le mot de passe actuel.",
+      "prestataireInfo": "TOA travaille avec des prestataires partenaires. Chaque prestataire doit remplir un plan de prévention et obtenir un permis avant chaque intervention.",
+      "cancel": "Annuler",
+      "save": "Enregistrer les modifications",
+      "create": "Créer l'utilisateur"
+    },
+    "validation": {
+      "nameRequired": "Le nom est obligatoire",
+      "firstnameRequired": "Le prénom est obligatoire",
+      "emailRequired": "L'email est obligatoire",
+      "emailInvalid": "L'email n'est pas valide",
+      "emailTaken": "Cet email est déjà utilisé",
+      "passwordRequired": "Le mot de passe est obligatoire",
+      "passwordMin": "Le mot de passe doit contenir au moins 6 caractères",
+      "confirmRequired": "Veuillez confirmer le mot de passe",
+      "confirmMismatch": "Les mots de passe ne correspondent pas",
+      "formErrors": "Veuillez corriger les erreurs du formulaire"
+    },
+    "toast": {
+      "created": "Utilisateur créé avec succès",
+      "updated": "Utilisateur modifié avec succès",
+      "deleted": "Utilisateur supprimé avec succès",
+      "createError": "Erreur lors de la création",
+      "updateError": "Erreur lors de la modification",
+      "deleteError": "Erreur lors de la suppression",
+      "permissionDenied": "Permission refusée"
+    }
+  },
+  "planning": {
+    "title": "Planification des activités",
+    "newPlanning": "Nouvelle planification",
+    "description": "Gestion du calendrier des interventions sur sites",
+    "stats": {
+      "total": "Total",
+      "planifie": "Planifiées",
+      "en_cours": "En cours",
+      "valide": "Validées",
+      "brouillon": "Brouillons"
+    },
+    "search": "Rechercher par procédé, prestataire, site...",
+    "filterStatus": "Filtrer par statut",
+    "table": {
+      "activity": "Activité",
+      "site": "Site",
+      "provider": "Prestataire",
+      "dates": "Dates",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "empty": "Aucune activité trouvée",
+    "createAction": "Planifier une activité",
+    "deleteConfirm": {
+      "title": "Confirmer la suppression",
+      "message": "Êtes-vous sûr de vouloir supprimer la planification",
+      "irreversible": "Cette action est irréversible."
+    },
+    "form": {
+      "editTitle": "Modifier la planification",
+      "createTitle": "Nouvelle planification",
+      "editDesc": "Modifier les détails de l'activité planifiée",
+      "createDesc": "Planifier une nouvelle activité sur site",
+      "generalInfo": "Informations générales",
+      "site": "Site",
+      "dates": "Dates",
+      "status": "Statut",
+      "process": "Procédé *",
+      "processPlaceholder": "Ex: Maintenance groupe électrogène",
+      "projectDescription": "Description du projet *",
+      "projectDescriptionPlaceholder": "Décrire les travaux à réaliser...",
+      "provider": "Prestataire *",
+      "providerPlaceholder": "Nom de l'entreprise",
+      "providerEmail": "Email prestataire",
+      "providerEmailPlaceholder": "contact@prestataire.mg",
+      "siteCode": "Code site *",
+      "siteCodePlaceholder": "Ex: TNR-001",
+      "siteNumber": "Numéro site *",
+      "siteNumberPlaceholder": "Ex: 12345",
+      "siteName": "Nom du site *",
+      "siteNamePlaceholder": "Ex: Antananarivo Centre",
+      "region": "Région *",
+      "regionPlaceholder": "Ex: Analamanga",
+      "theoreticalDate": "Date théorique *",
+      "expectedStartDate": "Début prévu *",
+      "expectedEndDate": "Fin prévue *",
+      "dateInfo": "La date théorique est la date de début prévue initialement. Les dates prévues peuvent être ajustées tout en respectant la cohérence temporelle.",
+      "draftNote": "Les planifications en brouillon ne sont pas visibles dans le calendrier",
+      "cancel": "Annuler",
+      "save": "Enregistrer les modifications",
+      "create": "Créer la planification"
+    },
+    "validation": {
+      "processRequired": "Le procédé est obligatoire",
+      "providerRequired": "Le prestataire est obligatoire",
+      "descriptionRequired": "La description est obligatoire",
+      "siteCodeRequired": "Le code site est obligatoire",
+      "siteNumberRequired": "Le numéro site est obligatoire",
+      "siteNameRequired": "Le nom du site est obligatoire",
+      "regionRequired": "La région est obligatoire",
+      "theoreticalDateRequired": "La date théorique est obligatoire",
+      "expectedStartDateRequired": "La date prévue de début est obligatoire",
+      "expectedEndDateRequired": "La date prévue de fin est obligatoire",
+      "endBeforeStart": "La date de fin ne peut pas être antérieure à la date de début",
+      "startBeforeTheoretical": "Doit être postérieure ou égale à la date théorique",
+      "formErrors": "Veuillez corriger les erreurs du formulaire"
+    },
+    "toast": {
+      "created": "Planification créée avec succès",
+      "updated": "Planification modifiée avec succès",
+      "deleted": "Planification supprimée avec succès",
+      "createError": "Erreur lors de la création",
+      "updateError": "Erreur lors de la modification",
+      "deleteError": "Erreur lors de la suppression",
+      "permissionDenied": "Permission refusée"
+    },
     "status": {
-      "draft": "Brouillon",
-      "awaiting_chef_validation": "En attente chef",
-      "awaiting_hse_validation": "En attente HSE",
-      "validated": "Validé",
-      "in_progress": "En cours",
-      "closed": "Clôturé",
-      "rejected": "Rejeté",
-      "expired": "Expiré"
+      "brouillon": "Brouillon",
+      "planifie": "Planifié",
+      "en_cours": "En cours",
+      "valide": "Validé",
+      "annule": "Annulé"
+    }
+  },
+  "menus": {
+    "list": {
+      "title": "Gestion des menus",
+      "description": "Configuration de l'arborescence de navigation",
+      "newMenu": "Nouveau menu",
+      "treeTitle": "Arborescence",
+      "empty": "Aucun menu",
+      "deleted": "Menu supprimé",
+      "deleteError": "Erreur de suppression"
+    },
+    "form": {
+      "editTitle": "Modifier le menu",
+      "createTitle": "Nouveau menu",
+      "information": "Informations",
+      "label": "Libellé *",
+      "labelPlaceholder": "Ex: Dashboard",
+      "icon": "Icône",
+      "iconPlaceholder": "Ex: LayoutDashboard",
+      "route": "Route",
+      "routePlaceholder": "Ex: /dashboard",
+      "position": "Position",
+      "parent": "Parent",
+      "noParent": "Aucun (menu racine)",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "create": "Créer",
+      "back": "Retour",
+      "updated": "Menu modifié",
+      "created": "Menu créé",
+      "error": "Erreur"
+    },
+    "validation": {
+      "nameRequired": "Le libellé est obligatoire"
+    },
+    "manager": {
+      "title": "Gestion des accès",
+      "description": "Matrice des permissions par rôle et par menu",
+      "permissions": "Permissions",
+      "menu": "Menu",
+      "error": "Erreur lors de la mise à jour"
+    },
+    "accesses": {
+      "title": "Accès par rôle",
+      "description": "Règles d'accès aux menus par rôle",
+      "new": "Nouvelle règle",
+      "rules": "Règles",
+      "empty": "Aucune règle d'accès",
+      "deleted": "Règle supprimée",
+      "error": "Erreur",
+      "table": {
+        "menu": "Menu",
+        "role": "Rôle",
+        "voir": "Voir",
+        "creer": "Créer",
+        "modifier": "Modifier",
+        "supprimer": "Supprimer",
+        "actions": "Actions"
+      },
+      "form": {
+        "editTitle": "Modifier la règle",
+        "createTitle": "Nouvelle règle",
+        "back": "Retour",
+        "menu": "Menu *",
+        "menuPlaceholder": "Sélectionner un menu",
+        "role": "Rôle *",
+        "permissions": "Permissions",
+        "voir": "Voir",
+        "voirDesc": "Afficher le menu dans la sidebar",
+        "creer": "Créer",
+        "modifier": "Modifier",
+        "supprimer": "Supprimer",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "create": "Créer",
+        "selectMenu": "Veuillez sélectionner un menu",
+        "duplicate": "Cette règle existe déjà, redirection vers l'édition",
+        "created": "Règle créée",
+        "updated": "Règle modifiée"
+      }
     }
   },
   "prevention": {
@@ -42,9 +320,6 @@
   },
   "statistics": {
     "title": "Statistiques"
-  },
-  "users": {
-    "title": "Utilisateurs"
   },
   "roles": {
     "super_admin": "Super Admin",
@@ -54,18 +329,35 @@
     "prestataire": "Prestataire",
     "dg": "DG"
   },
-  "planning": {
-    "title": "Planification des activités",
-    "newPlanning": "Nouvelle planification",
-    "status": {
-      "brouillon": "Brouillon",
-      "planifie": "Planifié",
-      "en_cours": "En cours",
-      "valide": "Validé",
-      "annule": "Annulé"
-    }
-  },
   "offline": {
     "banner": "Mode hors-ligne"
+  },
+  "errors": {
+    "incorrect_credentials": "Identifiants incorrects",
+    "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
+    "email_required": "L'email est obligatoire",
+    "email_invalid": "L'email n'est pas un email valide",
+    "email_already_used": "Email déjà utilisé",
+    "name_required": "Le nom est obligatoire",
+    "password_required": "Le mot de passe est obligatoire",
+    "role_required": "Le rôle est obligatoire",
+    "site_code_required": "Le code site est requis",
+    "activity_site_code_required": "Le code site est requis",
+    "process_required": "Le procédé est obligatoire",
+    "provider_required": "Le prestataire est obligatoire",
+    "project_description_required": "La description du projet est obligatoire",
+    "site_number_required": "Le numéro site est obligatoire",
+    "site_name_required": "Le nom du site est obligatoire",
+    "region_required": "La région est obligatoire",
+    "theoretical_start_date_required": "La date théorique de début est obligatoire",
+    "expected_start_date_required": "La date de début prévue est obligatoire",
+    "expected_end_date_required": "La date de fin prévue est obligatoire",
+    "dates_incoherent": "Les dates ne sont pas cohérentes",
+    "locked_fields_not_modifiable": "Certains champs ne peuvent pas être modifiés car le planning est verrouillé",
+    "conflict_with_active_interventions": "Conflit avec des interventions en cours",
+    "menu_name_required": "Le nom du menu est obligatoire",
+    "menu_position_required": "La position du menu est obligatoire",
+    "menu_access_menu_required": "Le menu est obligatoire",
+    "menu_access_role_required": "Le rôle est obligatoire"
   }
 }

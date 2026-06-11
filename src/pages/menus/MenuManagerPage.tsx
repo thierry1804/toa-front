@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth.store'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useMenuAccesses } from '@/features/menus/hooks/useMenuAccesses'
@@ -38,6 +39,7 @@ export default function MenuManagerPage() {
   const { data: accesses, isLoading: accessesLoading } = useMenuAccesses()
   const [entries, setEntries] = useState<Map<AccessKey, AccessEntry>>(new Map())
 
+  const { t } = useTranslation()
   const menuItems = (menus ?? []).filter((m) => m.name !== 'Dashboard')
   const [loaded, setLoaded] = useState(false)
   const [toggling, setToggling] = useState<AccessKey | null>(null)
@@ -121,7 +123,7 @@ export default function MenuManagerPage() {
         queryClient.invalidateQueries({ queryKey: ['menu-accesses'] })
       }
     } catch {
-      addToast({ message: 'Erreur lors de la mise à jour', type: 'error' })
+      addToast({ message: t('menus.manager.error'), type: 'error' })
       setEntries((prev) => {
         const next = new Map(prev)
         next.set(key, entry)
@@ -135,7 +137,7 @@ export default function MenuManagerPage() {
   if (!canAccessFeature('manage_menus')) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Accès non autorisé</p>
+        <p className="text-gray-500">{t('common.error')}</p>
       </div>
     )
   }
@@ -144,7 +146,7 @@ export default function MenuManagerPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-5 w-5 animate-spin text-gray-400 mr-2" />
-        <p className="text-gray-500">Chargement...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       </div>
     )
   }
@@ -152,9 +154,9 @@ export default function MenuManagerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Gestion des accès</h2>
+        <h2 className="text-3xl font-bold text-gray-900">{t('menus.manager.title')}</h2>
         <p className="mt-1 text-gray-600">
-          Matrice des permissions par rôle et par menu
+          {t('menus.manager.description')}
         </p>
       </div>
 
@@ -162,7 +164,7 @@ export default function MenuManagerPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-gray-900">
             <Shield className="h-5 w-5 text-blue-600" />
-            Permissions
+            {t('menus.manager.permissions')}
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -170,7 +172,7 @@ export default function MenuManagerPage() {
           <table className="hidden lg:table w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="px-3 py-3 text-left font-semibold text-gray-900 sticky left-0 bg-white min-w-[160px] z-10">Menu</th>
+                <th className="px-3 py-3 text-left font-semibold text-gray-900 sticky left-0 bg-white min-w-[160px] z-10">{t('menus.manager.menu')}</th>
                 {ROLES.map((role) => (
                   <th key={role} className="px-3 py-3 text-center font-semibold text-gray-900 min-w-[160px]">
                     {ROLE_LABELS[role] ?? role}

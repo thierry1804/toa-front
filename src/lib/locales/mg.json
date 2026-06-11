@@ -11,7 +11,16 @@
     "filter": "Sivanina",
     "close": "Hidiana",
     "back": "Hiverina",
-    "confirm": "Hanamarina"
+    "confirm": "Hanamarina",
+    "all": "Rehetra",
+    "noData": "Tsy misy angona",
+    "noResults": "Tsy misy valiny",
+    "actions": "Hetsika",
+    "yes": "Eny",
+    "no": "Tsia",
+    "saving": "Tehirizina...",
+    "confirmDelete": "Hanamafy ny famafana",
+    "saveChanges": "Tehirizo ny fanovana"
   },
   "auth": {
     "login": "Hiditra",
@@ -20,21 +29,290 @@
     "password": "Tenimiafina",
     "forgotPassword": "Adino ny tenimiafina ?",
     "noAccount": "Tsy manana kaonty ?",
-    "signUp": "Hisoratra anarana"
+    "signUp": "Hisoratra anarana",
+    "loginButton": "Hiditra",
+    "loggingIn": "Hiditra..."
   },
-  "permits": {
-    "title": "Permis",
-    "newPermit": "Permis vaovao",
-    "permitDetails": "Antsipirihan'ny permis",
+  "dashboard": {
+    "title": "Tabilao",
+    "greeting": "Salama",
+    "description": "Topimaso ny hetsika",
+    "quickAccess": "Fidirana haingana",
+    "recentActivity": "Hetsika vao haingana",
+    "noActivity": "Tsy misy hetsika vao haingana",
+    "stats": {
+      "activePermits": "Permis mavitrika",
+      "pending": "Miandry",
+      "validatedThisMonth": "Voamarina io volana io",
+      "workers": "Mpiasa"
+    },
+    "quickLinks": {
+      "planning": "Fandrindrana",
+      "planningDesc": "Tantano ny fandaharam-potoana",
+      "permits": "Permis asa",
+      "permitsDesc": "Hijery sy hamorona permis",
+      "prevention": "Fisorohana",
+      "preventionDesc": "Drafitra fisorohana",
+      "interventions": "Fandraisana anjaran",
+      "interventionsDesc": "Fanaraha-maso ny fandraisana anjaran",
+      "users": "Mpampiasa",
+      "usersDesc": "Fitantanana ny kaonty"
+    }
+  },
+  "users": {
+    "title": "Mpampiasa",
+    "newUser": "Mpampiasa vaovao",
+    "description": "Fitantanana ny mpampiasa sy ny fidirana amin'ny sehatra",
+    "stats": {
+      "total": "Totaly",
+      "active": "Mavitrika",
+      "inactive": "Tsy mavitrika",
+      "prestataires": "Mpiasa",
+      "teamToa": "Ekipa TOA"
+    },
+    "search": "Karohina amin'ny anarana, fanampiny na mailaka...",
+    "filterRole": "Sivanina araka ny andraikitra",
+    "filterStatus": "Sivanina araka ny sata",
+    "table": {
+      "user": "Mpampiasa",
+      "contact": "Fifandraisana",
+      "role": "Andraikitra",
+      "status": "Sata",
+      "createdAt": "Noforonina tamin'ny",
+      "actions": "Hetsika"
+    },
+    "empty": "Tsy misy mpampiasa hita",
+    "createAction": "Hamorona mpampiasa",
+    "deleteConfirm": {
+      "title": "Hanamafy ny famafana",
+      "message": "Fafao ny mpampiasa"
+    },
+    "form": {
+      "editTitle": "Hanova ny mpampiasa",
+      "createTitle": "Mpampiasa vaovao",
+      "editDesc": "Hanova ny mombamomba ny mpampiasa",
+      "createDesc": "Hamorona kaonty mpampiasa vaovao",
+      "personalInfo": "Mombamomba manokana",
+      "roleAndPermissions": "Andraikitra sy alalana",
+      "rolePermissions": "Alalan'ity andraikitra ity :",
+      "security": "Fiarovana",
+      "accountStatus": "Satam-piasana",
+      "activeAccount": "Kaonty mavitrika",
+      "activeAccountDesc": "Kaonty tsy mavitrika tsy afaka miditra amin'ny sehatra",
+      "firstname": "Fanampiny *",
+      "name": "Anarana *",
+      "email": "Mailaka *",
+      "role": "Andraikitra *",
+      "entreprise": "Orinasa *",
+      "password": "Tenimiafina",
+      "confirmPassword": "Hamafiso ny tenimiafina",
+      "passwordPlaceholder": "Farafahakeliny 6 tarehintsoratra",
+      "confirmPasswordPlaceholder": "Avereno soraty ny tenimiafina",
+      "firstnamePlaceholder": "Ohatra: Jean",
+      "namePlaceholder": "Ohatra: RAKOTO",
+      "emailPlaceholder": "ohatra@orinasa.mg",
+      "entreprisePlaceholder": "Ohatra: eTech Consulting",
+      "keepPassword": "Avelao banga ireo saha mba hitazona ny tenimiafina ankehitriny.",
+      "prestataireInfo": "TOA miara-miasa amin'ny mpiasa mpiara-miombon'antoka. Ny mpiasa tsirairay dia tsy maintsy mameno drafitra fisorohana ary mahazo permis alohan'ny fitsabahana rehetra.",
+      "cancel": "Ajanony",
+      "save": "Tehirizo ny fanovana",
+      "create": "Hamorona ny mpampiasa"
+    },
+    "validation": {
+      "nameRequired": "Ilaina ny anarana",
+      "firstnameRequired": "Ilaina ny fanampiny",
+      "emailRequired": "Ilaina ny mailaka",
+      "emailInvalid": "Tsy manan-kery ny mailaka",
+      "emailTaken": "Efa ampiasaina ity mailaka ity",
+      "passwordRequired": "Ilaina ny tenimiafina",
+      "passwordMin": "Ny tenimiafina dia tsy maintsy misy farafahakeliny 6 tarehintsoratra",
+      "confirmRequired": "Hamafiso ny tenimiafina",
+      "confirmMismatch": "Tsy mifanaraka ny tenimiafina",
+      "formErrors": "Valio ireo hadisoana amin'ny formulaire"
+    },
+    "toast": {
+      "created": "Mpampiasa noforonina soa aman-tsara",
+      "updated": "Mpampiasa novana soa aman-tsara",
+      "deleted": "Mpampiasa voafafa soa aman-tsara",
+      "createError": "Hadisoana tamin'ny famoronana",
+      "updateError": "Hadisoana tamin'ny fanovana",
+      "deleteError": "Hadisoana tamin'ny famafana",
+      "permissionDenied": "Tsy nahazo alalana"
+    }
+  },
+  "planning": {
+    "title": "Fandrindrana ny hetsika",
+    "newPlanning": "Fandrindrana vaovao",
+    "description": "Fitantanana ny fandaharam-potoan'ny fitsabahana eny an-toerana",
+    "stats": {
+      "total": "Totaly",
+      "planifie": "Voalahatra",
+      "en_cours": "Mandroso",
+      "valide": "Voamarina",
+      "brouillon": "Drafitra"
+    },
+    "search": "Karohina araka ny dingana, mpanome tolotra, toerana...",
+    "filterStatus": "Sivanina araka ny sata",
+    "table": {
+      "activity": "Hetsika",
+      "site": "Toerana",
+      "provider": "Mpanome tolotra",
+      "dates": "Daty",
+      "status": "Sata",
+      "actions": "Hetsika"
+    },
+    "empty": "Tsy misy hetsika hita",
+    "createAction": "Mandamina hetsika",
+    "deleteConfirm": {
+      "title": "Hanamafy ny famafana",
+      "message": "Tena ho afa-mamafa ny fandrindrana",
+      "irreversible": "Tsy azo averina intsony ity hetsika ity."
+    },
+    "form": {
+      "editTitle": "Hanova ny fandrindrana",
+      "createTitle": "Fandrindrana vaovao",
+      "editDesc": "Hanova ny antsipirihan'ny hetsika voalahatra",
+      "createDesc": "Mandamina hetsika vaovao eny an-toerana",
+      "generalInfo": "Mombamomba ankapobe",
+      "site": "Toerana",
+      "dates": "Daty",
+      "status": "Sata",
+      "process": "Dingana *",
+      "processPlaceholder": "Ohatra: Fikojakojana ny groupe électrogène",
+      "projectDescription": "Famaritana ny tetikasa *",
+      "projectDescriptionPlaceholder": "Hazavao ny asa hotanterahina...",
+      "provider": "Mpanome tolotra *",
+      "providerPlaceholder": "Anaran'ny orinasa",
+      "providerEmail": "Mailaka mpanome tolotra",
+      "providerEmailPlaceholder": "contact@mpanome.mg",
+      "siteCode": "Kaody toerana *",
+      "siteCodePlaceholder": "Ohatra: TNR-001",
+      "siteNumber": "Laharana toerana *",
+      "siteNumberPlaceholder": "Ohatra: 12345",
+      "siteName": "Anaran'ny toerana *",
+      "siteNamePlaceholder": "Ohatra: Antananarivo Centre",
+      "region": "Faritra *",
+      "regionPlaceholder": "Ohatra: Analamanga",
+      "theoreticalDate": "Daty teorika *",
+      "expectedStartDate": "Fanombohana voalahatra *",
+      "expectedEndDate": "Famaranana voalahatra *",
+      "dateInfo": "Ny daty teorika dia ny daty fanombohana voalahatra tany am-boalohany. Ny daty voalahatra dia azo ovaina raha mbola manaraka ny firindrana ara-potoana.",
+      "draftNote": "Ny fandrindrana ao amin'ny drafitra dia tsy hita ao amin'ny kalandrie",
+      "cancel": "Ajanony",
+      "save": "Tehirizo ny fanovana",
+      "create": "Hamorona ny fandrindrana"
+    },
+    "validation": {
+      "processRequired": "Ilaina ny dingana",
+      "providerRequired": "Ilaina ny mpanome tolotra",
+      "descriptionRequired": "Ilaina ny famaritana",
+      "siteCodeRequired": "Ilaina ny kaody toerana",
+      "siteNumberRequired": "Ilaina ny laharana toerana",
+      "siteNameRequired": "Ilaina ny anaran'ny toerana",
+      "regionRequired": "Ilaina ny faritra",
+      "theoreticalDateRequired": "Ilaina ny daty teorika",
+      "expectedStartDateRequired": "Ilaina ny daty fanombohana voalahatra",
+      "expectedEndDateRequired": "Ilaina ny daty famaranana voalahatra",
+      "endBeforeStart": "Ny daty famaranana dia tsy mety ho alohan'ny daty fanombohana",
+      "startBeforeTheoretical": "Tsy maintsy aorian'ny daty teorika na mitovy aminy",
+      "formErrors": "Valio ireo hadisoana amin'ny formulaire"
+    },
+    "toast": {
+      "created": "Fandrindrana noforonina soa aman-tsara",
+      "updated": "Fandrindrana novana soa aman-tsara",
+      "deleted": "Fandrindrana voafafa soa aman-tsara",
+      "createError": "Hadisoana tamin'ny famoronana",
+      "updateError": "Hadisoana tamin'ny fanovana",
+      "deleteError": "Hadisoana tamin'ny famafana",
+      "permissionDenied": "Tsy nahazo alalana"
+    },
     "status": {
-      "draft": "Drafitra",
-      "awaiting_chef_validation": "Miandry lehibe",
-      "awaiting_hse_validation": "Miandry HSE",
-      "validated": "Voamarina",
-      "in_progress": "Mandroso",
-      "closed": "Nohidiana",
-      "rejected": "Nolavina",
-      "expired": "Lany daty"
+      "brouillon": "Drafitra",
+      "planifie": "Voalahatra",
+      "en_cours": "Mandroso",
+      "valide": "Voamarina",
+      "annule": "Nofoanana"
+    }
+  },
+  "menus": {
+    "list": {
+      "title": "Fitantanana ny menus",
+      "description": "Fandrindrana ny hazo fandefasana",
+      "newMenu": "Menu vaovao",
+      "treeTitle": "Hazo",
+      "empty": "Tsy misy menu",
+      "deleted": "Menu voafafa",
+      "deleteError": "Hadisoana tamin'ny famafana"
+    },
+    "form": {
+      "editTitle": "Hanova ny menu",
+      "createTitle": "Menu vaovao",
+      "information": "Mombamomba",
+      "label": "Sokajy *",
+      "labelPlaceholder": "Ohatra: Dashboard",
+      "icon": "Sary",
+      "iconPlaceholder": "Ohatra: LayoutDashboard",
+      "route": "Lalana",
+      "routePlaceholder": "Ohatra: /dashboard",
+      "position": "Toerana",
+      "parent": "Reny",
+      "noParent": "Tsy misy (menu fototra)",
+      "cancel": "Ajanony",
+      "save": "Tehirizo",
+      "create": "Hamorona",
+      "back": "Hiverina",
+      "updated": "Menu novana",
+      "created": "Menu noforonina",
+      "error": "Hadisoana"
+    },
+    "validation": {
+      "nameRequired": "Ilaina ny sokajy"
+    },
+    "manager": {
+      "title": "Fitantanana ny fidirana",
+      "description": "Matrin'ny alalana araka ny andraikitra sy ny menu",
+      "permissions": "Alalana",
+      "menu": "Menu",
+      "error": "Hadisoana tamin'ny fanavaozana"
+    },
+    "accesses": {
+      "title": "Fidirana araka ny andraikitra",
+      "description": "Lalàna fidirana amin'ny menus araka ny andraikitra",
+      "new": "Lalàna vaovao",
+      "rules": "Lalàna",
+      "empty": "Tsy misy lalàna fidirana",
+      "deleted": "Lalàna voafafa",
+      "error": "Hadisoana",
+      "table": {
+        "menu": "Menu",
+        "role": "Andraikitra",
+        "voir": "Hijery",
+        "creer": "Hamorona",
+        "modifier": "Hanova",
+        "supprimer": "Hamafa",
+        "actions": "Hetsika"
+      },
+      "form": {
+        "editTitle": "Hanova ny lalàna",
+        "createTitle": "Lalàna vaovao",
+        "back": "Hiverina",
+        "menu": "Menu *",
+        "menuPlaceholder": "Fidio menu",
+        "role": "Andraikitra *",
+        "permissions": "Alalana",
+        "voir": "Hijery",
+        "voirDesc": "Aseho ny menu amin'ny sidebar",
+        "creer": "Hamorona",
+        "modifier": "Hanova",
+        "supprimer": "Hamafa",
+        "cancel": "Ajanony",
+        "save": "Tehirizo",
+        "create": "Hamorona",
+        "selectMenu": "Fidio menu",
+        "duplicate": "Efa misy ity lalàna ity, alefa any amin'ny fanovana",
+        "created": "Lalàna noforonina",
+        "updated": "Lalàna novana"
+      }
     }
   },
   "prevention": {
@@ -42,9 +320,6 @@
   },
   "statistics": {
     "title": "Antontan'isa"
-  },
-  "users": {
-    "title": "Mpampiasa"
   },
   "roles": {
     "super_admin": "Super Admin",
@@ -54,18 +329,35 @@
     "prestataire": "Mpiasa",
     "dg": "DG"
   },
-  "planning": {
-    "title": "Planification des activités",
-    "newPlanning": "Planification vaovao",
-    "status": {
-      "brouillon": "Drafitra",
-      "planifie": "Voalahatra",
-      "en_cours": "Mandroso",
-      "valide": "Voamarina",
-      "annule": "Nofoanana"
-    }
-  },
   "offline": {
     "banner": "Mode tsy misy tambajotra"
+  },
+  "errors": {
+    "incorrect_credentials": "Diso ny mombamomba",
+    "too_many_login_attempts": "Be loatra ny andrana fidirana. Andramo indray any aoriana.",
+    "email_required": "Ilaina ny mailaka",
+    "email_invalid": "Tsy manan-kery ny mailaka",
+    "email_already_used": "Efa ampiasaina ity mailaka ity",
+    "name_required": "Ilaina ny anarana",
+    "password_required": "Ilaina ny tenimiafina",
+    "role_required": "Ilaina ny andraikitra",
+    "site_code_required": "Ilaina ny kaody toerana",
+    "activity_site_code_required": "Ilaina ny kaody toerana",
+    "process_required": "Ilaina ny dingana",
+    "provider_required": "Ilaina ny mpanome tolotra",
+    "project_description_required": "Ilaina ny famaritana ny tetikasa",
+    "site_number_required": "Ilaina ny laharana toerana",
+    "site_name_required": "Ilaina ny anaran'ny toerana",
+    "region_required": "Ilaina ny faritra",
+    "theoretical_start_date_required": "Ilaina ny daty teorika fanombohana",
+    "expected_start_date_required": "Ilaina ny daty fanombohana voalahatra",
+    "expected_end_date_required": "Ilaina ny daty famaranana voalahatra",
+    "dates_incoherent": "Tsy mifanaraka ny daty",
+    "locked_fields_not_modifiable": "Tsy azo ovaina ny saha sasany satria voahidy ny fandrindrana",
+    "conflict_with_active_interventions": "Misy fifandonana amin'ny fitsabahana mandeha",
+    "menu_name_required": "Ilaina ny anaran'ny menu",
+    "menu_position_required": "Ilaina ny toeran'ny menu",
+    "menu_access_menu_required": "Ilaina ny menu",
+    "menu_access_role_required": "Ilaina ny andraikitra"
   }
 }

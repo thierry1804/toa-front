@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
+import { useTranslation } from "react-i18next";
 import {
   useActivityPlannings,
   useCreateActivityPlanning,
@@ -24,6 +25,7 @@ import {
 import { statusOptions } from "@/data/constant/planning";
 
 export default function PlanningFormPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { canAccessFeature } = useAuthStore();
@@ -98,7 +100,7 @@ export default function PlanningFormPage() {
   useEffect(() => {
     if (!canAccessFeature(isEditMode ? "edit_planning" : "create_planning")) {
       navigate("/planning");
-      addToast({ message: "Permission refusée", type: "error" });
+      addToast({ message: t('planning.toast.permissionDenied'), type: "error" });
     }
   }, [isEditMode, navigate, addToast, canAccessFeature]);
 
@@ -106,24 +108,24 @@ export default function PlanningFormPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.process.trim())
-      newErrors.process = "Le procédé est obligatoire";
+      newErrors.process = t('planning.validation.processRequired');
     if (!formData.provider.trim())
-      newErrors.provider = "Le prestataire est obligatoire";
+      newErrors.provider = t('planning.validation.providerRequired');
     if (!formData.projectDescription.trim())
-      newErrors.projectDescription = "La description est obligatoire";
+      newErrors.projectDescription = t('planning.validation.descriptionRequired');
     if (!formData.siteCode.trim())
-      newErrors.siteCode = "Le code site est obligatoire";
+      newErrors.siteCode = t('planning.validation.siteCodeRequired');
     if (!formData.siteNumber.trim())
-      newErrors.siteNumber = "Le numéro site est obligatoire";
+      newErrors.siteNumber = t('planning.validation.siteNumberRequired');
     if (!formData.siteName.trim())
-      newErrors.siteName = "Le nom du site est obligatoire";
-    if (!formData.region.trim()) newErrors.region = "La région est obligatoire";
+      newErrors.siteName = t('planning.validation.siteNameRequired');
+    if (!formData.region.trim()) newErrors.region = t('planning.validation.regionRequired');
     if (!formData.theoreticalStartDate)
-      newErrors.theoreticalStartDate = "La date théorique est obligatoire";
+      newErrors.theoreticalStartDate = t('planning.validation.theoreticalDateRequired');
     if (!formData.expectedStartDate)
-      newErrors.expectedStartDate = "La date prévue de début est obligatoire";
+      newErrors.expectedStartDate = t('planning.validation.expectedStartDateRequired');
     if (!formData.expectedEndDate)
-      newErrors.expectedEndDate = "La date prévue de fin est obligatoire";
+      newErrors.expectedEndDate = t('planning.validation.expectedEndDateRequired');
 
     if (formData.expectedStartDate && formData.expectedEndDate) {
       if (
@@ -131,7 +133,7 @@ export default function PlanningFormPage() {
         new Date(formData.expectedStartDate)
       ) {
         newErrors.expectedEndDate =
-          "La date de fin ne peut pas être antérieure à la date de début";
+          t('planning.validation.endBeforeStart');
       }
     }
     if (formData.theoreticalStartDate && formData.expectedStartDate) {
@@ -140,7 +142,7 @@ export default function PlanningFormPage() {
         new Date(formData.theoreticalStartDate)
       ) {
         newErrors.expectedStartDate =
-          "Doit être postérieure ou égale à la date théorique";
+          t('planning.validation.startBeforeTheoretical');
       }
     }
 
@@ -152,7 +154,7 @@ export default function PlanningFormPage() {
     e.preventDefault();
     if (!validateForm()) {
       addToast({
-        message: "Veuillez corriger les erreurs du formulaire",
+        message: t('planning.validation.formErrors'),
         type: "error",
       });
       return;
@@ -186,12 +188,12 @@ export default function PlanningFormPage() {
         {
           onSuccess: () =>
             addToast({
-              message: "Planification modifiée avec succès",
+              message: t('planning.toast.updated'),
               type: "success",
             }),
           onError: () =>
             addToast({
-              message: "Erreur lors de la modification",
+              message: t('planning.toast.updateError'),
               type: "error",
             }),
         },
@@ -200,11 +202,11 @@ export default function PlanningFormPage() {
       createPlanning(payload, {
         onSuccess: () =>
           addToast({
-            message: "Planification créée avec succès",
+            message: t('planning.toast.created'),
             type: "success",
           }),
         onError: () =>
-          addToast({ message: "Erreur lors de la création", type: "error" }),
+          addToast({ message: t('planning.toast.createError'), type: "error" }),
       });
     }
   };
@@ -219,19 +221,19 @@ export default function PlanningFormPage() {
           <Link to="/planning">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+              {t('common.back')}
             </Button>
           </Link>
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {isEditMode
-                ? "Modifier la planification"
-                : "Nouvelle planification"}
+                ? t('planning.form.editTitle')
+                : t('planning.form.createTitle')}
             </h2>
             <p className="mt-1 text-gray-600">
               {isEditMode
-                ? "Modifier les détails de l'activité planifiée"
-                : "Planifier une nouvelle activité sur site"}
+                ? t('planning.form.editDesc')
+                : t('planning.form.createDesc')}
             </p>
           </div>
         </div>
@@ -242,45 +244,45 @@ export default function PlanningFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Building2 className="h-5 w-5 text-blue-600" />
-              Informations générales
+              {t('planning.form.generalInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              label="Procédé *"
+              label={t('planning.form.process')}
               value={formData.process}
               onChange={(e) => set("process", e.target.value)}
               error={errors.process}
-              placeholder="Ex: Maintenance groupe électrogène"
+              placeholder={t('planning.form.processPlaceholder')}
               required
               disabled={lockedFields.includes("process")}
             />
             <Textarea
               className="text-gray-900"
-              label="Description du projet *"
+              label={t('planning.form.projectDescription')}
               value={formData.projectDescription}
               onChange={(e) => set("projectDescription", e.target.value)}
               error={errors.projectDescription}
-              placeholder="Décrire les travaux à réaliser..."
+              placeholder={t('planning.form.projectDescriptionPlaceholder')}
               required
               disabled={lockedFields.includes("projectDescription")}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Prestataire *"
+                label={t('planning.form.provider')}
                 value={formData.provider}
                 onChange={(e) => set("provider", e.target.value)}
                 error={errors.provider}
-                placeholder="Nom de l'entreprise"
+                placeholder={t('planning.form.providerPlaceholder')}
                 required
                 disabled={lockedFields.includes("provider")}
               />
               <Input
-                label="Email prestataire"
+                label={t('planning.form.providerEmail')}
                 type="email"
                 value={formData.providerEmail}
                 onChange={(e) => set("providerEmail", e.target.value)}
-                placeholder="contact@prestataire.mg"
+                placeholder={t('planning.form.providerEmailPlaceholder')}
               />
             </div>
           </CardContent>
@@ -290,45 +292,45 @@ export default function PlanningFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <MapPin className="h-5 w-5 text-blue-600" />
-              Site
+              {t('planning.form.site')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
-                label="Code site *"
+                label={t('planning.form.siteCode')}
                 value={formData.siteCode}
                 onChange={(e) => set("siteCode", e.target.value)}
                 error={errors.siteCode}
-                placeholder="Ex: TNR-001"
+                placeholder={t('planning.form.siteCodePlaceholder')}
                 required
                 disabled={lockedFields.includes("siteCode")}
               />
               <Input
-                label="Numéro site *"
+                label={t('planning.form.siteNumber')}
                 value={formData.siteNumber}
                 onChange={(e) => set("siteNumber", e.target.value)}
                 error={errors.siteNumber}
-                placeholder="Ex: 12345"
+                placeholder={t('planning.form.siteNumberPlaceholder')}
                 required
                 disabled={lockedFields.includes("siteNumber")}
               />
               <Input
-                label="Nom du site *"
+                label={t('planning.form.siteName')}
                 value={formData.siteName}
                 onChange={(e) => set("siteName", e.target.value)}
                 error={errors.siteName}
-                placeholder="Ex: Antananarivo Centre"
+                placeholder={t('planning.form.siteNamePlaceholder')}
                 required
                 disabled={lockedFields.includes("siteName")}
               />
             </div>
             <Input
-              label="Région *"
+              label={t('planning.form.region')}
               value={formData.region}
               onChange={(e) => set("region", e.target.value)}
               error={errors.region}
-              placeholder="Ex: Analamanga"
+              placeholder={t('planning.form.regionPlaceholder')}
               required
               disabled={lockedFields.includes("region")}
             />
@@ -339,20 +341,18 @@ export default function PlanningFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Clock className="h-5 w-5 text-blue-600" />
-              Dates
+              {t('planning.form.dates')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
-                La date théorique est la date de début prévue initialement.Les
-                dates prévues peuvent être ajustées tout en respectant la
-                cohérence temporelle.
+                {t('planning.form.dateInfo')}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
-                label="Date théorique *"
+                label={t('planning.form.theoreticalDate')}
                 type="datetime-local"
                 value={formData.theoreticalStartDate}
                 onChange={(e) => set("theoreticalStartDate", e.target.value)}
@@ -361,7 +361,7 @@ export default function PlanningFormPage() {
                 disabled={lockedFields.includes("theoreticalStartDate")}
               />
               <Input
-                label="Début prévu *"
+                label={t('planning.form.expectedStartDate')}
                 type="datetime-local"
                 value={formData.expectedStartDate}
                 onChange={(e) => set("expectedStartDate", e.target.value)}
@@ -370,7 +370,7 @@ export default function PlanningFormPage() {
                 disabled={lockedFields.includes("expectedStartDate")}
               />
               <Input
-                label="Fin prévue *"
+                label={t('planning.form.expectedEndDate')}
                 type="datetime-local"
                 value={formData.expectedEndDate}
                 onChange={(e) => set("expectedEndDate", e.target.value)}
@@ -386,20 +386,19 @@ export default function PlanningFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <CalendarPlus className="h-5 w-5 text-blue-600" />
-              Statut
+              {t('planning.form.status')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Select
-              label="Statut"
+              label={t('planning.form.status')}
               options={statusOptions}
               value={formData.status}
               onChange={(e) => set("status", e.target.value)}
             />
             {formData.status === "brouillon" && (
               <p className="mt-2 text-xs text-gray-500">
-                Les planifications en brouillon ne sont pas visibles dans le
-                calendrier
+                {t('planning.form.draftNote')}
               </p>
             )}
           </CardContent>
@@ -409,19 +408,19 @@ export default function PlanningFormPage() {
           <Link to="/planning">
             <Button type="button" variant="outline">
               {" "}
-              Annuler{" "}
+              {t('common.cancel')}{" "}
             </Button>
           </Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>
             {isEditMode ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Enregistrer les modifications
+                {t('common.saveChanges')}
               </>
             ) : (
               <>
                 <CalendarPlus className="h-4 w-4 mr-2" />
-                Créer la planification
+                {t('planning.form.create')}
               </>
             )}
           </Button>

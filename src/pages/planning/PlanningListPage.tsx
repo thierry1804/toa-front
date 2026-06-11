@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/store/auth.store";
 import {
   useActivityPlannings,
   useDeleteActivityPlanning,
@@ -37,7 +36,6 @@ import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
 export default function PlanningListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { canAccessFeature } = useAuthStore();
   const addToast = useUiStore((s) => s.addToast);
   const { data: plannings, isLoading } = useActivityPlannings();
   const { mutate: deletePlanning } = useDeleteActivityPlanning();
@@ -76,13 +74,13 @@ export default function PlanningListPage() {
     deletePlanning(deleteTarget.id, {
       onSuccess: () => {
         addToast({
-          message: "Planification supprimée avec succès",
+          message: t('planning.toast.deleted'),
           type: "success",
         });
         setDeleteTarget(null);
       },
       onError: () => {
-        addToast({ message: "Erreur lors de la suppression", type: "error" });
+        addToast({ message: t('planning.toast.deleteError'), type: "error" });
       },
     });
   };
@@ -101,17 +99,17 @@ export default function PlanningListPage() {
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {" "}
-            Planification des activités{" "}
+            {t('planning.title')}{" "}
           </h2>
           <p className="mt-1 text-sm text-gray-600">
-            Gestion du calendrier des interventions sur sites
+            {t('planning.description')}
           </p>
         </div>
         {perms?.canCreate && (
           <Link to="/planning/new" className="self-start sm:self-auto">
             <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
               <Plus className="h-5 w-5 mr-2" />
-              Nouvelle planification
+              {t('planning.newPlanning')}
             </Button>
           </Link>
         )}
@@ -122,7 +120,7 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> Total </p>
+                <p className="text-sm text-gray-600"> {t('planning.stats.total')} </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {" "}
                   {stats.total}{" "}
@@ -136,7 +134,7 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> Planifiées </p>
+                <p className="text-sm text-gray-600"> {t('planning.stats.planifie')} </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {" "}
                   {stats.planifie}{" "}
@@ -150,7 +148,7 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> En cours </p>
+                <p className="text-sm text-gray-600"> {t('planning.stats.en_cours')} </p>
                 <p className="text-2xl font-bold text-yellow-600">
                   {" "}
                   {stats.en_cours}{" "}
@@ -164,7 +162,7 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> Validées </p>
+                <p className="text-sm text-gray-600"> {t('planning.stats.valide')} </p>
                 <p className="text-2xl font-bold text-green-600">
                   {" "}
                   {stats.valide}{" "}
@@ -178,7 +176,7 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> Brouillons </p>
+                <p className="text-sm text-gray-600"> {t('planning.stats.brouillon')} </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {" "}
                   {stats.brouillon}{" "}
@@ -194,7 +192,7 @@ export default function PlanningListPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              placeholder="Rechercher par procédé, prestataire, site..."
+              placeholder={t('planning.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -202,7 +200,7 @@ export default function PlanningListPage() {
               options={statusFilterOptions}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              placeholder="Filtrer par statut"
+              placeholder={t('planning.filterStatus')}
             />
           </div>
         </CardContent>
@@ -212,22 +210,22 @@ export default function PlanningListPage() {
         <CardHeader>
           <CardTitle className="text-gray-900">
             {" "}
-            Activités({filtered.length}){" "}
+            {t('planning.title')}({filtered.length}){" "}
           </CardTitle>
           <CardDescription>
-            Liste des activités planifiées sur les sites TowerCo
+            {t('planning.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500"> Aucune activité trouvée </p>
+              <p className="text-gray-500"> {t('planning.empty')} </p>
               {perms?.canCreate && (
                 <Link to="/planning/new">
                   <Button className="mt-4" variant="outline">
                     <Plus className="h-5 w-5 mr-2" />
-                    Planifier une activité
+                    {t('planning.createAction')}
                   </Button>
                 </Link>
               )}
@@ -240,27 +238,27 @@ export default function PlanningListPage() {
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        Activité{" "}
+                        {t('planning.table.activity')}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        Site{" "}
+                        {t('planning.table.site')}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        Prestataire{" "}
+                        {t('planning.table.provider')}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        Dates{" "}
+                        {t('planning.table.dates')}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        Statut{" "}
+                        {t('planning.table.status')}{" "}
                       </th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                         {" "}
-                        Actions{" "}
+                        {t('planning.table.actions')}{" "}
                       </th>
                     </tr>
                   </thead>
@@ -334,7 +332,7 @@ export default function PlanningListPage() {
                                     navigate(`/planning/${p.id}/edit`)
                                   }
                                   className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title="Modifier"
+                                  title={t('common.edit')}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </button>
@@ -348,7 +346,7 @@ export default function PlanningListPage() {
                                     })
                                   }
                                   className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title="Supprimer"
+                                  title={t('common.delete')}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -390,7 +388,7 @@ export default function PlanningListPage() {
                             <button
                               onClick={() => navigate(`/planning/${p.id}/edit`)}
                               className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
-                              title="Modifier"
+                              title={t('common.edit')}
                             >
                               <Edit className="h-4 w-4" />
                             </button>
@@ -401,7 +399,7 @@ export default function PlanningListPage() {
                                 setDeleteTarget({ id: p.id, name: p.process })
                               }
                               className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                              title="Supprimer"
+                              title={t('common.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -451,20 +449,19 @@ export default function PlanningListPage() {
       <Modal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Confirmer la suppression"
+        title={t('planning.deleteConfirm.title')}
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Êtes - vous sûr de vouloir supprimer la planification{" "}
-            <strong> {deleteTarget?.name} </strong> ? Cette action est
-            irréversible.
+            {t('planning.deleteConfirm.message')}{" "}
+            <strong> {deleteTarget?.name} </strong> ? {t('planning.deleteConfirm.irreversible')}
           </p>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              Supprimer
+              {t('common.delete')}
             </Button>
           </div>
         </div>

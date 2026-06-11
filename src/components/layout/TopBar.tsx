@@ -7,25 +7,30 @@ import { LogOut, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const FlagFR = () => (
-  <svg viewBox="0 0 3 2" className="h-3 w-4 rounded-sm object-cover shadow-sm flex-shrink-0">
-    <rect width="1" height="2" fill="#002395"/>
-    <rect x="1" width="1" height="2" fill="#ffffff"/>
-    <rect x="2" width="1" height="2" fill="#ED2939"/>
+  <svg
+    viewBox="0 0 3 2"
+    className="h-3 w-4 rounded-sm object-cover shadow-sm flex-shrink-0"
+  >
+    <rect width="1" height="2" fill="#002395" />
+    <rect x="1" width="1" height="2" fill="#ffffff" />
+    <rect x="2" width="1" height="2" fill="#ED2939" />
   </svg>
 );
 
 const FlagMG = () => (
-  <svg viewBox="0 0 900 600" className="h-3 w-4 rounded-sm object-cover shadow-sm flex-shrink-0">
-    <rect width="300" height="600" fill="#ffffff"/>
-    <rect x="300" width="600" height="300" fill="#fc3d32"/>
-    <rect x="300" y="300" width="600" height="300" fill="#007e3a"/>
+  <svg
+    viewBox="0 0 900 600"
+    className="h-3 w-4 rounded-sm object-cover shadow-sm flex-shrink-0"
+  >
+    <rect width="300" height="600" fill="#ffffff" />
+    <rect x="300" width="600" height="300" fill="#fc3d32" />
+    <rect x="300" y="300" width="600" height="300" fill="#007e3a" />
   </svg>
 );
 
 export function TopBar() {
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
-  console.log(user);
 
   const { mutate: logout } = useLogout();
   const isOnline = useOnline();
@@ -47,6 +52,7 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6">
       <div className="flex items-center gap-4">
+        <img src="/images/TOA.png" alt="TOA" className="h-9 w-auto lg:hidden" />
         <button
           onClick={toggleSidebar}
           className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
@@ -82,20 +88,28 @@ export function TopBar() {
             <span className="text-sm font-medium text-gray-900 uppercase">
               {i18n.language}
             </span>
-            <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`h-4 w-4 text-gray-500 transition-transform ${langOpen ? "rotate-180" : ""}`}
+            />
           </button>
-          
+
           {langOpen && (
             <div className="absolute right-0 mt-1 w-32 rounded-lg border border-gray-200 bg-white shadow-lg z-50 py-1">
               <button
-                onClick={() => { i18n.changeLanguage("fr"); setLangOpen(false); }}
+                onClick={() => {
+                  i18n.changeLanguage("fr");
+                  setLangOpen(false);
+                }}
                 className="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 <FlagFR />
                 <span className="font-medium">Français</span>
               </button>
               <button
-                onClick={() => { i18n.changeLanguage("mg"); setLangOpen(false); }}
+                onClick={() => {
+                  i18n.changeLanguage("mg");
+                  setLangOpen(false);
+                }}
                 className="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 <FlagMG />

@@ -97,11 +97,13 @@ export function Sidebar() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
-          {!collapsed && (
-            <span className="text-lg font-bold text-gray-900"> TOA </span>
-          )}
-          <div className="flex items-center gap-1">
+        <div className="relative flex h-16 items-center justify-center border-b border-gray-200 px-4">
+          <img
+            src="/images/TOA.png"
+            alt="TOA"
+            className={`${collapsed ? "h-7 w-auto" : "h-9 w-auto"}`}
+          />
+          <div className="absolute right-2 flex items-center gap-1">
             <button
               onClick={() => setSidebarOpen(false)}
               className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 lg:hidden"

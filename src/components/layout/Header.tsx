@@ -1,14 +1,12 @@
-import { useAuthStore } from '@/store/authStore';
-import { useI18n } from '@/lib/i18n';
+import { useAuthStore } from '@/store/auth.store';
+import { useTranslation } from 'react-i18next';
 import { Bell, Globe } from 'lucide-react';
 
 export default function Header() {
   const { user } = useAuthStore();
-  const { language, setLanguage } = useI18n();
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'fr' ? 'mg' : 'fr');
-  };
+  const { i18n } = useTranslation();
+  const language = i18n.language?.startsWith('mg') ? 'mg' : 'fr';
+  const toggleLanguage = () => i18n.changeLanguage(language === 'fr' ? 'mg' : 'fr');
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">

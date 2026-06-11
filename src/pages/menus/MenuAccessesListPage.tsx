@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { useMenuAccesses, useDeleteMenuAccess } from '@/features/menus/hooks/useMenuAccesses'
@@ -19,12 +20,13 @@ export default function MenuAccessesListPage() {
   const { data: accesses, isLoading } = useMenuAccesses()
   const { data: menus } = useMenus()
   const { mutate: deleteAccess } = useDeleteMenuAccess()
+  const { t } = useTranslation()
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null)
 
   if (!canAccessFeature('manage_menus')) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Accès non autorisé</p>
+        <p className="text-gray-500">{t('common.error')}</p>
       </div>
     )
   }
@@ -32,7 +34,7 @@ export default function MenuAccessesListPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Chargement...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       </div>
     )
   }
@@ -43,10 +45,10 @@ export default function MenuAccessesListPage() {
     if (!deleteTarget) return
     deleteAccess(deleteTarget.id, {
       onSuccess: () => {
-        addToast({ message: 'Règle supprimée', type: 'success' })
+        addToast({ message: t('menus.accesses.deleted'), type: 'success' })
         setDeleteTarget(null)
       },
-      onError: () => addToast({ message: 'Erreur', type: 'error' }),
+      onError: () => addToast({ message: t('common.error'), type: 'error' }),
     })
   }
 
@@ -56,23 +58,23 @@ export default function MenuAccessesListPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Accès par rôle</h2>
-          <p className="mt-1 text-sm text-gray-600">Règles d'accès aux menus par rôle</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('menus.accesses.title')}</h2>
+          <p className="mt-1 text-sm text-gray-600">{t('menus.accesses.description')}</p>
         </div>
         <Link to="/menu-accesses/new" className="self-start sm:self-auto">
-          <Button><Plus className="h-5 w-5 mr-2" />Nouvelle règle</Button>
+          <Button><Plus className="h-5 w-5 mr-2" />{t('menus.accesses.new')}</Button>
         </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-900">Règles ({accesses?.length ?? 0})</CardTitle>
+          <CardTitle className="text-gray-900">{t('menus.accesses.rules')} ({accesses?.length ?? 0})</CardTitle>
         </CardHeader>
         <CardContent>
           {accesses?.length === 0 ? (
             <div className="text-center py-8">
               <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Aucune règle d'accès</p>
+              <p className="text-gray-500">{t('menus.accesses.empty')}</p>
             </div>
           ) : (
             <>
@@ -81,13 +83,13 @@ export default function MenuAccessesListPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Menu</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Rôle</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Voir</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Créer</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Modifier</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Supprimer</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('menus.accesses.table.menu')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('menus.accesses.table.role')}</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{t('menus.accesses.table.voir')}</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{t('menus.accesses.table.creer')}</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{t('menus.accesses.table.modifier')}</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">{t('menus.accesses.table.supprimer')}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">{t('menus.accesses.table.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -105,10 +107,10 @@ export default function MenuAccessesListPage() {
                           <td className="px-4 py-3 text-center">{a.canDelete ? <Check className="h-4 w-4 text-green-600 inline" /> : <X className="h-4 w-4 text-red-400 inline" />}</td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-600 hover:text-blue-600 rounded" title="Modifier">
+                              <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-600 hover:text-blue-600 rounded" title={t('common.edit')}>
                                 <Edit className="h-4 w-4" />
                               </button>
-                              <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-600 hover:text-red-600 rounded" title="Supprimer">
+                              <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-600 hover:text-red-600 rounded" title={t('common.delete')}>
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -132,10 +134,10 @@ export default function MenuAccessesListPage() {
                           <Badge>{ROLE_LABELS[a.role] ?? a.role}</Badge>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
-                          <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50" title="Modifier">
+                          <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50" title={t('common.edit')}>
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50" title="Supprimer">
+                          <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50" title={t('common.delete')}>
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -164,12 +166,12 @@ export default function MenuAccessesListPage() {
         </CardContent>
       </Card>
 
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Confirmer">
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={t('common.confirm')}>
         <div className="space-y-4">
-          <p className="text-gray-600">Supprimer la règle <strong>{deleteTarget?.label}</strong> ?</p>
+          <p className="text-gray-600">{t('menus.accesses.deleteConfirm.message', { label: deleteTarget?.label })}</p>
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Annuler</Button>
-            <Button variant="danger" onClick={handleDelete}>Supprimer</Button>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button>
+            <Button variant="danger" onClick={handleDelete}>{t('common.delete')}</Button>
           </div>
         </div>
       </Modal>

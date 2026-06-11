@@ -61,23 +61,7 @@ export default function LoginPage() {
       <div className="login-grid relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col lg:min-h-dvh lg:flex-row lg:items-stretch lg:gap-0 lg:px-6 lg:py-8">
         <aside className="login-brand flex shrink-0 flex-col justify-between px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-6 lg:max-w-md lg:flex-1 lg:rounded-3xl lg:px-10 lg:py-12">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/15 ring-1 ring-cyan-400/30 transition duration-300 hover:ring-cyan-400/60">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-cyan-300"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </span>
+            <img src="/images/TOA.png" alt="TOA" className="h-9 w-auto brightness-0 invert" />
             <div>
               <p className="text-sm font-medium tracking-wide text-cyan-300/90">
                 TOA
