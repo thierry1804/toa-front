@@ -37,16 +37,26 @@ export default function PlanningListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const addToast = useUiStore((s) => s.addToast);
-  const { data: plannings, isLoading } = useActivityPlannings();
   const { mutate: deletePlanning } = useDeleteActivityPlanning();
   const perms = usePermissions("/planning");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
   } | null>(null);
+
+  const itemsPerPage = 10;
+  const { data: hydraData, isLoading } = useActivityPlannings(page, itemsPerPage);
+  const allPlannings = hydraData?.member ?? [];
+  const totalItems = hydraData?.totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const isBackendPaginated = allPlannings.length <= itemsPerPage;
+  const plannings = isBackendPaginated
+    ? allPlannings
+    : allPlannings.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const filtered = (plannings ?? []).filter((p) => {
     const q = searchQuery.toLowerCase();
@@ -62,7 +72,7 @@ export default function PlanningListPage() {
   });
 
   const stats = {
-    total: plannings?.length ?? 0,
+    total: totalItems,
     planifie: plannings?.filter((p) => p.status === "planifie").length ?? 0,
     en_cours: plannings?.filter((p) => p.status === "en_cours").length ?? 0,
     valide: plannings?.filter((p) => p.status === "valide").length ?? 0,
@@ -194,12 +204,12 @@ export default function PlanningListPage() {
             <Input
               placeholder={t('planning.search')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             />
             <Select
               options={statusFilterOptions}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               placeholder={t('planning.filterStatus')}
             />
           </div>
@@ -442,6 +452,30 @@ export default function PlanningListPage() {
                 })}
               </div>
             </>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
+              <p className="text-sm text-gray-600">
+                Page {page} / {totalPages} ({totalItems} {t('planning.stats.total')})
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
+                >
+                  {t('common.previous')}
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
+                >
+                  {t('common.next')}
+                </button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

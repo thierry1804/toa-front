@@ -39,19 +39,25 @@ export default function UsersListPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
   const addToast = useUiStore((s) => s.addToast);
-  const { data: users, isLoading } = useUsers();
   const { mutate: deleteUser } = useDeleteUser();
   const perms = usePermissions('/users');
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
   } | null>(null);
 
-  const filteredUsers = (users ?? []).filter((user) => {
+  const itemsPerPage = 10;
+  const { data: hydraData, isLoading } = useUsers(page, itemsPerPage);
+  const users = hydraData?.member ?? [];
+  const totalItems = hydraData?.totalItems ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+  const filteredUsers = users.filter((user) => {
     const fullName = `${user.firstname} ${user.name}`.toLowerCase();
     const matchSearch =
       searchQuery === "" ||
@@ -71,7 +77,7 @@ export default function UsersListPage() {
   });
 
   const stats = {
-    total: users?.length ?? 0,
+    total: totalItems,
     actifs: users?.filter((u) => u.roles.length > 0).length ?? 0,
     inactifs: users?.filter((u) => u.roles.length === 0).length ?? 0,
     prestataires:
@@ -205,18 +211,18 @@ export default function UsersListPage() {
             <Input
               placeholder={t('users.search')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             />
             <Select
               options={roleOptions}
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+              onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
               placeholder={t('users.filterRole')}
             />
             <Select
               options={statusOptions}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               placeholder={t('users.filterStatus')}
             />
           </div>
@@ -456,6 +462,30 @@ export default function UsersListPage() {
                 })}
               </div>
             </>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
+              <p className="text-sm text-gray-600">
+                Page {page} / {totalPages} ({totalItems} {t('users.stats.total')})
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
+                >
+                  {t('common.previous')}
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
+                >
+                  {t('common.next')}
+                </button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -1,14 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { usersApi } from '@/api/usersApi'
-import type { UserCreate, UserUpdate } from '@/types'
+import type { UserCreate, UserUpdate, HydraCollection } from '@/types'
 import { USERS_KEY } from '@/data/constant/query'
 
-export function useUsers() {
+export function useUsers(page: number = 1, itemsPerPage: number = 10) {
   return useQuery({
-    queryKey: USERS_KEY,
-    queryFn: () => usersApi.list(),
-    select: (data) => data.member,
+    queryKey: [...USERS_KEY, { page, itemsPerPage }],
+    queryFn: () => usersApi.list({ page, itemsPerPage }),
   })
 }
 

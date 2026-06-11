@@ -1,14 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { activityPlanningApi } from '@/api/activityPlanningApi'
-import type { ActivityPlanningCreate, ActivityPlanningUpdate } from '@/types'
+import type { ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection } from '@/types'
 import { PLANNING_KEY } from '@/data/constant/query'
 
-export function useActivityPlannings() {
+export function useActivityPlannings(page: number = 1, itemsPerPage: number = 10) {
   return useQuery({
-    queryKey: PLANNING_KEY,
-    queryFn: () => activityPlanningApi.list(),
-    select: (data) => Array.isArray(data) ? data : data.member ?? [],
+    queryKey: [...PLANNING_KEY, { page, itemsPerPage }],
+    queryFn: () => activityPlanningApi.list({ page, itemsPerPage }),
   })
 }
 

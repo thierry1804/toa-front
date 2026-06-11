@@ -52,7 +52,9 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6">
       <div className="flex items-center gap-4">
-        <img src="/images/TOA.png" alt="TOA" className="h-9 w-auto lg:hidden" />
+        <div className="border border-gray-200 rounded-lg p-1 lg:hidden">
+          <img src="/images/TOA.png" alt="TOA" className="h-8 w-auto" />
+        </div>
         <button
           onClick={toggleSidebar}
           className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"

@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
 import { useTranslation } from "react-i18next";
 import {
-  useActivityPlannings,
+  useActivityPlanning,
   useCreateActivityPlanning,
   useUpdateActivityPlanning,
 } from "@/features/planning/hooks/useActivityPlanning";
@@ -30,16 +30,13 @@ export default function PlanningFormPage() {
   const navigate = useNavigate();
   const { canAccessFeature } = useAuthStore();
   const addToast = useUiStore((s) => s.addToast);
-  const { data: plannings } = useActivityPlannings();
+  const { data: existing } = useActivityPlanning(id ? Number(id) : 0);
   const { mutate: createPlanning, isPending: isCreating } =
     useCreateActivityPlanning();
   const { mutate: updatePlanning, isPending: isUpdating } =
     useUpdateActivityPlanning();
 
   const isEditMode = !!id;
-  const existing = isEditMode
-    ? plannings?.find((p) => String(p.id) === id)
-    : null;
 
   const lockedFields = (() => {
     if (!existing) return [] as string[];

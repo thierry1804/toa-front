@@ -20,7 +20,9 @@
     "no": "Non",
     "saving": "Enregistrement...",
     "confirmDelete": "Confirmer la suppression",
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "auth": {
     "login": "Connexion",

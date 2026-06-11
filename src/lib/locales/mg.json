@@ -20,7 +20,9 @@
     "no": "Tsia",
     "saving": "Tehirizina...",
     "confirmDelete": "Hanamafy ny famafana",
-    "saveChanges": "Tehirizo ny fanovana"
+    "saveChanges": "Tehirizo ny fanovana",
+    "previous": "Teo aloha",
+    "next": "Manaraka"
   },
   "auth": {
     "login": "Hiditra",

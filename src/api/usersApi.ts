@@ -2,8 +2,8 @@ import api from '@/lib/axios'
 import type { User, UserCreate, UserUpdate, HydraCollection } from '@/types'
 
 export const usersApi = {
-  list: () =>
-    api.get<HydraCollection<User>>('/api/users').then((r) => r.data),
+  list: (params?: { page?: number; itemsPerPage?: number }) =>
+    api.get<HydraCollection<User>>('/api/users', { params }).then((r) => r.data),
 
   getById: (id: number) =>
     api.get<User>(`/api/users/${id}`).then((r) => r.data),

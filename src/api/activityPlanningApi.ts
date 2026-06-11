@@ -2,8 +2,8 @@ import api from '@/lib/axios'
 import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection } from '@/types'
 
 export const activityPlanningApi = {
-  list: () =>
-    api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings').then((r) => r.data),
+  list: (params?: { page?: number; itemsPerPage?: number }) =>
+    api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', { params }).then((r) => r.data),
 
   getById: (id: number) =>
     api.get<ActivityPlanning>(`/api/activity_plannings/${id}`).then((r) => r.data),

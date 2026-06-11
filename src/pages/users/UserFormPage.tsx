@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
 import {
-  useUsers,
+  useUser,
   useCreateUser,
   useUpdateUser,
 } from "@/features/users/hooks/useUsers";
@@ -30,14 +30,11 @@ export default function UserFormPage() {
   const { canAccessFeature } = useAuthStore();
   const { t } = useTranslation();
   const addToast = useUiStore((s) => s.addToast);
-  const { data: users } = useUsers();
+  const { data: existingUser } = useUser(id ? Number(id) : 0);
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
 
   const isEditMode = !!id;
-  const existingUser = isEditMode
-    ? users?.find((u) => String(u.id) === id)
-    : null;
 
   const [formData, setFormData] = useState({
     firstname: "",
@@ -88,13 +85,6 @@ export default function UserFormPage() {
       newErrors.email = t('users.validation.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = t('users.validation.emailInvalid');
-    } else if (!isEditMode && users) {
-      const exists = users.some(
-        (u) =>
-          u.email.toLowerCase() === formData.email.toLowerCase() &&
-          String(u.id) !== id,
-      );
-      if (exists) newErrors.email = t('users.validation.emailTaken');
     }
 
     if (!isEditMode) {
