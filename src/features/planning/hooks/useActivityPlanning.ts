@@ -1,8 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { activityPlanningApi } from '@/api/activityPlanningApi'
-import type { ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection } from '@/types'
+import type { ActivityPlanningCreate, ActivityPlanningUpdate } from '@/types'
 import { PLANNING_KEY } from '@/data/constant/query'
+
+export function usePrestataires() {
+  return useQuery({
+    queryKey: ['prestataires'],
+    queryFn: () => activityPlanningApi.getPrestataires(),
+    select: (data) => data.member,
+    staleTime: 5 * 60 * 1000,
+  })
+}
 
 export function useActivityPlannings(page: number = 1, itemsPerPage: number = 10) {
   return useQuery({

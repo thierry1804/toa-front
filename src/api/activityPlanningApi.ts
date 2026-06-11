@@ -1,5 +1,5 @@
 import api from '@/lib/axios'
-import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection } from '@/types'
+import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection, User } from '@/types'
 
 export const activityPlanningApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
@@ -18,4 +18,7 @@ export const activityPlanningApi = {
     api.patch<ActivityPlanning>(`/api/activity_plannings/${id}`, data).then((r) => r.data),
 
   delete: (id: number) => api.delete(`/api/activity_plannings/${id}`),
+
+  getPrestataires: () =>
+    api.get<HydraCollection<User>>('/api/prestataires').then((r) => r.data),
 }

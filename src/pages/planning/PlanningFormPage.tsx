@@ -6,6 +6,7 @@ import {
   useActivityPlanning,
   useCreateActivityPlanning,
   useUpdateActivityPlanning,
+  usePrestataires,
 } from "@/features/planning/hooks/useActivityPlanning";
 import { useUiStore } from "@/store/ui.store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -35,6 +36,7 @@ export default function PlanningFormPage() {
     useCreateActivityPlanning();
   const { mutate: updatePlanning, isPending: isUpdating } =
     useUpdateActivityPlanning();
+  const { data: prestataires = [] } = usePrestataires();
 
   const isEditMode = !!id;
 
@@ -74,6 +76,20 @@ export default function PlanningFormPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const prestataireOptions = prestataires.map((p) => ({
+    value: `${p.firstname} ${p.name}`,
+    label: `${p.firstname} ${p.name} (${p.email})`,
+  }));
+
+  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    set("provider", selected);
+    const matched = prestataires.find(
+      (p) => `${p.firstname} ${p.name}` === selected,
+    );
+    set("providerEmail", matched?.email ?? "");
+  };
 
   useEffect(() => {
     if (existing) {
@@ -265,10 +281,11 @@ export default function PlanningFormPage() {
               disabled={lockedFields.includes("projectDescription")}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
+              <Select
                 label={t('planning.form.provider')}
+                options={prestataireOptions}
                 value={formData.provider}
-                onChange={(e) => set("provider", e.target.value)}
+                onChange={handleProviderChange}
                 error={errors.provider}
                 placeholder={t('planning.form.providerPlaceholder')}
                 required
@@ -280,6 +297,7 @@ export default function PlanningFormPage() {
                 value={formData.providerEmail}
                 onChange={(e) => set("providerEmail", e.target.value)}
                 placeholder={t('planning.form.providerEmailPlaceholder')}
+                disabled={lockedFields.includes("provider")}
               />
             </div>
           </CardContent>
