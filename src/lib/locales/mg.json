@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "Ampiasaina...",
+    "error": "Nisy hadisoana nitranga",
+    "save": "Tehirizo",
+    "cancel": "Ajanony",
+    "delete": "Fafao",
+    "edit": "Hanova",
+    "create": "Hamorona",
+    "search": "Karohina",
+    "filter": "Sivanina",
+    "close": "Hidiana",
+    "back": "Hiverina",
+    "confirm": "Hanamarina"
+  },
+  "auth": {
+    "login": "Hiditra",
+    "logout": "Hivoaka",
+    "email": "Mailaka",
+    "password": "Tenimiafina",
+    "forgotPassword": "Adino ny tenimiafina ?",
+    "noAccount": "Tsy manana kaonty ?",
+    "signUp": "Hisoratra anarana"
+  },
+  "permits": {
+    "title": "Permis",
+    "newPermit": "Permis vaovao",
+    "permitDetails": "Antsipirihan'ny permis",
+    "status": {
+      "draft": "Drafitra",
+      "awaiting_chef_validation": "Miandry lehibe",
+      "awaiting_hse_validation": "Miandry HSE",
+      "validated": "Voamarina",
+      "in_progress": "Mandroso",
+      "closed": "Nohidiana",
+      "rejected": "Nolavina",
+      "expired": "Lany daty"
+    }
+  },
+  "prevention": {
+    "title": "Plan PPHSSES"
+  },
+  "statistics": {
+    "title": "Antontan'isa"
+  },
+  "users": {
+    "title": "Mpampiasa"
+  },
+  "roles": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "chef_projet": "Chef de Projet",
+    "hse": "HSE",
+    "prestataire": "Mpiasa",
+    "dg": "DG"
+  },
+  "planning": {
+    "title": "Planification des activités",
+    "newPlanning": "Planification vaovao",
+    "status": {
+      "brouillon": "Drafitra",
+      "planifie": "Voalahatra",
+      "en_cours": "Mandroso",
+      "valide": "Voamarina",
+      "annule": "Nofoanana"
+    }
+  },
+  "offline": {
+    "banner": "Mode tsy misy tambajotra"
+  }
+}

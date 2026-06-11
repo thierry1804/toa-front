@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "close": "Fermer",
+    "back": "Retour",
+    "confirm": "Confirmer"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas de compte ?",
+    "signUp": "S'inscrire"
+  },
+  "permits": {
+    "title": "Permis",
+    "newPermit": "Nouveau permis",
+    "permitDetails": "Détails du permis",
+    "status": {
+      "draft": "Brouillon",
+      "awaiting_chef_validation": "En attente chef",
+      "awaiting_hse_validation": "En attente HSE",
+      "validated": "Validé",
+      "in_progress": "En cours",
+      "closed": "Clôturé",
+      "rejected": "Rejeté",
+      "expired": "Expiré"
+    }
+  },
+  "prevention": {
+    "title": "Plans PPHSSES"
+  },
+  "statistics": {
+    "title": "Statistiques"
+  },
+  "users": {
+    "title": "Utilisateurs"
+  },
+  "roles": {
+    "super_admin": "Super Admin",
+    "admin": "Admin",
+    "chef_projet": "Chef de Projet",
+    "hse": "HSE",
+    "prestataire": "Prestataire",
+    "dg": "DG"
+  },
+  "planning": {
+    "title": "Planification des activités",
+    "newPlanning": "Nouvelle planification",
+    "status": {
+      "brouillon": "Brouillon",
+      "planifie": "Planifié",
+      "en_cours": "En cours",
+      "valide": "Validé",
+      "annule": "Annulé"
+    }
+  },
+  "offline": {
+    "banner": "Mode hors-ligne"
+  }
+}

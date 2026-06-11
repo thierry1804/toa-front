@@ -1,0 +1,130 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useAuthStore } from '@/store/auth.store'
+import { useMenus, useCreateMenu, useUpdateMenu } from '@/features/menus/hooks/useMenus'
+import { useUiStore } from '@/store/ui.store'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
+import { ArrowLeft, Save, Menu } from 'lucide-react'
+
+export default function MenuFormPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { canAccessFeature } = useAuthStore()
+  const addToast = useUiStore((s) => s.addToast)
+  const { data: allMenus } = useMenus()
+  const { mutate: createMenu, isPending: isCreating } = useCreateMenu()
+  const { mutate: updateMenu, isPending: isUpdating } = useUpdateMenu()
+
+  const isEditMode = !!id
+  const existing = isEditMode ? allMenus?.find((m) => String(m.id) === id) : null
+
+  const [name, setName] = useState('')
+  const [icon, setIcon] = useState('')
+  const [route, setRoute] = useState('')
+  const [position, setPosition] = useState('0')
+  const [parent, setParent] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (existing) {
+      setName(existing.name)
+      setIcon(existing.icon ?? '')
+      setRoute(existing.route ?? '')
+      setPosition(String(existing.position))
+      setParent(existing.parent ?? '')
+    }
+  }, [existing])
+
+  useEffect(() => {
+    if (!canAccessFeature('manage_menus')) {
+      navigate('/menus')
+      addToast({ message: 'Permission refusée', type: 'error' })
+    }
+  }, [navigate, addToast, canAccessFeature])
+
+  const parentOptions = [
+    { value: '', label: 'Aucun (menu racine)' },
+    ...(allMenus ?? [])
+      .filter((m) => !isEditMode || String(m.id) !== id)
+      .map((m) => ({ value: `/api/menus/${m.id}`, label: m.name })),
+  ]
+
+  const validate = (): boolean => {
+    const e: Record<string, string> = {}
+    if (!name.trim()) e.name = 'Le libellé est obligatoire'
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+
+    const payload = {
+      name: name.trim(),
+      icon: icon.trim() || undefined,
+      route: route.trim() || null,
+      position: parseInt(position, 10) || 0,
+      parent: parent || null,
+    }
+
+    if (isEditMode && existing) {
+      updateMenu(
+        { id: existing.id, data: payload },
+        {
+          onSuccess: () => addToast({ message: 'Menu modifié', type: 'success' }),
+          onError: () => addToast({ message: 'Erreur', type: 'error' }),
+        },
+      )
+    } else {
+      createMenu(payload, {
+        onSuccess: () => addToast({ message: 'Menu créé', type: 'success' }),
+        onError: () => addToast({ message: 'Erreur', type: 'error' }),
+      })
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link to="/menus"><Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Retour</Button></Link>
+        <h2 className="text-3xl font-bold text-gray-900">
+          {isEditMode ? 'Modifier le menu' : 'Nouveau menu'}
+        </h2>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <Menu className="h-5 w-5 text-blue-600" />
+              Informations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input label="Libellé *" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} placeholder="Ex: Dashboard" required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Icône" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Ex: LayoutDashboard" />
+              <Input label="Route" value={route} onChange={(e) => setRoute(e.target.value)} placeholder="Ex: /dashboard" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Position" type="number" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="0" />
+              <Select label="Parent" options={parentOptions} value={parent} onChange={(e) => setParent(e.target.value)} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between gap-4 pt-4 border-t">
+          <Link to="/menus"><Button type="button" variant="outline">Annuler</Button></Link>
+          <Button type="submit" isLoading={isCreating || isUpdating}>
+            <Save className="h-4 w-4 mr-2" />
+            {isEditMode ? 'Enregistrer' : 'Créer'}
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
