@@ -26,57 +26,13 @@ import {
   UserX,
   Building2,
   Shield,
-  Briefcase,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
-
-const ROLE_CONFIG: Record<
-  string,
-  {
-    labelKey: string;
-    variant: "danger" | "warning" | "success" | "secondary" | "info";
-    icon: typeof Shield;
-  }
-> = {
-  ROLE_SUPER_ADMIN: {
-    labelKey: "roles.super_admin",
-    variant: "danger",
-    icon: Shield,
-  },
-  ROLE_ADMIN: { labelKey: "roles.admin", variant: "warning", icon: Shield },
-  ROLE_CHEF_PROJET: {
-    labelKey: "roles.chef_projet",
-    variant: "info",
-    icon: Briefcase,
-  },
-  ROLE_HSE: { labelKey: "roles.hse", variant: "success", icon: Shield },
-  ROLE_PRESTATAIRE: {
-    labelKey: "roles.prestataire",
-    variant: "secondary",
-    icon: Building2,
-  },
-  ROLE_DG: { labelKey: "roles.dg", variant: "info", icon: Briefcase },
-};
+import { ROLE_CONFIG, roleOptions, statusOptions } from "@/data/constant/roles";
 
 function getDisplayRole(roles: string[]): string {
   return roles.find((r) => r.startsWith("ROLE_")) ?? "ROLE_PRESTATAIRE";
 }
-
-const roleOptions = [
-  { value: "all", label: "Tous les rôles" },
-  { value: "ROLE_SUPER_ADMIN", label: "Super Admin" },
-  { value: "ROLE_ADMIN", label: "Admin" },
-  { value: "ROLE_CHEF_PROJET", label: "Chef de Projet" },
-  { value: "ROLE_HSE", label: "HSE" },
-  { value: "ROLE_PRESTATAIRE", label: "Prestataire" },
-  { value: "ROLE_DG", label: "DG" },
-];
-
-const statusOptions = [
-  { value: "all", label: "Tous les statuts" },
-  { value: "actif", label: "Actifs" },
-  { value: "inactif", label: "Inactifs" },
-];
 
 export default function UsersListPage() {
   const { t } = useTranslation();

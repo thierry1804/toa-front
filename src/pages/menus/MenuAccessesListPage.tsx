@@ -9,22 +9,8 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { Shield, Plus, Edit, Trash2, Check, X } from 'lucide-react'
-
-const ROLE_LABELS: Record<string, string> = {
-  ROLE_SUPER_ADMIN: 'Super Admin',
-  ROLE_ADMIN: 'Admin',
-  ROLE_CHEF_PROJET: 'Chef de Projet',
-  ROLE_HSE: 'HSE',
-  ROLE_PRESTATAIRE: 'Prestataire',
-  ROLE_DG: 'DG',
-}
-
-const PERM_LABELS: Record<string, string> = {
-  canView: 'Voir',
-  canCreate: 'Créer',
-  canEdit: 'Modifier',
-  canDelete: 'Supprimer',
-}
+import { ROLE_LABELS } from '@/data/constant/roles'
+import { PERM_LABELS } from '@/data/constant/permissions'
 
 export default function MenuAccessesListPage() {
   const navigate = useNavigate()

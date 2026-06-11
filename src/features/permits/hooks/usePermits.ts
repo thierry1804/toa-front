@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { permitsApi } from '@/api/permitsApi'
 import type { Permit } from '@/types'
-
-const PERMITS_KEY = ['permits'] as const
+import { PERMITS_KEY } from '@/data/constant/query'
 
 export function usePermits(params?: Record<string, string>) {
   return useQuery({

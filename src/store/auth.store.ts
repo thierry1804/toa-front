@@ -1,44 +1,7 @@
 import { create } from 'zustand'
 import { decodeJwtPayload } from '@/utils/jwt'
-
-export type Feature =
-  | 'view_users'
-  | 'create_users'
-  | 'edit_users'
-  | 'delete_users'
-  | 'view_planning'
-  | 'create_planning'
-  | 'edit_planning'
-  | 'delete_planning'
-  | 'manage_menus'
-
-const ROLE_FEATURES: Record<string, Feature[]> = {
-  super_admin: [
-    'view_users', 'create_users', 'edit_users', 'delete_users',
-    'view_planning', 'create_planning', 'edit_planning', 'delete_planning',
-    'manage_menus',
-  ],
-  admin: [
-    'view_users', 'create_users', 'edit_users', 'delete_users',
-    'view_planning', 'create_planning', 'edit_planning', 'delete_planning',
-  ],
-  chef_projet: [
-    'view_users',
-    'view_planning', 'create_planning', 'edit_planning', 'delete_planning',
-  ],
-  hse: ['view_users', 'view_planning'],
-  prestataire: ['view_planning'],
-  dg: ['view_users', 'view_planning'],
-}
-
-const ROLE_MAP: Record<string, string> = {
-  ROLE_SUPER_ADMIN: 'super_admin',
-  ROLE_ADMIN: 'admin',
-  ROLE_CHEF_PROJET: 'chef_projet',
-  ROLE_HSE: 'hse',
-  ROLE_PRESTATAIRE: 'prestataire',
-  ROLE_DG: 'dg',
-}
+import { ROLE_MAP, ROLE_FEATURES } from '@/data/constant/roles'
+import type { Feature } from '@/data/constant/roles'
 
 function mapRole(roles: unknown): string {
   if (Array.isArray(roles) && roles.length > 0) {

@@ -1,62 +1,75 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import { useI18n } from '@/lib/i18n';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Shield, Globe } from 'lucide-react';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { Shield, Globe, Eye, EyeOff } from "lucide-react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import { loginSchema, type LoginFormData } from "@/utils/validation";
+import { useLogin } from "@/features/auth/useAuth";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
-  const { t, language, setLanguage } = useI18n();
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const { mutate: login, isPending } = useLogin();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch {
-      setError(t('auth.loginError'));
-    } finally {
-      setLoading(false);
-    }
+  const onSubmit = (data: LoginFormData) => {
+    setApiError(null);
+    login(data, {
+      onSuccess: () => navigate("/dashboard"),
+      onError: (error: unknown) => {
+        const msg =
+          error instanceof Error ? error.message : "Identifiants incorrects";
+        setApiError(msg);
+      },
+    });
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === 'fr' ? 'mg' : 'fr');
+    i18n.changeLanguage(i18n.language === "fr" ? "mg" : "fr");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 p-4">
       <div className="w-full max-w-md">
         {/* Language toggle */}
         <div className="flex justify-end mb-4">
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-2 text-white hover:text-primary-100 transition-colors"
+            className="flex items-center gap-2 text-white hover:text-blue-100 transition-colors"
           >
             <Globe className="h-5 w-5" />
-            <span className="font-medium">{language === 'fr' ? 'MG' : 'FR'}</span>
+            <span className="font-medium">
+              {i18n.language === "fr" ? "FR" : "MG"}
+            </span>
           </button>
         </div>
 
         <Card>
           <CardHeader className="space-y-4 text-center">
-            <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-              <Shield className="h-8 w-8 text-primary-600" />
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              <Shield className="h-8 w-8 text-blue-600" />
             </div>
             <div>
-              <CardTitle>TowerCo of Africa</CardTitle>
+              <CardTitle className="text-black">TowerCo of Africa</CardTitle>
               <CardDescription className="mt-2">
                 Plateforme de gestion HSE
               </CardDescription>
@@ -64,59 +77,57 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {apiError && (
+              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                {apiError}
+              </div>
+            )}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <Input
-                label={t('auth.email')}
+                label={t("auth.email")}
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="exemple@toa.mg"
-                required
                 autoComplete="email"
+                placeholder="exemple@toa.mg"
+                error={errors.email?.message}
+                {...register("email")}
               />
 
-              <Input
-                label={t('auth.password')}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
-
-              {error && (
-                <div className="p-3 text-sm text-danger-600 bg-danger-50 rounded-md">
-                  {error}
-                </div>
-              )}
-
-              <Button type="submit" className="w-full" loading={loading}>
-                {t('auth.loginButton')}
-              </Button>
-            </form>
-
-            {/* Comptes de démonstration */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-3">Comptes de démonstration :</p>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div>
-                  <strong>Super Admin:</strong> admin@toa.mg / admin123
-                </div>
-                <div>
-                  <strong>Chef Projet:</strong> chef@toa.mg / chef123
-                </div>
-                <div>
-                  <strong>HSE:</strong> hse@toa.mg / hse123
-                </div>
-                <div>
-                  <strong>Prestataire:</strong> prestataire@etech.mg / prest123
-                </div>
-                <div>
-                  <strong>DG:</strong> dg@toa.mg / dg123
+              <div className="space-y-1">
+                <Input
+                  label={t("auth.password")}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  error={errors.password?.message}
+                  {...register("password")}
+                  rightElement={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  }
+                />
+                <div className="flex justify-end">
+                  <a
+                    href="#"
+                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    {t("auth.forgotPassword")}
+                  </a>
                 </div>
               </div>
-            </div>
+
+              <Button type="submit" className="w-full" isLoading={isPending}>
+                {t("auth.login")}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

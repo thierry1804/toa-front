@@ -9,15 +9,7 @@ import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Checkbox from '@/components/ui/Checkbox'
 import { ArrowLeft, Save, Shield } from 'lucide-react'
-
-const roleOptions = [
-  { value: 'ROLE_SUPER_ADMIN', label: 'Super Admin' },
-  { value: 'ROLE_ADMIN', label: 'Admin' },
-  { value: 'ROLE_CHEF_PROJET', label: 'Chef de Projet' },
-  { value: 'ROLE_HSE', label: 'HSE' },
-  { value: 'ROLE_PRESTATAIRE', label: 'Prestataire' },
-  { value: 'ROLE_DG', label: 'DG' },
-]
+import { roleOptions } from '@/data/constant/roles'
 
 export default function MenuAccessFormPage() {
   const { id } = useParams<{ id: string }>()

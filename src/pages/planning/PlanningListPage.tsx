@@ -32,29 +32,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
-
-const STATUS_CONFIG: Record<
-  string,
-  {
-    label: string;
-    variant: "warning" | "info" | "success" | "danger" | "default";
-  }
-> = {
-  brouillon: { label: "Brouillon", variant: "warning" },
-  planifie: { label: "Planifié", variant: "info" },
-  en_cours: { label: "En cours", variant: "default" },
-  valide: { label: "Validé", variant: "success" },
-  annule: { label: "Annulé", variant: "danger" },
-};
-
-const statusFilterOptions = [
-  { value: "all", label: "Tous les statuts" },
-  { value: "brouillon", label: "Brouillon" },
-  { value: "planifie", label: "Planifié" },
-  { value: "en_cours", label: "En cours" },
-  { value: "valide", label: "Validé" },
-  { value: "annule", label: "Annulé" },
-];
+import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
 
 export default function PlanningListPage() {
   const { t } = useTranslation();
@@ -63,7 +41,7 @@ export default function PlanningListPage() {
   const addToast = useUiStore((s) => s.addToast);
   const { data: plannings, isLoading } = useActivityPlannings();
   const { mutate: deletePlanning } = useDeleteActivityPlanning();
-  const perms = usePermissions('/planning');
+  const perms = usePermissions("/planning");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -137,7 +115,6 @@ export default function PlanningListPage() {
             </Button>
           </Link>
         )}
-
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -365,7 +342,10 @@ export default function PlanningListPage() {
                               {perms?.canDelete && (
                                 <button
                                   onClick={() =>
-                                    setDeleteTarget({ id: p.id, name: p.process })
+                                    setDeleteTarget({
+                                      id: p.id,
+                                      name: p.process,
+                                    })
                                   }
                                   className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                   title="Supprimer"
@@ -387,25 +367,42 @@ export default function PlanningListPage() {
                 {filtered.map((p) => {
                   const config = STATUS_CONFIG[p.status];
                   return (
-                    <div key={p.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={p.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <FileText className="h-5 w-5 text-blue-700" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{p.process}</p>
-                            <p className="text-xs text-gray-500 truncate">{p.region}</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {p.process}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {p.region}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
                           {perms?.canEdit && (
-                            <button onClick={() => navigate(`/planning/${p.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50" title="Modifier">
+                            <button
+                              onClick={() => navigate(`/planning/${p.id}/edit`)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                              title="Modifier"
+                            >
                               <Edit className="h-4 w-4" />
                             </button>
                           )}
                           {perms?.canDelete && (
-                            <button onClick={() => setDeleteTarget({ id: p.id, name: p.process })} className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50" title="Supprimer">
+                            <button
+                              onClick={() =>
+                                setDeleteTarget({ id: p.id, name: p.process })
+                              }
+                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
+                              title="Supprimer"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           )}
@@ -416,13 +413,23 @@ export default function PlanningListPage() {
                           <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">{p.siteName}</span>
                         </div>
-                        <p className="text-xs text-gray-500">{p.siteCode} - N°{p.siteNumber}</p>
+                        <p className="text-xs text-gray-500">
+                          {p.siteCode} - N°{p.siteNumber}
+                        </p>
                         <p className="text-gray-900">{p.provider}</p>
-                        {p.providerEmail && <p className="text-xs text-gray-500">{p.providerEmail}</p>}
+                        {p.providerEmail && (
+                          <p className="text-xs text-gray-500">
+                            {p.providerEmail}
+                          </p>
+                        )}
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-900">{formatDate(p.expectedStartDate)}</span>
+                          <span className="text-gray-900">
+                            {formatDate(p.expectedStartDate)}
+                          </span>
                           <span className="text-gray-400">→</span>
-                          <span className="text-gray-900">{formatDate(p.expectedEndDate)}</span>
+                          <span className="text-gray-900">
+                            {formatDate(p.expectedEndDate)}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-3">

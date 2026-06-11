@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { activityPlanningApi } from '@/api/activityPlanningApi'
 import type { ActivityPlanningCreate, ActivityPlanningUpdate } from '@/types'
-
-const PLANNING_KEY = ['activity_plannings'] as const
+import { PLANNING_KEY } from '@/data/constant/query'
 
 export function useActivityPlannings() {
   return useQuery({

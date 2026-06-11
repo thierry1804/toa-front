@@ -9,11 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import {
   Shield,
   Loader2,
-  Eye,
-  Plus,
-  Edit,
-  Trash2,
 } from 'lucide-react'
+import { ROLES, ROLE_LABELS } from '@/data/constant/roles'
+import { PERMS, PERM_ICONS, PERM_TITLES } from '@/data/constant/permissions'
 
 type AccessKey = string
 
@@ -26,38 +24,6 @@ interface AccessEntry {
   canEdit: boolean
   canDelete: boolean
   id?: number
-}
-
-const ROLES = [
-  'ROLE_SUPER_ADMIN',
-  'ROLE_ADMIN',
-  'ROLE_CHEF_PROJET',
-  'ROLE_HSE',
-  'ROLE_PRESTATAIRE',
-  'ROLE_DG',
-]
-
-const ROLE_LABELS: Record<string, string> = {
-  ROLE_SUPER_ADMIN: 'Super Admin',
-  ROLE_ADMIN: 'Admin',
-  ROLE_CHEF_PROJET: 'Chef de Projet',
-  ROLE_HSE: 'HSE',
-  ROLE_PRESTATAIRE: 'Prestataire',
-  ROLE_DG: 'DG',
-}
-
-const PERMS = ['canView', 'canCreate', 'canEdit', 'canDelete'] as const
-const PERM_ICONS: Record<string, typeof Eye> = {
-  canView: Eye,
-  canCreate: Plus,
-  canEdit: Edit,
-  canDelete: Trash2,
-}
-const PERM_TITLES: Record<string, string> = {
-  canView: 'Voir',
-  canCreate: 'Ajout',
-  canEdit: 'Modification',
-  canDelete: 'Suppression',
 }
 
 function makeKey(menu: string, role: string): AccessKey {

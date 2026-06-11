@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { usersApi } from '@/api/usersApi'
 import type { UserCreate, UserUpdate } from '@/types'
-
-const USERS_KEY = ['users'] as const
+import { USERS_KEY } from '@/data/constant/query'
 
 export function useUsers() {
   return useQuery({

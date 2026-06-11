@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { menusApi } from '@/api/menusApi'
 import type { MenuCreate, MenuUpdate } from '@/types'
-
-const MENUS_KEY = ['menus'] as const
+import { MENUS_KEY } from '@/data/constant/query'
 
 export function useMenus() {
   return useQuery({

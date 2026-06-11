@@ -3,13 +3,6 @@ import { NavLink } from "react-router-dom";
 import { useUiStore } from "@/store/ui.store";
 import { useMenuStore } from "@/store/menu.store";
 import {
-  LayoutDashboard,
-  Calendar,
-  Shield,
-  FileText,
-  Clipboard,
-  Users,
-  Menu,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -17,16 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { MenuNode } from "@/types";
-
-const iconMap: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  Calendar,
-  Shield,
-  FileText,
-  Clipboard,
-  Users,
-  menu: Menu,
-};
+import { iconMap } from "@/data/constant/sidebar";
 
 function getIcon(name: string | undefined): LucideIcon | null {
   if (!name) return null;

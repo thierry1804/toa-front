@@ -3,15 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
 import { useAuthStore } from '@/store/auth.store'
 import { decodeJwtPayload } from '@/utils/jwt'
-
-const ROLE_MAP: Record<string, string> = {
-  ROLE_SUPER_ADMIN: 'super_admin',
-  ROLE_ADMIN: 'admin',
-  ROLE_CHEF_PROJET: 'chef_projet',
-  ROLE_HSE: 'hse',
-  ROLE_PRESTATAIRE: 'prestataire',
-  ROLE_DG: 'dg',
-}
+import { ROLE_MAP } from '@/data/constant/roles'
 
 function mapRole(roles: unknown): string {
   if (Array.isArray(roles) && roles.length > 0) {

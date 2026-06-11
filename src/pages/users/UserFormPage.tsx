@@ -21,55 +21,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-
-const roleOptions = [
-  { value: "ROLE_SUPER_ADMIN", label: "Super Admin" },
-  { value: "ROLE_ADMIN", label: "Admin" },
-  { value: "ROLE_CHEF_PROJET", label: "Chef de Projet" },
-  { value: "ROLE_HSE", label: "HSE" },
-  { value: "ROLE_PRESTATAIRE", label: "Prestataire" },
-  { value: "ROLE_DG", label: "DG" },
-];
-
-const ROLE_PERMISSIONS: Record<string, string[]> = {
-  ROLE_SUPER_ADMIN: [
-    "Accès complet à toutes les fonctionnalités",
-    "Gestion des utilisateurs et des rôles",
-    "Configuration système",
-  ],
-  ROLE_ADMIN: [
-    "Gestion des permis et plans de prévention",
-    "Gestion des utilisateurs",
-    "Accès aux statistiques",
-  ],
-  ROLE_CHEF_PROJET: [
-    "Examen et validation des demandes de permis",
-    "Ajout de commentaires sur les permis",
-    "Suivi des interventions",
-    "Consultation des statistiques",
-  ],
-  ROLE_HSE: [
-    "Attribution des références aux permis validés",
-    "Vérification des plans de prévention",
-    "Suivi quotidien des interventions",
-    "Validation des Take 5",
-    "Maîtrise des risques et incidents",
-    "Clôture des interventions",
-  ],
-  ROLE_PRESTATAIRE: [
-    "Création de plans de prévention",
-    "Demande de permis de travail",
-    "Suivi de ses propres interventions",
-    "Soumission de validations journalières",
-    "Réalisation de Take 5",
-    "Signalement d'incidents",
-  ],
-  ROLE_DG: [
-    "Vue d'ensemble de tous les permis et interventions",
-    "Accès aux tableaux de bord et KPI",
-    "Consultation des statistiques globales",
-  ],
-};
+import { roleOptions, ROLE_PERMISSIONS } from "@/data/constant/roles";
 
 export default function UserFormPage() {
   const { id } = useParams<{ id: string }>();
