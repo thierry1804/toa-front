@@ -12,26 +12,26 @@ export default function PermitFormPage() {
   const { type } = useParams();
   const navigate = useNavigate();
   const { addPermisGeneral, addPermisHauteur, addPermisElectrique } = usePermitStore();
-  const { success, error } = useToastStore();
+  const toast = useToastStore;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleComplete = async (data: any) => {
     try {
       if (type === 'general') {
         addPermisGeneral(data);
-        success('Permis général créé et soumis pour validation');
+        toast.showSuccess('Permis général créé et soumis pour validation');
       } else if (type === 'hauteur') {
         addPermisHauteur(data);
-        success('Permis hauteur créé et soumis pour validation');
+        toast.showSuccess('Permis hauteur créé et soumis pour validation');
       } else if (type === 'electrique') {
         addPermisElectrique(data);
-        success('Permis électrique créé et soumis pour validation');
+        toast.showSuccess('Permis électrique créé et soumis pour validation');
       }
 
       navigate('/permits');
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err);
-      error('Une erreur est survenue lors de la sauvegarde');
+      toast.showError('Une erreur est survenue lors de la sauvegarde');
     }
   };
 

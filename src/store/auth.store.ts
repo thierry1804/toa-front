@@ -30,6 +30,8 @@ interface User {
   id: string
   email: string
   nom: string
+  prenom?: string
+  entreprise?: string
   role: string
   actif: boolean
 }

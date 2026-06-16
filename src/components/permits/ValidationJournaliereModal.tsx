@@ -38,7 +38,7 @@ export default function ValidationJournaliereModal({
   validations,
 }: ValidationJournaliereModalProps) {
   const { updatePermisHauteur } = usePermitStore();
-  const { success, error } = useToastStore();
+  const toast = useToastStore;
   const [isAdding, setIsAdding] = useState(false);
 
   const {
@@ -62,9 +62,9 @@ export default function ValidationJournaliereModal({
   const onSubmit = (data: ValidationFormData) => {
     try {
       const newValidation: ValidationJournaliere = {
-        date: new Date(data.date),
+        date: data.date,
         codeSite: data.codeSite,
-        vitesseVent: data.vitesseVent,
+        vitesseVent: data.vitesseVent?.toString(),
         demandeurSignatureDebut: data.demandeurSignatureDebut,
         utilisateurSignatureDebut: data.utilisateurSignatureDebut,
         demandeurSignatureFin: data.demandeurSignatureFin,
@@ -79,12 +79,12 @@ export default function ValidationJournaliereModal({
         validationsJournalieres: updatedValidations,
       });
 
-      success('Validation journalière ajoutée avec succès');
+      toast.showSuccess('Validation journalière ajoutée avec succès');
       reset();
       setIsAdding(false);
     } catch (err) {
       console.error('Erreur lors de l\'ajout de la validation:', err);
-      error('Une erreur est survenue lors de l\'ajout de la validation');
+      toast.showError('Une erreur est survenue lors de l\'ajout de la validation');
     }
   };
 
@@ -267,7 +267,7 @@ export default function ValidationJournaliereModal({
                   {validations.map((validation, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatDate(validation.date)}
+                        {formatDate(validation.date || '')}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 font-mono">
                         {validation.codeSite}

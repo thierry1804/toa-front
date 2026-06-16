@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from 'axios'
+import axios from 'axios'
 
 declare module 'axios' {
   interface AxiosRequestConfig {

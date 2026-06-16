@@ -4,7 +4,17 @@ export interface ModalProps {
   isOpen: boolean
   onClose: () => void
   title: string
+  description?: string
+  size?: string
   children: ReactNode
+}
+
+export function ModalFooter({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`mt-6 flex items-center justify-end gap-3 ${className}`}>
+      {children}
+    </div>
+  )
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {

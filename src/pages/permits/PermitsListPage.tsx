@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
 import { useAuthStore } from '@/store/authStore';
-import { useI18n } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -16,7 +16,7 @@ import type { PermitStatus } from '@/types';
 export default function PermitsListPage() {
   const { permisGeneraux } = usePermitStore();
   const { user, canAccessFeature } = useAuthStore();
-  const { t } = useI18n();
+  const { t } = useTranslation();
   const perms = usePermissions('/permits');
 
   const [searchQuery, setSearchQuery] = useState('');

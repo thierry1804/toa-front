@@ -4,6 +4,7 @@ import { badgeVariants } from '@/data/constant/ui'
 export interface BadgeProps {
   children: ReactNode
   variant?: keyof typeof badgeVariants
+  size?: string
   className?: string
 }
 

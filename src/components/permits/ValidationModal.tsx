@@ -23,7 +23,7 @@ export default function ValidationModal({
 }: ValidationModalProps) {
   const { user } = useAuthStore();
   const { validerParChefProjet, validerParHSE, refuserPermis } = usePermitStore();
-  const { success, error } = useToastStore();
+  const toast = useToastStore;
   const [commentaire, setCommentaire] = useState('');
   const [action, setAction] = useState<'valider' | 'refuser' | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,21 +39,21 @@ export default function ValidationModal({
       if (action === 'valider') {
         if (type === 'chef') {
           validerParChefProjet(permisId, nom, commentaire);
-          success('Permis validé par le Chef de Projet avec succès');
+          toast.showSuccess('Permis validé par le Chef de Projet avec succès');
         } else {
           validerParHSE(permisId, nom, commentaire);
-          success('Permis validé par HSE et référence attribuée avec succès');
+          toast.showSuccess('Permis validé par HSE et référence attribuée avec succès');
         }
       } else {
         refuserPermis(permisId, commentaire);
-        error('Permis refusé');
+        toast.showError('Permis refusé');
       }
 
       onClose();
       window.location.reload(); // Refresh pour voir les changements
     } catch (err) {
       console.error('Erreur lors de la validation:', err);
-      error('Une erreur est survenue lors de la validation');
+      toast.showError('Une erreur est survenue lors de la validation');
     } finally {
       setLoading(false);
     }

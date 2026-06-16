@@ -21,9 +21,19 @@ export default function Take5Form({
   onCancel,
   initialData,
 }: Take5FormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    responsableNom: string;
+    equipe: string[];
+    localisation: string;
+    tacheDescription: string;
+    etape1_arreter: any;
+    etape2_observer: any;
+    etape3_analyser: any;
+    etape4_controler: any;
+    etape5_proceder: any;
+  }>({
     responsableNom: initialData?.responsableNom || '',
-    equipe: initialData?.equipe || [],
+    equipe: (initialData?.equipe as unknown as string[]) || [],
     localisation: initialData?.localisation || '',
     tacheDescription: initialData?.tacheDescription || '',
 
@@ -120,7 +130,7 @@ export default function Take5Form({
   };
 
   const addRisque = () => {
-    if (nouveauRisque.danger.trim()) {
+    if (nouveauRisque.danger?.trim()) {
       setFormData({
         ...formData,
         etape3_analyser: {
@@ -148,7 +158,7 @@ export default function Take5Form({
   };
 
   const addMesure = () => {
-    if (nouvelleMesure.description.trim()) {
+    if (nouvelleMesure.description?.trim()) {
       setFormData({
         ...formData,
         etape4_controler: {

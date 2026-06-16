@@ -521,7 +521,7 @@ export default function PreventionDetailPage() {
                 </h3>
                 <div className="space-y-3">
                   {plan.risques.map((risque, index) => {
-                    const niveau = getRisqueLevel(risque.niveauGravite);
+                    const niveau = getRisqueLevel(risque.niveauGravite || 'faible');
                     return (
                       <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-yellow-500">
                         <div className="flex justify-between items-start">
@@ -537,7 +537,7 @@ export default function PreventionDetailPage() {
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <p className="text-sm font-medium text-gray-700 mb-1">Mesures de prévention:</p>
                           <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            {risque.mesuresPrevention.map((mesure, i) => (
+                            {(risque.mesuresPrevention || []).map((mesure, i) => (
                               <li key={i} className="flex items-start">
                                 <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 mt-0.5 flex-shrink-0" />
                                 <span>{mesure}</span>

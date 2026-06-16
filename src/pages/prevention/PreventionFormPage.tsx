@@ -79,7 +79,7 @@ type PreventionFormData = z.infer<typeof preventionPlanSchema>;
 export default function PreventionFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToast } = useToastStore();
+  const toast = useToastStore;
   const { plansPrevention, getPlanPreventionById } = usePermitStore();
   const [editData, setEditData] = useState<PreventionFormData | null>(null);
   const [isLoading, setIsLoading] = useState(!!id);
@@ -229,14 +229,14 @@ export default function PreventionFormPage() {
         }
       } catch (error) {
         console.error("Erreur lors du chargement du plan de prévention:", error);
-        addToast('Erreur lors du chargement du plan de prévention', 'error', 5000);
+        toast.showError('Erreur lors du chargement du plan de prévention');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadPreventionData();
-  }, [id, plansPrevention, getPlanPreventionById, addToast]);
+  }, [id, plansPrevention, getPlanPreventionById]);
 
   const defaultValues: any = {
     // Step 1
@@ -335,18 +335,16 @@ export default function PreventionFormPage() {
         // createPreventionPlan(data);
       }
 
-      addToast(
+      toast.showSuccess(
         isEditingWithData
           ? 'Le plan de prévention a été mis à jour avec succès.'
           : 'Le plan de prévention a été créé avec succès.',
-        'success',
-        5000,
       );
 
       navigate('/prevention');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du plan:', error);
-      addToast('Une erreur est survenue lors de la sauvegarde du plan de prévention.', 'error', 5000);
+      toast.showError('Une erreur est survenue lors de la sauvegarde du plan de prévention.');
     }
   };
 

@@ -10,6 +10,16 @@ export type Feature =
   | 'edit_planning'
   | 'delete_planning'
   | 'manage_menus'
+  | 'edit_permits'
+  | 'validate_permits_chef'
+  | 'validate_permits_hse'
+  | 'validate_interventions'
+  | 'start_interventions'
+  | 'suspend_interventions'
+  | 'resume_interventions'
+  | 'close_interventions'
+  | 'validate_prevention_plans_chef'
+  | 'validate_prevention_plans_hse'
 
 export const ROLE_FEATURES: Record<string, Feature[]> = {
   super_admin: [

@@ -25,7 +25,7 @@ import type { InterventionStatus } from '@/types';
 
 export default function InterventionsListPage() {
   const { interventions } = useInterventionStore();
-  const { user, canAccessFeature } = useAuthStore();
+  const { user } = useAuthStore();
   const perms = usePermissions('/interventions');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,7 +58,7 @@ export default function InterventionsListPage() {
   });
 
   // Extraire les sites uniques pour le filtre
-  const uniqueSites = Array.from(new Set(interventions.map((i) => i.codeSite)));
+  const uniqueSites = Array.from(new Set(interventions.map((i: any) => i.codeSite as string)));
 
   const getStatusBadge = (status: InterventionStatus) => {
     const statusConfig = {

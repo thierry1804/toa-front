@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
 import { useAuthStore } from '@/store/authStore';
-import { useI18n } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -13,8 +13,8 @@ import { formatDate } from '@/lib/utils';
 
 export default function PreventionListPage() {
   const { plansPrevention } = usePermitStore();
-  const { user, canAccessFeature } = useAuthStore();
-  const { t } = useI18n();
+  const { user } = useAuthStore();
+  const { t } = useTranslation();
   const perms = usePermissions('/prevention');
 
   const [searchQuery, setSearchQuery] = useState('');

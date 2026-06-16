@@ -65,7 +65,7 @@ export default function ValidationHSEModal({
     },
     {
       item: 'Mesures de prévention appropriées',
-      conforme: plan.risques.every(r => r.mesuresPrevention.length > 0),
+      conforme: plan.risques.every(r => (r.mesuresPrevention?.length || 0) > 0),
       description: 'Des mesures de prévention sont définies pour chaque risque',
     },
     {
