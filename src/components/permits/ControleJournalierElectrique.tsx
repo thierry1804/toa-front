@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import Checkbox from '@/components/ui/Checkbox';
-import { Calendar, Users, CheckCircle2, XCircle } from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import Checkbox from "@/components/ui/Checkbox";
+import { Calendar, Users, CheckCircle2, XCircle } from "lucide-react";
 
 interface ControleJournalierElectriqueProps {
   permisId: string;
@@ -28,44 +28,46 @@ export default function ControleJournalierElectrique({
   onCancel,
 }: ControleJournalierElectriqueProps) {
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    codeSite: '',
-    intervenants: [''],
+    date: new Date().toISOString().split("T")[0],
+    codeSite: "",
+    intervenants: [""],
     confirmationMesures: false,
-    signatureDemandeur: '',
-    signatureIntervenant: '',
-    signatureClotureDemandeur: '',
-    signatureClotureIntervenant: '',
+    signatureDemandeur: "",
+    signatureIntervenant: "",
+    signatureClotureDemandeur: "",
+    signatureClotureIntervenant: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleIntervenantChange = (index: number, value: string) => {
     const newIntervenants = [...formData.intervenants];
     newIntervenants[index] = value;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       intervenants: newIntervenants,
     }));
   };
 
   const addIntervenant = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      intervenants: [...prev.intervenants, ''],
+      intervenants: [...prev.intervenants, ""],
     }));
   };
 
   const removeIntervenant = (index: number) => {
     if (formData.intervenants.length > 1) {
-      const newIntervenants = formData.intervenants.filter((_, i) => i !== index);
-      setFormData(prev => ({
+      const newIntervenants = formData.intervenants.filter(
+        (_, i) => i !== index,
+      );
+      setFormData((prev) => ({
         ...prev,
         intervenants: newIntervenants,
       }));
@@ -74,21 +76,21 @@ export default function ControleJournalierElectrique({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!formData.codeSite || formData.intervenants.some(i => !i.trim())) {
-      alert('Veuillez remplir tous les champs obligatoires');
+    if (!formData.codeSite || formData.intervenants.some((i) => !i.trim())) {
+      alert("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
     if (!formData.confirmationMesures) {
-      alert('Vous devez confirmer la mise en œuvre des mesures de prévention');
+      alert("Vous devez confirmer la mise en œuvre des mesures de prévention");
       return;
     }
 
     onSubmit({
       ...formData,
-      intervenants: formData.intervenants.filter(i => i.trim()),
+      intervenants: formData.intervenants.filter((i) => i.trim()),
     });
   };
 
@@ -122,7 +124,7 @@ export default function ControleJournalierElectrique({
                 name="codeSite"
                 value={formData.codeSite}
                 onChange={handleChange}
-                placeholder="Ex: ANA-001"
+                placeholder="Ex. : ANA-001"
                 required
               />
             </div>
@@ -138,7 +140,9 @@ export default function ControleJournalierElectrique({
               <div key={index} className="flex gap-2">
                 <Input
                   value={intervenant}
-                  onChange={(e) => handleIntervenantChange(index, e.target.value)}
+                  onChange={(e) =>
+                    handleIntervenantChange(index, e.target.value)
+                  }
                   placeholder={`Intervenant ${index + 1}`}
                   required
                 />
@@ -174,17 +178,25 @@ export default function ControleJournalierElectrique({
               onChange={handleChange}
               required
             />
-            <Label htmlFor="confirmationMesures" className="text-sm font-medium">
-              Je confirme la mise en œuvre des mesures de prévention mentionnées dans le permis
+            <Label
+              htmlFor="confirmationMesures"
+              className="text-sm font-medium"
+            >
+              Je confirme la mise en œuvre des mesures de prévention mentionnées
+              dans le permis
             </Label>
           </div>
 
           {/* Section Commencement des travaux */}
           <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold mb-4">Commencement des travaux</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Commencement des travaux
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="signatureDemandeur">Signature Demandeur/Responsable contractant</Label>
+                <Label htmlFor="signatureDemandeur">
+                  Signature Demandeur/Responsable contractant
+                </Label>
                 <Input
                   id="signatureDemandeur"
                   name="signatureDemandeur"
@@ -195,7 +207,9 @@ export default function ControleJournalierElectrique({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signatureIntervenant">Signature Intervenant</Label>
+                <Label htmlFor="signatureIntervenant">
+                  Signature Intervenant
+                </Label>
                 <Input
                   id="signatureIntervenant"
                   name="signatureIntervenant"
@@ -213,7 +227,9 @@ export default function ControleJournalierElectrique({
             <h3 className="text-lg font-semibold mb-4">Clôture journalière</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="signatureClotureDemandeur">Signature Demandeur/Responsable contractant</Label>
+                <Label htmlFor="signatureClotureDemandeur">
+                  Signature Demandeur/Responsable contractant
+                </Label>
                 <Input
                   id="signatureClotureDemandeur"
                   name="signatureClotureDemandeur"
@@ -224,7 +240,9 @@ export default function ControleJournalierElectrique({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signatureClotureIntervenant">Signature Intervenant</Label>
+                <Label htmlFor="signatureClotureIntervenant">
+                  Signature Intervenant
+                </Label>
                 <Input
                   id="signatureClotureIntervenant"
                   name="signatureClotureIntervenant"

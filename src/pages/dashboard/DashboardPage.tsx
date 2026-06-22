@@ -1,20 +1,47 @@
+import { useMemo } from "react";
 import { useAuthStore } from "@/store/auth.store";
+import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ArrowRight, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { stats, quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
+import type { MenuNode } from "@/types";
+
+function flattenMenu(nodes: MenuNode[]): MenuNode[] {
+  const out: MenuNode[] = [];
+  const walk = (items: MenuNode[]) => {
+    for (const n of items) {
+      out.push(n);
+      walk(n.children);
+    }
+  };
+  walk(nodes);
+  return out;
+}
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const menuItems = useMenuStore((s) => s.items);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const visibleQuickLinks = useMemo(() => {
+    if (menuItems.length === 0) return quickLinks;
+    const flat = flattenMenu(menuItems);
+    const viewable = new Set(
+      flat
+        .filter((n) => n.route && (n.canView ?? true))
+        .map((n) => n.route as string),
+    );
+    return quickLinks.filter((l) => viewable.has(l.route));
+  }, [menuItems]);
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`${t('dashboard.greeting')}${user?.nom ? `, ${user.nom}` : ""}`}
-        description={t('dashboard.description')}
+        title={`${t("dashboard.greeting")}${user ? `, ${user.prenom ? `${user.prenom} ` : ""}${user.nom}` : ""}`}
+        description={t("dashboard.description")}
       />
 
       {/* Stats grid */}
@@ -52,11 +79,11 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('dashboard.quickAccess')}
+              {t("dashboard.quickAccess")}
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {quickLinks.map((link) => {
+            {visibleQuickLinks.map((link) => {
               const Icon = link.icon;
               return (
                 <button
@@ -87,14 +114,14 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('dashboard.recentActivity')}
+              {t("dashboard.recentActivity")}
             </h2>
           </div>
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Activity className="h-8 w-8 text-gray-200" />
               <p className="mt-3 text-sm text-gray-400">
-                {t('dashboard.noActivity')}
+                {t("dashboard.noActivity")}
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
-import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 // import { useI18n } from '@/lib/i18n'; // Unused import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -15,7 +15,9 @@ export default function PermitDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getPermisGeneralById, getPlanPreventionById, getPermisHauteurById } = usePermitStore();
-  const { canAccessFeature } = useAuthStore();
+  const canEditPermits = usePermission('edit_permits');
+  const canValidatePermitsChef = usePermission('validate_permits_chef');
+  const canValidateInterventions = usePermission('validate_interventions');
   // const { t } = useI18n(); // TODO: Use translations
 
   const [validationModalOpen, setValidationModalOpen] = useState(false);
@@ -93,13 +95,13 @@ export default function PermitDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           {getStatusBadge(permis.status)}
-          {canAccessFeature('edit_permits') && permis.status === 'brouillon' && (
+          {canEditPermits && permis.status === 'brouillon' && (
             <Button variant="outline" onClick={() => navigate(`/permits/${id}/edit`)}>
               <Edit className="h-5 w-5 mr-2" />
               Modifier
             </Button>
           )}
-          {permisHauteur && permis.status === 'valide' && canAccessFeature('validate_permits_chef') && (
+          {permisHauteur && permis.status === 'valide' && canValidatePermitsChef && (
             <Button 
               variant="outline" 
               onClick={() => setValidationModalOpen(true)}
@@ -109,7 +111,7 @@ export default function PermitDetailPage() {
               Validation journalière
             </Button>
           )}
-          {permis.status === 'en_cours' && canAccessFeature('validate_interventions') && (
+          {permis.status === 'en_cours' && canValidateInterventions && (
             <Button 
               variant="outline" 
               onClick={() => setControleModalOpen(true)}

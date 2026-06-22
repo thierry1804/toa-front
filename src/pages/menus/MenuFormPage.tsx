@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth.store'
+import { usePermission, useHasPermissions } from '@/features/auth/usePermission'
 import { useMenus, useCreateMenu, useUpdateMenu } from '@/features/menus/hooks/useMenus'
 import { useUiStore } from '@/store/ui.store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -13,7 +13,8 @@ import { ArrowLeft, Save, Menu } from 'lucide-react'
 export default function MenuFormPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { canAccessFeature } = useAuthStore()
+  const canManageMenus = usePermission('manage_menus')
+  const hasPermissions = useHasPermissions()
   const addToast = useUiStore((s) => s.addToast)
   const { data: allMenus } = useMenus()
   const { mutate: createMenu, isPending: isCreating } = useCreateMenu()
@@ -41,11 +42,11 @@ export default function MenuFormPage() {
   }, [existing])
 
   useEffect(() => {
-    if (!canAccessFeature('manage_menus')) {
+    if (hasPermissions && !canManageMenus) {
       navigate('/menus')
       addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
-  }, [navigate, addToast, canAccessFeature])
+  }, [navigate, addToast, canManageMenus, hasPermissions])
 
   const parentOptions = [
     { value: '', label: t('menus.form.noParent') },

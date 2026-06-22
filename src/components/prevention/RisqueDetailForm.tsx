@@ -1,66 +1,72 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import Button from '@/components/ui/Button';
-import { Trash2, AlertTriangle } from 'lucide-react';
-import { CATEGORIES_RISQUES } from '@/data/constant/risks';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import Textarea from "@/components/ui/Textarea";
+import Button from "@/components/ui/Button";
+import { Trash2, AlertTriangle } from "lucide-react";
+import { CATEGORIES_RISQUES } from "@/data/constant/risks";
 
 // Types pour les risques structurés
 export interface RisqueDetailComplet {
   id: string;
-  
+
   // Catégorisation
-  categoriePrincipale: 'environnement' | 'social' | 'sante_securite' | 'infrastructure' | '';
+  categoriePrincipale:
+    | "environnement"
+    | "social"
+    | "sante_securite"
+    | "infrastructure"
+    | "";
   sousCategorie: string;
-  
+
   // Détails du risque
   risqueIdentifie: string;
   natureLocalisation: string;
-  
+
   // Évaluation
-  niveauGravite: 'faible' | 'moyen' | 'eleve' | 'critique' | '';
-  probabilite: 'faible' | 'moyenne' | 'elevee' | '';
-  niveauRisque: 'faible' | 'moyen' | 'eleve' | 'critique' | ''; // Calculé : gravité × probabilité
-  
+  niveauGravite: "faible" | "moyen" | "eleve" | "critique" | "";
+  probabilite: "faible" | "moyenne" | "elevee" | "";
+  niveauRisque: "faible" | "moyen" | "eleve" | "critique" | ""; // Calculé : gravité × probabilité
+
   // Mesures de prévention
   mesuresPreventionPrevues: string;
   equipementsNecessaires: string;
-  
+
   // Responsabilités
-  responsableMiseEnOeuvre: 'toa' | 'prestataire' | '';
+  responsableMiseEnOeuvre: "toa" | "prestataire" | "";
   personnelConcerne: string;
-  
+
   // Suivi
   delaiMiseEnOeuvre: string;
   verification: boolean;
   dateVerification?: Date;
 }
 
-
-
 interface RisqueDetailFormProps {
   risques: RisqueDetailComplet[];
   onRisquesChange: (risques: RisqueDetailComplet[]) => void;
 }
 
-export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDetailFormProps) {
+export default function RisqueDetailForm({
+  risques,
+  onRisquesChange,
+}: RisqueDetailFormProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [currentRisque, setCurrentRisque] = useState<RisqueDetailComplet>({
-    id: '',
-    categoriePrincipale: '',
-    sousCategorie: '',
-    risqueIdentifie: '',
-    natureLocalisation: '',
-    niveauGravite: '',
-    probabilite: '',
-    niveauRisque: '',
-    mesuresPreventionPrevues: '',
-    equipementsNecessaires: '',
-    responsableMiseEnOeuvre: '',
-    personnelConcerne: '',
-    delaiMiseEnOeuvre: '',
+    id: "",
+    categoriePrincipale: "",
+    sousCategorie: "",
+    risqueIdentifie: "",
+    natureLocalisation: "",
+    niveauGravite: "",
+    probabilite: "",
+    niveauRisque: "",
+    mesuresPreventionPrevues: "",
+    equipementsNecessaires: "",
+    responsableMiseEnOeuvre: "",
+    personnelConcerne: "",
+    delaiMiseEnOeuvre: "",
     verification: false,
   });
 
@@ -73,13 +79,17 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
     if (currentRisque.niveauGravite && currentRisque.probabilite) {
       const niveauCalcule = calculerNiveauRisque(
         currentRisque.niveauGravite,
-        currentRisque.probabilite
+        currentRisque.probabilite,
       );
       if (niveauCalcule !== currentRisque.niveauRisque) {
         setCurrentRisque((prev) => ({ ...prev, niveauRisque: niveauCalcule }));
       }
     }
-  }, [currentRisque.niveauGravite, currentRisque.probabilite, currentRisque.niveauRisque]);
+  }, [
+    currentRisque.niveauGravite,
+    currentRisque.probabilite,
+    currentRisque.niveauRisque,
+  ]);
 
   // Mettre à jour les sous-catégories quand la catégorie principale change
   useEffect(() => {
@@ -89,9 +99,11 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
       // Réinitialiser la sous-catégorie si elle n'est plus valide
       if (
         currentRisque.sousCategorie &&
-        !categorie?.sousCategories.find((sc) => sc.value === currentRisque.sousCategorie)
+        !categorie?.sousCategories.find(
+          (sc) => sc.value === currentRisque.sousCategorie,
+        )
       ) {
-        setCurrentRisque((prev) => ({ ...prev, sousCategorie: '' }));
+        setCurrentRisque((prev) => ({ ...prev, sousCategorie: "" }));
       }
     } else {
       setSousCategoriesDisponibles([]);
@@ -100,34 +112,37 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
 
   const calculerNiveauRisque = (
     gravite: string,
-    probabilite: string
-  ): 'faible' | 'moyen' | 'eleve' | 'critique' => {
+    probabilite: string,
+  ): "faible" | "moyen" | "eleve" | "critique" => {
     // Matrice de risque simplifiée
-    const matrice: Record<string, Record<string, 'faible' | 'moyen' | 'eleve' | 'critique'>> = {
-      faible: { faible: 'faible', moyenne: 'faible', elevee: 'moyen' },
-      moyen: { faible: 'faible', moyenne: 'moyen', elevee: 'eleve' },
-      eleve: { faible: 'moyen', moyenne: 'eleve', elevee: 'critique' },
-      critique: { faible: 'eleve', moyenne: 'critique', elevee: 'critique' },
+    const matrice: Record<
+      string,
+      Record<string, "faible" | "moyen" | "eleve" | "critique">
+    > = {
+      faible: { faible: "faible", moyenne: "faible", elevee: "moyen" },
+      moyen: { faible: "faible", moyenne: "moyen", elevee: "eleve" },
+      eleve: { faible: "moyen", moyenne: "eleve", elevee: "critique" },
+      critique: { faible: "eleve", moyenne: "critique", elevee: "critique" },
     };
 
-    return matrice[gravite]?.[probabilite] || 'moyen';
+    return matrice[gravite]?.[probabilite] || "moyen";
   };
 
   const ajouterRisque = () => {
     setCurrentRisque({
       id: `risque-${Date.now()}`,
-      categoriePrincipale: '',
-      sousCategorie: '',
-      risqueIdentifie: '',
-      natureLocalisation: '',
-      niveauGravite: '',
-      probabilite: '',
-      niveauRisque: '',
-      mesuresPreventionPrevues: '',
-      equipementsNecessaires: '',
-      responsableMiseEnOeuvre: '',
-      personnelConcerne: '',
-      delaiMiseEnOeuvre: '',
+      categoriePrincipale: "",
+      sousCategorie: "",
+      risqueIdentifie: "",
+      natureLocalisation: "",
+      niveauGravite: "",
+      probabilite: "",
+      niveauRisque: "",
+      mesuresPreventionPrevues: "",
+      equipementsNecessaires: "",
+      responsableMiseEnOeuvre: "",
+      personnelConcerne: "",
+      delaiMiseEnOeuvre: "",
       verification: false,
     });
     setEditingIndex(null);
@@ -163,38 +178,38 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
   };
 
   const supprimerRisque = (index: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce risque ?')) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce risque ?")) {
       onRisquesChange(risques.filter((_, i) => i !== index));
     }
   };
 
   const validerRisque = (): boolean => {
     if (!currentRisque.categoriePrincipale) {
-      alert('Veuillez sélectionner une catégorie principale');
+      alert("Veuillez sélectionner une catégorie principale");
       return false;
     }
     if (!currentRisque.sousCategorie) {
-      alert('Veuillez sélectionner une sous-catégorie');
+      alert("Veuillez sélectionner une sous-catégorie");
       return false;
     }
     if (!currentRisque.risqueIdentifie.trim()) {
-      alert('Veuillez décrire le risque identifié');
+      alert("Veuillez décrire le risque identifié");
       return false;
     }
     if (!currentRisque.niveauGravite) {
-      alert('Veuillez sélectionner le niveau de gravité');
+      alert("Veuillez sélectionner le niveau de gravité");
       return false;
     }
     if (!currentRisque.probabilite) {
-      alert('Veuillez sélectionner la probabilité');
+      alert("Veuillez sélectionner la probabilité");
       return false;
     }
     if (!currentRisque.mesuresPreventionPrevues.trim()) {
-      alert('Veuillez décrire les mesures de prévention');
+      alert("Veuillez décrire les mesures de prévention");
       return false;
     }
     if (!currentRisque.responsableMiseEnOeuvre) {
-      alert('Veuillez indiquer le responsable de la mise en œuvre');
+      alert("Veuillez indiquer le responsable de la mise en œuvre");
       return false;
     }
     return true;
@@ -202,27 +217,27 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
 
   const getNiveauRisqueColor = (niveau: string) => {
     switch (niveau) {
-      case 'faible':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'moyen':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'eleve':
-        return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'critique':
-        return 'bg-red-100 text-red-800 border-red-300';
+      case "faible":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "moyen":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "eleve":
+        return "bg-orange-100 text-orange-800 border-orange-300";
+      case "critique":
+        return "bg-red-100 text-red-800 border-red-300";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
 
   const getCategorieColor = (categorie: string) => {
     const colors: Record<string, string> = {
-      environnement: 'bg-green-100 text-green-800',
-      social: 'bg-blue-100 text-blue-800',
-      sante_securite: 'bg-red-100 text-red-800',
-      infrastructure: 'bg-orange-100 text-orange-800',
+      environnement: "bg-green-100 text-green-800",
+      social: "bg-blue-100 text-blue-800",
+      sante_securite: "bg-red-100 text-red-800",
+      infrastructure: "bg-orange-100 text-orange-800",
     };
-    return colors[categorie] || 'bg-gray-100 text-gray-800';
+    return colors[categorie] || "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -232,7 +247,7 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-primary-600" />
-            {editingIndex !== null ? 'Modifier le risque' : 'Ajouter un risque'}
+            {editingIndex !== null ? "Modifier le risque" : "Ajouter un risque"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -245,15 +260,32 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
               <Select
                 label="Catégorie principale *"
                 options={[
-                  { value: '', label: 'Sélectionnez une catégorie' },
-                  { value: 'environnement', label: 'Risques liés à l\'environnement' },
-                  { value: 'social', label: 'Risque Social' },
-                  { value: 'sante_securite', label: 'Risque lié à la santé et sécurité' },
-                  { value: 'infrastructure', label: 'Risque lié aux installations/infrastructures' },
+                  { value: "", label: "Sélectionnez une catégorie" },
+                  {
+                    value: "environnement",
+                    label: "Risques liés à l'environnement",
+                  },
+                  { value: "social", label: "Risque Social" },
+                  {
+                    value: "sante_securite",
+                    label: "Risque lié à la santé et sécurité",
+                  },
+                  {
+                    value: "infrastructure",
+                    label: "Risque lié aux installations/infrastructures",
+                  },
                 ]}
                 value={currentRisque.categoriePrincipale}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, categoriePrincipale: e.target.value as 'environnement' | 'social' | 'sante_securite' | 'infrastructure' | '' })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    categoriePrincipale: e.target.value as
+                      | "environnement"
+                      | "social"
+                      | "sante_securite"
+                      | "infrastructure"
+                      | "",
+                  })
                 }
                 required
               />
@@ -261,12 +293,15 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
               <Select
                 label="Sous-catégorie *"
                 options={[
-                  { value: '', label: 'Sélectionnez une sous-catégorie' },
+                  { value: "", label: "Sélectionnez une sous-catégorie" },
                   ...sousCategoriesDisponibles,
                 ]}
                 value={currentRisque.sousCategorie}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, sousCategorie: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    sousCategorie: e.target.value,
+                  })
                 }
                 disabled={!currentRisque.categoriePrincipale}
                 required
@@ -284,7 +319,10 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Risque identifié *"
                 value={currentRisque.risqueIdentifie}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, risqueIdentifie: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    risqueIdentifie: e.target.value,
+                  })
                 }
                 placeholder="Décrivez précisément le risque identifié..."
                 rows={3}
@@ -295,7 +333,10 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Nature et localisation *"
                 value={currentRisque.natureLocalisation}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, natureLocalisation: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    natureLocalisation: e.target.value,
+                  })
                 }
                 placeholder="Où et comment ce risque se manifeste-t-il ?"
                 rows={3}
@@ -306,20 +347,30 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
 
           {/* Section 3: Évaluation du risque */}
           <div className="border-l-4 border-yellow-500 pl-4">
-            <h3 className="font-semibold text-lg mb-4 text-yellow-900">3. Évaluation du risque</h3>
+            <h3 className="font-semibold text-lg mb-4 text-yellow-900">
+              3. Évaluation du risque
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Select
                 label="Niveau de gravité *"
                 options={[
-                  { value: '', label: 'Sélectionnez' },
-                  { value: 'faible', label: 'Faible' },
-                  { value: 'moyen', label: 'Moyen' },
-                  { value: 'eleve', label: 'Élevé' },
-                  { value: 'critique', label: 'Critique' },
+                  { value: "", label: "Sélectionnez" },
+                  { value: "faible", label: "Faible" },
+                  { value: "moyen", label: "Moyen" },
+                  { value: "eleve", label: "Élevé" },
+                  { value: "critique", label: "Critique" },
                 ]}
                 value={currentRisque.niveauGravite}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, niveauGravite: e.target.value as 'faible' | 'moyen' | 'eleve' | 'critique' | '' })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    niveauGravite: e.target.value as
+                      | "faible"
+                      | "moyen"
+                      | "eleve"
+                      | "critique"
+                      | "",
+                  })
                 }
                 required
               />
@@ -327,14 +378,21 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
               <Select
                 label="Probabilité d'occurrence *"
                 options={[
-                  { value: '', label: 'Sélectionnez' },
-                  { value: 'faible', label: 'Faible' },
-                  { value: 'moyenne', label: 'Moyenne' },
-                  { value: 'elevee', label: 'Élevée' },
+                  { value: "", label: "Sélectionnez" },
+                  { value: "faible", label: "Faible" },
+                  { value: "moyenne", label: "Moyenne" },
+                  { value: "elevee", label: "Élevée" },
                 ]}
                 value={currentRisque.probabilite}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, probabilite: e.target.value as 'faible' | 'moyenne' | 'elevee' | '' })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    probabilite: e.target.value as
+                      | "faible"
+                      | "moyenne"
+                      | "elevee"
+                      | "",
+                  })
                 }
                 required
               />
@@ -345,12 +403,12 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 </label>
                 <div
                   className={`px-4 py-2 rounded-lg border-2 text-center font-semibold ${getNiveauRisqueColor(
-                    currentRisque.niveauRisque
+                    currentRisque.niveauRisque,
                   )}`}
                 >
                   {currentRisque.niveauRisque
                     ? currentRisque.niveauRisque.toUpperCase()
-                    : 'Non calculé'}
+                    : "Non calculé"}
                 </div>
               </div>
             </div>
@@ -366,7 +424,10 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Mesures de prévention prévues *"
                 value={currentRisque.mesuresPreventionPrevues}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, mesuresPreventionPrevues: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    mesuresPreventionPrevues: e.target.value,
+                  })
                 }
                 placeholder="Listez toutes les mesures de prévention à mettre en place..."
                 rows={4}
@@ -377,7 +438,10 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Équipements nécessaires"
                 value={currentRisque.equipementsNecessaires}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, equipementsNecessaires: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    equipementsNecessaires: e.target.value,
+                  })
                 }
                 placeholder="EPI, matériel de sécurité, etc."
               />
@@ -393,15 +457,18 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
               <Select
                 label="Responsable de la mise en œuvre *"
                 options={[
-                  { value: '', label: 'Sélectionnez' },
-                  { value: 'toa', label: 'TOA (Donneur d\'Ordre)' },
-                  { value: 'prestataire', label: 'Prestataire' },
+                  { value: "", label: "Sélectionnez" },
+                  { value: "toa", label: "TOA (Donneur d'Ordre)" },
+                  { value: "prestataire", label: "Prestataire" },
                 ]}
                 value={currentRisque.responsableMiseEnOeuvre}
                 onChange={(e) =>
                   setCurrentRisque({
                     ...currentRisque,
-                    responsableMiseEnOeuvre: e.target.value as 'toa' | 'prestataire' | '',
+                    responsableMiseEnOeuvre: e.target.value as
+                      | "toa"
+                      | "prestataire"
+                      | "",
                   })
                 }
                 required
@@ -411,7 +478,10 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Personnel concerné"
                 value={currentRisque.personnelConcerne}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, personnelConcerne: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    personnelConcerne: e.target.value,
+                  })
                 }
                 placeholder="Qui est affecté par ce risque ?"
               />
@@ -420,9 +490,12 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                 label="Délai de mise en œuvre"
                 value={currentRisque.delaiMiseEnOeuvre}
                 onChange={(e) =>
-                  setCurrentRisque({ ...currentRisque, delaiMiseEnOeuvre: e.target.value })
+                  setCurrentRisque({
+                    ...currentRisque,
+                    delaiMiseEnOeuvre: e.target.value,
+                  })
                 }
-                placeholder="Ex: Avant démarrage, J+7, etc."
+                placeholder="Ex. : Avant démarrage, J+7, etc."
               />
             </div>
           </div>
@@ -435,7 +508,7 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
               </Button>
             )}
             <Button type="button" onClick={sauvegarderRisque}>
-              {editingIndex !== null ? 'Mettre à jour' : 'Ajouter le risque'}
+              {editingIndex !== null ? "Mettre à jour" : "Ajouter le risque"}
             </Button>
           </div>
         </CardContent>
@@ -451,7 +524,8 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600">
-                Aucun risque identifié. Utilisez le formulaire ci-dessus pour ajouter des risques.
+                Aucun risque identifié. Utilisez le formulaire ci-dessus pour
+                ajouter des risques.
               </p>
             </div>
           ) : (
@@ -466,21 +540,28 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
                       <div className="flex items-center gap-2 mb-2">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategorieColor(
-                            risque.categoriePrincipale
+                            risque.categoriePrincipale,
                           )}`}
                         >
-                          {risque.categoriePrincipale && CATEGORIES_RISQUES[risque.categoriePrincipale]?.label || risque.categoriePrincipale}
+                          {(risque.categoriePrincipale &&
+                            CATEGORIES_RISQUES[risque.categoriePrincipale]
+                              ?.label) ||
+                            risque.categoriePrincipale}
                         </span>
                         <span
                           className={`px-3 py-1 rounded-lg text-xs font-bold border-2 ${getNiveauRisqueColor(
-                            risque.niveauRisque
+                            risque.niveauRisque,
                           )}`}
                         >
                           Risque {risque.niveauRisque?.toUpperCase()}
                         </span>
                       </div>
-                      <h4 className="font-semibold text-gray-900 mb-1">{risque.risqueIdentifie}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{risque.natureLocalisation}</p>
+                      <h4 className="font-semibold text-gray-900 mb-1">
+                        {risque.risqueIdentifie}
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {risque.natureLocalisation}
+                      </p>
                     </div>
                     <div className="flex gap-2 ml-4">
                       <button
@@ -516,32 +597,51 @@ export default function RisqueDetailForm({ risques, onRisquesChange }: RisqueDet
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-gray-700">Sous-catégorie:</span>
+                      <span className="font-medium text-gray-700">
+                        Sous-catégorie:
+                      </span>
                       <p className="text-gray-600">
-                        {sousCategoriesDisponibles.find((sc) => sc.value === risque.sousCategorie)
-                          ?.label || risque.sousCategorie}
+                        {sousCategoriesDisponibles.find(
+                          (sc) => sc.value === risque.sousCategorie,
+                        )?.label || risque.sousCategorie}
                       </p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">Responsable:</span>
+                      <span className="font-medium text-gray-700">
+                        Responsable:
+                      </span>
                       <p className="text-gray-600">
-                        {risque.responsableMiseEnOeuvre === 'toa' ? 'TOA' : 'Prestataire'}
+                        {risque.responsableMiseEnOeuvre === "toa"
+                          ? "TOA"
+                          : "Prestataire"}
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <span className="font-medium text-gray-700">Mesures de prévention:</span>
-                      <p className="text-gray-600">{risque.mesuresPreventionPrevues}</p>
+                      <span className="font-medium text-gray-700">
+                        Mesures de prévention:
+                      </span>
+                      <p className="text-gray-600">
+                        {risque.mesuresPreventionPrevues}
+                      </p>
                     </div>
                     {risque.equipementsNecessaires && (
                       <div>
-                        <span className="font-medium text-gray-700">Équipements:</span>
-                        <p className="text-gray-600">{risque.equipementsNecessaires}</p>
+                        <span className="font-medium text-gray-700">
+                          Équipements:
+                        </span>
+                        <p className="text-gray-600">
+                          {risque.equipementsNecessaires}
+                        </p>
                       </div>
                     )}
                     {risque.delaiMiseEnOeuvre && (
                       <div>
-                        <span className="font-medium text-gray-700">Délai:</span>
-                        <p className="text-gray-600">{risque.delaiMiseEnOeuvre}</p>
+                        <span className="font-medium text-gray-700">
+                          Délai:
+                        </span>
+                        <p className="text-gray-600">
+                          {risque.delaiMiseEnOeuvre}
+                        </p>
                       </div>
                     )}
                   </div>

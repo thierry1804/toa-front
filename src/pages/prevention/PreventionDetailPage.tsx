@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePreventionStore } from '@/store/preventionStore';
 import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import ValidationChefModal from '@/components/prevention/ValidationChefModal';
@@ -21,7 +22,10 @@ export default function PreventionDetailPage() {
     validerParHSE,
     refuserParHSE
   } = usePreventionStore();
-  const { user, canAccessFeature } = useAuthStore();
+  const { user } = useAuthStore();
+  const canSubmitPrevention = usePermission('prevention.submit');
+  const canValidatePreventionChef = usePermission('validate_prevention_plans_chef');
+  const canValidatePreventionHse = usePermission('validate_prevention_plans_hse');
 
   const [showValidationChefModal, setShowValidationChefModal] = useState(false);
   const [showValidationHSEModal, setShowValidationHSEModal] = useState(false);
@@ -353,29 +357,29 @@ export default function PreventionDetailPage() {
             <Download className="h-4 w-4 mr-2" />
             Télécharger PDF
           </Button>
-          {user?.role === 'prestataire' && plan.status === 'brouillon' && (
+          {canSubmitPrevention && plan.status === 'brouillon' && (
             <Button variant="outline" onClick={handleEdit}>
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
           )}
 
-          {/* Boutons de workflow selon le statut et le rôle */}
-          {plan.status === 'brouillon' && user?.role === 'prestataire' && (
+          {/* Boutons de workflow selon le statut et les permissions */}
+          {plan.status === 'brouillon' && canSubmitPrevention && (
             <Button onClick={handleSoumettre}>
               <Send className="h-4 w-4 mr-2" />
               Soumettre pour validation
             </Button>
           )}
 
-          {plan.status === 'soumis_validation_chef' && user?.role === 'chef_projet' && canAccessFeature('validate_prevention_plans_chef') && (
+          {plan.status === 'soumis_validation_chef' && canValidatePreventionChef && (
             <Button onClick={() => setShowValidationChefModal(true)}>
               <CheckCircle className="h-4 w-4 mr-2" />
               Valider
             </Button>
           )}
 
-          {plan.status === 'valide_chef_attente_hse' && user?.role === 'hse' && canAccessFeature('validate_prevention_plans_hse') && (
+          {plan.status === 'valide_chef_attente_hse' && canValidatePreventionHse && (
             <Button onClick={() => setShowValidationHSEModal(true)}>
               <Shield className="h-4 w-4 mr-2" />
               Valider (HSE)

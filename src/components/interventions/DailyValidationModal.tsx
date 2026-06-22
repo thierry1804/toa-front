@@ -1,25 +1,28 @@
-import { useState } from 'react';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
-import Checkbox from '@/components/ui/Checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import ControleJournalierElectrique from '@/components/permits/ControleJournalierElectrique';
-import ControleJournalierHauteur from '@/components/permits/ControleJournalierHauteur';
-import { CheckCircle2, AlertCircle, Camera, FileText } from 'lucide-react';
-import type { ValidationInterventionJournaliere, ControleJournalierPermis } from '@/types';
+import { useState } from "react";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import Checkbox from "@/components/ui/Checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import ControleJournalierElectrique from "@/components/permits/ControleJournalierElectrique";
+import ControleJournalierHauteur from "@/components/permits/ControleJournalierHauteur";
+import { CheckCircle2, AlertCircle, Camera, FileText } from "lucide-react";
+import type {
+  ValidationInterventionJournaliere,
+  ControleJournalierPermis,
+} from "@/types";
 
 interface DailyValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (validation: Omit<ValidationInterventionJournaliere, 'id'>) => void;
+  onSubmit: (validation: Omit<ValidationInterventionJournaliere, "id">) => void;
   interventionRef: string;
   codeSite: string;
   initialData?: Partial<ValidationInterventionJournaliere>;
   permisAssocie?: {
     id: string;
-    type: 'travaux_electrique' | 'travaux_hauteur';
+    type: "travaux_electrique" | "travaux_hauteur";
   };
   onControlePermis?: (data: ControleJournalierPermis) => void;
 }
@@ -35,13 +38,15 @@ export default function DailyValidationModal({
   onControlePermis,
 }: DailyValidationModalProps) {
   const [showControlePermis, setShowControlePermis] = useState(false);
-  const [formData, setFormData] = useState<Partial<ValidationInterventionJournaliere>>({
+  const [formData, setFormData] = useState<
+    Partial<ValidationInterventionJournaliere>
+  >({
     date: initialData?.date || new Date(),
-    heureDebut: initialData?.heureDebut || '',
-    heureFin: initialData?.heureFin || '',
+    heureDebut: initialData?.heureDebut || "",
+    heureFin: initialData?.heureFin || "",
     nombrePersonnes: initialData?.nombrePersonnes || 0,
     listePersonnel: initialData?.listePersonnel || [],
-    conditionsMeteo: initialData?.conditionsMeteo || '',
+    conditionsMeteo: initialData?.conditionsMeteo || "",
     temperatureC: initialData?.temperatureC,
     vitesseVentKmh: initialData?.vitesseVentKmh,
     verificationsSecurite: initialData?.verificationsSecurite || {
@@ -51,33 +56,38 @@ export default function DailyValidationModal({
       consignesRappelees: false,
       planSauvetageRevu: false,
     },
-    activitesRealisees: initialData?.activitesRealisees || '',
+    activitesRealisees: initialData?.activitesRealisees || "",
     avancementPourcentage: initialData?.avancementPourcentage || 0,
     take5Effectue: initialData?.take5Effectue || false,
     take5Id: initialData?.take5Id,
     incidents: initialData?.incidents || false,
-    incidentsDetails: initialData?.incidentsDetails || '',
-    observationsJour: initialData?.observationsJour || '',
+    incidentsDetails: initialData?.incidentsDetails || "",
+    observationsJour: initialData?.observationsJour || "",
     photosAvancement: initialData?.photosAvancement || [],
     documents: initialData?.documents || [],
     validee: initialData?.validee || false,
   });
 
-  const [nouveauPersonnel, setNouveauPersonnel] = useState('');
+  const [nouveauPersonnel, setNouveauPersonnel] = useState("");
 
   const addPersonnel = () => {
     if (nouveauPersonnel.trim()) {
       setFormData({
         ...formData,
-        listePersonnel: [...(formData.listePersonnel || []), nouveauPersonnel.trim()],
+        listePersonnel: [
+          ...(formData.listePersonnel || []),
+          nouveauPersonnel.trim(),
+        ],
         nombrePersonnes: (formData.nombrePersonnes || 0) + 1,
       });
-      setNouveauPersonnel('');
+      setNouveauPersonnel("");
     }
   };
 
   const removePersonnel = (index: number) => {
-    const newList = (formData.listePersonnel || []).filter((_, i) => i !== index);
+    const newList = (formData.listePersonnel || []).filter(
+      (_, i) => i !== index,
+    );
     setFormData({
       ...formData,
       listePersonnel: newList,
@@ -86,7 +96,7 @@ export default function DailyValidationModal({
   };
 
   const handleSubmit = () => {
-    const validation: Omit<ValidationInterventionJournaliere, 'id'> = {
+    const validation: Omit<ValidationInterventionJournaliere, "id"> = {
       date: formData.date!,
       heureDebut: formData.heureDebut!,
       heureFin: formData.heureFin,
@@ -139,7 +149,12 @@ export default function DailyValidationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Validation journalière" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Validation journalière"
+      size="xl"
+    >
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-primary-50 p-4 rounded-lg">
@@ -148,7 +163,9 @@ export default function DailyValidationModal({
           </h3>
           <p className="text-sm text-primary-700">Site: {codeSite}</p>
           <p className="text-sm text-primary-700">
-            Date: {formData.date && new Date(formData.date).toLocaleDateString('fr-FR')}
+            Date:{" "}
+            {formData.date &&
+              new Date(formData.date).toLocaleDateString("fr-FR")}
           </p>
         </div>
 
@@ -163,28 +180,34 @@ export default function DailyValidationModal({
                 label="Heure de début *"
                 type="time"
                 value={formData.heureDebut}
-                onChange={(e) => setFormData({ ...formData, heureDebut: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, heureDebut: e.target.value })
+                }
                 required
               />
               <Input
                 label="Heure de fin"
                 type="time"
                 value={formData.heureFin}
-                onChange={(e) => setFormData({ ...formData, heureFin: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, heureFin: e.target.value })
+                }
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Personnel présent * ({formData.nombrePersonnes || 0} personne
-                {(formData.nombrePersonnes || 0) > 1 ? 's' : ''})
+                {(formData.nombrePersonnes || 0) > 1 ? "s" : ""})
               </label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={nouveauPersonnel}
                   onChange={(e) => setNouveauPersonnel(e.target.value)}
                   placeholder="Nom du personnel"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPersonnel())}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addPersonnel())
+                  }
                 />
                 <Button type="button" onClick={addPersonnel} variant="outline">
                   Ajouter
@@ -221,22 +244,27 @@ export default function DailyValidationModal({
               <Input
                 label="Conditions météo"
                 value={formData.conditionsMeteo}
-                onChange={(e) => setFormData({ ...formData, conditionsMeteo: e.target.value })}
-                placeholder="Ex: Ensoleillé"
+                onChange={(e) =>
+                  setFormData({ ...formData, conditionsMeteo: e.target.value })
+                }
+                placeholder="Ex. : Ensoleillé"
               />
               <Input
                 label="Température (°C)"
                 type="number"
-                value={formData.temperatureC || ''}
+                value={formData.temperatureC || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, temperatureC: parseFloat(e.target.value) || undefined })
+                  setFormData({
+                    ...formData,
+                    temperatureC: parseFloat(e.target.value) || undefined,
+                  })
                 }
                 placeholder="28"
               />
               <Input
                 label="Vitesse du vent (km/h)"
                 type="number"
-                value={formData.vitesseVentKmh || ''}
+                value={formData.vitesseVentKmh || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -250,7 +278,11 @@ export default function DailyValidationModal({
         </Card>
 
         {/* Vérifications de sécurité */}
-        <Card className={allVerificationsChecked() ? 'border-green-500' : 'border-orange-500'}>
+        <Card
+          className={
+            allVerificationsChecked() ? "border-green-500" : "border-orange-500"
+          }
+        >
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               {allVerificationsChecked() ? (
@@ -277,7 +309,9 @@ export default function DailyValidationModal({
             />
             <Checkbox
               label="Outillage vérifié et en bon état"
-              checked={formData.verificationsSecurite?.outillageVerifie || false}
+              checked={
+                formData.verificationsSecurite?.outillageVerifie || false
+              }
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -303,7 +337,9 @@ export default function DailyValidationModal({
             />
             <Checkbox
               label="Consignes de sécurité rappelées à l'équipe"
-              checked={formData.verificationsSecurite?.consignesRappelees || false}
+              checked={
+                formData.verificationsSecurite?.consignesRappelees || false
+              }
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -316,7 +352,9 @@ export default function DailyValidationModal({
             />
             <Checkbox
               label="Plan de sauvetage revu et compris"
-              checked={formData.verificationsSecurite?.planSauvetageRevu || false}
+              checked={
+                formData.verificationsSecurite?.planSauvetageRevu || false
+              }
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -338,12 +376,15 @@ export default function DailyValidationModal({
                 <div>
                   <span className="font-medium">Take 5 effectué ce jour</span>
                   <p className="text-sm text-gray-600">
-                    Une évaluation de sécurité Take 5 a été réalisée avant de commencer les travaux
+                    Une évaluation de sécurité Take 5 a été réalisée avant de
+                    commencer les travaux
                   </p>
                 </div>
               }
               checked={formData.take5Effectue || false}
-              onChange={(e) => setFormData({ ...formData, take5Effectue: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, take5Effectue: e.target.checked })
+              }
             />
           </CardContent>
         </Card>
@@ -357,7 +398,9 @@ export default function DailyValidationModal({
             <Textarea
               label="Activités réalisées *"
               value={formData.activitesRealisees}
-              onChange={(e) => setFormData({ ...formData, activitesRealisees: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, activitesRealisees: e.target.value })
+              }
               placeholder="Décrire en détail les activités réalisées aujourd'hui..."
               rows={4}
               required
@@ -373,7 +416,10 @@ export default function DailyValidationModal({
                 max="100"
                 value={formData.avancementPourcentage || 0}
                 onChange={(e) =>
-                  setFormData({ ...formData, avancementPourcentage: parseInt(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    avancementPourcentage: parseInt(e.target.value),
+                  })
                 }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
@@ -389,7 +435,7 @@ export default function DailyValidationModal({
         </Card>
 
         {/* Incidents */}
-        <Card className={formData.incidents ? 'border-red-500' : ''}>
+        <Card className={formData.incidents ? "border-red-500" : ""}>
           <CardContent className="p-4 space-y-3">
             <Checkbox
               label={
@@ -398,14 +444,18 @@ export default function DailyValidationModal({
                 </span>
               }
               checked={formData.incidents || false}
-              onChange={(e) => setFormData({ ...formData, incidents: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, incidents: e.target.checked })
+              }
             />
 
             {formData.incidents && (
               <Textarea
                 label="Détails des incidents"
                 value={formData.incidentsDetails}
-                onChange={(e) => setFormData({ ...formData, incidentsDetails: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, incidentsDetails: e.target.value })
+                }
                 placeholder="Décrire les incidents ou situations dangereuses..."
                 rows={3}
                 className="border-red-300"
@@ -420,7 +470,9 @@ export default function DailyValidationModal({
             <Textarea
               label="Observations du jour *"
               value={formData.observationsJour}
-              onChange={(e) => setFormData({ ...formData, observationsJour: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, observationsJour: e.target.value })
+              }
               placeholder="Remarques générales, points d'attention, améliorations suggérées..."
               rows={3}
               required
@@ -460,8 +512,12 @@ export default function DailyValidationModal({
             </CardHeader>
             <CardContent>
               <p className="text-blue-700 mb-4">
-                Un permis {permisAssocie.type === 'travaux_electrique' ? 'électrique' : 'de travail en hauteur'} est associé à cette intervention.
-                Voulez-vous effectuer le contrôle journalier ?
+                Un permis{" "}
+                {permisAssocie.type === "travaux_electrique"
+                  ? "électrique"
+                  : "de travail en hauteur"}{" "}
+                est associé à cette intervention. Voulez-vous effectuer le
+                contrôle journalier ?
               </p>
               <Button
                 variant="outline"
@@ -481,11 +537,14 @@ export default function DailyValidationModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
                 <FileText className="h-5 w-5" />
-                Contrôle Journalier du Permis {permisAssocie.type === 'travaux_electrique' ? 'Électrique' : 'de Travail en Hauteur'}
+                Contrôle Journalier du Permis{" "}
+                {permisAssocie.type === "travaux_electrique"
+                  ? "Électrique"
+                  : "de Travail en Hauteur"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {permisAssocie.type === 'travaux_electrique' ? (
+              {permisAssocie.type === "travaux_electrique" ? (
                 <ControleJournalierElectrique
                   permisId={permisAssocie.id}
                   onSubmit={(data) => {
@@ -500,7 +559,8 @@ export default function DailyValidationModal({
                       signatureDemandeur: data.signatureDemandeur,
                       signatureIntervenant: data.signatureIntervenant,
                       signatureClotureDemandeur: data.signatureClotureDemandeur,
-                      signatureClotureIntervenant: data.signatureClotureIntervenant,
+                      signatureClotureIntervenant:
+                        data.signatureClotureIntervenant,
                     };
                     onControlePermis?.(controleData);
                     setShowControlePermis(false);
@@ -522,7 +582,8 @@ export default function DailyValidationModal({
                       signatureDemandeur: data.signatureDemandeur,
                       signatureIntervenant: data.signatureIntervenant,
                       signatureClotureDemandeur: data.signatureClotureDemandeur,
-                      signatureClotureIntervenant: data.signatureClotureIntervenant,
+                      signatureClotureIntervenant:
+                        data.signatureClotureIntervenant,
                     };
                     onControlePermis?.(controleData);
                     setShowControlePermis(false);
@@ -544,13 +605,15 @@ export default function DailyValidationModal({
                     Je certifie l'exactitude des informations fournies
                   </span>
                   <p className="text-sm text-green-700">
-                    En cochant cette case, je confirme que toutes les informations sont exactes et
-                    complètes
+                    En cochant cette case, je confirme que toutes les
+                    informations sont exactes et complètes
                   </p>
                 </div>
               }
               checked={formData.validee || false}
-              onChange={(e) => setFormData({ ...formData, validee: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, validee: e.target.checked })
+              }
             />
           </CardContent>
         </Card>
@@ -562,7 +625,9 @@ export default function DailyValidationModal({
           </Button>
           <div className="flex-1" />
           {!isFormValid() && (
-            <p className="text-sm text-orange-600">Veuillez remplir tous les champs obligatoires</p>
+            <p className="text-sm text-orange-600">
+              Veuillez remplir tous les champs obligatoires
+            </p>
           )}
           <Button onClick={handleSubmit} disabled={!isFormValid()}>
             <CheckCircle2 className="h-4 w-4 mr-2" />

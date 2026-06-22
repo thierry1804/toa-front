@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth.store'
+import { usePermission, useHasPermissions } from '@/features/auth/usePermission'
 import { useMenuAccesses, useDeleteMenuAccess } from '@/features/menus/hooks/useMenuAccesses'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useUiStore } from '@/store/ui.store'
@@ -15,7 +15,8 @@ import { PERM_LABELS } from '@/data/constant/permissions'
 
 export default function MenuAccessesListPage() {
   const navigate = useNavigate()
-  const { canAccessFeature } = useAuthStore()
+  const canManageMenus = usePermission('manage_menus')
+  const hasPermissions = useHasPermissions()
   const addToast = useUiStore((s) => s.addToast)
   const { data: accesses, isLoading } = useMenuAccesses()
   const { data: menus } = useMenus()
@@ -23,7 +24,7 @@ export default function MenuAccessesListPage() {
   const { t } = useTranslation()
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null)
 
-  if (!canAccessFeature('manage_menus')) {
+  if (hasPermissions && !canManageMenus) {
     return (
       <div className="flex items-center justify-center py-12">
         <p className="text-gray-500">{t('common.error')}</p>

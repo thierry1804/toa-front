@@ -81,7 +81,7 @@
       "role": "Andraikitra",
       "status": "Sata",
       "createdAt": "Noforonina tamin'ny",
-      "actions": "Hetsika"
+      "actions": "Hetsika "
     },
     "empty": "Tsy misy mpampiasa hita",
     "createAction": "Hamorona mpampiasa",
@@ -130,6 +130,7 @@
       "passwordMin": "Ny tenimiafina dia tsy maintsy misy farafahakeliny 6 tarehintsoratra",
       "confirmRequired": "Hamafiso ny tenimiafina",
       "confirmMismatch": "Tsy mifanaraka ny tenimiafina",
+      "roleRequired": "Mifidiana andraikitra iray azafady",
       "formErrors": "Valio ireo hadisoana amin'ny formulaire"
     },
     "toast": {
@@ -143,7 +144,7 @@
     }
   },
   "planning": {
-    "title": "Fandrindrana ny hetsika",
+    "title": "Fandrindrana ny hetsika ",
     "newPlanning": "Fandrindrana vaovao",
     "description": "Fitantanana ny fandaharam-potoan'ny fitsabahana eny an-toerana",
     "stats": {
@@ -360,6 +361,8 @@
     "menu_name_required": "Ilaina ny anaran'ny menu",
     "menu_position_required": "Ilaina ny toeran'ny menu",
     "menu_access_menu_required": "Ilaina ny menu",
-    "menu_access_role_required": "Ilaina ny andraikitra"
+    "menu_access_role_required": "Ilaina ny andraikitra",
+    "access_denied": "Voarara ny fidirana",
+    "account_not_activated": "Tsy niasana ny kaonty"
   }
 }

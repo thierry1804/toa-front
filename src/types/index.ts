@@ -43,6 +43,7 @@ export interface UserCreate {
   firstname: string
   plainPassword: string
   roles: string[]
+  isActive: boolean
 }
 
 export interface UserUpdate {
@@ -51,6 +52,7 @@ export interface UserUpdate {
   firstname?: string
   plainPassword?: string
   roles?: string[]
+  isActive?: boolean
 }
 
 export interface HydraCollection<T> {
@@ -66,8 +68,20 @@ export interface LoginRequest {
   password: string
 }
 
+export interface LoginResponseUser {
+  id: number
+  email: string
+  name: string
+  firstname: string
+  roles: string[]
+  isActive: boolean
+  createdAt: string
+}
+
 export interface LoginResponse {
   token: string
+  refresh_token?: string
+  user?: LoginResponseUser
 }
 
 export interface MenuNode {

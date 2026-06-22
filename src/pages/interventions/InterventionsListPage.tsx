@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInterventionStore } from '@/store/interventionStore';
 import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -26,6 +27,7 @@ import type { InterventionStatus } from '@/types';
 export default function InterventionsListPage() {
   const { interventions } = useInterventionStore();
   const { user } = useAuthStore();
+  const canViewAllInterventions = usePermission('interventions.view_all');
   const perms = usePermissions('/interventions');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,9 +50,8 @@ export default function InterventionsListPage() {
     // Filtre par site
     const matchSite = siteFilter === 'all' || intervention.codeSite === siteFilter;
 
-    // Filtre par rôle prestataire
     const matchRole =
-      user?.role !== 'prestataire' ||
+      canViewAllInterventions ||
       intervention.creerPar === user?.email ||
       intervention.prestataire === user?.entreprise;
 
@@ -246,9 +247,9 @@ export default function InterventionsListPage() {
         <CardHeader>
           <CardTitle>Interventions actives ({filteredInterventions.length})</CardTitle>
           <CardDescription>
-            {user?.role === 'prestataire'
-              ? 'Vos interventions en cours'
-              : 'Toutes les interventions'}
+            {canViewAllInterventions
+              ? 'Toutes les interventions'
+              : 'Vos interventions en cours'}
           </CardDescription>
         </CardHeader>
         <CardContent>

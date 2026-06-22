@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
 import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -15,7 +16,10 @@ import type { PermitStatus } from '@/types';
 
 export default function PermitsListPage() {
   const { permisGeneraux } = usePermitStore();
-  const { user, canAccessFeature } = useAuthStore();
+  const { user } = useAuthStore();
+  const canViewAllPermits = usePermission('permits.view_all');
+  const canValidatePermitsChef = usePermission('validate_permits_chef');
+  const canValidatePermitsHse = usePermission('validate_permits_hse');
   const { t } = useTranslation();
   const perms = usePermissions('/permits');
 
@@ -46,9 +50,8 @@ export default function PermitsListPage() {
     // Filtre par statut
     const matchStatus = statusFilter === 'all' || permis.status === statusFilter;
 
-    // Filtre par rôle prestataire (voir seulement ses propres permis)
     const matchRole =
-      user?.role !== 'prestataire' ||
+      canViewAllPermits ||
       permis.creerPar === user?.email ||
       permis.contractant === user?.entreprise;
 
@@ -144,9 +147,9 @@ export default function PermitsListPage() {
         <CardHeader>
           <CardTitle>Liste des permis ({filteredPermis.length})</CardTitle>
           <CardDescription>
-            {user?.role === 'prestataire'
-              ? 'Vos demandes de permis'
-              : 'Tous les permis de travail'}
+            {canViewAllPermits
+              ? 'Tous les permis de travail'
+              : 'Vos demandes de permis'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -232,7 +235,7 @@ export default function PermitsListPage() {
                               </button>
                             </Link>
                           )}
-                          {canAccessFeature('validate_permits_chef') &&
+                          {canValidatePermitsChef &&
                             permis.status === 'en_attente_validation_chef' && (
                               <button
                                 onClick={() =>
@@ -249,7 +252,7 @@ export default function PermitsListPage() {
                                 <CheckCircle className="h-4 w-4" />
                               </button>
                             )}
-                          {canAccessFeature('validate_permits_hse') &&
+                          {canValidatePermitsHse &&
                             permis.status === 'en_attente_validation_hse' && (
                               <button
                                 onClick={() =>

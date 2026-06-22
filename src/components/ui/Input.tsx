@@ -20,6 +20,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
+        {error && (
+          <p className="mb-1 text-xs font-medium text-red-600">{error}</p>
+        )}
         <div className="relative">
           <input
             ref={ref}
@@ -37,7 +40,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       </div>
     )
   },

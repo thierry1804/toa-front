@@ -40,7 +40,7 @@ export default function UsersListPage() {
   const { user: currentUser } = useAuthStore();
   const addToast = useUiStore((s) => s.addToast);
   const { mutate: deleteUser } = useDeleteUser();
-  const perms = usePermissions('/users');
+  const perms = usePermissions("/users");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -78,8 +78,8 @@ export default function UsersListPage() {
 
   const stats = {
     total: totalItems,
-    actifs: users?.filter((u) => u.roles.length > 0).length ?? 0,
-    inactifs: users?.filter((u) => u.roles.length === 0).length ?? 0,
+    actifs: users?.filter((u) => u.isActive).length ?? 0,
+    inactifs: users?.filter((u) => !u.isActive).length ?? 0,
     prestataires:
       users?.filter((u) => u.roles.includes("ROLE_PRESTATAIRE")).length ?? 0,
     toa:
@@ -91,13 +91,13 @@ export default function UsersListPage() {
     deleteUser(deleteTarget.id, {
       onSuccess: () => {
         addToast({
-          message: t('users.toast.deleted'),
+          message: t("users.toast.deleted"),
           type: "success",
         });
         setDeleteTarget(null);
       },
       onError: () => {
-        addToast({ message: t('users.toast.deleteError'), type: "error" });
+        addToast({ message: t("users.toast.deleteError"), type: "error" });
       },
     });
   };
@@ -118,15 +118,13 @@ export default function UsersListPage() {
             {" "}
             {t("users.title")}{" "}
           </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {t('users.description')}
-          </p>
+          <p className="mt-1 text-sm text-gray-600">{t("users.description")}</p>
         </div>
         {perms?.canCreate && (
           <Link to="/users/new" className="self-start sm:self-auto">
             <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
               <Plus className="h-5 w-5 mr-2" />
-              {t('users.newUser')}
+              {t("users.newUser")}
             </Button>
           </Link>
         )}
@@ -137,7 +135,10 @@ export default function UsersListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('users.stats.total')} </p>
+                <p className="text-sm text-gray-600">
+                  {" "}
+                  {t("users.stats.total")}{" "}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {" "}
                   {stats.total}{" "}
@@ -151,7 +152,10 @@ export default function UsersListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('users.stats.active')} </p>
+                <p className="text-sm text-gray-600">
+                  {" "}
+                  {t("users.stats.active")}{" "}
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {" "}
                   {stats.actifs}{" "}
@@ -165,7 +169,10 @@ export default function UsersListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('users.stats.inactive')} </p>
+                <p className="text-sm text-gray-600">
+                  {" "}
+                  {t("users.stats.inactive")}{" "}
+                </p>
                 <p className="text-2xl font-bold text-red-600">
                   {" "}
                   {stats.inactifs}{" "}
@@ -179,7 +186,10 @@ export default function UsersListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('users.stats.prestataires')} </p>
+                <p className="text-sm text-gray-600">
+                  {" "}
+                  {t("users.stats.prestataires")}{" "}
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {" "}
                   {stats.prestataires}{" "}
@@ -193,7 +203,10 @@ export default function UsersListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('users.stats.teamToa')} </p>
+                <p className="text-sm text-gray-600">
+                  {" "}
+                  {t("users.stats.teamToa")}{" "}
+                </p>
                 <p className="text-2xl font-bold text-purple-600">
                   {" "}
                   {stats.toa}{" "}
@@ -209,21 +222,30 @@ export default function UsersListPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              placeholder={t('users.search')}
+              placeholder={t("users.search")}
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
             />
             <Select
               options={roleOptions}
               value={roleFilter}
-              onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-              placeholder={t('users.filterRole')}
+              onChange={(e) => {
+                setRoleFilter(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("users.filterRole")}
             />
             <Select
               options={statusOptions}
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              placeholder={t('users.filterStatus')}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("users.filterStatus")}
             />
           </div>
         </CardContent>
@@ -231,7 +253,9 @@ export default function UsersListPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('users.title')}({filteredUsers.length}) </CardTitle>
+          <CardTitle>
+            {t("users.title")} ({filteredUsers.length}){" "}
+          </CardTitle>
           <CardDescription>
             {stats.prestataires} prestataires sur les entreprises partenaires
           </CardDescription>
@@ -240,12 +264,12 @@ export default function UsersListPage() {
           {filteredUsers.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500"> {t('users.empty')} </p>
+              <p className="text-gray-500"> {t("users.empty")} </p>
               {perms?.canCreate && (
                 <Link to="/users/new">
                   <Button className="mt-4" variant="outline">
                     <Plus className="h-5 w-5 mr-2" />
-                    {t('users.createAction')}
+                    {t("users.createAction")}
                   </Button>
                 </Link>
               )}
@@ -258,27 +282,27 @@ export default function UsersListPage() {
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.user')}{" "}
+                        {t("users.table.user")}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.contact')}{" "}
+                        {t("users.table.contact")}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.role')}{" "}
+                        {t("users.table.role")}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.status')}{" "}
+                        {t("users.table.status")}{" "}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.createdAt')}{" "}
+                        {t("users.table.createdAt")}{" "}
                       </th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                         {" "}
-                        {t('users.table.actions')}{" "}
+                        {t("users.table.actions")}{" "}
                       </th>
                     </tr>
                   </thead>
@@ -329,7 +353,7 @@ export default function UsersListPage() {
                             )}
                           </td>
                           <td className="px-4 py-4">
-                            {actif ? (
+                            {user.isActive ? (
                               <Badge variant="success">
                                 <UserCheck className="h-3 w-3 mr-1" />
                                 Actif
@@ -352,7 +376,7 @@ export default function UsersListPage() {
                                     navigate(`/users/${user.id}/edit`)
                                   }
                                   className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title={t('common.edit')}
+                                  title={t("common.edit")}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </button>
@@ -370,7 +394,7 @@ export default function UsersListPage() {
                                   title={
                                     String(user.id) === currentUser?.id
                                       ? "Vous ne pouvez pas supprimer votre propre compte"
-                                      : t('common.delete')
+                                      : t("common.delete")
                                   }
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -391,10 +415,13 @@ export default function UsersListPage() {
                   const role = getDisplayRole(user.roles);
                   const config = ROLE_CONFIG[role];
                   const Icon = config?.icon ?? Users;
-                  const actif = user.roles.length > 0;
+                  const actif = user.isActive;
 
                   return (
-                    <div key={user.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={user.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -407,9 +434,13 @@ export default function UsersListPage() {
                             <p className="text-sm font-semibold text-gray-900 truncate">
                               {user.firstname} {user.name}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {user.email}
+                            </p>
                             {String(user.id) === currentUser?.id && (
-                              <span className="text-xs text-blue-600">(Vous)</span>
+                              <span className="text-xs text-blue-600">
+                                (Vous)
+                              </span>
                             )}
                           </div>
                         </div>
@@ -418,17 +449,22 @@ export default function UsersListPage() {
                             <button
                               onClick={() => navigate(`/users/${user.id}/edit`)}
                               className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
-                              title={t('common.edit')}
+                              title={t("common.edit")}
                             >
                               <Edit className="h-4 w-4" />
                             </button>
                           )}
                           {perms?.canDelete && (
                             <button
-                              onClick={() => setDeleteTarget({ id: user.id, name: `${user.firstname} ${user.name}` })}
+                              onClick={() =>
+                                setDeleteTarget({
+                                  id: user.id,
+                                  name: `${user.firstname} ${user.name}`,
+                                })
+                              }
                               disabled={String(user.id) === currentUser?.id}
                               className="p-1.5 rounded-md disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-400 enabled:hover:text-red-600 enabled:hover:bg-red-50"
-                              title={t('common.delete')}
+                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -455,7 +491,9 @@ export default function UsersListPage() {
                             Inactif
                           </Badge>
                         )}
-                        <span className="text-xs text-gray-400 ml-auto">{formatDate(user.createdAt)}</span>
+                        <span className="text-xs text-gray-400 ml-auto">
+                          {formatDate(user.createdAt)}
+                        </span>
                       </div>
                     </div>
                   );
@@ -467,7 +505,8 @@ export default function UsersListPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
               <p className="text-sm text-gray-600">
-                Page {page} / {totalPages} ({totalItems} {t('users.stats.total')})
+                Page {page} / {totalPages} ({totalItems}{" "}
+                {t("users.stats.total")})
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -475,14 +514,14 @@ export default function UsersListPage() {
                   disabled={page <= 1}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
                 >
-                  {t('common.previous')}
+                  {t("common.previous")}
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
                 >
-                  {t('common.next')}
+                  {t("common.next")}
                 </button>
               </div>
             </div>
@@ -513,7 +552,7 @@ export default function UsersListPage() {
       <Modal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title={t('users.deleteConfirm.title')}
+        title={t("users.deleteConfirm.title")}
       >
         <div className="space-y-4">
           <p className="text-gray-600">
@@ -523,10 +562,10 @@ export default function UsersListPage() {
           </p>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              {t('common.delete')}
+              {t("common.delete")}
             </Button>
           </div>
         </div>

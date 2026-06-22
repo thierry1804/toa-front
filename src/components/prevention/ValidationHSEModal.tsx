@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CheckCircle2, XCircle, FileText, Shield, AlertTriangle } from 'lucide-react';
-import type { PlanPrevention } from '@/types/prevention';
+import { useState } from "react";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import {
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
+import type { PlanPrevention } from "@/types/prevention";
 
 interface ValidationHSEModalProps {
   isOpen: boolean;
@@ -22,36 +28,36 @@ export default function ValidationHSEModal({
   onReject,
   plan,
 }: ValidationHSEModalProps) {
-  const [reference, setReference] = useState('');
-  const [commentaires, setCommentaires] = useState('');
-  const [motifRefus, setMotifRefus] = useState('');
+  const [reference, setReference] = useState("");
+  const [commentaires, setCommentaires] = useState("");
+  const [motifRefus, setMotifRefus] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
   const handleValidate = () => {
     if (!reference.trim()) {
-      alert('Veuillez attribuer une référence au plan');
+      alert("Veuillez attribuer une référence au plan");
       return;
     }
     onValidate(reference.trim(), commentaires.trim() || undefined);
-    setReference('');
-    setCommentaires('');
+    setReference("");
+    setCommentaires("");
     setShowRejectForm(false);
   };
 
   const handleReject = () => {
     if (!motifRefus.trim()) {
-      alert('Veuillez indiquer le motif du refus');
+      alert("Veuillez indiquer le motif du refus");
       return;
     }
     onReject(motifRefus.trim());
-    setMotifRefus('');
+    setMotifRefus("");
     setShowRejectForm(false);
   };
 
   const handleClose = () => {
-    setReference('');
-    setCommentaires('');
-    setMotifRefus('');
+    setReference("");
+    setCommentaires("");
+    setMotifRefus("");
     setShowRejectForm(false);
     onClose();
   };
@@ -59,41 +65,55 @@ export default function ValidationHSEModal({
   // Vérifications de conformité ISO 14001/45001
   const verificationsConformite = [
     {
-      item: 'Identification et évaluation des risques',
+      item: "Identification et évaluation des risques",
       conforme: plan.risques.length > 0,
-      description: 'Les risques ont été identifiés et évalués',
+      description: "Les risques ont été identifiés et évalués",
     },
     {
-      item: 'Mesures de prévention appropriées',
-      conforme: plan.risques.every(r => (r.mesuresPrevention?.length || 0) > 0),
-      description: 'Des mesures de prévention sont définies pour chaque risque',
+      item: "Mesures de prévention appropriées",
+      conforme: plan.risques.every(
+        (r) => (r.mesuresPrevention?.length || 0) > 0,
+      ),
+      description: "Des mesures de prévention sont définies pour chaque risque",
     },
     {
-      item: 'Formation du personnel',
-      conforme: plan.formation.personnelForme && plan.formation.formationsRequises.length > 0,
-      description: 'Le personnel est formé et les formations requises sont identifiées',
+      item: "Formation du personnel",
+      conforme:
+        plan.formation.personnelForme &&
+        plan.formation.formationsRequises.length > 0,
+      description:
+        "Le personnel est formé et les formations requises sont identifiées",
     },
     {
-      item: 'Équipements de protection',
+      item: "Équipements de protection",
       conforme: plan.equipements.equipementsProtection.length > 0,
-      description: 'Les équipements de protection nécessaires sont identifiés',
+      description: "Les équipements de protection nécessaires sont identifiés",
     },
     {
-      item: 'Procédures d\'urgence',
-      conforme: plan.proceduresUrgence.planEvacuation && plan.proceduresUrgence.numerosUrgence.length > 0,
-      description: 'Les procédures d\'urgence sont définies',
+      item: "Procédures d'urgence",
+      conforme:
+        plan.proceduresUrgence.planEvacuation &&
+        plan.proceduresUrgence.numerosUrgence.length > 0,
+      description: "Les procédures d'urgence sont définies",
     },
     {
-      item: 'Surveillance et contrôle',
-      conforme: plan.surveillance.controlesReguliers && plan.surveillance.responsableControle,
-      description: 'Un système de surveillance est mis en place',
+      item: "Surveillance et contrôle",
+      conforme:
+        plan.surveillance.controlesReguliers &&
+        plan.surveillance.responsableControle,
+      description: "Un système de surveillance est mis en place",
     },
   ];
 
-  const conformiteGenerale = verificationsConformite.every(v => v.conforme);
+  const conformiteGenerale = verificationsConformite.every((v) => v.conforme);
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="xl" title="Validation HSE">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="xl"
+      title="Validation HSE"
+    >
       <div className="max-h-[90vh] overflow-y-auto">
         <div className="space-y-6">
           {/* En-tête */}
@@ -117,7 +137,10 @@ export default function ValidationHSEModal({
             <CardContent>
               <div className="space-y-3">
                 {verificationsConformite.map((verification, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {verification.conforme ? (
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -126,40 +149,47 @@ export default function ValidationHSEModal({
                       )}
                       <div>
                         <p className="font-medium">{verification.item}</p>
-                        <p className="text-sm text-gray-600">{verification.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {verification.description}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        verification.conforme 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {verification.conforme ? 'Conforme' : 'Non conforme'}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          verification.conforme
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {verification.conforme ? "Conforme" : "Non conforme"}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className={`mt-4 p-4 rounded-lg ${
-                conformiteGenerale 
-                  ? 'bg-green-50 border border-green-200' 
-                  : 'bg-red-50 border border-red-200'
-              }`}>
+              <div
+                className={`mt-4 p-4 rounded-lg ${
+                  conformiteGenerale
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   {conformiteGenerale ? (
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
                   ) : (
                     <AlertTriangle className="h-5 w-5 text-red-600" />
                   )}
-                  <p className={`font-medium ${
-                    conformiteGenerale ? 'text-green-900' : 'text-red-900'
-                  }`}>
-                    {conformiteGenerale 
-                      ? 'Le plan est conforme aux exigences ISO 14001/45001' 
-                      : 'Le plan présente des non-conformités aux exigences ISO 14001/45001'
-                    }
+                  <p
+                    className={`font-medium ${
+                      conformiteGenerale ? "text-green-900" : "text-red-900"
+                    }`}
+                  >
+                    {conformiteGenerale
+                      ? "Le plan est conforme aux exigences ISO 14001/45001"
+                      : "Le plan présente des non-conformités aux exigences ISO 14001/45001"}
                   </p>
                 </div>
               </div>
@@ -182,7 +212,9 @@ export default function ValidationHSEModal({
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Site</p>
-                  <p className="font-medium">{plan.nomSite} ({plan.codeSite})</p>
+                  <p className="font-medium">
+                    {plan.nomSite} ({plan.codeSite})
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Prestataire</p>
@@ -191,7 +223,10 @@ export default function ValidationHSEModal({
                 <div>
                   <p className="text-sm text-gray-600">Validation Chef</p>
                   <p className="font-medium">
-                    {plan.validationChef?.valideePar || 'Non validé'} - {plan.validationChef?.dateValidation?.toLocaleDateString('fr-FR') || 'Non définie'}
+                    {plan.validationChef?.valideePar || "Non validé"} -{" "}
+                    {plan.validationChef?.dateValidation?.toLocaleDateString(
+                      "fr-FR",
+                    ) || "Non définie"}
                   </p>
                 </div>
               </div>
@@ -202,7 +237,9 @@ export default function ValidationHSEModal({
           {!showRejectForm ? (
             <Card>
               <CardHeader>
-                <CardTitle>Validation HSE et Attribution de Référence</CardTitle>
+                <CardTitle>
+                  Validation HSE et Attribution de Référence
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -212,7 +249,7 @@ export default function ValidationHSEModal({
                   <Input
                     value={reference}
                     onChange={(e) => setReference(e.target.value)}
-                    placeholder="Ex: PP-HSE-2025-001"
+                    placeholder="Ex. : PP-HSE-2025-001"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -242,8 +279,8 @@ export default function ValidationHSEModal({
                     <XCircle className="h-4 w-4 mr-2" />
                     Refuser
                   </Button>
-                  <Button 
-                    onClick={handleValidate} 
+                  <Button
+                    onClick={handleValidate}
                     className="bg-green-600 hover:bg-green-700"
                     disabled={!conformiteGenerale}
                   >

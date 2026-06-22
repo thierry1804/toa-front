@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useInterventionStore } from '@/store/interventionStore';
 import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -36,7 +37,12 @@ export default function InterventionDetailPage() {
     updateInterventionStatus,
     cloturerIntervention,
   } = useInterventionStore();
-  const { user, canAccessFeature } = useAuthStore();
+  const { user } = useAuthStore();
+  const canStartInterventions = usePermission('start_interventions');
+  const canValidateInterventions = usePermission('validate_interventions');
+  const canSuspendInterventions = usePermission('suspend_interventions');
+  const canResumeInterventions = usePermission('resume_interventions');
+  const canCloseInterventions = usePermission('close_interventions');
 
   const intervention = interventions.find((i) => i.id === id);
 
@@ -182,7 +188,7 @@ export default function InterventionDetailPage() {
 
         <div className="flex gap-2">
           {/* Bouton Démarrer pour statut planifiee */}
-          {intervention.status === 'planifiee' && canAccessFeature('start_interventions') && (
+          {intervention.status === 'planifiee' && canStartInterventions && (
             <Button onClick={handleDemarrer}>
               <Play className="h-4 w-4 mr-2" />
               Démarrer l'intervention
@@ -190,7 +196,7 @@ export default function InterventionDetailPage() {
           )}
 
           {/* Boutons pour statut en_cours */}
-          {intervention.status === 'en_cours' && canAccessFeature('validate_interventions') && (
+          {intervention.status === 'en_cours' && canValidateInterventions && (
             <>
               <Button onClick={() => setShowValidationModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -204,7 +210,7 @@ export default function InterventionDetailPage() {
           )}
 
           {/* Bouton Suspendre pour statut en_cours */}
-          {intervention.status === 'en_cours' && canAccessFeature('suspend_interventions') && (
+          {intervention.status === 'en_cours' && canSuspendInterventions && (
             <Button variant="warning" onClick={handleSuspendre}>
               <Pause className="h-4 w-4 mr-2" />
               Suspendre
@@ -212,7 +218,7 @@ export default function InterventionDetailPage() {
           )}
 
           {/* Bouton Reprendre pour statut suspendue */}
-          {intervention.status === 'suspendue' && canAccessFeature('resume_interventions') && (
+          {intervention.status === 'suspendue' && canResumeInterventions && (
             <Button onClick={handleReprendre}>
               <Play className="h-4 w-4 mr-2" />
               Reprendre
@@ -221,7 +227,7 @@ export default function InterventionDetailPage() {
 
           {/* Bouton Clôturer pour statut en_cours avec avancement 100% */}
           {intervention.status === 'en_cours' &&
-            canAccessFeature('close_interventions') &&
+            canCloseInterventions &&
             avancement >= 100 && (
               <Button variant="success" onClick={handleCloturer}>
                 <CheckCircle2 className="h-4 w-4 mr-2" />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/store/auth.store'
+import { usePermission, useHasPermissions } from '@/features/auth/usePermission'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useMenuAccesses } from '@/features/menus/hooks/useMenuAccesses'
 import { menuAccessesApi } from '@/api/menuAccessesApi'
@@ -32,7 +32,8 @@ function makeKey(menu: string, role: string): AccessKey {
 }
 
 export default function MenuManagerPage() {
-  const { canAccessFeature } = useAuthStore()
+  const canManageMenus = usePermission('manage_menus')
+  const hasPermissions = useHasPermissions()
   const addToast = useUiStore((s) => s.addToast)
   const queryClient = useQueryClient()
   const { data: menus, isLoading: menusLoading } = useMenus()
@@ -134,7 +135,7 @@ export default function MenuManagerPage() {
     }
   }, [entries, addToast])
 
-  if (!canAccessFeature('manage_menus')) {
+  if (hasPermissions && !canManageMenus) {
     return (
       <div className="flex items-center justify-center py-12">
         <p className="text-gray-500">{t('common.error')}</p>

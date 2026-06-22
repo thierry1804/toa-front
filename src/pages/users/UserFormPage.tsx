@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useAuthStore } from "@/store/auth.store";
+import {
+  usePermission,
+  useHasPermissions,
+} from "@/features/auth/usePermission";
 import {
   useUser,
   useCreateUser,
@@ -23,11 +26,27 @@ import {
 } from "lucide-react";
 import { roleOptions, ROLE_PERMISSIONS } from "@/data/constant/roles";
 import { useTranslation } from "react-i18next";
+import { parseApiFieldErrors } from "@/lib/apiErrors";
+
+// Maps API propertyPath / error_key values → form field names
+const PROPERTY_TO_FIELD: Record<string, string> = {
+  email: "email",
+  name: "name",
+  firstname: "firstname",
+  plainPassword: "plainPassword",
+  email_already_used: "email",
+  email_invalid: "email",
+  email_required: "email",
+  name_required: "name",
+  password_required: "plainPassword",
+};
 
 export default function UserFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { canAccessFeature } = useAuthStore();
+  const canEditUsers = usePermission("edit_users");
+  const canCreateUsers = usePermission("create_users");
+  const hasPermissions = useHasPermissions();
   const { t } = useTranslation();
   const addToast = useUiStore((s) => s.addToast);
   const { data: existingUser } = useUser(id ? Number(id) : 0);
@@ -35,6 +54,38 @@ export default function UserFormPage() {
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
 
   const isEditMode = !!id;
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const firstnameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const plainPasswordRef = useRef<HTMLInputElement>(null);
+
+  const fieldRefs: Record<string, React.RefObject<HTMLInputElement>> = {
+    name: nameRef,
+    firstname: firstnameRef,
+    email: emailRef,
+    plainPassword: plainPasswordRef,
+  };
+
+  const handleApiError = (error: unknown) => {
+    const rawErrors = parseApiFieldErrors(error, PROPERTY_TO_FIELD);
+    if (Object.keys(rawErrors).length === 0) {
+      addToast({ message: t("users.toast.createError"), type: "error" });
+      return;
+    }
+    const translated: Record<string, string> = {};
+    for (const [field, key] of Object.entries(rawErrors)) {
+      // Use string-fallback form (t(key, fallback)) which works in i18next v26
+      translated[field] = t(`errors.${key}`, key);
+    }
+    setErrors((prev) => ({ ...prev, ...translated }));
+    const firstField = Object.keys(rawErrors)[0];
+    const el = fieldRefs[firstField]?.current;
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.focus();
+    }
+  };
 
   const [formData, setFormData] = useState({
     firstname: "",
@@ -60,7 +111,7 @@ export default function UserFormPage() {
           existingUser.roles.find((r) => r.startsWith("ROLE_")) ??
           "ROLE_PRESTATAIRE",
         entreprise: "",
-        actif: existingUser.roles.length > 0,
+        actif: existingUser.isActive,
         plainPassword: "",
         confirmPassword: "",
       });
@@ -68,44 +119,52 @@ export default function UserFormPage() {
   }, [existingUser]);
 
   useEffect(() => {
-    if (!canAccessFeature(isEditMode ? "edit_users" : "create_users")) {
+    if (hasPermissions && !(isEditMode ? canEditUsers : canCreateUsers)) {
       navigate("/users");
-      addToast({ message: t('users.toast.permissionDenied'), type: "error" });
+      addToast({ message: t("users.toast.permissionDenied"), type: "error" });
     }
-  }, [isEditMode, navigate, addToast, canAccessFeature]);
+  }, [
+    isEditMode,
+    navigate,
+    addToast,
+    canEditUsers,
+    canCreateUsers,
+    hasPermissions,
+  ]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = t('users.validation.nameRequired');
+    if (!formData.role || formData.role === "all")
+      newErrors.role = t("users.validation.roleRequired");
+    if (!formData.name.trim())
+      newErrors.name = t("users.validation.nameRequired");
     if (!formData.firstname.trim())
-      newErrors.firstname = t('users.validation.firstnameRequired');
+      newErrors.firstname = t("users.validation.firstnameRequired");
 
     if (!formData.email.trim()) {
-      newErrors.email = t('users.validation.emailRequired');
+      newErrors.email = t("users.validation.emailRequired");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('users.validation.emailInvalid');
+      newErrors.email = t("users.validation.emailInvalid");
     }
 
     if (!isEditMode) {
       if (!formData.plainPassword) {
-        newErrors.plainPassword = t('users.validation.passwordRequired');
+        newErrors.plainPassword = t("users.validation.passwordRequired");
       } else if (formData.plainPassword.length < 6) {
-        newErrors.plainPassword =
-          t('users.validation.passwordMin');
+        newErrors.plainPassword = t("users.validation.passwordMin");
       }
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = t('users.validation.confirmRequired');
+        newErrors.confirmPassword = t("users.validation.confirmRequired");
       } else if (formData.plainPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = t('users.validation.confirmMismatch');
+        newErrors.confirmPassword = t("users.validation.confirmMismatch");
       }
     } else if (formData.plainPassword) {
       if (formData.plainPassword.length < 6) {
-        newErrors.plainPassword =
-          t('users.validation.passwordMin');
+        newErrors.plainPassword = t("users.validation.passwordMin");
       }
       if (formData.plainPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = t('users.validation.confirmMismatch');
+        newErrors.confirmPassword = t("users.validation.confirmMismatch");
       }
     }
 
@@ -117,7 +176,7 @@ export default function UserFormPage() {
     e.preventDefault();
     if (!validateForm()) {
       addToast({
-        message: t('users.validation.formErrors'),
+        message: t("users.validation.formErrors"),
         type: "error",
       });
       return;
@@ -134,6 +193,7 @@ export default function UserFormPage() {
             name: formData.name.trim(),
             firstname: formData.firstname.trim(),
             roles,
+            isActive: formData.actif,
             ...(formData.plainPassword
               ? { plainPassword: formData.plainPassword }
               : {}),
@@ -142,14 +202,10 @@ export default function UserFormPage() {
         {
           onSuccess: () =>
             addToast({
-              message: t('users.toast.updated'),
+              message: t("users.toast.updated"),
               type: "success",
             }),
-          onError: () =>
-            addToast({
-              message: t('users.toast.updateError'),
-              type: "error",
-            }),
+          onError: (error) => handleApiError(error),
         },
       );
     } else {
@@ -160,15 +216,15 @@ export default function UserFormPage() {
           firstname: formData.firstname.trim(),
           plainPassword: formData.plainPassword,
           roles,
+          isActive: formData.actif,
         },
         {
           onSuccess: () =>
             addToast({
-              message: t('users.toast.created'),
+              message: t("users.toast.created"),
               type: "success",
             }),
-          onError: () =>
-            addToast({ message: t('users.toast.createError'), type: "error" }),
+          onError: (error) => handleApiError(error),
         },
       );
     }
@@ -185,17 +241,19 @@ export default function UserFormPage() {
           <Link to="/users">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t('common.back')}
+              {t("common.back")}
             </Button>
           </Link>
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {isEditMode ? t('users.form.editTitle') : t('users.form.createTitle')}
+              {isEditMode
+                ? t("users.form.editTitle")
+                : t("users.form.createTitle")}
             </h2>
             <p className="mt-1 text-gray-600">
               {isEditMode
-                ? t('users.form.editDesc')
-                : t('users.form.createDesc')}
+                ? t("users.form.editDesc")
+                : t("users.form.createDesc")}
             </p>
           </div>
         </div>
@@ -206,41 +264,44 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="text-gray-900">
               {" "}
-              {t('users.form.personalInfo')}{" "}
+              {t("users.form.personalInfo")}{" "}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label={t('users.form.name')}
+                ref={nameRef}
+                label={t("users.form.name")}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
                 error={errors.name}
-                placeholder={t('users.form.namePlaceholder')}
+                placeholder={t("users.form.namePlaceholder")}
                 required
               />
               <Input
-                label={t('users.form.firstname')}
+                ref={firstnameRef}
+                label={t("users.form.firstname")}
                 value={formData.firstname}
                 onChange={(e) =>
                   setFormData({ ...formData, firstname: e.target.value })
                 }
                 error={errors.firstname}
-                placeholder={t('users.form.firstnamePlaceholder')}
+                placeholder={t("users.form.firstnamePlaceholder")}
                 required
               />
             </div>
             <Input
-              label={t('users.form.email')}
+              ref={emailRef}
+              label={t("users.form.email")}
               type="email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
               error={errors.email}
-              placeholder={t('users.form.emailPlaceholder')}
+              placeholder={t("users.form.emailPlaceholder")}
               required
             />
           </CardContent>
@@ -250,12 +311,12 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <Shield className="h-5 w-5 text-blue-600" />
-              {t('users.form.roleAndPermissions')}
+              {t("users.form.roleAndPermissions")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Select
-              label={t('users.form.role')}
+              label={t("users.form.role")}
               options={roleOptions}
               value={formData.role}
               onChange={handleRoleChange}
@@ -270,20 +331,20 @@ export default function UserFormPage() {
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900 mb-2">
                       {" "}
-                      {t('users.form.entreprise')}
+                      {t("users.form.entreprise")}
                     </h4>
                     <Input
-                      label={t('users.form.entreprise')}
+                      label={t("users.form.entreprise")}
                       value={formData.entreprise}
                       onChange={(e) =>
                         setFormData({ ...formData, entreprise: e.target.value })
                       }
                       error={errors.entreprise}
-                      placeholder={t('users.form.entreprisePlaceholder')}
+                      placeholder={t("users.form.entreprisePlaceholder")}
                       required
                     />
                     <p className="text-xs text-blue-700 mt-2">
-                      {t('users.form.prestataireInfo')}
+                      {t("users.form.prestataireInfo")}
                     </p>
                   </div>
                 </div>
@@ -293,7 +354,7 @@ export default function UserFormPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">
                 {" "}
-                {t('users.form.rolePermissions')}{" "}
+                {t("users.form.rolePermissions")}{" "}
               </h4>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                 {(ROLE_PERMISSIONS[formData.role] ?? []).map((perm, i) => (
@@ -308,51 +369,52 @@ export default function UserFormPage() {
           <CardHeader>
             <CardTitle className="text-gray-900">
               {" "}
-              {t('users.form.security')} {!isEditMode && "*"}{" "}
+              {t("users.form.security")} {!isEditMode && "*"}{" "}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {isEditMode && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-yellow-800">
-                  {t('users.form.keepPassword')}
+                  {t("users.form.keepPassword")}
                 </p>
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Input
-                  label={`${t('users.form.password')} ${!isEditMode ? "*" : ""}`}
-                  type={showPassword ? "text" : "password"}
-                  value={formData.plainPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, plainPassword: e.target.value })
-                  }
-                  error={errors.plainPassword}
-                  placeholder={t('users.form.passwordPlaceholder')}
-                  required={!isEditMode}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-9 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
               <Input
-                label={`${t('users.form.confirmPassword')} ${!isEditMode ? "*" : ""}`}
+                ref={plainPasswordRef}
+                label={`${t("users.form.password")} ${!isEditMode ? "*" : ""}`}
+                type={showPassword ? "text" : "password"}
+                value={formData.plainPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, plainPassword: e.target.value })
+                }
+                error={errors.plainPassword}
+                placeholder={t("users.form.passwordPlaceholder")}
+                required={!isEditMode}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                }
+              />
+              <Input
+                label={`${t("users.form.confirmPassword")} ${!isEditMode ? "*" : ""}`}
                 type={showPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
                 error={errors.confirmPassword}
-                placeholder={t('users.form.confirmPasswordPlaceholder')}
+                placeholder={t("users.form.confirmPasswordPlaceholder")}
                 required={!isEditMode}
               />
             </div>
@@ -361,12 +423,15 @@ export default function UserFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-gray-900"> {t('users.form.accountStatus')} </CardTitle>
+            <CardTitle className="text-gray-900">
+              {" "}
+              {t("users.form.accountStatus")}{" "}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Checkbox
-              label={t('users.form.activeAccount')}
-              description={t('users.form.activeAccountDesc')}
+              label={t("users.form.activeAccount")}
+              description={t("users.form.activeAccountDesc")}
               checked={formData.actif}
               onChange={(e) =>
                 setFormData({ ...formData, actif: e.target.checked })
@@ -379,19 +444,19 @@ export default function UserFormPage() {
           <Link to="/users">
             <Button type="button" variant="outline">
               {" "}
-              {t('common.cancel')}{" "}
+              {t("common.cancel")}{" "}
             </Button>
           </Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>
             {isEditMode ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                {t('common.saveChanges')}
+                {t("common.saveChanges")}
               </>
             ) : (
               <>
                 <UserPlus className="h-4 w-4 mr-2" />
-                {t('users.form.create')}
+                {t("users.form.create")}
               </>
             )}
           </Button>

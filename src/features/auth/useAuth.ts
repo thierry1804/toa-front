@@ -3,20 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
 import { useAuthStore } from '@/store/auth.store'
 import { decodeJwtPayload } from '@/utils/jwt'
-import { ROLE_MAP } from '@/data/constant/roles'
-
-function mapRole(roles: unknown): string {
-  if (Array.isArray(roles) && roles.length > 0) {
-    const symfonyRole = roles.find((r): r is string => typeof r === 'string' && r.startsWith('ROLE_'))
-    if (symfonyRole) return ROLE_MAP[symfonyRole] ?? symfonyRole
-  }
-  if (typeof roles === 'string') return ROLE_MAP[roles] ?? roles
-  return 'prestataire'
-}
 
 export function useLogin() {
   const navigate = useNavigate()
   const setUser = useAuthStore((s) => s.setUser)
+  const setPermissions = useAuthStore((s) => s.setPermissions)
 
   return useMutation({
     mutationFn: authApi.login,
@@ -24,12 +15,14 @@ export function useLogin() {
       localStorage.setItem('access_token', data.token)
       const payload = decodeJwtPayload(data.token)
       setUser({
-        id: String(payload?.id ?? ''),
-        email: (payload?.email as string) ?? '',
-        nom: (payload?.nom as string) ?? '',
-        role: mapRole(payload?.roles),
-        actif: true,
+        id: String(data.user?.id ?? payload?.id ?? ''),
+        email: data.user?.email ?? (payload?.email as string) ?? '',
+        nom: data.user?.name ?? '',
+        prenom: data.user?.firstname ?? undefined,
+        actif: data.user?.isActive ?? true,
       })
+      const perms = Array.isArray(payload?.permissions) ? (payload!.permissions as string[]) : []
+      setPermissions(perms)
       navigate('/dashboard')
     },
   })

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
 import { useAuthStore } from '@/store/authStore';
+import { usePermission } from '@/features/auth/usePermission';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -14,6 +15,7 @@ import { formatDate } from '@/lib/utils';
 export default function PreventionListPage() {
   const { plansPrevention } = usePermitStore();
   const { user } = useAuthStore();
+  const canViewAllPrevention = usePermission('prevention.view_all');
   const { t } = useTranslation();
   const perms = usePermissions('/prevention');
 
@@ -31,7 +33,7 @@ export default function PreventionListPage() {
     const matchStatus = statusFilter === 'all' || plan.status === statusFilter;
 
     const matchRole =
-      user?.role !== 'prestataire' ||
+      canViewAllPrevention ||
       plan.creerPar === user?.email ||
       plan.entreprisePrestataire === user?.entreprise;
 
@@ -127,9 +129,9 @@ export default function PreventionListPage() {
         <CardHeader>
           <CardTitle>Plans de prévention ({filteredPlans.length})</CardTitle>
           <CardDescription>
-            {user?.role === 'prestataire'
-              ? 'Vos plans de prévention'
-              : 'Tous les plans de prévention HSSES'}
+            {canViewAllPrevention
+              ? 'Tous les plans de prévention HSSES'
+              : 'Vos plans de prévention'}
           </CardDescription>
         </CardHeader>
         <CardContent>

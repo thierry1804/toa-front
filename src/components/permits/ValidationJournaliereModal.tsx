@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { usePermitStore } from '@/store/permitStore';
-import { useToastStore } from '@/store/toastStore';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { Calendar, Plus, X, Wind, User, CheckCircle } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
-import type { ValidationJournaliere } from '@/types';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { usePermitStore } from "@/store/permitStore";
+import { useToastStore } from "@/store/toastStore";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { Calendar, Plus, X, Wind, User, CheckCircle } from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import type { ValidationJournaliere } from "@/types";
 
 interface ValidationJournaliereModalProps {
   isOpen: boolean;
@@ -20,11 +20,18 @@ interface ValidationJournaliereModalProps {
 
 // Schéma de validation pour une nouvelle validation journalière
 const validationSchema = z.object({
-  date: z.string().min(1, 'Date requise'),
-  codeSite: z.string().min(1, 'Code site requis'),
-  vitesseVent: z.number().min(0, 'Vitesse du vent doit être positive').optional(),
-  demandeurSignatureDebut: z.string().min(1, 'Signature demandeur début requise'),
-  utilisateurSignatureDebut: z.string().min(1, 'Signature utilisateur début requise'),
+  date: z.string().min(1, "Date requise"),
+  codeSite: z.string().min(1, "Code site requis"),
+  vitesseVent: z
+    .number()
+    .min(0, "Vitesse du vent doit être positive")
+    .optional(),
+  demandeurSignatureDebut: z
+    .string()
+    .min(1, "Signature demandeur début requise"),
+  utilisateurSignatureDebut: z
+    .string()
+    .min(1, "Signature utilisateur début requise"),
   demandeurSignatureFin: z.string().optional(),
   utilisateurSignatureFin: z.string().optional(),
 });
@@ -49,13 +56,13 @@ export default function ValidationJournaliereModal({
   } = useForm<ValidationFormData>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
-      codeSite: '',
+      date: new Date().toISOString().split("T")[0],
+      codeSite: "",
       vitesseVent: undefined,
-      demandeurSignatureDebut: '',
-      utilisateurSignatureDebut: '',
-      demandeurSignatureFin: '',
-      utilisateurSignatureFin: '',
+      demandeurSignatureDebut: "",
+      utilisateurSignatureDebut: "",
+      demandeurSignatureFin: "",
+      utilisateurSignatureFin: "",
     },
   });
 
@@ -73,18 +80,20 @@ export default function ValidationJournaliereModal({
 
       // Ajouter la validation à la liste existante
       const updatedValidations = [...validations, newValidation];
-      
+
       // Mettre à jour le permis dans le store
       updatePermisHauteur(permisId, {
         validationsJournalieres: updatedValidations,
       });
 
-      toast.showSuccess('Validation journalière ajoutée avec succès');
+      toast.showSuccess("Validation journalière ajoutée avec succès");
       reset();
       setIsAdding(false);
     } catch (err) {
-      console.error('Erreur lors de l\'ajout de la validation:', err);
-      toast.showError('Une erreur est survenue lors de l\'ajout de la validation');
+      console.error("Erreur lors de l'ajout de la validation:", err);
+      toast.showError(
+        "Une erreur est survenue lors de l'ajout de la validation",
+      );
     }
   };
 
@@ -94,20 +103,24 @@ export default function ValidationJournaliereModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Validation Journalière" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Validation Journalière"
+      size="xl"
+    >
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Validation Journalière</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Validation Journalière
+            </h2>
             <p className="text-gray-600 mt-1">
-              Gestion des validations journalières du permis de travail en hauteur
+              Gestion des validations journalières du permis de travail en
+              hauteur
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="p-2"
-          >
+          <Button variant="outline" onClick={onClose} className="p-2">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -136,14 +149,14 @@ export default function ValidationJournaliereModal({
                 <Input
                   label="Date *"
                   type="date"
-                  {...register('date')}
+                  {...register("date")}
                   error={errors.date?.message}
                 />
                 <Input
                   label="Code Site *"
-                  {...register('codeSite')}
+                  {...register("codeSite")}
                   error={errors.codeSite?.message}
-                  placeholder="Ex: ANT-001"
+                  placeholder="Ex. : ANT-001"
                 />
               </div>
 
@@ -151,24 +164,26 @@ export default function ValidationJournaliereModal({
                 <Input
                   label="Vitesse du vent (km/h)"
                   type="number"
-                  {...register('vitesseVent', { valueAsNumber: true })}
+                  {...register("vitesseVent", { valueAsNumber: true })}
                   error={errors.vitesseVent?.message}
-                  placeholder="Ex: 15"
+                  placeholder="Ex. : 15"
                 />
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium text-gray-900 mb-3">Signatures - Commencement des travaux</h4>
+                <h4 className="font-medium text-gray-900 mb-3">
+                  Signatures - Commencement des travaux
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Demandeur / Responsable contractant *"
-                    {...register('demandeurSignatureDebut')}
+                    {...register("demandeurSignatureDebut")}
                     error={errors.demandeurSignatureDebut?.message}
                     placeholder="Nom et signature"
                   />
                   <Input
                     label="Utilisateur de permis *"
-                    {...register('utilisateurSignatureDebut')}
+                    {...register("utilisateurSignatureDebut")}
                     error={errors.utilisateurSignatureDebut?.message}
                     placeholder="Nom et signature"
                   />
@@ -176,17 +191,19 @@ export default function ValidationJournaliereModal({
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium text-gray-900 mb-3">Signatures - Clôture journalière</h4>
+                <h4 className="font-medium text-gray-900 mb-3">
+                  Signatures - Clôture journalière
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Demandeur / Responsable contractant"
-                    {...register('demandeurSignatureFin')}
+                    {...register("demandeurSignatureFin")}
                     error={errors.demandeurSignatureFin?.message}
                     placeholder="Nom et signature"
                   />
                   <Input
                     label="Utilisateur de permis"
-                    {...register('utilisateurSignatureFin')}
+                    {...register("utilisateurSignatureFin")}
                     error={errors.utilisateurSignatureFin?.message}
                     placeholder="Nom et signature"
                   />
@@ -211,11 +228,13 @@ export default function ValidationJournaliereModal({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Historique des validations ({validations.length})
           </h3>
-          
+
           {validations.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Aucune validation journalière enregistrée</p>
+              <p className="text-gray-500">
+                Aucune validation journalière enregistrée
+              </p>
               <p className="text-sm text-gray-400 mt-1">
                 Ajoutez la première validation pour commencer le suivi
               </p>
@@ -267,7 +286,7 @@ export default function ValidationJournaliereModal({
                   {validations.map((validation, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatDate(validation.date || '')}
+                        {formatDate(validation.date || "")}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 font-mono">
                         {validation.codeSite}

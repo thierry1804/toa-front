@@ -1,24 +1,24 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { usePermitStore } from '@/store/permitStore';
-import { useAuthStore } from '@/store/authStore';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Checkbox from '@/components/ui/Checkbox';
-import MultiStepForm from './MultiStepForm';
-import { AlertCircle } from 'lucide-react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { usePermitStore } from "@/store/permitStore";
+import { useAuthStore } from "@/store/authStore";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import Checkbox from "@/components/ui/Checkbox";
+import MultiStepForm from "./MultiStepForm";
+import { AlertCircle } from "lucide-react";
 
 // Schémas de validation pour chaque étape
 const step1Schema = z.object({
-  planPreventionId: z.string().min(1, 'Plan de prévention requis'),
-  intituleTravaux: z.string().min(5, 'Intitulé trop court (min 5 caractères)'),
-  localisation: z.string().min(1, 'Localisation requise'),
-  codeSite: z.string().min(1, 'Code site requis'),
-  contractant: z.string().min(1, 'Contractant requis'),
-  nombreIntervenants: z.number().min(1, 'Minimum 1 intervenant'),
-  dateDebut: z.string().min(1, 'Date de début requise'),
-  dateFin: z.string().min(1, 'Date de fin requise'),
+  planPreventionId: z.string().min(1, "Plan de prévention requis"),
+  intituleTravaux: z.string().min(5, "Intitulé trop court (min 5 caractères)"),
+  localisation: z.string().min(1, "Localisation requise"),
+  codeSite: z.string().min(1, "Code site requis"),
+  contractant: z.string().min(1, "Contractant requis"),
+  nombreIntervenants: z.number().min(1, "Minimum 1 intervenant"),
+  dateDebut: z.string().min(1, "Date de début requise"),
+  dateFin: z.string().min(1, "Date de fin requise"),
 });
 
 const step2Schema = z.object({
@@ -33,19 +33,19 @@ const step2Schema = z.object({
 
 const step3Schema = z.object({
   evaluationRisquesValidee: z.boolean().refine((val) => val === true, {
-    message: 'L\'évaluation des risques doit être validée',
+    message: "L'évaluation des risques doit être validée",
   }),
   personneCompetenteAssignee: z.boolean().refine((val) => val === true, {
-    message: 'Une personne compétente doit être assignée',
+    message: "Une personne compétente doit être assignée",
   }),
   mesuresPreventionMisesEnPlace: z.boolean().refine((val) => val === true, {
-    message: 'Les mesures de prévention doivent être mises en place',
+    message: "Les mesures de prévention doivent être mises en place",
   }),
   personnelInforme: z.boolean().refine((val) => val === true, {
-    message: 'Le personnel doit être informé',
+    message: "Le personnel doit être informé",
   }),
   dangersControles: z.boolean().refine((val) => val === true, {
-    message: 'Les dangers doivent être contrôlés',
+    message: "Les dangers doivent être contrôlés",
   }),
 });
 
@@ -61,13 +61,16 @@ interface PermitGeneralFormProps {
   initialData?: any;
 }
 
-export default function PermitGeneralForm({ onComplete, onCancel }: PermitGeneralFormProps) {
+export default function PermitGeneralForm({
+  onComplete,
+  onCancel,
+}: PermitGeneralFormProps) {
   const { plansPrevention } = usePermitStore();
   const { user } = useAuthStore();
 
   // Filtrer les plans validés
   const plansDisponibles = plansPrevention
-    .filter((p) => p.status === 'valide')
+    .filter((p) => p.status === "valide")
     .map((p) => ({
       value: p.id,
       label: `${p.reference} - ${p.nomSite}`,
@@ -82,27 +85,27 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
     } = useForm<Step1Data>({
       resolver: zodResolver(step1Schema),
       defaultValues: {
-        planPreventionId: '',
-        intituleTravaux: '',
-        localisation: '',
-        codeSite: '',
-        contractant: user?.entreprise || '',
+        planPreventionId: "",
+        intituleTravaux: "",
+        localisation: "",
+        codeSite: "",
+        contractant: user?.entreprise || "",
         nombreIntervenants: 1,
-        dateDebut: '',
-        dateFin: '',
+        dateDebut: "",
+        dateFin: "",
       },
     });
 
     const onSubmit = (data: Step1Data) => {
       // Cette fonction sera appelée par le MultiStepForm
-      console.log('Step1 data:', data);
+      console.log("Step1 data:", data);
     };
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Select
           label="Plan de Prévention Associé *"
-          {...register('planPreventionId')}
+          {...register("planPreventionId")}
           error={errors.planPreventionId?.message}
           options={plansDisponibles}
           placeholder="Sélectionner un plan de prévention validé"
@@ -116,8 +119,8 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
                 Aucun plan de prévention disponible
               </p>
               <p className="text-xs text-yellow-700 mt-1">
-                Vous devez d'abord créer et faire valider un plan de prévention avant de créer
-                un permis de travail.
+                Vous devez d'abord créer et faire valider un plan de prévention
+                avant de créer un permis de travail.
               </p>
             </div>
           </div>
@@ -125,37 +128,37 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
 
         <Input
           label="Intitulé des Travaux *"
-          {...register('intituleTravaux')}
+          {...register("intituleTravaux")}
           error={errors.intituleTravaux?.message}
-          placeholder="Ex: Maintenance équipements télécoms"
+          placeholder="Ex. : Maintenance équipements télécoms"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Localisation *"
-            {...register('localisation')}
+            {...register("localisation")}
             error={errors.localisation?.message}
-            placeholder="Ex: Antananarivo Centre - Pylône principal"
+            placeholder="Ex. : Antananarivo Centre - Pylône principal"
           />
           <Input
             label="Code Site *"
-            {...register('codeSite')}
+            {...register("codeSite")}
             error={errors.codeSite?.message}
-            placeholder="Ex: ANT-001"
+            placeholder="Ex. : ANT-001"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Contractant *"
-            {...register('contractant')}
+            {...register("contractant")}
             error={errors.contractant?.message}
             placeholder="Nom de l'entreprise"
           />
           <Input
             label="Nombre d'Intervenants *"
             type="number"
-            {...register('nombreIntervenants', { valueAsNumber: true })}
+            {...register("nombreIntervenants", { valueAsNumber: true })}
             error={errors.nombreIntervenants?.message}
             min={1}
           />
@@ -165,13 +168,13 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
           <Input
             label="Date de Début *"
             type="date"
-            {...register('dateDebut')}
+            {...register("dateDebut")}
             error={errors.dateDebut?.message}
           />
           <Input
             label="Date de Fin *"
             type="date"
-            {...register('dateFin')}
+            {...register("dateFin")}
             error={errors.dateFin?.message}
           />
         </div>
@@ -181,11 +184,7 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
 
   // Étape 2: Types de travaux à risques
   const Step2Component = () => {
-    const {
-      register,
-      handleSubmit,
-      watch,
-    } = useForm<Step2Data>({
+    const { register, handleSubmit, watch } = useForm<Step2Data>({
       resolver: zodResolver(step2Schema),
       defaultValues: {
         travauxChaud: false,
@@ -194,14 +193,14 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
         travauxEspaceConfine: false,
         travauxExcavation: false,
         travauxAutres: false,
-        autresDescription: '',
+        autresDescription: "",
       },
     });
 
-    const travauxAutres = watch('travauxAutres');
+    const travauxAutres = watch("travauxAutres");
 
     const onSubmit = (data: Step2Data) => {
-      console.log('Step2 data:', data);
+      console.log("Step2 data:", data);
     };
 
     return (
@@ -213,38 +212,38 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
         <Checkbox
           label="Travaux à chaud"
           description="Soudure, meulage, découpe thermique, etc."
-          {...register('travauxChaud')}
+          {...register("travauxChaud")}
         />
         <Checkbox
           label="Travaux en hauteur"
           description="Intervention à plus de 3 mètres de hauteur"
-          {...register('travauxHauteur')}
+          {...register("travauxHauteur")}
         />
         <Checkbox
           label="Travaux électriques"
           description="Intervention sur installations électriques"
-          {...register('travauxElectrique')}
+          {...register("travauxElectrique")}
         />
         <Checkbox
           label="Travaux en espace confiné"
           description="Intervention dans un espace restreint"
-          {...register('travauxEspaceConfine')}
+          {...register("travauxEspaceConfine")}
         />
         <Checkbox
           label="Travaux d'excavation"
           description="Terrassement, forage, creusement"
-          {...register('travauxExcavation')}
+          {...register("travauxExcavation")}
         />
         <Checkbox
           label="Autres"
           description="Autres types de travaux à risques"
-          {...register('travauxAutres')}
+          {...register("travauxAutres")}
         />
 
         {travauxAutres && (
           <Input
             label="Description des autres travaux"
-            {...register('autresDescription')}
+            {...register("autresDescription")}
             placeholder="Précisez le type de travaux..."
           />
         )}
@@ -270,7 +269,7 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
     });
 
     const onSubmit = (data: Step3Data) => {
-      console.log('Step3 data:', data);
+      console.log("Step3 data:", data);
     };
 
     return (
@@ -281,42 +280,52 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
 
         <Checkbox
           label="L'évaluation des risques a été validée *"
-          {...register('evaluationRisquesValidee')}
+          {...register("evaluationRisquesValidee")}
         />
         {errors.evaluationRisquesValidee && (
-          <p className="text-sm text-red-600">{errors.evaluationRisquesValidee.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.evaluationRisquesValidee.message}
+          </p>
         )}
 
         <Checkbox
           label="Une personne compétente a été assignée pour contrôler les mesures *"
-          {...register('personneCompetenteAssignee')}
+          {...register("personneCompetenteAssignee")}
         />
         {errors.personneCompetenteAssignee && (
-          <p className="text-sm text-red-600">{errors.personneCompetenteAssignee.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.personneCompetenteAssignee.message}
+          </p>
         )}
 
         <Checkbox
           label="Les mesures de prévention sont mises en place *"
-          {...register('mesuresPreventionMisesEnPlace')}
+          {...register("mesuresPreventionMisesEnPlace")}
         />
         {errors.mesuresPreventionMisesEnPlace && (
-          <p className="text-sm text-red-600">{errors.mesuresPreventionMisesEnPlace.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.mesuresPreventionMisesEnPlace.message}
+          </p>
         )}
 
         <Checkbox
           label="Le personnel a été informé des exigences de sécurité *"
-          {...register('personnelInforme')}
+          {...register("personnelInforme")}
         />
         {errors.personnelInforme && (
-          <p className="text-sm text-red-600">{errors.personnelInforme.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.personnelInforme.message}
+          </p>
         )}
 
         <Checkbox
           label="Les dangers seront contrôlés tout au long des travaux *"
-          {...register('dangersControles')}
+          {...register("dangersControles")}
         />
         {errors.dangersControles && (
-          <p className="text-sm text-red-600">{errors.dangersControles.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.dangersControles.message}
+          </p>
         )}
       </form>
     );
@@ -330,19 +339,24 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-blue-900">Information importante</p>
+              <p className="text-sm font-medium text-blue-900">
+                Information importante
+              </p>
               <p className="text-xs text-blue-700 mt-1">
-                Après soumission, votre demande sera transmise au Chef de Projet pour validation.
-                Une fois validée par le Chef de Projet, elle sera transmise à l'équipe HSE pour
-                validation finale et attribution d'une référence unique.
+                Après soumission, votre demande sera transmise au Chef de Projet
+                pour validation. Une fois validée par le Chef de Projet, elle
+                sera transmise à l'équipe HSE pour validation finale et
+                attribution d'une référence unique.
               </p>
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h4 className="font-medium text-gray-900">Récapitulatif de votre demande</h4>
-          
+          <h4 className="font-medium text-gray-900">
+            Récapitulatif de votre demande
+          </h4>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="font-medium text-gray-700">Travaux:</p>
@@ -367,10 +381,16 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
           </div>
 
           <div>
-            <p className="font-medium text-gray-700 mb-2">Types de travaux à risques:</p>
+            <p className="font-medium text-gray-700 mb-2">
+              Types de travaux à risques:
+            </p>
             <div className="flex flex-wrap gap-2">
-              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">Travaux en hauteur</span>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Travaux électriques</span>
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                Travaux en hauteur
+              </span>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                Travaux électriques
+              </span>
             </div>
           </div>
         </div>
@@ -380,28 +400,28 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
 
   const steps = [
     {
-      id: 'details',
-      title: 'Détails de l\'intervention',
-      description: 'Informations générales sur les travaux à effectuer',
+      id: "details",
+      title: "Détails de l'intervention",
+      description: "Informations générales sur les travaux à effectuer",
       component: <Step1Component />,
       isValid: plansDisponibles.length > 0,
     },
     {
-      id: 'risques',
-      title: 'Types de travaux à risques',
-      description: 'Sélection des types de travaux concernés',
+      id: "risques",
+      title: "Types de travaux à risques",
+      description: "Sélection des types de travaux concernés",
       component: <Step2Component />,
     },
     {
-      id: 'engagement',
-      title: 'Engagement du demandeur',
-      description: 'Confirmations obligatoires du demandeur',
+      id: "engagement",
+      title: "Engagement du demandeur",
+      description: "Confirmations obligatoires du demandeur",
       component: <Step3Component />,
     },
     {
-      id: 'revision',
-      title: 'Révision et soumission',
-      description: 'Vérification des informations et soumission',
+      id: "revision",
+      title: "Révision et soumission",
+      description: "Vérification des informations et soumission",
       component: <Step4Component />,
     },
   ];
@@ -412,7 +432,8 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
     const permisData = {
       planPreventionId: data.planPreventionId,
       planPreventionReference:
-        plansPrevention.find((p) => p.id === data.planPreventionId)?.reference || '',
+        plansPrevention.find((p) => p.id === data.planPreventionId)
+          ?.reference || "",
       intituleTravaux: data.intituleTravaux,
       localisation: data.localisation,
       codeSite: data.codeSite,
@@ -431,17 +452,19 @@ export default function PermitGeneralForm({ onComplete, onCancel }: PermitGenera
         autresDescription: data.autresDescription,
       },
       permisAnnexes: [],
-      status: 'en_attente_validation_chef' as const,
+      status: "en_attente_validation_chef" as const,
       evaluationRisquesValidee: data.evaluationRisquesValidee,
       personneCompetenteAssignee: data.personneCompetenteAssignee,
       mesuresPreventionMisesEnPlace: data.mesuresPreventionMisesEnPlace,
       personnelInforme: data.personnelInforme,
       dangersControles: data.dangersControles,
-      demandeurNom: user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : '',
+      demandeurNom:
+        user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : "",
       demandeurDate: new Date(),
-      superviseurNom: user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : '',
+      superviseurNom:
+        user?.prenom && user?.nom ? `${user.prenom} ${user.nom}` : "",
       superviseurDate: new Date(),
-      creerPar: user?.email || '',
+      creerPar: user?.email || "",
     };
 
     onComplete(permisData);

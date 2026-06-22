@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth.store'
+import { usePermission, useHasPermissions } from '@/features/auth/usePermission'
 import { useMenuAccesses, useCreateMenuAccess, useUpdateMenuAccess } from '@/features/menus/hooks/useMenuAccesses'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useUiStore } from '@/store/ui.store'
@@ -15,7 +15,8 @@ import { roleOptions } from '@/data/constant/roles'
 export default function MenuAccessFormPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { canAccessFeature } = useAuthStore()
+  const canManageMenus = usePermission('manage_menus')
+  const hasPermissions = useHasPermissions()
   const addToast = useUiStore((s) => s.addToast)
   const { data: allAccesses } = useMenuAccesses()
   const { data: allMenus } = useMenus()
@@ -45,11 +46,11 @@ export default function MenuAccessFormPage() {
   }, [existing])
 
   useEffect(() => {
-    if (!canAccessFeature('manage_menus')) {
+    if (hasPermissions && !canManageMenus) {
       navigate('/menu-accesses')
       addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
-  }, [navigate, addToast, canAccessFeature])
+  }, [navigate, addToast, canManageMenus, hasPermissions])
 
   const menuOptions = (allMenus ?? []).map((m) => ({
     value: m['@id'],
