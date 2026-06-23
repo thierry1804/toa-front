@@ -33,6 +33,7 @@ export interface User {
   prenom?: string
   entreprise?: string
   roles: string[]
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }

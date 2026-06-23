@@ -60,7 +60,7 @@ export default function UserFormPage() {
   const emailRef = useRef<HTMLInputElement>(null);
   const plainPasswordRef = useRef<HTMLInputElement>(null);
 
-  const fieldRefs: Record<string, React.RefObject<HTMLInputElement>> = {
+  const fieldRefs: Record<string, React.RefObject<HTMLInputElement | null>> = {
     name: nameRef,
     firstname: firstnameRef,
     email: emailRef,
