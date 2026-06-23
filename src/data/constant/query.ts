@@ -7,3 +7,5 @@ export const MENUS_KEY = ['menus'] as const
 export const ACCESSES_KEY = ['menu-accesses'] as const
 
 export const PLANNING_KEY = ['activity_plannings'] as const
+
+export const PLAN_PREVENTION_KEY = ['plans-prevention'] as const

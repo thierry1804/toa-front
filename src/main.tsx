@@ -11,7 +11,7 @@ import DashboardPage from '@/pages/dashboard/DashboardPage'
 import PermitsListPage from '@/pages/PermitsListPage'
 import PermitDetailPage from '@/pages/PermitDetailPage'
 import PermitNewPage from '@/pages/PermitNewPage'
-import PreventionPage from '@/pages/PreventionPage'
+import PlanPreventionListPage from '@/pages/prevention/PlanPreventionListPage'
 import UsersListPage from '@/pages/users/UsersListPage'
 import UserFormPage from '@/pages/users/UserFormPage'
 import PlanningListPage from '@/pages/planning/PlanningListPage'
@@ -22,6 +22,7 @@ import MenuAccessesListPage from '@/pages/menus/MenuAccessesListPage'
 import MenuAccessFormPage from '@/pages/menus/MenuAccessFormPage'
 import MenuManagerPage from '@/pages/menus/MenuManagerPage'
 import StatisticsPage from '@/pages/StatisticsPage'
+import PlanPreventionCreatePage from '@/pages/planPrevention/PlanPreventionCreatePage'
 import '../app/globals.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -41,7 +42,8 @@ createRoot(document.getElementById('root')!).render(
             </Route>
 
             <Route element={<RouteGuard menuRoute="/prevention" />}>
-              <Route path="/prevention" element={<PreventionPage />} />
+              <Route path="/prevention" element={<PlanPreventionListPage />} />
+              <Route path="/prevention/new" element={<PlanPreventionCreatePage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/users" />}>
