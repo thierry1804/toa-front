@@ -89,6 +89,15 @@ export function usePlanPrevention() {
     },
   })
 
+  const examinerMutation = useMutation({
+    mutationFn: ({ id, commentaire }: { id: string; commentaire?: string }) =>
+      planPreventionApi.examiner(id, commentaire),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+      addToast({ message: 'Plan examiné avec succès', type: 'success' })
+    },
+  })
+
   const addRisqueMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: RisquePreventionInput }) =>
       planPreventionApi.addRisque(id, data),
@@ -136,6 +145,20 @@ export function usePlanPrevention() {
     }
   }
 
+  const examinerPlan = async (id: string, commentaire?: string): Promise<void> => {
+    try {
+      await examinerMutation.mutateAsync({ id, commentaire })
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('Statut invalide')) {
+        throw new Error('Statut invalide pour examen')
+      }
+      addToast({ message: "Erreur lors de l'examen du plan", type: 'error' })
+      throw err
+    }
+  }
+
   const addRisque = async (id: string, data: RisquePreventionInput) => {
     return addRisqueMutation.mutateAsync({ id, data })
   }
@@ -146,6 +169,7 @@ export function usePlanPrevention() {
     uploadDocument,
     importKmz,
     soumettrePlan,
+    examinerPlan,
     addRisque,
     missingDocuments,
     isCreating: createMutation.isPending,
@@ -153,5 +177,6 @@ export function usePlanPrevention() {
     isUploading: uploadMutation.isPending,
     isImportingKmz: importKmzMutation.isPending,
     isSubmitting: soumettresMutation.isPending,
+    isExamining: examinerMutation.isPending,
   }
 }

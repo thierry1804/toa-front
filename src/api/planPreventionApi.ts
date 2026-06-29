@@ -52,6 +52,11 @@ export const planPreventionApi = {
       .then((r) => r.data)
   },
 
+  examiner: (id: string, commentaire?: string) =>
+    api
+      .post<PlanPrevention>(`/api/plans-prevention/${id}/examiner`, commentaire ? { commentaire } : {})
+      .then((r) => r.data),
+
   importKmz: (id: string, file: File) => {
     const formData = new FormData()
     formData.append('file', file)

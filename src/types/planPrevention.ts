@@ -1,4 +1,12 @@
-export type StatutPlanPrevention = 'BROUILLON' | 'SOUMIS' | 'VALIDE' | 'REJETE'
+export type StatutPlanPrevention =
+  | 'BROUILLON'
+  | 'SOUMIS'
+  | 'VALIDE'
+  | 'REJETE'
+  | 'EN_ATTENTE'
+  | 'ENVOYE'
+  | 'EN_COURS_DE_VALIDATION'
+  | 'EXAMINE'
 
 export type TypeDocumentPrevention =
   | 'PLAN_URGENCE'
@@ -63,6 +71,13 @@ export interface SitePrevention {
   sourceKmz: boolean
 }
 
+export interface ExamenPlanPrevention {
+  id: string
+  examinePar: { id: number; email: string; name: string; firstname?: string }
+  examineAt: string
+  commentaire: string | null
+}
+
 export interface PlanPrevention {
   '@id'?: string
   id: string
@@ -78,6 +93,8 @@ export interface PlanPrevention {
   risques: RisquePrevention[]
   documents: DocumentPrevention[]
   sites: SitePrevention[]
+  chefProjet?: { id: number; email: string; name: string; firstname?: string } | null
+  examens?: ExamenPlanPrevention[]
 }
 
 export interface RisqueRow {

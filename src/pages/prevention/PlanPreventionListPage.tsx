@@ -1,46 +1,44 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FileText, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import { usePlanPreventions } from '@/features/planPrevention/hooks/usePlanPrevention'
+import StatutBadge from '@/components/planPrevention/StatutBadge'
+import ExaminerModal from '@/components/planPrevention/ExaminerModal'
+import { usePlanPreventions, usePlanPrevention } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
-import type { PlanPrevention, StatutPlanPrevention } from '@/types/planPrevention'
+import { usePermission } from '@/features/auth/usePermission'
+import type { PlanPrevention } from '@/types/planPrevention'
 
-const STATUT_CONFIG: Record<
-  StatutPlanPrevention,
-  { label: string; color: string; icon: React.ElementType }
-> = {
-  BROUILLON: { label: 'Brouillon', color: 'bg-gray-100 text-gray-700', icon: FileText },
-  SOUMIS: { label: 'Soumis', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  VALIDE: { label: 'Validé', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  REJETE: { label: 'Rejeté', color: 'bg-red-100 text-red-700', icon: XCircle },
-}
+const STATUTS_EXAMINABLES = ['SOUMIS', 'EN_COURS_DE_VALIDATION'] as const
 
-function StatutBadge({ statut }: { statut: StatutPlanPrevention }) {
-  const cfg = STATUT_CONFIG[statut] ?? STATUT_CONFIG.BROUILLON
-  const Icon = cfg.icon
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${cfg.color}`}>
-      <Icon className="h-3.5 w-3.5" />
-      {cfg.label}
-    </span>
-  )
-}
-
-function PlanRow({ plan }: { plan: PlanPrevention }) {
+function PlanRow({
+  plan,
+  canExamine,
+  onExaminerClick,
+}: {
+  plan: PlanPrevention
+  canExamine: boolean
+  onExaminerClick: (plan: PlanPrevention) => void
+}) {
+  const navigate = useNavigate()
+  const createdAt = plan.createdAt ? new Date(plan.createdAt).toLocaleDateString('fr-FR') : '—'
   const docsCount = plan.documents?.length ?? 0
   const risquesCount = plan.risques?.length ?? 0
-  const createdAt = plan.createdAt ? new Date(plan.createdAt).toLocaleDateString('fr-FR') : '—'
+  const isExaminable = canExamine && (STATUTS_EXAMINABLES as readonly string[]).includes(plan.statut)
 
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
+    <tr
+      className="hover:bg-gray-50 transition-colors cursor-pointer"
+      onClick={() => navigate(`/prevention/${plan.id}`)}
+    >
       <td className="px-4 py-3">
         <span className="font-mono text-sm font-medium text-blue-700">{plan.reference}</span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-800">{plan.codeSite}</td>
-      <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{plan.localite}</td>
-      <td className="px-4 py-3 text-sm text-gray-600">{createdAt}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{plan.activitePlanifiee}</td>
+      <td className="px-4 py-3 text-sm text-gray-500">{createdAt}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>{docsCount}/5 docs</span>
@@ -51,6 +49,18 @@ function PlanRow({ plan }: { plan: PlanPrevention }) {
       <td className="px-4 py-3">
         <StatutBadge statut={plan.statut} />
       </td>
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        {isExaminable && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onExaminerClick(plan)}
+          >
+            <Eye className="mr-1.5 h-3.5 w-3.5" />
+            Examiner
+          </Button>
+        )}
+      </td>
     </tr>
   )
 }
@@ -59,8 +69,14 @@ export default function PlanPreventionListPage() {
   const navigate = useNavigate()
   const perms = usePermissions('/prevention')
   const canCreate = perms?.canCreate ?? false
+  const canExamine = usePermission('plan_prevention.examine')
 
   const { data: plans = [], isLoading, isError } = usePlanPreventions()
+  const { examinerPlan, isExamining } = usePlanPrevention()
+
+  const [selectedPlan, setSelectedPlan] = useState<PlanPrevention | null>(null)
+
+  const headers = ['Référence', 'Code site', 'Activité', 'Date création', 'Avancement', 'Statut', '']
 
   return (
     <div className="space-y-6">
@@ -98,9 +114,9 @@ export default function PlanPreventionListPage() {
 
           {!isLoading && !isError && plans.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="h-12 w-12 text-gray-300 mb-4" />
-              <p className="text-gray-500 font-medium">Aucun plan de prévention</p>
-              <p className="text-gray-400 text-sm mt-1">
+              <FileText className="mb-4 h-12 w-12 text-gray-300" />
+              <p className="font-medium text-gray-500">Aucun plan de prévention</p>
+              <p className="mt-1 text-sm text-gray-400">
                 {canCreate
                   ? 'Cliquez sur "Nouveau plan" pour en créer un.'
                   : "Vous n'avez pas encore de plan de prévention."}
@@ -113,21 +129,24 @@ export default function PlanPreventionListPage() {
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    {['Référence', 'Code site', 'Localité', 'Date création', 'Avancement', 'Statut'].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {headers.map((h, i) => (
+                      <th
+                        key={i}
+                        className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {plans.map((plan) => (
-                    <PlanRow key={plan.id} plan={plan} />
+                    <PlanRow
+                      key={plan.id}
+                      plan={plan}
+                      canExamine={canExamine}
+                      onExaminerClick={setSelectedPlan}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -135,6 +154,17 @@ export default function PlanPreventionListPage() {
           )}
         </CardContent>
       </Card>
+
+      {selectedPlan && (
+        <ExaminerModal
+          isOpen={true}
+          planId={selectedPlan.id}
+          planReference={selectedPlan.reference}
+          isExamining={isExamining}
+          onClose={() => setSelectedPlan(null)}
+          onExaminer={examinerPlan}
+        />
+      )}
     </div>
   )
 }
