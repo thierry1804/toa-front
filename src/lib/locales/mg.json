@@ -363,6 +363,7 @@
     "menu_access_menu_required": "Ilaina ny menu",
     "menu_access_role_required": "Ilaina ny andraikitra",
     "access_denied": "Voarara ny fidirana",
-    "account_not_activated": "Tsy niasana ny kaonty"
+    "account_not_activated": "Tsy niasana ny kaonty",
+    "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao."
   }
 }

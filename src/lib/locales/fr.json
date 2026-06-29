@@ -363,6 +363,7 @@
     "menu_access_menu_required": "Le menu est obligatoire",
     "menu_access_role_required": "Le rôle est obligatoire",
     "access_denied": "Accès refusé",
-    "account_not_activated": "Compte non activé"
+    "account_not_activated": "Compte non activé",
+    "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte."
   }
 }
