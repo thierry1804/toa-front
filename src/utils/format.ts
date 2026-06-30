@@ -1,3 +1,12 @@
+export function formatUserDisplayName(user: {
+  firstname: string
+  name: string
+  entrepriseName?: string | null
+}): string {
+  const fullName = `${user.firstname} ${user.name}`
+  return user.entrepriseName ? `${user.entrepriseName} (${fullName})` : fullName
+}
+
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 }

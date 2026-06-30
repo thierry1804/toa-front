@@ -28,6 +28,7 @@ import {
   Shield,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
+import { formatUserDisplayName } from "@/utils/format";
 import { ROLE_CONFIG, roleOptions, statusOptions } from "@/data/constant/roles";
 
 function getDisplayRole(roles: string[]): string {
@@ -58,7 +59,7 @@ export default function UsersListPage() {
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
 
   const filteredUsers = users.filter((user) => {
-    const fullName = `${user.firstname} ${user.name}`.toLowerCase();
+    const fullName = formatUserDisplayName(user).toLowerCase();
     const matchSearch =
       searchQuery === "" ||
       fullName.includes(searchQuery.toLowerCase()) ||
@@ -325,7 +326,7 @@ export default function UsersListPage() {
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">
-                                  {user.firstname} {user.name}
+                                  {formatUserDisplayName(user)}
                                 </p>
                                 {String(user.id) === currentUser?.id && (
                                   <span className="text-xs text-blue-600">
@@ -386,7 +387,7 @@ export default function UsersListPage() {
                                   onClick={() =>
                                     setDeleteTarget({
                                       id: user.id,
-                                      name: `${user.firstname} ${user.name}`,
+                                      name: formatUserDisplayName(user),
                                     })
                                   }
                                   disabled={String(user.id) === currentUser?.id}
@@ -432,7 +433,7 @@ export default function UsersListPage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">
-                              {user.firstname} {user.name}
+                              {formatUserDisplayName(user)}
                             </p>
                             <p className="text-xs text-gray-500 truncate">
                               {user.email}
@@ -459,7 +460,7 @@ export default function UsersListPage() {
                               onClick={() =>
                                 setDeleteTarget({
                                   id: user.id,
-                                  name: `${user.firstname} ${user.name}`,
+                                  name: formatUserDisplayName(user),
                                 })
                               }
                               disabled={String(user.id) === currentUser?.id}

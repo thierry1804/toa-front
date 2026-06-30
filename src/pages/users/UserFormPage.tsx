@@ -34,11 +34,13 @@ const PROPERTY_TO_FIELD: Record<string, string> = {
   name: "name",
   firstname: "firstname",
   plainPassword: "plainPassword",
+  entrepriseName: "entrepriseName",
   email_already_used: "email",
   email_invalid: "email",
   email_required: "email",
   name_required: "name",
   password_required: "plainPassword",
+  entreprise_name_not_allowed_for_role: "entrepriseName",
 };
 
 export default function UserFormPage() {
@@ -92,7 +94,7 @@ export default function UserFormPage() {
     name: "",
     email: "",
     role: "ROLE_PRESTATAIRE",
-    entreprise: "",
+    entrepriseName: "",
     actif: true,
     plainPassword: "",
     confirmPassword: "",
@@ -110,7 +112,7 @@ export default function UserFormPage() {
         role:
           existingUser.roles.find((r) => r.startsWith("ROLE_")) ??
           "ROLE_PRESTATAIRE",
-        entreprise: "",
+        entrepriseName: existingUser.entrepriseName ?? "",
         actif: existingUser.isActive,
         plainPassword: "",
         confirmPassword: "",
@@ -184,6 +186,11 @@ export default function UserFormPage() {
 
     const roles = [formData.role];
 
+    const entrepriseName =
+      formData.role === "ROLE_PRESTATAIRE"
+        ? formData.entrepriseName.trim() || null
+        : null;
+
     if (isEditMode && existingUser) {
       updateUser(
         {
@@ -194,6 +201,7 @@ export default function UserFormPage() {
             firstname: formData.firstname.trim(),
             roles,
             isActive: formData.actif,
+            entrepriseName,
             ...(formData.plainPassword
               ? { plainPassword: formData.plainPassword }
               : {}),
@@ -217,6 +225,7 @@ export default function UserFormPage() {
           plainPassword: formData.plainPassword,
           roles,
           isActive: formData.actif,
+          entrepriseName,
         },
         {
           onSuccess: () =>
@@ -231,7 +240,12 @@ export default function UserFormPage() {
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, role: e.target.value });
+    const newRole = e.target.value;
+    setFormData({
+      ...formData,
+      role: newRole,
+      entrepriseName: newRole === "ROLE_PRESTATAIRE" ? formData.entrepriseName : "",
+    });
   };
 
   return (
@@ -335,13 +349,12 @@ export default function UserFormPage() {
                     </h4>
                     <Input
                       label={t("users.form.entreprise")}
-                      value={formData.entreprise}
+                      value={formData.entrepriseName}
                       onChange={(e) =>
-                        setFormData({ ...formData, entreprise: e.target.value })
+                        setFormData({ ...formData, entrepriseName: e.target.value })
                       }
-                      error={errors.entreprise}
+                      error={errors.entrepriseName}
                       placeholder={t("users.form.entreprisePlaceholder")}
-                      required
                     />
                     <p className="text-xs text-blue-700 mt-2">
                       {t("users.form.prestataireInfo")}

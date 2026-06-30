@@ -31,7 +31,7 @@ export interface User {
   name: string
   firstname: string
   prenom?: string
-  entreprise?: string
+  entrepriseName?: string | null
   roles: string[]
   isActive: boolean
   createdAt: string
@@ -45,6 +45,7 @@ export interface UserCreate {
   plainPassword: string
   roles: string[]
   isActive: boolean
+  entrepriseName?: string | null
 }
 
 export interface UserUpdate {
@@ -54,6 +55,7 @@ export interface UserUpdate {
   plainPassword?: string
   roles?: string[]
   isActive?: boolean
+  entrepriseName?: string | null
 }
 
 export interface HydraCollection<T> {

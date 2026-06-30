@@ -196,7 +196,7 @@
       "siteNamePlaceholder": "Ex. : Antananarivo Centre",
       "region": "Région *",
       "regionPlaceholder": "Ex. : Analamanga",
-      "theoreticalDate": "Date théorique *",
+      "theoreticalDate": "Début théorique *",
       "expectedStartDate": "Début prévu *",
       "expectedEndDate": "Fin prévue *",
       "dateInfo": "La date théorique est la date de début prévue initialement. Les dates prévues peuvent être ajustées tout en respectant la cohérence temporelle.",
