@@ -15,6 +15,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
 import type { ActivityPlanning } from "@/types";
+import { formatUserDisplayName } from "@/utils/format";
 import {
   ArrowLeft,
   Save,
@@ -81,7 +82,7 @@ export default function PlanningFormPage() {
 
   const prestataireOptions = prestataires.map((p) => ({
     value: `${p.firstname} ${p.name}`,
-    label: `${p.firstname} ${p.name} (${p.email})`,
+    label: formatUserDisplayName(p),
   }));
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
