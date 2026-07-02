@@ -6,7 +6,7 @@ interface ApiErrorBody {
 /**
  * Extracts field errors from an Axios error response.
  * Returns { formFieldName: i18nKey } — caller is responsible for translating.
- * For API Platform violations the value is the propertyPath (e.g. "email").
+ * For API Platform violations the value is the violation message key (e.g. "email_already_used").
  * For a single error_key the value is the error_key itself (e.g. "email_already_used").
  * Translate with: t(`errors.${value}`, value)
  */
@@ -22,7 +22,7 @@ export function parseApiFieldErrors(
   if (Array.isArray(data.violations)) {
     for (const v of data.violations) {
       const field = propertyToField[v.propertyPath]
-      if (field) out[field] = v.propertyPath
+      if (field) out[field] = v.message
     }
   }
 

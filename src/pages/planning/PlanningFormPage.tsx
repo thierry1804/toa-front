@@ -15,6 +15,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
 import type { ActivityPlanning } from "@/types";
+import { formatUserDisplayName } from "@/utils/format";
 import {
   ArrowLeft,
   Save,
@@ -24,6 +25,12 @@ import {
   Clock,
 } from "lucide-react";
 import { statusOptions } from "@/data/constant/planning";
+
+function toLocalDatetimeInput(isoString: string): string {
+  const d = new Date(isoString)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 export default function PlanningFormPage() {
   const { t } = useTranslation();
@@ -81,7 +88,7 @@ export default function PlanningFormPage() {
 
   const prestataireOptions = prestataires.map((p) => ({
     value: `${p.firstname} ${p.name}`,
-    label: `${p.firstname} ${p.name} (${p.email})`,
+    label: formatUserDisplayName(p),
   }));
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -104,9 +111,9 @@ export default function PlanningFormPage() {
         siteNumber: existing.siteNumber,
         siteName: existing.siteName,
         region: existing.region,
-        theoreticalStartDate: existing.theoreticalStartDate.slice(0, 16),
-        expectedStartDate: existing.expectedStartDate.slice(0, 16),
-        expectedEndDate: existing.expectedEndDate.slice(0, 16),
+        theoreticalStartDate: toLocalDatetimeInput(existing.theoreticalStartDate),
+        expectedStartDate: toLocalDatetimeInput(existing.expectedStartDate),
+        expectedEndDate: toLocalDatetimeInput(existing.expectedEndDate),
         status: existing.status,
       });
     }
