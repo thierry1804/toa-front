@@ -8,10 +8,12 @@ import { AppShell } from '@/components/layout/AppShell'
 import { RouteGuard } from '@/components/layout/RouteGuard'
 import LoginPage from '@/pages/auth/LoginPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
-import PermitsListPage from '@/pages/PermitsListPage'
-import PermitDetailPage from '@/pages/PermitDetailPage'
-import PermitNewPage from '@/pages/PermitNewPage'
-import PreventionPage from '@/pages/PreventionPage'
+import PermitsListPage from '@/pages/permits/PermitsListPage'
+import PermitDetailPage from '@/pages/permits/PermitDetailPage'
+import PermitFormPage from '@/pages/permits/PermitFormPage'
+import PreventionListPage from '@/pages/prevention/PreventionListPage'
+import PreventionDetailPage from '@/pages/prevention/PreventionDetailPage'
+import PreventionFormPage from '@/pages/prevention/PreventionFormPage'
 import UsersListPage from '@/pages/users/UsersListPage'
 import UserFormPage from '@/pages/users/UserFormPage'
 import PlanningListPage from '@/pages/planning/PlanningListPage'
@@ -21,7 +23,7 @@ import MenuFormPage from '@/pages/menus/MenuFormPage'
 import MenuAccessesListPage from '@/pages/menus/MenuAccessesListPage'
 import MenuAccessFormPage from '@/pages/menus/MenuAccessFormPage'
 import MenuManagerPage from '@/pages/menus/MenuManagerPage'
-import StatisticsPage from '@/pages/StatisticsPage'
+import StatisticsPage from '@/pages/statistics/StatisticsPage'
 import '../app/globals.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -36,12 +38,16 @@ createRoot(document.getElementById('root')!).render(
 
             <Route element={<RouteGuard menuRoute="/permits" />}>
               <Route path="/permits" element={<PermitsListPage />} />
-              <Route path="/permits/new" element={<PermitNewPage />} />
+              <Route path="/permits/new" element={<PermitFormPage />} />
+              <Route path="/permits/new/:type" element={<PermitFormPage />} />
               <Route path="/permits/:id" element={<PermitDetailPage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/prevention" />}>
-              <Route path="/prevention" element={<PreventionPage />} />
+              <Route path="/prevention" element={<PreventionListPage />} />
+              <Route path="/prevention/new" element={<PreventionFormPage />} />
+              <Route path="/prevention/:id" element={<PreventionDetailPage />} />
+              <Route path="/prevention/:id/edit" element={<PreventionFormPage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/users" />}>
