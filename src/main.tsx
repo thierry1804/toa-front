@@ -24,6 +24,7 @@ import MenuManagerPage from '@/pages/menus/MenuManagerPage'
 import StatisticsPage from '@/pages/StatisticsPage'
 import PlanPreventionCreatePage from '@/pages/planPrevention/PlanPreventionCreatePage'
 import PlanPreventionDetailPage from '@/pages/planPrevention/PlanPreventionDetailPage'
+import PlanPreventionEditPage from '@/pages/planPrevention/PlanPreventionEditPage'
 import '../app/globals.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -45,6 +46,7 @@ createRoot(document.getElementById('root')!).render(
             <Route element={<RouteGuard menuRoute="/prevention" />}>
               <Route path="/prevention" element={<PlanPreventionListPage />} />
               <Route path="/prevention/new" element={<PlanPreventionCreatePage />} />
+              <Route path="/prevention/:id/edit" element={<PlanPreventionEditPage />} />
               <Route path="/prevention/:id" element={<PlanPreventionDetailPage />} />
             </Route>
 

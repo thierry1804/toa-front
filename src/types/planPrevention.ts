@@ -7,6 +7,8 @@ export type StatutPlanPrevention =
   | 'ENVOYE'
   | 'EN_COURS_DE_VALIDATION'
   | 'EXAMINE'
+  | 'VALIDE_HSE'
+  | 'REFUSE_HSE'
 
 export type TypeDocumentPrevention =
   | 'PLAN_URGENCE'
@@ -78,6 +80,26 @@ export interface ExamenPlanPrevention {
   commentaire: string | null
 }
 
+export type DecisionHse = 'VALIDE' | 'REFUSE'
+
+export interface DecisionHsePlanPrevention {
+  id: string
+  decidePar: { id: number; email: string; name: string; firstname?: string }
+  decision: DecisionHse
+  commentaire: string | null
+  signatureElectronique: string
+  decidedAt: string
+}
+
+export interface VersionPlanPrevention {
+  id: string
+  numeroVersion: number
+  snapshotData: Record<string, unknown>
+  createdBy: { id: number; email: string; name: string; firstname?: string }
+  createdAt: string
+  motifResoumission: string | null
+}
+
 export interface PlanPrevention {
   '@id'?: string
   id: string
@@ -95,6 +117,8 @@ export interface PlanPrevention {
   sites: SitePrevention[]
   chefProjet?: { id: number; email: string; name: string; firstname?: string } | null
   examens?: ExamenPlanPrevention[]
+  decisionsHse?: DecisionHsePlanPrevention[]
+  versions?: VersionPlanPrevention[]
 }
 
 export interface RisqueRow {

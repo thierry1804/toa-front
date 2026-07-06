@@ -1,6 +1,8 @@
 import axios from "axios";
 import i18n from "@/lib/i18n";
 import { useUiStore } from "@/store/ui.store";
+import { useAuthStore, derivePermissionsFromRoles } from "@/store/auth.store";
+import { decodeJwtPayload } from "@/utils/jwt";
 
 declare module "axios" {
   interface AxiosRequestConfig {
@@ -75,6 +77,20 @@ api.interceptors.response.use(
           { refresh_token: refreshToken },
         );
         localStorage.setItem("access_token", data.access_token);
+
+        // Sync auth store with the new token's claims
+        const payload = decodeJwtPayload(data.access_token)
+        if (payload) {
+          const roles = Array.isArray(payload.roles) ? (payload.roles as string[]) : []
+          const rawPerms = payload.permissions
+          const perms =
+            Array.isArray(rawPerms) && (rawPerms as unknown[]).length > 0
+              ? (rawPerms as string[])
+              : derivePermissionsFromRoles(roles)
+          useAuthStore.getState().setRoles(roles)
+          useAuthStore.getState().setPermissions(perms)
+        }
+
         processQueue(null, data.access_token);
         originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
         return api(originalRequest);

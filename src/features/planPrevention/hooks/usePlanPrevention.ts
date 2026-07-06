@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import { PLAN_PREVENTION_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
 import type {
+  PlanPrevention,
   PlanPreventionInput,
   RisquePreventionInput,
 } from '@/types/planPrevention'
@@ -33,6 +35,7 @@ export function usePlanPreventionDetail(id: string) {
 export function usePlanPrevention() {
   const queryClient = useQueryClient()
   const addToast = useUiStore((s) => s.addToast)
+  const { t } = useTranslation()
   const [missingDocuments, setMissingDocuments] = useState<string[]>([])
 
   const createMutation = useMutation({
@@ -98,6 +101,33 @@ export function usePlanPrevention() {
     },
   })
 
+  const validerMutation = useMutation({
+    mutationFn: ({ id, commentaire }: { id: string; commentaire?: string }) =>
+      planPreventionApi.valider(id, commentaire),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+    },
+  })
+
+  const refuserMutation = useMutation({
+    mutationFn: ({ id, commentaire }: { id: string; commentaire: string }) =>
+      planPreventionApi.refuser(id, commentaire),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+      addToast({ message: t('planPrevention.toast.refused'), type: 'success' })
+    },
+  })
+
+  const resoumettresMutation = useMutation({
+    mutationFn: ({ id, motif }: { id: string; motif?: string }) =>
+      planPreventionApi.resoumettre(id, motif),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+      setMissingDocuments([])
+      addToast({ message: 'Plan resoumis — équipe HSE notifiée', type: 'success' })
+    },
+  })
+
   const addRisqueMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: RisquePreventionInput }) =>
       planPreventionApi.addRisque(id, data),
@@ -106,6 +136,35 @@ export function usePlanPrevention() {
     },
     onError: () => {
       addToast({ message: "Erreur lors de l'ajout du risque", type: 'error' })
+    },
+  })
+
+  const updateRisqueMutation = useMutation({
+    mutationFn: ({
+      planId,
+      risqueId,
+      data,
+    }: {
+      planId: string
+      risqueId: string
+      data: RisquePreventionInput
+    }) => planPreventionApi.updateRisque(planId, risqueId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de la mise à jour du risque', type: 'error' })
+    },
+  })
+
+  const deleteRisqueMutation = useMutation({
+    mutationFn: ({ planId, risqueId }: { planId: string; risqueId: string }) =>
+      planPreventionApi.deleteRisque(planId, risqueId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de la suppression du risque', type: 'error' })
     },
   })
 
@@ -159,8 +218,76 @@ export function usePlanPrevention() {
     }
   }
 
+  const validerPlan = async (id: string, commentaire?: string): Promise<PlanPrevention> => {
+    try {
+      return await validerMutation.mutateAsync({ id, commentaire })
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('Plan non examiné')) {
+        throw new Error('Plan non examiné par Chef de Projet')
+      }
+      if (detail.includes('documents_manquants')) {
+        const missing = parseMissingDocuments(detail)
+        throw Object.assign(new Error('documents_manquants'), { missingDocuments: missing })
+      }
+      addToast({ message: t('planPrevention.toast.errorValidate'), type: 'error' })
+      throw err
+    }
+  }
+
+  const resoumettreplan = async (id: string, motif?: string): Promise<PlanPrevention> => {
+    try {
+      return await resoumettresMutation.mutateAsync({ id, motif })
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('documents_manquants')) {
+        const missing = parseMissingDocuments(detail)
+        setMissingDocuments(missing)
+        addToast({ message: `Documents manquants : ${missing.join(', ')}`, type: 'error' })
+        throw Object.assign(new Error('documents_manquants'), { missingDocuments: missing })
+      }
+      if (detail.includes('statut_not_brouillon') || detail.includes('no_previous_refus')) {
+        addToast({ message: 'Ce plan ne peut pas être resoumis', type: 'error' })
+      } else {
+        addToast({ message: 'Erreur lors de la resoumission du plan', type: 'error' })
+      }
+      throw err
+    }
+  }
+
+  const refuserPlan = async (id: string, commentaire: string): Promise<void> => {
+    try {
+      await refuserMutation.mutateAsync({ id, commentaire })
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('Plan non examiné')) {
+        throw new Error('Plan non examiné')
+      }
+      if (detail.includes('Commentaire obligatoire')) {
+        throw new Error('Commentaire obligatoire en cas de refus')
+      }
+      addToast({ message: t('planPrevention.toast.errorRefuse'), type: 'error' })
+      throw err
+    }
+  }
+
   const addRisque = async (id: string, data: RisquePreventionInput) => {
     return addRisqueMutation.mutateAsync({ id, data })
+  }
+
+  const updateRisque = async (
+    planId: string,
+    risqueId: string,
+    data: RisquePreventionInput,
+  ) => {
+    return updateRisqueMutation.mutateAsync({ planId, risqueId, data })
+  }
+
+  const deleteRisque = async (planId: string, risqueId: string) => {
+    return deleteRisqueMutation.mutateAsync({ planId, risqueId })
   }
 
   return {
@@ -169,14 +296,24 @@ export function usePlanPrevention() {
     uploadDocument,
     importKmz,
     soumettrePlan,
+    resoumettreplan,
     examinerPlan,
+    validerPlan,
+    refuserPlan,
     addRisque,
+    updateRisque,
+    deleteRisque,
     missingDocuments,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isUploading: uploadMutation.isPending,
     isImportingKmz: importKmzMutation.isPending,
     isSubmitting: soumettresMutation.isPending,
+    isResoumetting: resoumettresMutation.isPending,
     isExamining: examinerMutation.isPending,
+    isValidating: validerMutation.isPending,
+    isRefusing: refuserMutation.isPending,
+    isUpdatingRisque: updateRisqueMutation.isPending,
+    isDeletingRisque: deleteRisqueMutation.isPending,
   }
 }

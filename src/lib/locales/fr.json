@@ -321,6 +321,115 @@
   "prevention": {
     "title": "Plans PPHSSES"
   },
+  "planPrevention": {
+    "statut": {
+      "BROUILLON": "Brouillon",
+      "SOUMIS": "Soumis",
+      "VALIDE": "Validé",
+      "REJETE": "Rejeté",
+      "EN_ATTENTE": "En attente",
+      "ENVOYE": "Envoyé",
+      "EN_COURS_DE_VALIDATION": "En cours de validation",
+      "EXAMINE": "Examiné",
+      "VALIDE_HSE": "Validé HSE",
+      "REFUSE_HSE": "Refusé HSE"
+    },
+    "decision": {
+      "VALIDE": "Validé",
+      "REFUSE": "Refusé"
+    },
+    "list": {
+      "title": "Plans de prévention",
+      "description": "Gestion des demandes de plans de prévention PPHSSES-TOA",
+      "newPlan": "Nouveau plan",
+      "empty": "Aucun plan de prévention",
+      "emptyCreate": "Cliquez sur \"Nouveau plan\" pour en créer un.",
+      "emptyNoCreate": "Vous n'avez pas encore de plan de prévention.",
+      "loading": "Chargement...",
+      "loadingError": "Impossible de charger les plans de prévention.",
+      "headers": {
+        "reference": "Référence",
+        "codeSite": "Code site",
+        "activite": "Activité",
+        "statut": "Statut",
+        "chefProjet": "Chef de Projet",
+        "dateExamen": "Date examen",
+        "actions": "Actions"
+      },
+      "actions": {
+        "voir": "Voir",
+        "modifier": "Modifier",
+        "examiner": "Examiner",
+        "valider": "Valider",
+        "refuser": "Refuser"
+      }
+    },
+    "detail": {
+      "title": "Détail du plan de prévention",
+      "description": "Lecture seule — aucune modification possible",
+      "back": "Retour",
+      "examinerBtn": "Examiner ce plan",
+      "notFound": "Plan introuvable",
+      "notFoundDesc": "Ce plan de prévention n'existe pas ou vous n'y avez pas accès.",
+      "decisionPanel": "Ce plan est en attente de décision HSE",
+      "sections": {
+        "generalInfo": "Informations générales",
+        "riskMatrix": "Matrice des risques ({{count}})",
+        "sites": "Sites concernés ({{count}})",
+        "documents": "Documents requis",
+        "examenHistory": "Historique des examens",
+        "hseHistory": "Historique des décisions HSE"
+      },
+      "fields": {
+        "codeSite": "Code site",
+        "localite": "Localité",
+        "activitePlanifiee": "Activité planifiée",
+        "periode": "Période",
+        "createdBy": "Créé par",
+        "chefProjet": "Chef de projet"
+      },
+      "loading": "Chargement du plan...",
+      "noSites": "Aucun site renseigné.",
+      "noExamens": "Aucun examen enregistré pour ce plan.",
+      "noDecisions": "Aucune décision HSE enregistrée.",
+      "download": "Télécharger",
+      "examinedBy": "Examiné par",
+      "decisionBy": "par"
+    },
+    "validerModal": {
+      "title": "Valider le plan {{reference}}",
+      "success": "Plan validé avec succès",
+      "signatureLabel": "Signature électronique",
+      "description": "Vous allez valider définitivement ce plan de prévention. Les 5 documents requis seront vérifiés avant confirmation.",
+      "commentaireLabel": "Commentaire",
+      "commentaireOptional": "(optionnel)",
+      "commentairePlaceholder": "Observations complémentaires...",
+      "missingDocuments": "Documents manquants :",
+      "errorNotExamined": "Ce plan n'a pas encore été examiné par le Chef de Projet.",
+      "errorGeneric": "Une erreur est survenue lors de la validation.",
+      "close": "Fermer",
+      "cancel": "Annuler",
+      "confirm": "Confirmer la validation"
+    },
+    "refuserModal": {
+      "title": "Refuser le plan {{reference}}",
+      "warning": "Le prestataire sera <strong>notifié par email</strong> et devra corriger puis resoumettre le plan.",
+      "commentaireLabel": "Motif du refus",
+      "commentaireRequired": "*",
+      "commentairePlaceholder": "Indiquez clairement les raisons du refus...",
+      "commentaireError": "Le motif de refus est obligatoire.",
+      "errorNotExamined": "Ce plan n'a pas encore été examiné par le Chef de Projet.",
+      "errorGeneric": "Une erreur est survenue lors du refus.",
+      "cancel": "Annuler",
+      "confirm": "Confirmer le refus"
+    },
+    "toast": {
+      "refused": "Plan refusé — prestataire notifié",
+      "errorValidate": "Erreur lors de la validation HSE du plan",
+      "errorRefuse": "Erreur lors du refus HSE du plan",
+      "errorExamine": "Erreur lors de l'examen du plan"
+    }
+  },
   "statistics": {
     "title": "Statistiques"
   },

@@ -36,6 +36,16 @@ export const planPreventionApi = {
       .post<RisquePrevention>(`/api/plans-prevention/${id}/risques`, data)
       .then((r) => r.data),
 
+  updateRisque: (planId: string, risqueId: string, data: RisquePreventionInput) =>
+    api
+      .patch<RisquePrevention>(`/api/plans-prevention/${planId}/risques/${risqueId}`, data, {
+        headers: { 'Content-Type': 'application/merge-patch+json' },
+      })
+      .then((r) => r.data),
+
+  deleteRisque: (planId: string, risqueId: string) =>
+    api.delete(`/api/plans-prevention/${planId}/risques/${risqueId}`),
+
   listDocuments: (id: string) =>
     api
       .get<HydraCollection<DocumentPrevention>>(`/api/plans-prevention/${id}/documents`)
@@ -55,6 +65,24 @@ export const planPreventionApi = {
   examiner: (id: string, commentaire?: string) =>
     api
       .post<PlanPrevention>(`/api/plans-prevention/${id}/examiner`, commentaire ? { commentaire } : {})
+      .then((r) => r.data),
+
+  valider: (id: string, commentaire?: string) =>
+    api
+      .post<PlanPrevention>(`/api/plans-prevention/${id}/valider`, commentaire ? { commentaire } : {})
+      .then((r) => r.data),
+
+  refuser: (id: string, commentaire: string) =>
+    api
+      .post<PlanPrevention>(`/api/plans-prevention/${id}/refuser`, { commentaire })
+      .then((r) => r.data),
+
+  resoumettre: (id: string, motifResoumission?: string) =>
+    api
+      .post<PlanPrevention>(
+        `/api/plans-prevention/${id}/resoumettre`,
+        motifResoumission ? { motifResoumission } : {},
+      )
       .then((r) => r.data),
 
   importKmz: (id: string, file: File) => {

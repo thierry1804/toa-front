@@ -1,4 +1,4 @@
-import { FileText, Clock, CheckCircle, XCircle, Send, AlertCircle, Eye } from 'lucide-react'
+import { FileText, Clock, CheckCircle, XCircle, Send, AlertCircle, Eye, ShieldCheck, ShieldX } from 'lucide-react'
 import type { StatutPlanPrevention } from '@/types/planPrevention'
 
 type StatutConfig = {
@@ -15,7 +15,9 @@ const STATUT_CONFIG: Record<StatutPlanPrevention, StatutConfig> = {
   EN_ATTENTE:             { label: 'En attente',             color: 'bg-gray-100 text-gray-600',     icon: Clock        },
   ENVOYE:                 { label: 'Envoyé',                 color: 'bg-blue-100 text-blue-700',     icon: Send         },
   EN_COURS_DE_VALIDATION: { label: 'En cours de validation', color: 'bg-orange-100 text-orange-700', icon: AlertCircle  },
-  EXAMINE:                { label: 'Examiné',                color: 'bg-teal-100 text-teal-700',     icon: Eye          },
+  EXAMINE:                { label: 'Examiné',                color: 'bg-green-100 text-green-700',   icon: Eye          },
+  VALIDE_HSE:             { label: 'Validé HSE',             color: 'bg-blue-700 text-white',        icon: ShieldCheck  },
+  REFUSE_HSE:             { label: 'Refusé HSE',             color: 'bg-red-600 text-white',         icon: ShieldX      },
 }
 
 interface StatutBadgeProps {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,7 +11,12 @@ import RisqueMatrice from '@/components/planPrevention/RisqueMatrice'
 import DocumentUploadZone from '@/components/planPrevention/DocumentUploadZone'
 import KmzImportButton from '@/components/planPrevention/KmzImportButton'
 import PlanReference from '@/components/planPrevention/PlanReference'
-import { usePlanPrevention } from '@/features/planPrevention/hooks/usePlanPrevention'
+import BandeauRefus from '@/components/planPrevention/BandeauRefus'
+import HistoriqueVersions from '@/components/planPrevention/HistoriqueVersions'
+import {
+  usePlanPrevention,
+  usePlanPreventionDetail,
+} from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import type { PlanPrevention, RisqueRow, TypeDocumentPrevention } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS } from '@/types/planPrevention'
@@ -85,57 +90,139 @@ function StepIndicator({ current }: { current: number }) {
   )
 }
 
+// ─── Props ────────────────────────────────────────────────────────────────────
+interface PlanPreventionCreatePageProps {
+  mode?: 'create' | 'edit'
+  editPlanId?: string
+}
+
 // ─── Main page ─────────────────────────────────────────────────────────────────
-export default function PlanPreventionCreatePage() {
+export default function PlanPreventionCreatePage({
+  mode = 'create',
+  editPlanId,
+}: PlanPreventionCreatePageProps) {
   const navigate = useNavigate()
+  const isEditMode = mode === 'edit'
+
+  const { data: editPlan, isLoading: isLoadingEdit } = usePlanPreventionDetail(editPlanId ?? '')
+
   const perms = usePermissions('/prevention')
-  const canEdit = perms?.canEdit ?? true
-  const canSubmit = perms?.canCreate ?? true
+  // In edit mode the prestataire is correcting their own refused plan —
+  // authorization is enforced by the backend RESOUMETTRE voter, not menu permissions.
+  const canEdit = isEditMode ? true : (perms?.canEdit ?? true)
+  const canSubmit = isEditMode ? true : (perms?.canCreate ?? true)
 
   const {
     createPlan,
+    updatePlan,
     addRisque,
+    updateRisque,
+    deleteRisque,
     uploadDocument,
     importKmz,
     soumettrePlan,
+    resoumettreplan,
     missingDocuments,
     isCreating,
+    isUpdating,
     isSubmitting,
+    isResoumetting,
   } = usePlanPrevention()
 
   const [step, setStep] = useState(0)
   const [plan, setPlan] = useState<PlanPrevention | null>(null)
   const [localRisques, setLocalRisques] = useState<RisqueRow[]>([])
   const [isSavingRisques, setIsSavingRisques] = useState(false)
+  const [motif, setMotif] = useState('')
+  const originalRisqueIds = useRef<Set<string>>(new Set())
+  const hasInitialized = useRef(false)
 
   // ── Step 0 form ──────────────────────────────────────────────────────────────
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<Step0FormData>({
     resolver: zodResolver(step0Schema),
   })
 
+  // ── Pre-fill form in edit mode once plan loads ───────────────────────────────
+  useEffect(() => {
+    if (isEditMode && editPlan && !hasInitialized.current) {
+      hasInitialized.current = true
+      reset({
+        codeSite: editPlan.codeSite,
+        localite: editPlan.localite,
+        activitePlanifiee: editPlan.activitePlanifiee,
+        dateDebut: editPlan.dateDebut?.slice(0, 10) ?? '',
+        dateFin: editPlan.dateFin?.slice(0, 10) ?? '',
+      })
+      setLocalRisques(
+        (editPlan.risques ?? []).map((r) => ({
+          localId: r.id,
+          description: r.description,
+          gravite: r.gravite,
+          probabilite: r.probabilite,
+          mesuresPreventives: r.mesuresPreventives,
+        })),
+      )
+      originalRisqueIds.current = new Set(editPlan.risques?.map((r) => r.id) ?? [])
+      setPlan(editPlan)
+    }
+  }, [editPlan, isEditMode, reset])
+
+  // In edit mode, use the fresh query data; in create mode, use local state
+  const activePlan = isEditMode ? (editPlan ?? null) : plan
+
+  // ── Step 0: create or update ──────────────────────────────────────────────────
   const handleStep0Next = handleSubmit(async (data) => {
-    const created = await createPlan(data)
-    setPlan(created)
-    setStep(1)
+    if (isEditMode && activePlan) {
+      await updatePlan(activePlan.id, data)
+      setStep(1)
+    } else {
+      const created = await createPlan(data)
+      setPlan(created)
+      setStep(1)
+    }
   })
 
   // ── Step 1: save risques then proceed ────────────────────────────────────────
   const handleStep1Next = async () => {
-    if (!plan) return
+    if (!activePlan) return
     setIsSavingRisques(true)
     try {
-      for (const row of localRisques) {
-        if (!row.description.trim() || !row.mesuresPreventives.trim()) continue
-        await addRisque(plan.id, {
-          description: row.description,
-          gravite: row.gravite,
-          probabilite: row.probabilite,
-          mesuresPreventives: row.mesuresPreventives,
-        })
+      if (isEditMode) {
+        const origIds = originalRisqueIds.current
+        const currentIds = new Set(localRisques.map((r) => r.localId))
+
+        for (const origId of origIds) {
+          if (!currentIds.has(origId)) await deleteRisque(activePlan.id, origId)
+        }
+        for (const row of localRisques) {
+          if (!row.description.trim() || !row.mesuresPreventives.trim()) continue
+          const payload = {
+            description: row.description,
+            gravite: row.gravite,
+            probabilite: row.probabilite,
+            mesuresPreventives: row.mesuresPreventives,
+          }
+          if (origIds.has(row.localId)) {
+            await updateRisque(activePlan.id, row.localId, payload)
+          } else {
+            await addRisque(activePlan.id, payload)
+          }
+        }
+      } else {
+        for (const row of localRisques) {
+          if (!row.description.trim() || !row.mesuresPreventives.trim()) continue
+          await addRisque(activePlan.id, {
+            description: row.description,
+            gravite: row.gravite,
+            probabilite: row.probabilite,
+            mesuresPreventives: row.mesuresPreventives,
+          })
+        }
       }
       setStep(2)
     } finally {
@@ -143,48 +230,61 @@ export default function PlanPreventionCreatePage() {
     }
   }
 
-  // ── Step 4: submit ────────────────────────────────────────────────────────────
+  // ── Step 4: soumettre or resoumettre ──────────────────────────────────────────
   const handleSoumettre = async () => {
-    if (!plan) return
+    if (!activePlan) return
     try {
-      await soumettrePlan(plan.id)
+      if (isEditMode) {
+        await resoumettreplan(activePlan.id, motif || undefined)
+      } else {
+        await soumettrePlan(activePlan.id)
+      }
       navigate('/prevention')
-    } catch {
-      // errors handled by hook (toast + missingDocuments)
+    } catch (err) {
+      if ((err as { message?: string })?.message === 'documents_manquants') {
+        setStep(3)
+      }
     }
   }
 
   const handleKmzImport = async (file: File) => {
-    if (!plan) return
-    const updated = await importKmz(plan.id, file)
-    if (updated) setPlan(updated)
+    if (!activePlan) return
+    const updated = await importKmz(activePlan.id, file)
+    if (!isEditMode && updated) setPlan(updated)
   }
 
   const handleDocumentUpload = async (type: TypeDocumentPrevention, file: File) => {
-    if (!plan) return
-    await uploadDocument(plan.id, type, file)
-    // Refetch plan to update documents list
-    setPlan((prev) =>
-      prev
-        ? {
-            ...prev,
-            documents: [
-              ...prev.documents.filter((d) => d.type !== type),
-              {
-                id: crypto.randomUUID(),
-                type,
-                filePath: '',
-                mimeType: file.type,
-                uploadedAt: new Date().toISOString(),
-              },
-            ],
-          }
-        : prev,
-    )
+    if (!activePlan) return
+    await uploadDocument(activePlan.id, type, file)
+    if (!isEditMode) {
+      setPlan((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: [
+                ...prev.documents.filter((d) => d.type !== type),
+                {
+                  id: crypto.randomUUID(),
+                  type,
+                  filePath: '',
+                  mimeType: file.type,
+                  uploadedAt: new Date().toISOString(),
+                },
+              ],
+            }
+          : prev,
+      )
+    }
   }
 
-  const currentSites = plan?.sites ?? []
-  const currentDocuments = plan?.documents ?? []
+  const currentSites = activePlan?.sites ?? []
+  const currentDocuments = activePlan?.documents ?? []
+
+  // ── Derived state for edit mode UI ───────────────────────────────────────────
+  const lastRefusDecision = isEditMode
+    ? activePlan?.decisionsHse?.filter((d) => d.decision === 'REFUSE').at(-1)
+    : undefined
+  const versions = isEditMode ? (activePlan?.versions ?? []) : []
 
   // ── Render steps ─────────────────────────────────────────────────────────────
   const renderStep = () => {
@@ -237,7 +337,7 @@ export default function PlanPreventionCreatePage() {
       case 1:
         return (
           <div className="space-y-4">
-            {plan && <PlanReference reference={plan.reference} />}
+            {activePlan && <PlanReference reference={activePlan.reference} />}
             <RisqueMatrice
               rows={localRisques}
               onChange={setLocalRisques}
@@ -249,9 +349,9 @@ export default function PlanPreventionCreatePage() {
       case 2:
         return (
           <div className="space-y-4">
-            {plan && <PlanReference reference={plan.reference} />}
+            {activePlan && <PlanReference reference={activePlan.reference} />}
             <KmzImportButton
-              planId={plan?.id ?? ''}
+              planId={activePlan?.id ?? ''}
               sites={currentSites}
               onImport={handleKmzImport}
               disabled={!canEdit}
@@ -262,7 +362,7 @@ export default function PlanPreventionCreatePage() {
       case 3:
         return (
           <div className="space-y-4">
-            {plan && <PlanReference reference={plan.reference} />}
+            {activePlan && <PlanReference reference={activePlan.reference} />}
             {missingDocuments.length > 0 && (
               <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -277,7 +377,7 @@ export default function PlanPreventionCreatePage() {
               </div>
             )}
             <DocumentUploadZone
-              planId={plan?.id ?? ''}
+              planId={activePlan?.id ?? ''}
               uploadedDocuments={currentDocuments}
               onUpload={handleDocumentUpload}
               missingTypes={missingDocuments}
@@ -289,17 +389,27 @@ export default function PlanPreventionCreatePage() {
       case 4:
         return (
           <div className="space-y-6">
-            {plan && <PlanReference reference={plan.reference} className="mb-2" />}
+            {activePlan && <PlanReference reference={activePlan.reference} className="mb-2" />}
 
             {/* General info recap */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               {[
-                { label: 'Code site', value: plan?.codeSite },
-                { label: 'Localité', value: plan?.localite },
-                { label: 'Activité planifiée', value: plan?.activitePlanifiee },
-                { label: 'Date de début', value: plan?.dateDebut ? new Date(plan.dateDebut).toLocaleDateString('fr-FR') : '' },
-                { label: 'Date de fin', value: plan?.dateFin ? new Date(plan.dateFin).toLocaleDateString('fr-FR') : '' },
-                { label: 'Statut', value: plan?.statut },
+                { label: 'Code site', value: activePlan?.codeSite },
+                { label: 'Localité', value: activePlan?.localite },
+                { label: 'Activité planifiée', value: activePlan?.activitePlanifiee },
+                {
+                  label: 'Date de début',
+                  value: activePlan?.dateDebut
+                    ? new Date(activePlan.dateDebut).toLocaleDateString('fr-FR')
+                    : '',
+                },
+                {
+                  label: 'Date de fin',
+                  value: activePlan?.dateFin
+                    ? new Date(activePlan.dateFin).toLocaleDateString('fr-FR')
+                    : '',
+                },
+                { label: 'Statut', value: activePlan?.statut },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
@@ -309,13 +419,13 @@ export default function PlanPreventionCreatePage() {
             </div>
 
             {/* Risques recap */}
-            {plan?.risques && plan.risques.length > 0 && (
+            {activePlan?.risques && activePlan.risques.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  Risques identifiés ({plan.risques.length})
+                  Risques identifiés ({activePlan.risques.length})
                 </h3>
                 <RisqueMatrice
-                  rows={plan.risques.map((r) => ({
+                  rows={activePlan.risques.map((r) => ({
                     localId: r.id,
                     description: r.description,
                     gravite: r.gravite,
@@ -351,13 +461,30 @@ export default function PlanPreventionCreatePage() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Documents obligatoires</h3>
               <DocumentUploadZone
-                planId={plan?.id ?? ''}
+                planId={activePlan?.id ?? ''}
                 uploadedDocuments={currentDocuments}
                 onUpload={handleDocumentUpload}
                 missingTypes={missingDocuments}
                 disabled
               />
             </div>
+
+            {/* Motif de correction (edit mode only) */}
+            {isEditMode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Motif de correction{' '}
+                  <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <textarea
+                  value={motif}
+                  onChange={(e) => setMotif(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  rows={3}
+                  placeholder="Décrivez les corrections apportées suite au refus HSE..."
+                />
+              </div>
+            )}
 
             {missingDocuments.length > 0 && (
               <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
@@ -387,17 +514,52 @@ export default function PlanPreventionCreatePage() {
     }
   }
 
-  const isPending = isCreating || isSavingRisques || isSubmitting
+  const isPending = isEditMode
+    ? isUpdating || isSavingRisques || isResoumetting
+    : isCreating || isSavingRisques || isSubmitting
+
+  // ── Loading state for edit mode ───────────────────────────────────────────────
+  if (isEditMode && isLoadingEdit) {
+    return (
+      <div className="flex items-center justify-center py-24 text-gray-400">
+        <svg className="mr-2 h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        Chargement du plan...
+      </div>
+    )
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Nouveau plan de prévention</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {isEditMode ? 'Modifier le plan de prévention' : 'Nouveau plan de prévention'}
+        </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Renseignez les informations en suivant les étapes
+          {isEditMode
+            ? 'Corrigez les informations demandées puis resoumettez votre plan'
+            : 'Renseignez les informations en suivant les étapes'}
         </p>
       </div>
+
+      {/* Bandeau refus (edit mode, when there is a refuse decision) */}
+      {isEditMode && lastRefusDecision && (
+        <BandeauRefus decision={lastRefusDecision} />
+      )}
 
       <StepIndicator current={step} />
 
@@ -408,6 +570,11 @@ export default function PlanPreventionCreatePage() {
         </CardHeader>
         <CardContent>{renderStep()}</CardContent>
       </Card>
+
+      {/* Historique versions (edit mode only) */}
+      {isEditMode && versions.length > 0 && (
+        <HistoriqueVersions versions={versions} />
+      )}
 
       {/* Navigation */}
       <div className="flex flex-col-reverse sm:flex-row justify-between gap-3">
@@ -426,19 +593,14 @@ export default function PlanPreventionCreatePage() {
             <Button
               onClick={handleSoumettre}
               disabled={isPending}
-              loading={isSubmitting}
+              loading={isEditMode ? isResoumetting : isSubmitting}
               size="lg"
             >
-              Soumettre le plan
+              {isEditMode ? 'Resoumettre le plan' : 'Soumettre le plan'}
             </Button>
           )
         ) : (
-          <Button
-            onClick={handleNext}
-            disabled={isPending}
-            loading={isPending}
-            size="lg"
-          >
+          <Button onClick={handleNext} disabled={isPending} loading={isPending} size="lg">
             Suivant
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>

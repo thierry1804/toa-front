@@ -321,6 +321,113 @@
   "prevention": {
     "title": "Plan PPHSSES"
   },
+  "planPrevention": {
+    "statut": {
+      "BROUILLON": "Drafitra",
+      "SOUMIS": "Natolotra",
+      "VALIDE": "Voamarina",
+      "REJETE": "Nolanihanina",
+      "EN_ATTENTE": "Miandry",
+      "ENVOYE": "Nalefaka",
+      "EN_COURS_DE_VALIDATION": "Amin'ny dingana fanamarinana",
+      "EXAMINE": "Nojerena",
+      "VALIDE_HSE": "Voamarina HSE",
+      "REFUSE_HSE": "Nolanihanina HSE"
+    },
+    "decision": {
+      "VALIDE": "Voamarina",
+      "REFUSE": "Nolanihanina"
+    },
+    "list": {
+      "title": "Drafitry ny fisorohana",
+      "description": "Fitantanana ny fangatahana drafitry ny fisorohana PPHSSES-TOA",
+      "newPlan": "Drafitra vaovao",
+      "empty": "Tsy misy drafitry ny fisorohana",
+      "emptyCreate": "Tsindrio ny \"Drafitra vaovao\" hamorona iray.",
+      "emptyNoCreate": "Tsy manana drafitry ny fisorohana ianao mbola.",
+      "loading": "Ampidina...",
+      "loadingError": "Tsy azo ampidina ny drafitry ny fisorohana.",
+      "headers": {
+        "reference": "Laharana",
+        "codeSite": "Kaody toerana",
+        "activite": "Hetsika",
+        "statut": "Sata",
+        "chefProjet": "Tompon'andraikitra tetikasa",
+        "dateExamen": "Datin'ny fitsirihana",
+        "actions": "Hetsika"
+      },
+      "actions": {
+        "examiner": "Hijery",
+        "valider": "Hanamafy",
+        "refuser": "Hanilika"
+      }
+    },
+    "detail": {
+      "title": "Antsipirihin'ny drafitry ny fisorohana",
+      "description": "Vakiana ihany — tsy misy fanovana azo atao",
+      "back": "Hiverina",
+      "examinerBtn": "Hijery ity drafitra ity",
+      "notFound": "Tsy hita ny drafitra",
+      "notFoundDesc": "Ity drafitry ny fisorohana ity tsy misy na tsy afaka miditra ianao.",
+      "decisionPanel": "Ity drafitra ity dia miandry fanapahan-kevitry ny HSE",
+      "sections": {
+        "generalInfo": "Mombamomba ankapobe",
+        "riskMatrix": "Matrisika ara-doza ({{count}})",
+        "sites": "Toerana voakasika ({{count}})",
+        "documents": "Antontan-taratasy ilaina",
+        "examenHistory": "Tantaran'ny fitsirihana",
+        "hseHistory": "Tantaran'ny fanapahan-kevitry ny HSE"
+      },
+      "fields": {
+        "codeSite": "Kaody toerana",
+        "localite": "Faritra",
+        "activitePlanifiee": "Hetsika voalahatra",
+        "periode": "Fotoana",
+        "createdBy": "Noforonin'i",
+        "chefProjet": "Tompon'andraikitra tetikasa"
+      },
+      "loading": "Ampidina ny drafitra...",
+      "noSites": "Tsy misy toerana voasoratra.",
+      "noExamens": "Tsy misy fitsirihana voarakitra ho an'ity drafitra ity.",
+      "noDecisions": "Tsy misy fanapahan-kevitry ny HSE voarakitra.",
+      "download": "Hisintona",
+      "examinedBy": "Nojerena nataon'i",
+      "decisionBy": "nataon'i"
+    },
+    "validerModal": {
+      "title": "Hanamafy ny drafitra {{reference}}",
+      "success": "Voamarina soa aman-tsara ny drafitra",
+      "signatureLabel": "Sonia elektronika",
+      "description": "Hamarina tanteraka ity drafitry ny fisorohana ity ianao. Hajerena ny antontan-taratasy 5 ilaina alohan'ny fanamarinana.",
+      "commentaireLabel": "Fanamarihana",
+      "commentaireOptional": "(tsy voatery)",
+      "commentairePlaceholder": "Fanamarihana fanampiny...",
+      "missingDocuments": "Antontan-taratasy tsy ampy :",
+      "errorNotExamined": "Ity drafitra ity tsy mbola nojerena nataon'ny Tompon'andraikitra tetikasa.",
+      "errorGeneric": "Nisy hadisoana tamin'ny fanamarinana.",
+      "close": "Hidiana",
+      "cancel": "Ajanony",
+      "confirm": "Hanamafy ny fanamarinana"
+    },
+    "refuserModal": {
+      "title": "Hanilika ny drafitra {{reference}}",
+      "warning": "Ny mpiasa mpanome tolotra dia <strong>ho avoitran'ny mailaka</strong> ary tsy maintsy hanitsiana ary hatolotra indray ny drafitra.",
+      "commentaireLabel": "Antony ny fandavana",
+      "commentaireRequired": "*",
+      "commentairePlaceholder": "Hazavao mazava ny antony ny fandavana...",
+      "commentaireError": "Ilaina ny antony ny fandavana.",
+      "errorNotExamined": "Ity drafitra ity tsy mbola nojerena nataon'ny Tompon'andraikitra tetikasa.",
+      "errorGeneric": "Nisy hadisoana tamin'ny fandavana.",
+      "cancel": "Ajanony",
+      "confirm": "Hanamafy ny fandavana"
+    },
+    "toast": {
+      "refused": "Nolanihanina ny drafitra — notifian'ny mpanome tolotra",
+      "errorValidate": "Hadisoana tamin'ny fanamarinana HSE ny drafitra",
+      "errorRefuse": "Hadisoana tamin'ny fandavana HSE ny drafitra",
+      "errorExamine": "Hadisoana tamin'ny fitsirihana ny drafitra"
+    }
+  },
   "statistics": {
     "title": "Antontan'isa"
   },
