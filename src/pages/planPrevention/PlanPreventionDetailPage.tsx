@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PlanReference from '@/components/planPrevention/PlanReference'
+import SitesKmzMap from '@/components/planPrevention/SitesKmzMap'
 import RisqueMatrice from '@/components/planPrevention/RisqueMatrice'
 import StatutBadge from '@/components/planPrevention/StatutBadge'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
@@ -240,28 +241,29 @@ export default function PlanPreventionDetailPage() {
 
       {/* 3. Sites concernés */}
       <SectionCard title={t('planPrevention.detail.sections.sites', { count: plan.sites?.length ?? 0 })}>
-        {(plan.sites?.length ?? 0) === 0 ? (
-          <p className="text-sm text-gray-400 italic">{t('planPrevention.detail.noSites')}</p>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {plan.sites.map((site) => (
-              <li key={site.id} className="flex items-center gap-3 py-2.5">
-                <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{site.nom}</p>
-                  <p className="text-xs text-gray-500">
-                    {site.latitude.toFixed(6)}, {site.longitude.toFixed(6)}
-                  </p>
-                </div>
-                {site.sourceKmz && (
-                  <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                    KMZ
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="space-y-4">
+          <SitesKmzMap sites={plan.sites ?? []} height="360px" readonly />
+          {(plan.sites?.length ?? 0) > 0 && (
+            <ul className="divide-y divide-gray-100">
+              {plan.sites.map((site) => (
+                <li key={site.id} className="flex items-center gap-3 py-2.5">
+                  <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{site.nom}</p>
+                    <p className="text-xs text-gray-500">
+                      {site.latitude.toFixed(6)}, {site.longitude.toFixed(6)}
+                    </p>
+                  </div>
+                  {site.sourceKmz && (
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      KMZ
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </SectionCard>
 
       {/* 4. Documents requis */}

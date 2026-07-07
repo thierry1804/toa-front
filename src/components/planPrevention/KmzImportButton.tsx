@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react'
 import { MapPin, Upload } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import type { SitePrevention } from '@/types/planPrevention'
+import type { KmzImportResult, SitePrevention } from '@/types/planPrevention'
 
 interface KmzImportButtonProps {
   planId: string
   sites: SitePrevention[]
-  onImport: (file: File) => Promise<void>
+  onImport: (file: File) => Promise<KmzImportResult>
+  onImportSuccess?: (sites: SitePrevention[]) => void
   disabled?: boolean
 }
 
@@ -14,16 +15,38 @@ export default function KmzImportButton({
   planId: _planId,
   sites,
   onImport,
+  onImportSuccess,
   disabled = false,
 }: KmzImportButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isImporting, setIsImporting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [summary, setSummary] = useState<{ imported: number; ignored: number } | null>(null)
 
   const handleFile = async (file: File | undefined) => {
     if (!file || disabled) return
+
+    setError(null)
+    setSummary(null)
+
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    if (ext !== 'kmz') {
+      setError('Format KMZ requis')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setIsImporting(true)
     try {
-      await onImport(file)
+      const result = await onImport(file)
+      setSummary({ imported: result.sitesImportes, ignored: result.sitesIgnores })
+      onImportSuccess?.(result.sites)
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('Format KMZ')) {
+        setError('Format KMZ requis')
+      }
     } finally {
       setIsImporting(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -38,7 +61,7 @@ export default function KmzImportButton({
           accept=".kmz"
           ref={fileInputRef}
           className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0])}
+          onChange={(e) => void handleFile(e.target.files?.[0])}
         />
         <Button
           type="button"
@@ -49,10 +72,23 @@ export default function KmzImportButton({
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="mr-1.5 h-4 w-4" />
-          {isImporting ? 'Import en cours...' : 'Importer un fichier KMZ'}
+          {isImporting ? 'Traitement du fichier KMZ...' : 'Importer un fichier KMZ'}
         </Button>
         <span className="text-xs text-gray-500">Format accepté : .kmz (Google Earth)</span>
       </div>
+
+      {error && (
+        <p className="text-sm font-medium text-red-600">{error}</p>
+      )}
+
+      {summary && (
+        <p className="text-sm font-medium text-green-700">
+          {summary.imported} site{summary.imported > 1 ? 's' : ''} importé
+          {summary.imported > 1 ? 's' : ''}
+          {summary.ignored > 0 &&
+            `, ${summary.ignored} ignoré${summary.ignored > 1 ? 's' : ''}`}
+        </p>
+      )}
 
       {sites.length > 0 && (
         <div className="rounded-lg border border-gray-200 overflow-hidden">
@@ -82,7 +118,7 @@ export default function KmzImportButton({
         </div>
       )}
 
-      {sites.length === 0 && (
+      {sites.length === 0 && !summary && (
         <p className="text-sm text-gray-400 italic">
           Aucun site importé. Importez un fichier KMZ pour détecter les sites automatiquement.
         </p>

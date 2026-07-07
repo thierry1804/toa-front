@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import RisqueMatrice from '@/components/planPrevention/RisqueMatrice'
 import DocumentUploadZone from '@/components/planPrevention/DocumentUploadZone'
 import KmzImportButton from '@/components/planPrevention/KmzImportButton'
+import SitesKmzMap from '@/components/planPrevention/SitesKmzMap'
 import PlanReference from '@/components/planPrevention/PlanReference'
 import BandeauRefus from '@/components/planPrevention/BandeauRefus'
 import HistoriqueVersions from '@/components/planPrevention/HistoriqueVersions'
@@ -18,7 +19,8 @@ import {
   usePlanPreventionDetail,
 } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
-import type { PlanPrevention, RisqueRow, TypeDocumentPrevention } from '@/types/planPrevention'
+import type { PlanPrevention, RisqueRow, SitePrevention, TypeDocumentPrevention } from '@/types/planPrevention'
+import type { KmzImportResult } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS } from '@/types/planPrevention'
 
 // ─── Zod schema for step 0 ────────────────────────────────────────────────────
@@ -120,6 +122,7 @@ export default function PlanPreventionCreatePage({
     deleteRisque,
     uploadDocument,
     importKmz,
+    deleteSite,
     soumettrePlan,
     resoumettreplan,
     missingDocuments,
@@ -247,10 +250,18 @@ export default function PlanPreventionCreatePage({
     }
   }
 
-  const handleKmzImport = async (file: File) => {
+  const handleKmzImport = async (file: File): Promise<KmzImportResult> => {
+    if (!activePlan) throw new Error('no_plan')
+    return importKmz(activePlan.id, file)
+  }
+
+  const handleDeleteSite = async (siteId: string) => {
     if (!activePlan) return
-    const updated = await importKmz(activePlan.id, file)
-    if (!isEditMode && updated) setPlan(updated)
+    await deleteSite(activePlan.id, siteId)
+  }
+
+  const handleImportSuccess = (_newSites: SitePrevention[]) => {
+    // query invalidation in hook handles state refresh
   }
 
   const handleDocumentUpload = async (type: TypeDocumentPrevention, file: File) => {
@@ -354,7 +365,14 @@ export default function PlanPreventionCreatePage({
               planId={activePlan?.id ?? ''}
               sites={currentSites}
               onImport={handleKmzImport}
+              onImportSuccess={handleImportSuccess}
               disabled={!canEdit}
+            />
+            <SitesKmzMap
+              sites={currentSites}
+              height="380px"
+              readonly={false}
+              onDeleteSite={canEdit ? handleDeleteSite : undefined}
             />
           </div>
         )

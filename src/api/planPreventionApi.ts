@@ -7,6 +7,7 @@ import type {
   RisquePrevention,
   DocumentPrevention,
   SitePrevention,
+  KmzImportResult,
 } from '@/types/planPrevention'
 
 export const planPreventionApi = {
@@ -89,10 +90,13 @@ export const planPreventionApi = {
     const formData = new FormData()
     formData.append('file', file)
     return api
-      .post<PlanPrevention>(`/api/plans-prevention/${id}/import-kmz`, formData, {
+      .post<KmzImportResult>(`/api/plans-prevention/${id}/import-kmz`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then((r) => r.data)
   },
+
+  deleteSite: (planId: string, siteId: string) =>
+    api.delete(`/api/plans-prevention/${planId}/sites/${siteId}`),
 }
 

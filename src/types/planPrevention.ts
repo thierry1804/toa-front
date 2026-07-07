@@ -71,6 +71,16 @@ export interface SitePrevention {
   latitude: number
   longitude: number
   sourceKmz: boolean
+  altitude?: number | null
+  description?: string | null
+  couleurMarqueur?: string | null
+  ordreAffichage?: number
+}
+
+export interface KmzImportResult {
+  sitesImportes: number
+  sitesIgnores: number
+  sites: SitePrevention[]
 }
 
 export interface ExamenPlanPrevention {

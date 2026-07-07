@@ -8,6 +8,7 @@ import type {
   PlanPrevention,
   PlanPreventionInput,
   RisquePreventionInput,
+  KmzImportResult,
 } from '@/types/planPrevention'
 
 function parseMissingDocuments(errorMessage: string): string[] {
@@ -74,12 +75,20 @@ export function usePlanPrevention() {
   const importKmzMutation = useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) =>
       planPreventionApi.importKmz(id, file),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
+      addToast({ message: `Import KMZ réussi — ${result.sitesImportes} site(s) importé(s)`, type: 'success' })
+    },
+  })
+
+  const deleteSiteMutation = useMutation({
+    mutationFn: ({ planId, siteId }: { planId: string; siteId: string }) =>
+      planPreventionApi.deleteSite(planId, siteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY })
-      addToast({ message: 'Import KMZ réussi', type: 'success' })
     },
     onError: () => {
-      addToast({ message: "Erreur lors de l'import KMZ", type: 'error' })
+      addToast({ message: 'Erreur lors de la suppression du site', type: 'error' })
     },
   })
 
@@ -180,8 +189,23 @@ export function usePlanPrevention() {
     return uploadMutation.mutateAsync({ id, type, file })
   }
 
-  const importKmz = async (id: string, file: File) => {
-    return importKmzMutation.mutateAsync({ id, file })
+  const importKmz = async (id: string, file: File): Promise<KmzImportResult> => {
+    try {
+      return await importKmzMutation.mutateAsync({ id, file })
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('Format KMZ')) {
+        addToast({ message: 'Format KMZ requis', type: 'error' })
+      } else {
+        addToast({ message: "Erreur lors de l'import KMZ", type: 'error' })
+      }
+      throw err
+    }
+  }
+
+  const deleteSite = async (planId: string, siteId: string) => {
+    return deleteSiteMutation.mutateAsync({ planId, siteId })
   }
 
   const soumettrePlan = async (id: string) => {
@@ -295,6 +319,7 @@ export function usePlanPrevention() {
     updatePlan,
     uploadDocument,
     importKmz,
+    deleteSite,
     soumettrePlan,
     resoumettreplan,
     examinerPlan,
@@ -315,5 +340,6 @@ export function usePlanPrevention() {
     isRefusing: refuserMutation.isPending,
     isUpdatingRisque: updateRisqueMutation.isPending,
     isDeletingRisque: deleteRisqueMutation.isPending,
+    isDeletingSite: deleteSiteMutation.isPending,
   }
 }
