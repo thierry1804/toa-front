@@ -29,9 +29,11 @@ import {
   CheckCircle,
   FileText,
   MapPin,
+  PauseCircle,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
+import GanttChart from "@/features/planning/components/GanttChart";
 
 export default function PlanningListPage() {
   const { t } = useTranslation();
@@ -43,10 +45,7 @@ export default function PlanningListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   const itemsPerPage = 10;
   const { data: hydraData, isLoading } = useActivityPlannings(page, itemsPerPage);
@@ -66,7 +65,6 @@ export default function PlanningListPage() {
       p.provider.toLowerCase().includes(q) ||
       p.siteName.toLowerCase().includes(q) ||
       p.siteCode.toLowerCase().includes(q);
-
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -75,22 +73,25 @@ export default function PlanningListPage() {
     total: totalItems,
     planifie: plannings?.filter((p) => p.status === "planifie").length ?? 0,
     en_cours: plannings?.filter((p) => p.status === "en_cours").length ?? 0,
-    valide: plannings?.filter((p) => p.status === "valide").length ?? 0,
+    valide:   plannings?.filter((p) => p.status === "valide").length ?? 0,
     brouillon: plannings?.filter((p) => p.status === "brouillon").length ?? 0,
   };
+
+  // Gantt height: fit all valid rows (max 10) without internal vertical scroll
+  const validCount = plannings.filter(
+    (p) => p.expectedStartDate && p.expectedEndDate,
+  ).length
+  const ganttH = Math.min(Math.max(validCount, 1), 10) * 44 + 32 + 44
 
   const handleDelete = () => {
     if (!deleteTarget) return;
     deletePlanning(deleteTarget.id, {
       onSuccess: () => {
-        addToast({
-          message: t('planning.toast.deleted'),
-          type: "success",
-        });
+        addToast({ message: t("planning.toast.deleted"), type: "success" });
         setDeleteTarget(null);
       },
       onError: () => {
-        addToast({ message: t('planning.toast.deleteError'), type: "error" });
+        addToast({ message: t("planning.toast.deleteError"), type: "error" });
       },
     });
   };
@@ -98,43 +99,45 @@ export default function PlanningListPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500"> {t("common.loading")} </p>
+        <p className="text-gray-500">{t("common.loading")}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+
+      {/* Page header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {" "}
-            {t('planning.title')}{" "}
+            {t("planning.title")}
           </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {t('planning.description')}
-          </p>
+          <p className="mt-1 text-sm text-gray-600">{t("planning.description")}</p>
         </div>
         {perms?.canCreate && (
           <Link to="/planning/new" className="self-start sm:self-auto">
             <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
               <Plus className="h-5 w-5 mr-2" />
-              {t('planning.newPlanning')}
+              {t("planning.newPlanning")}
             </Button>
           </Link>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Gantt — height fits all rows, timeline scrolls internally */}
+      <div className="overflow-hidden" style={{ height: ganttH }}>
+        <GanttChart activities={plannings} />
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('planning.stats.total')} </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {" "}
-                  {stats.total}{" "}
-                </p>
+                <p className="text-sm text-gray-600">{t("planning.stats.total")}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <Calendar className="h-8 w-8 text-gray-400" />
             </div>
@@ -144,11 +147,8 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('planning.stats.planifie')} </p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {" "}
-                  {stats.planifie}{" "}
-                </p>
+                <p className="text-sm text-gray-600">{t("planning.stats.planifie")}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.planifie}</p>
               </div>
               <CalendarCheck className="h-8 w-8 text-blue-400" />
             </div>
@@ -158,11 +158,8 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('planning.stats.en_cours')} </p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {" "}
-                  {stats.en_cours}{" "}
-                </p>
+                <p className="text-sm text-gray-600">{t("planning.stats.en_cours")}</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.en_cours}</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-400" />
             </div>
@@ -172,11 +169,8 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('planning.stats.valide')} </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {" "}
-                  {stats.valide}{" "}
-                </p>
+                <p className="text-sm text-gray-600">{t("planning.stats.valide")}</p>
+                <p className="text-2xl font-bold text-green-600">{stats.valide}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-400" />
             </div>
@@ -186,11 +180,8 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600"> {t('planning.stats.brouillon')} </p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {" "}
-                  {stats.brouillon}{" "}
-                </p>
+                <p className="text-sm text-gray-600">{t("planning.stats.brouillon")}</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.brouillon}</p>
               </div>
               <FileText className="h-8 w-8 text-orange-400" />
             </div>
@@ -198,11 +189,12 @@ export default function PlanningListPage() {
         </Card>
       </div>
 
+      {/* Search + filter */}
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              placeholder={t('planning.search')}
+              placeholder={t("planning.search")}
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             />
@@ -210,65 +202,58 @@ export default function PlanningListPage() {
               options={statusFilterOptions}
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              placeholder={t('planning.filterStatus')}
+              placeholder={t("planning.filterStatus")}
             />
           </div>
         </CardContent>
       </Card>
 
+      {/* Activity list */}
       <Card>
         <CardHeader>
           <CardTitle className="text-gray-900">
-            {" "}
-            {t('planning.title')}({filtered.length}){" "}
+            {t("planning.title")} ({filtered.length})
           </CardTitle>
-          <CardDescription>
-            {t('planning.description')}
-          </CardDescription>
+          <CardDescription>{t("planning.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500"> {t('planning.empty')} </p>
+              <p className="text-gray-500">{t("planning.empty")}</p>
               {perms?.canCreate && (
                 <Link to="/planning/new">
                   <Button className="mt-4" variant="outline">
                     <Plus className="h-5 w-5 mr-2" />
-                    {t('planning.createAction')}
+                    {t("planning.createAction")}
                   </Button>
                 </Link>
               )}
             </div>
           ) : (
             <>
+              {/* Desktop table */}
               <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.activity')}{" "}
+                        {t("planning.table.activity")}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.site')}{" "}
+                        {t("planning.table.site")}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.provider')}{" "}
+                        {t("planning.table.provider")}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.dates')}{" "}
+                        {t("planning.table.dates")}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.status')}{" "}
+                        {t("planning.table.status")}
                       </th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">
-                        {" "}
-                        {t('planning.table.actions')}{" "}
+                        {t("planning.table.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -283,14 +268,8 @@ export default function PlanningListPage() {
                                 <FileText className="h-5 w-5 text-blue-700" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {" "}
-                                  {p.process}{" "}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {" "}
-                                  {p.region}{" "}
-                                </p>
+                                <p className="text-sm font-medium text-gray-900">{p.process}</p>
+                                <p className="text-xs text-gray-500">{p.region}</p>
                               </div>
                             </div>
                           </td>
@@ -300,20 +279,13 @@ export default function PlanningListPage() {
                               {p.siteName}
                             </div>
                             <p className="text-xs text-gray-500">
-                              {" "}
-                              {p.siteCode} - N°{p.siteNumber}{" "}
+                              {p.siteCode} - N°{p.siteNumber}
                             </p>
                           </td>
                           <td className="px-4 py-4">
-                            <p className="text-sm text-gray-900">
-                              {" "}
-                              {p.provider}{" "}
-                            </p>
+                            <p className="text-sm text-gray-900">{p.provider}</p>
                             {p.providerEmail && (
-                              <p className="text-xs text-gray-500">
-                                {" "}
-                                {p.providerEmail}{" "}
-                              </p>
+                              <p className="text-xs text-gray-500">{p.providerEmail}</p>
                             )}
                           </td>
                           <td className="px-4 py-4">
@@ -326,37 +298,27 @@ export default function PlanningListPage() {
                           </td>
                           <td className="px-4 py-4">
                             {config ? (
-                              <Badge variant={config.variant}>
-                                {" "}
-                                {config.label}{" "}
-                              </Badge>
+                              <Badge variant={config.variant}>{config.label}</Badge>
                             ) : (
-                              <Badge>{p.status} </Badge>
+                              <Badge>{p.status}</Badge>
                             )}
                           </td>
                           <td className="px-4 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               {perms?.canEdit && (
                                 <button
-                                  onClick={() =>
-                                    navigate(`/planning/${p.id}/edit`)
-                                  }
+                                  onClick={() => navigate(`/planning/${p.id}/edit`)}
                                   className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                  title={t('common.edit')}
+                                  title={t("common.edit")}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </button>
                               )}
                               {perms?.canDelete && (
                                 <button
-                                  onClick={() =>
-                                    setDeleteTarget({
-                                      id: p.id,
-                                      name: p.process,
-                                    })
-                                  }
+                                  onClick={() => setDeleteTarget({ id: p.id, name: p.process })}
                                   className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title={t('common.delete')}
+                                  title={t("common.delete")}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -375,22 +337,15 @@ export default function PlanningListPage() {
                 {filtered.map((p) => {
                   const config = STATUS_CONFIG[p.status];
                   return (
-                    <div
-                      key={p.id}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
+                    <div key={p.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <FileText className="h-5 w-5 text-blue-700" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                              {p.process}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {p.region}
-                            </p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">{p.process}</p>
+                            <p className="text-xs text-gray-500 truncate">{p.region}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -398,18 +353,16 @@ export default function PlanningListPage() {
                             <button
                               onClick={() => navigate(`/planning/${p.id}/edit`)}
                               className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
-                              title={t('common.edit')}
+                              title={t("common.edit")}
                             >
                               <Edit className="h-4 w-4" />
                             </button>
                           )}
                           {perms?.canDelete && (
                             <button
-                              onClick={() =>
-                                setDeleteTarget({ id: p.id, name: p.process })
-                              }
+                              onClick={() => setDeleteTarget({ id: p.id, name: p.process })}
                               className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                              title={t('common.delete')}
+                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -421,23 +374,15 @@ export default function PlanningListPage() {
                           <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">{p.siteName}</span>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {p.siteCode} - N°{p.siteNumber}
-                        </p>
+                        <p className="text-xs text-gray-500">{p.siteCode} - N°{p.siteNumber}</p>
                         <p className="text-gray-900">{p.provider}</p>
                         {p.providerEmail && (
-                          <p className="text-xs text-gray-500">
-                            {p.providerEmail}
-                          </p>
+                          <p className="text-xs text-gray-500">{p.providerEmail}</p>
                         )}
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-900">
-                            {formatDate(p.expectedStartDate)}
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-900">{formatDate(p.expectedStartDate)}</span>
                           <span className="text-gray-400">→</span>
-                          <span className="text-gray-900">
-                            {formatDate(p.expectedEndDate)}
-                          </span>
+                          <span className="text-gray-900">{formatDate(p.expectedEndDate)}</span>
                         </div>
                       </div>
                       <div className="mt-3">
@@ -457,7 +402,7 @@ export default function PlanningListPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
               <p className="text-sm text-gray-600">
-                Page {page} / {totalPages} ({totalItems} {t('planning.stats.total')})
+                Page {page} / {totalPages} ({totalItems} {t("planning.stats.total")})
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -465,14 +410,14 @@ export default function PlanningListPage() {
                   disabled={page <= 1}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
                 >
-                  {t('common.previous')}
+                  {t("common.previous")}
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 border border-gray-200"
                 >
-                  {t('common.next')}
+                  {t("common.next")}
                 </button>
               </div>
             </div>
@@ -483,19 +428,20 @@ export default function PlanningListPage() {
       <Modal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title={t('planning.deleteConfirm.title')}
+        title={t("planning.deleteConfirm.title")}
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            {t('planning.deleteConfirm.message')}{" "}
-            <strong> {deleteTarget?.name} </strong> ? {t('planning.deleteConfirm.irreversible')}
+            {t("planning.deleteConfirm.message")}{" "}
+            <strong>{deleteTarget?.name}</strong> ?{" "}
+            {t("planning.deleteConfirm.irreversible")}
           </p>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              {t('common.delete')}
+              {t("common.delete")}
             </Button>
           </div>
         </div>
