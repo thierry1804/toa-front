@@ -61,7 +61,6 @@ export default function PlanningFormPage() {
         "siteNumber",
         "siteName",
         "region",
-        "theoreticalStartDate",
         "expectedStartDate",
         "expectedEndDate",
       );
@@ -78,7 +77,6 @@ export default function PlanningFormPage() {
     siteNumber: "",
     siteName: "",
     region: "",
-    theoreticalStartDate: "",
     expectedStartDate: "",
     expectedEndDate: "",
     status: "brouillon",
@@ -111,7 +109,6 @@ export default function PlanningFormPage() {
         siteNumber: existing.siteNumber,
         siteName: existing.siteName,
         region: existing.region,
-        theoreticalStartDate: toLocalDatetimeInput(existing.theoreticalStartDate),
         expectedStartDate: toLocalDatetimeInput(existing.expectedStartDate),
         expectedEndDate: toLocalDatetimeInput(existing.expectedEndDate),
         status: existing.status,
@@ -142,29 +139,14 @@ export default function PlanningFormPage() {
     if (!formData.siteName.trim())
       newErrors.siteName = t('planning.validation.siteNameRequired');
     if (!formData.region.trim()) newErrors.region = t('planning.validation.regionRequired');
-    if (!formData.theoreticalStartDate)
-      newErrors.theoreticalStartDate = t('planning.validation.theoreticalDateRequired');
     if (!formData.expectedStartDate)
       newErrors.expectedStartDate = t('planning.validation.expectedStartDateRequired');
     if (!formData.expectedEndDate)
       newErrors.expectedEndDate = t('planning.validation.expectedEndDateRequired');
 
     if (formData.expectedStartDate && formData.expectedEndDate) {
-      if (
-        new Date(formData.expectedEndDate) <
-        new Date(formData.expectedStartDate)
-      ) {
-        newErrors.expectedEndDate =
-          t('planning.validation.endBeforeStart');
-      }
-    }
-    if (formData.theoreticalStartDate && formData.expectedStartDate) {
-      if (
-        new Date(formData.expectedStartDate) <
-        new Date(formData.theoreticalStartDate)
-      ) {
-        newErrors.expectedStartDate =
-          t('planning.validation.startBeforeTheoretical');
+      if (new Date(formData.expectedEndDate) < new Date(formData.expectedStartDate)) {
+        newErrors.expectedEndDate = t('planning.validation.endBeforeStart');
       }
     }
 
@@ -191,9 +173,6 @@ export default function PlanningFormPage() {
       siteNumber: formData.siteNumber.trim(),
       siteName: formData.siteName.trim(),
       region: formData.region.trim(),
-      theoreticalStartDate: new Date(
-        formData.theoreticalStartDate,
-      ).toISOString(),
       expectedStartDate: new Date(formData.expectedStartDate).toISOString(),
       expectedEndDate: new Date(formData.expectedEndDate).toISOString(),
       status: formData.status as ActivityPlanning["status"],
@@ -374,16 +353,7 @@ export default function PlanningFormPage() {
                 {t('planning.form.dateInfo')}
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                label={t('planning.form.theoreticalDate')}
-                type="datetime-local"
-                value={formData.theoreticalStartDate}
-                onChange={(e) => set("theoreticalStartDate", e.target.value)}
-                error={errors.theoreticalStartDate}
-                required
-                disabled={lockedFields.includes("theoreticalStartDate")}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t('planning.form.expectedStartDate')}
                 type="datetime-local"
@@ -403,6 +373,22 @@ export default function PlanningFormPage() {
                 disabled={lockedFields.includes("expectedEndDate")}
               />
             </div>
+            {isEditMode && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                <Input
+                  label={t('planning.form.actualStartDate')}
+                  type={existing?.actualStartDate ? "datetime-local" : "text"}
+                  value={existing?.actualStartDate ? toLocalDatetimeInput(existing.actualStartDate) : "—"}
+                  disabled
+                />
+                <Input
+                  label={t('planning.form.actualEndDate')}
+                  type={existing?.actualEndDate ? "datetime-local" : "text"}
+                  value={existing?.actualEndDate ? toLocalDatetimeInput(existing.actualEndDate) : "—"}
+                  disabled
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

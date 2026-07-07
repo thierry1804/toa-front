@@ -168,7 +168,7 @@ export interface PaginatedResponse<T> {
   per_page: number
 }
 
-export type ActivityPlanningStatus = 'brouillon' | 'planifie' | 'en_cours' | 'valide' | 'annule'
+export type ActivityPlanningStatus = 'brouillon' | 'planifie' | 'en_cours' | 'valide' | 'annule' | 'stand_by'
 
 export interface ActivityPlanningAudit {
   id: number
@@ -190,9 +190,11 @@ export interface ActivityPlanning {
   siteNumber: string
   siteName: string
   region: string
-  theoreticalStartDate: string
+  theoreticalStartDate?: string | null
   expectedStartDate: string
   expectedEndDate: string
+  actualStartDate?: string | null
+  actualEndDate?: string | null
   status: ActivityPlanningStatus
   permitReference: string | null
   permitValidated: boolean
@@ -210,7 +212,6 @@ export interface ActivityPlanningCreate {
   siteNumber: string
   siteName: string
   region: string
-  theoreticalStartDate: string
   expectedStartDate: string
   expectedEndDate: string
   status?: ActivityPlanningStatus
@@ -227,7 +228,6 @@ export interface ActivityPlanningUpdate {
   siteNumber?: string
   siteName?: string
   region?: string
-  theoreticalStartDate?: string
   expectedStartDate?: string
   expectedEndDate?: string
   status?: ActivityPlanningStatus

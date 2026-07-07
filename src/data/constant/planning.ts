@@ -1,12 +1,13 @@
 export const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: "warning" | "info" | "success" | "danger" | "default" }
+  { label: string; variant: "warning" | "info" | "success" | "danger" | "default" | "secondary" }
 > = {
   brouillon: { label: "Brouillon", variant: "warning" },
   planifie: { label: "Planifié", variant: "info" },
   en_cours: { label: "En cours", variant: "default" },
   valide: { label: "Validé", variant: "success" },
   annule: { label: "Annulé", variant: "danger" },
+  stand_by: { label: "Stand By", variant: "secondary" },
 }
 
 export const statusFilterOptions = [
@@ -16,6 +17,7 @@ export const statusFilterOptions = [
   { value: "en_cours", label: "En cours" },
   { value: "valide", label: "Validé" },
   { value: "annule", label: "Annulé" },
+  { value: "stand_by", label: "Stand By" },
 ]
 
 export const statusOptions = [
@@ -24,4 +26,5 @@ export const statusOptions = [
   { value: "en_cours", label: "En cours" },
   { value: "valide", label: "Validé" },
   { value: "annule", label: "Annulé" },
+  { value: "stand_by", label: "Stand By" },
 ]

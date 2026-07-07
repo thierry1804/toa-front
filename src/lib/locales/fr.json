@@ -152,7 +152,8 @@
       "planifie": "Planifiées",
       "en_cours": "En cours",
       "valide": "Validées",
-      "brouillon": "Brouillons"
+      "brouillon": "Brouillons",
+      "stand_by": "En attente"
     },
     "search": "Rechercher par procédé, prestataire, site...",
     "filterStatus": "Filtrer par statut",
@@ -196,10 +197,11 @@
       "siteNamePlaceholder": "Ex. : Antananarivo Centre",
       "region": "Région *",
       "regionPlaceholder": "Ex. : Analamanga",
-      "theoreticalDate": "Début théorique *",
-      "expectedStartDate": "Début prévu *",
-      "expectedEndDate": "Fin prévue *",
-      "dateInfo": "La date théorique est la date de début prévue initialement. Les dates prévues peuvent être ajustées tout en respectant la cohérence temporelle.",
+      "expectedStartDate": "Début prévisionnel *",
+      "expectedEndDate": "Fin prévisionnelle *",
+      "actualStartDate": "Début réel",
+      "actualEndDate": "Fin réelle",
+      "dateInfo": "Les dates prévisionnelles peuvent être ajustées tant que le planning n'est pas verrouillé.",
       "draftNote": "Les planifications en brouillon ne sont pas visibles dans le calendrier",
       "cancel": "Annuler",
       "save": "Enregistrer les modifications",
@@ -213,9 +215,8 @@
       "siteNumberRequired": "Le numéro site est obligatoire",
       "siteNameRequired": "Le nom du site est obligatoire",
       "regionRequired": "La région est obligatoire",
-      "theoreticalDateRequired": "La date théorique est obligatoire",
-      "expectedStartDateRequired": "La date prévue de début est obligatoire",
-      "expectedEndDateRequired": "La date prévue de fin est obligatoire",
+      "expectedStartDateRequired": "La date prévisionnelle de début est obligatoire",
+      "expectedEndDateRequired": "La date prévisionnelle de fin est obligatoire",
       "endBeforeStart": "La date de fin ne peut pas être antérieure à la date de début",
       "startBeforeTheoretical": "Doit être postérieure ou égale à la date théorique",
       "formErrors": "Veuillez corriger les erreurs du formulaire"
@@ -234,7 +235,8 @@
       "planifie": "Planifié",
       "en_cours": "En cours",
       "valide": "Validé",
-      "annule": "Annulé"
+      "annule": "Annulé",
+      "stand_by": "Stand By"
     }
   },
   "menus": {

@@ -3,7 +3,9 @@ import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, 
 
 export const activityPlanningApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
-    api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', { params }).then((r) => r.data),
+    api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', {
+      params: { 'order[id]': 'desc', ...params },
+    }).then((r) => r.data),
 
   getById: (id: number) =>
     api.get<ActivityPlanning>(`/api/activity_plannings/${id}`).then((r) => r.data),

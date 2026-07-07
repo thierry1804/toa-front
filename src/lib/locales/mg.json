@@ -152,7 +152,8 @@
       "planifie": "Voalahatra",
       "en_cours": "Mandroso",
       "valide": "Voamarina",
-      "brouillon": "Drafitra"
+      "brouillon": "Drafitra",
+      "stand_by": "En attente"
     },
     "search": "Karohina araka ny dingana, mpanome tolotra, toerana...",
     "filterStatus": "Sivanina araka ny sata",
@@ -196,10 +197,11 @@
       "siteNamePlaceholder": "Ohatra: Antananarivo Centre",
       "region": "Faritra *",
       "regionPlaceholder": "Ohatra: Analamanga",
-      "theoreticalDate": "Daty teorika *",
       "expectedStartDate": "Fanombohana voalahatra *",
       "expectedEndDate": "Famaranana voalahatra *",
-      "dateInfo": "Ny daty teorika dia ny daty fanombohana voalahatra tany am-boalohany. Ny daty voalahatra dia azo ovaina raha mbola manaraka ny firindrana ara-potoana.",
+      "actualStartDate": "Fanombohana tena izy",
+      "actualEndDate": "Famaranana tena izy",
+      "dateInfo": "Ny daty voalahatra dia azo ovaina raha mbola tsy voaidy ny fandrindrana.",
       "draftNote": "Ny fandrindrana ao amin'ny drafitra dia tsy hita ao amin'ny kalandrie",
       "cancel": "Ajanony",
       "save": "Tehirizo ny fanovana",
@@ -213,11 +215,9 @@
       "siteNumberRequired": "Ilaina ny laharana toerana",
       "siteNameRequired": "Ilaina ny anaran'ny toerana",
       "regionRequired": "Ilaina ny faritra",
-      "theoreticalDateRequired": "Ilaina ny daty teorika",
       "expectedStartDateRequired": "Ilaina ny daty fanombohana voalahatra",
       "expectedEndDateRequired": "Ilaina ny daty famaranana voalahatra",
       "endBeforeStart": "Ny daty famaranana dia tsy mety ho alohan'ny daty fanombohana",
-      "startBeforeTheoretical": "Tsy maintsy aorian'ny daty teorika na mitovy aminy",
       "formErrors": "Valio ireo hadisoana amin'ny formulaire"
     },
     "toast": {
@@ -234,7 +234,8 @@
       "planifie": "Voalahatra",
       "en_cours": "Mandroso",
       "valide": "Voamarina",
-      "annule": "Nofoanana"
+      "annule": "Nofoanana",
+      "stand_by": "Stand By"
     }
   },
   "menus": {
