@@ -24,9 +24,9 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { roleOptions, ROLE_PERMISSIONS } from "@/data/constant/roles";
 import { useTranslation } from "react-i18next";
 import { parseApiFieldErrors } from "@/lib/apiErrors";
+import { useRoles } from "@/features/roles/hooks/useRoles";
 
 // Maps API propertyPath / error_key values → form field names
 const PROPERTY_TO_FIELD: Record<string, string> = {
@@ -54,6 +54,9 @@ export default function UserFormPage() {
   const { data: existingUser } = useUser(id ? Number(id) : 0);
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+  const { data: rolesData, isLoading: rolesLoading } = useRoles(1, 200);
+  const allRoles = rolesData?.member ?? [];
+  const dynamicRoleOptions = allRoles.map((r) => ({ value: r.name, label: r.label }));
 
   const isEditMode = !!id;
 
@@ -331,11 +334,12 @@ export default function UserFormPage() {
           <CardContent className="space-y-4">
             <Select
               label={t("users.form.role")}
-              options={roleOptions}
+              options={rolesLoading ? [{ value: "", label: t("common.loading") }] : dynamicRoleOptions}
               value={formData.role}
               onChange={handleRoleChange}
               error={errors.role}
               required
+              disabled={rolesLoading}
             />
 
             {formData.role === "ROLE_PRESTATAIRE" && (
@@ -364,17 +368,16 @@ export default function UserFormPage() {
               </div>
             )}
 
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">
-                {" "}
-                {t("users.form.rolePermissions")}{" "}
-              </h4>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                {(ROLE_PERMISSIONS[formData.role] ?? []).map((perm, i) => (
-                  <li key={i}> {perm} </li>
-                ))}
-              </ul>
-            </div>
+            {allRoles.find((r) => r.name === formData.role)?.description && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-1">
+                  {t("users.form.rolePermissions")}
+                </h4>
+                <p className="text-sm text-gray-700">
+                  {allRoles.find((r) => r.name === formData.role)!.description}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

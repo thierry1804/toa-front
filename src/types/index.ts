@@ -155,6 +155,28 @@ export interface MenuAccessUpdate {
   canDelete?: boolean
 }
 
+export interface Role {
+  '@id': string
+  id: number
+  name: string
+  label: string
+  description?: string | null
+  isSystem: boolean
+  createdAt: string
+}
+
+export interface RoleCreate {
+  name: string
+  label: string
+  description?: string | null
+}
+
+export interface RoleUpdate {
+  name?: string
+  label?: string
+  description?: string | null
+}
+
 export interface ApiError {
   message: string
   code?: string

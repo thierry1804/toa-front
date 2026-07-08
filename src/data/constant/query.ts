@@ -9,3 +9,5 @@ export const ACCESSES_KEY = ['menu-accesses'] as const
 export const PLANNING_KEY = ['activity_plannings'] as const
 
 export const PLAN_PREVENTION_KEY = ['plans-prevention'] as const
+
+export const ROLES_KEY = ['roles'] as const

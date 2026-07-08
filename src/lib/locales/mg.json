@@ -473,5 +473,64 @@
     "access_denied": "Voarara ny fidirana",
     "account_not_activated": "Tsy niasana ny kaonty",
     "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao."
+  },
+  "roles": {
+    "title": "Fitantanana ny anjara",
+    "newRole": "Anjara vaovao",
+    "description": "Mamorona sy mitantana ny anjara amin'ny rindranasa",
+    "tableDescription": "Ny anjara raki-teny dia voarindra ary tsy azo esorina",
+    "search": "Hikaroka anarana na famaritana...",
+    "empty": "Tsy misy anjara hita",
+    "createAction": "Mamorona anjara",
+    "systemRoleProtected": "Ny anjara raki-teny dia tsy azo esorina",
+    "stats": {
+      "total": "Totaly",
+      "system": "Anjara raki-teny",
+      "custom": "Anjara manokana"
+    },
+    "table": {
+      "label": "Anarana",
+      "name": "Fanamarinana teknika",
+      "type": "Karazana",
+      "description": "Famaritana"
+    },
+    "badge": {
+      "system": "Raki-teny",
+      "custom": "Manokana"
+    },
+    "deleteConfirm": {
+      "title": "Hamafiso ny fafana",
+      "message": "Tena te-hofafana ny anjara",
+      "irreversible": "Tsy azo averina izany."
+    },
+    "form": {
+      "editTitle": "Hanova ny anjara",
+      "createTitle": "Anjara vaovao",
+      "editDesc": "Hanova ny mombamomba ny anjara",
+      "createDesc": "Mamorona anjara vaovao manokana",
+      "roleInfo": "Mombamomba ny anjara",
+      "label": "Anarana *",
+      "labelPlaceholder": "Ohatra: Tompon'andraikitra an-tsaha",
+      "name": "Fanamarinana teknika",
+      "namePlaceholder": "Ohatra: ROLE_TERRAIN",
+      "nameSystemNote": "Tsy azo ovaina ny fanamarinana teknika ny anjara raki-teny.",
+      "description": "Famaritana",
+      "descriptionPlaceholder": "Famaritra ny andraikitry ny anjara...",
+      "nameInfo": "Endrika ny fanamarinana teknika",
+      "nameInfoDesc": "Ny fanamarinana dia tsy maintsy manomboka amin'ny ROLE_ (ohatra: ROLE_TERRAIN).",
+      "create": "Mamorona ny anjara"
+    },
+    "validation": {
+      "labelRequired": "Ilaina ny anarana",
+      "nameRequired": "Ilaina ny fanamarinana teknika"
+    },
+    "toast": {
+      "created": "Anjara voaforona soa aman-tsara",
+      "updated": "Anjara novaina soa aman-tsara",
+      "deleted": "Anjara nofongorana soa aman-tsara",
+      "saveError": "Hadisoana tamin'ny fitahirizana",
+      "deleteError": "Hadisoana tamin'ny fafana",
+      "deleteErrorInUse": "Ity anjara ity dia ampiasain'ny mpampiasa ary tsy azo esorina"
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { usePermission, useHasPermissions } from '@/features/auth/usePermission'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useMenuAccesses } from '@/features/menus/hooks/useMenuAccesses'
 import { menuAccessesApi } from '@/api/menuAccessesApi'
@@ -11,7 +10,7 @@ import {
   Shield,
   Loader2,
 } from 'lucide-react'
-import { ROLES, ROLE_LABELS } from '@/data/constant/roles'
+import { useRoles } from '@/features/roles/hooks/useRoles'
 import { PERMS, PERM_ICONS, PERM_TITLES } from '@/data/constant/permissions'
 
 type AccessKey = string
@@ -32,31 +31,31 @@ function makeKey(menu: string, role: string): AccessKey {
 }
 
 export default function MenuManagerPage() {
-  const canManageMenus = usePermission('manage_menus')
-  const hasPermissions = useHasPermissions()
   const addToast = useUiStore((s) => s.addToast)
   const queryClient = useQueryClient()
   const { data: menus, isLoading: menusLoading } = useMenus()
   const { data: accesses, isLoading: accessesLoading } = useMenuAccesses()
+  const { data: rolesData, isLoading: rolesLoading } = useRoles(1, 200)
   const [entries, setEntries] = useState<Map<AccessKey, AccessEntry>>(new Map())
 
   const { t } = useTranslation()
   const menuItems = (menus ?? []).filter((m) => m.name !== 'Dashboard')
+  const allRoles = rolesData?.member ?? []
   const [loaded, setLoaded] = useState(false)
   const [toggling, setToggling] = useState<AccessKey | null>(null)
 
   useEffect(() => {
-    if (!menus || !accesses || loaded) return
+    if (!menus || !accesses || !allRoles.length || loaded) return
     const map = new Map<AccessKey, AccessEntry>()
     for (const menu of menuItems) {
-      for (const role of ROLES) {
-        const key = makeKey(menu['@id'], role)
-        const existing = accesses.find((a) => a.menu === menu['@id'] && a.role === role)
-        const isSuperAdmin = role === 'ROLE_SUPER_ADMIN'
+      for (const roleObj of allRoles) {
+        const key = makeKey(menu['@id'], roleObj.name)
+        const existing = accesses.find((a) => a.menu === menu['@id'] && a.role === roleObj.name)
+        const isSuperAdmin = roleObj.name === 'ROLE_SUPER_ADMIN'
         map.set(key, {
           key,
           menu: menu['@id'],
-          role,
+          role: roleObj.name,
           canView: existing?.canView ?? isSuperAdmin,
           canCreate: existing?.canCreate ?? isSuperAdmin,
           canEdit: existing?.canEdit ?? isSuperAdmin,
@@ -67,7 +66,7 @@ export default function MenuManagerPage() {
     }
     setEntries(map)
     setLoaded(true)
-  }, [menus, accesses, loaded])
+  }, [menus, accesses, rolesData, loaded])
 
   const toggle = useCallback(async (key: AccessKey, perm: string) => {
     setToggling(key)
@@ -135,15 +134,7 @@ export default function MenuManagerPage() {
     }
   }, [entries, addToast])
 
-  if (hasPermissions && !canManageMenus) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">{t('common.error')}</p>
-      </div>
-    )
-  }
-
-  if (menusLoading || accessesLoading) {
+  if (menusLoading || accessesLoading || rolesLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-5 w-5 animate-spin text-gray-400 mr-2" />
@@ -174,9 +165,9 @@ export default function MenuManagerPage() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="px-3 py-3 text-left font-semibold text-gray-900 sticky left-0 bg-white min-w-[160px] z-10">{t('menus.manager.menu')}</th>
-                {ROLES.map((role) => (
-                  <th key={role} className="px-3 py-3 text-center font-semibold text-gray-900 min-w-[160px]">
-                    {ROLE_LABELS[role] ?? role}
+                {allRoles.map((roleObj) => (
+                  <th key={roleObj.name} className="px-3 py-3 text-center font-semibold text-gray-900 min-w-[160px]">
+                    {roleObj.label}
                   </th>
                 ))}
               </tr>
@@ -187,8 +178,8 @@ export default function MenuManagerPage() {
                   <td className="px-3 py-3 font-medium text-gray-900 sticky left-0 bg-white">
                     {menu.name}
                   </td>
-                  {ROLES.map((role) => {
-                    const key = makeKey(menu['@id'], role)
+                  {allRoles.map((roleObj) => {
+                    const key = makeKey(menu['@id'], roleObj.name)
                     return (
                       <td key={key} className="px-3 py-3">
                         <div className="flex items-center justify-center gap-3">
@@ -227,11 +218,11 @@ export default function MenuManagerPage() {
             {menuItems.map((menu) => (
               <div key={menu.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-gray-900 text-sm">{menu.name}</h4>
-                {ROLES.map((role) => {
-                  const key = makeKey(menu['@id'], role)
+                {allRoles.map((roleObj) => {
+                  const key = makeKey(menu['@id'], roleObj.name)
                   return (
-                    <div key={role} className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600 min-w-[100px]">{ROLE_LABELS[role] ?? role}</span>
+                    <div key={roleObj.name} className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600 min-w-[100px]">{roleObj.label}</span>
                       <div className="flex items-center gap-2">
                         {PERMS.map((p) => {
                           const Icon = PERM_ICONS[p]

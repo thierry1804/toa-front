@@ -476,5 +476,64 @@
     "access_denied": "Accès refusé",
     "account_not_activated": "Compte non activé",
     "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte."
+  },
+  "roles": {
+    "title": "Gestion des rôles",
+    "newRole": "Nouveau rôle",
+    "description": "Créer et gérer les rôles de la plateforme",
+    "tableDescription": "Les rôles système sont protégés et ne peuvent pas être supprimés",
+    "search": "Rechercher par nom ou libellé...",
+    "empty": "Aucun rôle trouvé",
+    "createAction": "Créer un rôle",
+    "systemRoleProtected": "Les rôles système ne peuvent pas être supprimés",
+    "stats": {
+      "total": "Total",
+      "system": "Rôles système",
+      "custom": "Rôles personnalisés"
+    },
+    "table": {
+      "label": "Libellé",
+      "name": "Identifiant technique",
+      "type": "Type",
+      "description": "Description"
+    },
+    "badge": {
+      "system": "Système",
+      "custom": "Personnalisé"
+    },
+    "deleteConfirm": {
+      "title": "Confirmer la suppression",
+      "message": "Êtes-vous sûr de vouloir supprimer le rôle",
+      "irreversible": "Cette action est irréversible."
+    },
+    "form": {
+      "editTitle": "Modifier le rôle",
+      "createTitle": "Nouveau rôle",
+      "editDesc": "Modifier les informations du rôle",
+      "createDesc": "Créer un nouveau rôle personnalisé",
+      "roleInfo": "Informations du rôle",
+      "label": "Libellé *",
+      "labelPlaceholder": "Ex. : Responsable terrain",
+      "name": "Identifiant technique",
+      "namePlaceholder": "Ex. : ROLE_TERRAIN",
+      "nameSystemNote": "L'identifiant technique d'un rôle système ne peut pas être modifié.",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrire les responsabilités de ce rôle...",
+      "nameInfo": "Format de l'identifiant technique",
+      "nameInfoDesc": "L'identifiant doit commencer par ROLE_ (ex: ROLE_TERRAIN). Il sera automatiquement mis en majuscules.",
+      "create": "Créer le rôle"
+    },
+    "validation": {
+      "labelRequired": "Le libellé est obligatoire",
+      "nameRequired": "L'identifiant technique est obligatoire"
+    },
+    "toast": {
+      "created": "Rôle créé avec succès",
+      "updated": "Rôle modifié avec succès",
+      "deleted": "Rôle supprimé avec succès",
+      "saveError": "Erreur lors de l'enregistrement",
+      "deleteError": "Erreur lors de la suppression",
+      "deleteErrorInUse": "Ce rôle est assigné à des utilisateurs et ne peut pas être supprimé"
+    }
   }
 }
