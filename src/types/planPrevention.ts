@@ -138,3 +138,17 @@ export interface RisqueRow {
   probabilite: number
   mesuresPreventives: string
 }
+
+export type StatutPlanPreventionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
+
+export interface PlanPreventionPdfStatus {
+  statut: StatutPlanPreventionPdf
+  jobId: string | null
+  genereAt: string | null
+  tailleFichier: number | null
+}
+
+export interface GeneratePdfResult {
+  jobId: string
+  statut: StatutPlanPreventionPdf
+}

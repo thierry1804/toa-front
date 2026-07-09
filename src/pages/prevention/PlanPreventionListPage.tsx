@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, FileText, AlertCircle, Eye, ShieldCheck, ShieldX, Pencil, Wrench } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye, ShieldCheck, ShieldX, Pencil, Wrench, FileCheck } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -9,13 +9,49 @@ import StatutBadge from '@/components/planPrevention/StatutBadge'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
 import ValiderModal from '@/components/planPrevention/ValiderModal'
 import RefuserModal from '@/components/planPrevention/RefuserModal'
-import { usePlanPreventions, usePlanPrevention } from '@/features/planPrevention/hooks/usePlanPrevention'
+import { usePlanPreventions, usePlanPrevention, usePlanPreventionPdf } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { usePermission, useHasRole } from '@/features/auth/usePermission'
 import { useAuthStore } from '@/store/auth.store'
 import type { PlanPrevention } from '@/types/planPrevention'
 
 const STATUTS_EXAMINABLES = ['SOUMIS', 'EN_COURS_DE_VALIDATION'] as const
+
+function PlanPdfCell({ planId }: { planId: string }) {
+  const canDownload = usePermission('plan_prevention.download_pdf')
+  const { pdfStatut, downloadPdf } = usePlanPreventionPdf(planId)
+
+  if (pdfStatut === 'GENERE') {
+    return (
+      <button
+        type="button"
+        disabled={!canDownload}
+        onClick={(e) => { e.stopPropagation(); void downloadPdf() }}
+        title="Télécharger le PDF"
+        className="text-green-600 hover:text-green-800 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <FileCheck className="h-5 w-5" />
+      </button>
+    )
+  }
+
+  if (pdfStatut === 'EN_COURS') {
+    return (
+      <span title="Génération en cours..." className="text-orange-400">
+        <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      </span>
+    )
+  }
+
+  return (
+    <span title="Pas de PDF généré" className="text-gray-300">
+      <FileText className="h-5 w-5" />
+    </span>
+  )
+}
 
 function PlanRow({
   plan,
@@ -73,6 +109,9 @@ function PlanRow({
         {latestExamen
           ? new Date(latestExamen.examineAt).toLocaleDateString('fr-FR')
           : <span className="text-gray-400">—</span>}
+      </td>
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        {plan.statut === 'VALIDE_HSE' ? <PlanPdfCell planId={plan.id} /> : <span className="text-gray-200">—</span>}
       </td>
       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-1.5">
@@ -148,6 +187,7 @@ export default function PlanPreventionListPage() {
     t('planPrevention.list.headers.statut'),
     t('planPrevention.list.headers.chefProjet'),
     t('planPrevention.list.headers.dateExamen'),
+    'PDF',
     t('planPrevention.list.headers.actions'),
   ]
 

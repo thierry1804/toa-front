@@ -25,14 +25,16 @@ interface AuthState {
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   ROLE_CHEF_PROJET:  ['plan_prevention.examine'],
-  ROLE_HSE:          ['plan_prevention.valider_hse', 'plan_prevention.refuser_hse'],
+  ROLE_HSE:          ['plan_prevention.valider_hse', 'plan_prevention.refuser_hse', 'plan_prevention.generate_pdf', 'plan_prevention.download_pdf'],
   ROLE_PRESTATAIRE:  ['plan_prevention.resoumettre'],
   ROLE_ADMIN:        [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
+    'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'edit_users', 'create_users',
   ],
   ROLE_SUPER_ADMIN:  [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
+    'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'edit_users', 'create_users',
   ],
 }

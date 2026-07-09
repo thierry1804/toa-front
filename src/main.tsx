@@ -23,6 +23,7 @@ import MenuAccessFormPage from "@/pages/menus/MenuAccessFormPage";
 import MenuManagerPage from "@/pages/menus/MenuManagerPage";
 import RolesListPage from "@/pages/roles/RolesListPage";
 import RoleFormPage from "@/pages/roles/RoleFormPage";
+import RolesManagementPage from "@/pages/roles/RolesManagementPage";
 import PlanPreventionCreatePage from "@/pages/planPrevention/PlanPreventionCreatePage";
 import PlanPreventionDetailPage from "@/pages/planPrevention/PlanPreventionDetailPage";
 import PlanPreventionEditPage from "@/pages/planPrevention/PlanPreventionEditPage";
@@ -100,6 +101,10 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/roles" element={<RolesListPage />} />
               <Route path="/roles/new" element={<RoleFormPage />} />
               <Route path="/roles/:id/edit" element={<RoleFormPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/roles-management" />}>
+              <Route path="/roles-management" element={<RolesManagementPage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/statistics" />}>

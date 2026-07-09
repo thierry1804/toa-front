@@ -26,9 +26,12 @@ import StatutBadge from '@/components/planPrevention/StatutBadge'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
 import ValiderModal from '@/components/planPrevention/ValiderModal'
 import RefuserModal from '@/components/planPrevention/RefuserModal'
+import PdfGenerationButton from '@/components/planPrevention/PdfGenerationButton'
+import PdfStatusBadge from '@/components/planPrevention/PdfStatusBadge'
 import {
   usePlanPreventionDetail,
   usePlanPrevention,
+  usePlanPreventionPdf,
 } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermission } from '@/features/auth/usePermission'
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from '@/types/planPrevention'
@@ -82,6 +85,7 @@ export default function PlanPreventionDetailPage() {
   const { data: plan, isLoading, isError } = usePlanPreventionDetail(id ?? '')
   const { examinerPlan, isExamining, validerPlan, isValidating, refuserPlan, isRefusing } =
     usePlanPrevention()
+  const { pdfStatut } = usePlanPreventionPdf(id ?? '', { enabled: plan?.statut === 'VALIDE_HSE' })
 
   const [examinerOpen, setExaminerOpen] = useState(false)
   const [validerOpen, setValiderOpen] = useState(false)
@@ -161,6 +165,7 @@ export default function PlanPreventionDetailPage() {
                 {t('planPrevention.detail.examinerBtn')}
               </Button>
             )}
+            <PdfGenerationButton planId={plan.id} planStatut={plan.statut} />
           </div>
         }
       />
@@ -185,6 +190,14 @@ export default function PlanPreventionDetailPage() {
               </Button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Badge PDF officiel */}
+      {pdfStatut === 'GENERE' && (
+        <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-5 py-3">
+          <PdfStatusBadge statut="GENERE" />
+          <span className="text-sm font-medium text-green-800">PDF officiel disponible</span>
         </div>
       )}
 

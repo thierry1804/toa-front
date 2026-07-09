@@ -8,6 +8,8 @@ import type {
   DocumentPrevention,
   SitePrevention,
   KmzImportResult,
+  PlanPreventionPdfStatus,
+  GeneratePdfResult,
 } from '@/types/planPrevention'
 
 export const planPreventionApi = {
@@ -98,5 +100,35 @@ export const planPreventionApi = {
 
   deleteSite: (planId: string, siteId: string) =>
     api.delete(`/api/plans-prevention/${planId}/sites/${siteId}`),
+
+  generatePdf: (planId: string) =>
+    api
+      .post<GeneratePdfResult>(`/api/plans-prevention/${planId}/generate-pdf`)
+      .then((r) => r.data),
+
+  getPdfStatus: (planId: string) =>
+    api
+      .get<PlanPreventionPdfStatus>(`/api/plans-prevention/${planId}/pdf/status`)
+      .then((r) => r.data),
+
+  downloadPdf: async (planId: string): Promise<void> => {
+    const token = localStorage.getItem('access_token') ?? ''
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/plans-prevention/${planId}/pdf/download`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    if (!res.ok) throw new Error('Téléchargement PDF échoué')
+    const blob = await res.blob()
+    const disposition = res.headers.get('Content-Disposition') ?? ''
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'plan_prevention.pdf'
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
+  },
 }
 
