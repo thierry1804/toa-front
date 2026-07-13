@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
 import { useAuthStore, ROLE_PERMISSIONS, derivePermissionsFromRoles } from '@/store/auth.store'
@@ -46,12 +46,14 @@ export function useLogin() {
 export function useLogout() {
   const navigate = useNavigate()
   const logout = useAuthStore((s) => s.logout)
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async () => {
       localStorage.removeItem('access_token')
     },
     onSettled: () => {
+      queryClient.clear()
       logout()
       navigate('/login')
     },

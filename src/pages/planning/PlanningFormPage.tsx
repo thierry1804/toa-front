@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { usePermission, useHasPermissions } from "@/features/auth/usePermission";
+import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useTranslation } from "react-i18next";
 import {
   useActivityPlanning,
@@ -36,9 +36,10 @@ export default function PlanningFormPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const canEditPlanning = usePermission('edit_planning');
-  const canCreatePlanning = usePermission('create_planning');
-  const hasPermissions = useHasPermissions();
+  const perms = usePermissions('/planning');
+  const canCreatePlanning = perms?.canCreate ?? false;
+  const canEditPlanning = perms?.canEdit ?? false;
+  const permsLoaded = perms !== null;
   const addToast = useUiStore((s) => s.addToast);
   const { data: existing } = useActivityPlanning(id ? Number(id) : 0);
   const { mutate: createPlanning, isPending: isCreating } =
@@ -117,11 +118,11 @@ export default function PlanningFormPage() {
   }, [existing]);
 
   useEffect(() => {
-    if (hasPermissions && !(isEditMode ? canEditPlanning : canCreatePlanning)) {
+    if (permsLoaded && !(isEditMode ? canEditPlanning : canCreatePlanning)) {
       navigate("/planning");
       addToast({ message: t('planning.toast.permissionDenied'), type: "error" });
     }
-  }, [isEditMode, navigate, addToast, canEditPlanning, canCreatePlanning, hasPermissions]);
+  }, [isEditMode, permsLoaded, canEditPlanning, canCreatePlanning, navigate, addToast]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};

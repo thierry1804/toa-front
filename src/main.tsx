@@ -9,9 +9,6 @@ import { RouteGuard } from "@/components/layout/RouteGuard";
 import LoginPage from "@/pages/auth/LoginPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import PlanPreventionListPage from "@/pages/prevention/PlanPreventionListPage";
-import PermitsListPage from "@/pages/permits/PermitsListPage";
-import PermitDetailPage from "@/pages/permits/PermitDetailPage";
-import PermitFormPage from "@/pages/permits/PermitFormPage";
 import UsersListPage from "@/pages/users/UsersListPage";
 import UserFormPage from "@/pages/users/UserFormPage";
 import PlanningListPage from "@/pages/planning/PlanningListPage";
@@ -27,6 +24,9 @@ import RolesManagementPage from "@/pages/roles/RolesManagementPage";
 import PlanPreventionCreatePage from "@/pages/planPrevention/PlanPreventionCreatePage";
 import PlanPreventionDetailPage from "@/pages/planPrevention/PlanPreventionDetailPage";
 import PlanPreventionEditPage from "@/pages/planPrevention/PlanPreventionEditPage";
+import PermitTravailListPage from "@/pages/permitTravail/PermitTravailListPage";
+import PermitTravailCreatePage from "@/pages/permitTravail/PermitTravailCreatePage";
+import PermitTravailDetailPage from "@/pages/permitTravail/PermitTravailDetailPage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import "../app/globals.css";
 
@@ -39,13 +39,6 @@ createRoot(document.getElementById("root")!).render(
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-
-            <Route element={<RouteGuard menuRoute="/permits" />}>
-              <Route path="/permits" element={<PermitsListPage />} />
-              <Route path="/permits/new" element={<PermitFormPage />} />
-              <Route path="/permits/new/:type" element={<PermitFormPage />} />
-              <Route path="/permits/:id" element={<PermitDetailPage />} />
-            </Route>
 
             <Route element={<RouteGuard menuRoute="/prevention" />}>
               <Route path="/prevention" element={<PlanPreventionListPage />} />
@@ -105,6 +98,12 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/roles-management" />}>
               <Route path="/roles-management" element={<RolesManagementPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/permits-travail" />}>
+              <Route path="/permits-travail" element={<PermitTravailListPage />} />
+              <Route path="/permits-travail/new" element={<PermitTravailCreatePage />} />
+              <Route path="/permits-travail/:id" element={<PermitTravailDetailPage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/statistics" />}>
