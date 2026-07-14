@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useUiStore } from "@/store/ui.store";
 import { useMenuStore } from "@/store/menu.store";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Loader2,
   AlertCircle,
   type LucideIcon,
@@ -17,45 +18,125 @@ function getIcon(name: string | undefined): LucideIcon | null {
   return iconMap[name] ?? null;
 }
 
-function MenuItemLink({
+function hasActiveChild(node: MenuNode, pathname: string): boolean {
+  return node.children.some(
+    (c) => c.route === pathname || hasActiveChild(c, pathname),
+  );
+}
+
+function ChildLink({ node, collapsed }: { node: MenuNode; collapsed: boolean }) {
+  const Icon = getIcon(node.icon);
+  return (
+    <NavLink
+      to={node.route ?? "#"}
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 rounded-lg py-2 pr-3 text-sm font-medium transition-colors ${
+          collapsed ? "justify-center px-3" : "pl-9"
+        } ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`
+      }
+      title={collapsed ? node.name : undefined}
+    >
+      {Icon
+        ? <Icon className="h-4 w-4 flex-shrink-0" />
+        : !collapsed && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />}
+      {!collapsed && <span className="truncate">{node.name}</span>}
+    </NavLink>
+  );
+}
+
+function ParentMenuItem({
   node,
   collapsed,
 }: {
   node: MenuNode;
   collapsed: boolean;
 }) {
+  const { pathname } = useLocation();
+  const isChildActive = hasActiveChild(node, pathname);
+  const [open, setOpen] = useState(isChildActive);
   const Icon = getIcon(node.icon);
+
+  // auto-open when a child becomes active
+  useEffect(() => {
+    if (isChildActive) setOpen(true);
+  }, [isChildActive]);
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+          isChildActive ? "text-blue-700" : "text-gray-700"
+        } hover:bg-gray-100 ${collapsed ? "justify-center" : ""}`}
+        title={collapsed ? node.name : undefined}
+      >
+        {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+        {!collapsed && (
+          <>
+            <span className="flex-1 truncate text-left">{node.name}</span>
+            <ChevronDown
+              className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </>
+        )}
+      </button>
+
+      {open && !collapsed && (
+        <div className="mt-0.5 flex flex-col gap-0.5">
+          {/* parent itself as a link */}
+          {node.route && (
+            <NavLink
+              to={node.route}
+              end
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 rounded-lg py-2 pr-3 pl-9 text-sm font-medium transition-colors ${
+                  isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`
+              }
+            >
+              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
+              <span className="truncate">{node.name}</span>
+            </NavLink>
+          )}
+          {node.children.map((child) => (
+            <ChildLink key={child.id} node={child} collapsed={collapsed} />
+          ))}
+        </div>
+      )}
+
+      {/* collapsed: show children as tooltip targets */}
+      {open && collapsed && (
+        <div className="flex flex-col gap-0.5 pt-0.5">
+          {node.children.map((child) => (
+            <ChildLink key={child.id} node={child} collapsed={collapsed} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItemLink({ node, collapsed }: { node: MenuNode; collapsed: boolean }) {
+  const Icon = getIcon(node.icon);
+
+  if (node.children.length > 0) {
+    return <ParentMenuItem node={node} collapsed={collapsed} />;
+  }
 
   return (
     <NavLink
       to={node.route ?? "#"}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-          isActive
-            ? "bg-blue-50 text-blue-700"
-            : "text-gray-700 hover:bg-gray-100"
+          isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
         } ${collapsed ? "justify-center" : ""}`
       }
       title={collapsed ? node.name : undefined}
     >
       {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
-      {!collapsed && <span className="truncate"> {node.name} </span>}
+      {!collapsed && <span className="truncate">{node.name}</span>}
     </NavLink>
   );
-}
-
-function buildMenuList(items: MenuNode[]): MenuNode[] {
-  const result: MenuNode[] = [];
-  function walk(nodes: MenuNode[]) {
-    for (const n of nodes) {
-      if (n.route) {
-        result.push(n);
-      }
-      walk(n.children);
-    }
-  }
-  walk(items);
-  return result;
 }
 
 export function Sidebar() {
@@ -80,7 +161,7 @@ export function Sidebar() {
     load();
   }, [load]);
 
-  const flatItems = buildMenuList(menuStore.items);
+  const rootItems = menuStore.items;
 
   return (
     <>
@@ -93,12 +174,10 @@ export function Sidebar() {
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-gray-200 bg-white transition-all duration-200 ease-in-out lg:static ${
           collapsed ? "w-20" : "w-64"
-        } ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        } ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         <div className="relative flex h-16 items-center justify-center border-b border-gray-200 px-4">
-          <div className={`border border-gray-200 rounded-lg p-1 ${collapsed ? "p-0.5" : "p-1"}`}>
+          <div className={`border border-gray-200 rounded-lg ${collapsed ? "p-0.5" : "p-1"}`}>
             <img
               src="/images/TOA.png"
               alt="TOA"
@@ -136,14 +215,14 @@ export function Sidebar() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
             </div>
-          ) : menuStore.error && flatItems.length === 0 ? (
+          ) : menuStore.error && rootItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertCircle className="mb-2 h-5 w-5 text-gray-400" />
-              <p className="text-xs text-gray-400"> Menu indisponible</p>
+              <p className="text-xs text-gray-400">Menu indisponible</p>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
-              {flatItems.map((node) => (
+              {rootItems.map((node) => (
                 <MenuItemLink key={node.id} node={node} collapsed={collapsed} />
               ))}
             </div>

@@ -30,6 +30,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
     'permit_travail.generate_pdf',
+    'permit_travail.suivi', 'permit_travail.logs',
   ],
   ROLE_PRESTATAIRE:  ['plan_prevention.resoumettre', 'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre'],
   ROLE_ADMIN:        [
@@ -37,6 +38,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
     'permit_travail.generate_pdf',
+    'permit_travail.suivi', 'permit_travail.logs',
     'edit_users', 'create_users',
   ],
   ROLE_SUPER_ADMIN:  [
@@ -44,6 +46,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
     'permit_travail.generate_pdf',
+    'permit_travail.suivi', 'permit_travail.logs',
     'edit_users', 'create_users',
   ],
 }

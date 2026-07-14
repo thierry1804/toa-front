@@ -7,6 +7,10 @@ import type {
   PermitTravailPdfStatus,
   GeneratePermitTravailPdfResult,
   VersionPermitTravail,
+  PermitTravailSuiviData,
+  PermitTravailStatsJournalieresData,
+  PermitTravailLog,
+  PermitTravailSuiviFilters,
 } from '@/types/permitTravail'
 
 export const permitTravailApi = {
@@ -90,6 +94,34 @@ export const permitTravailApi = {
     api
       .get<PermitTravailPdfStatus>(`/api/permits-travail/${id}/pdf/status`)
       .then((r) => r.data),
+
+  getSuivi: (filters?: PermitTravailSuiviFilters) => {
+    const params: Record<string, string> = {}
+    if (filters?.codeSite) params.codeSite = filters.codeSite
+    if (filters?.typePermis) params.typePermis = filters.typePermis
+    if (filters?.statut) params.statut = filters.statut
+    if (filters?.dateDebut) params.dateDebut = filters.dateDebut
+    if (filters?.dateFin) params.dateFin = filters.dateFin
+    return api.get<PermitTravailSuiviData>('/api/permits-travail/suivi', { params }).then((r) => r.data)
+  },
+
+  getLogs: (permitId: string, date?: string) => {
+    const params: Record<string, string | number> = { itemsPerPage: 50 }
+    if (date) params.date = date
+    return api
+      .get<HydraCollection<PermitTravailLog>>(`/api/permits-travail/${permitId}/logs`, { params })
+      .then((r) => r.data)
+  },
+
+  getStatsJournalieres: (date?: string, codeSite?: string, typePermis?: string) => {
+    const params: Record<string, string> = {}
+    if (date) params.date = date
+    if (codeSite) params.codeSite = codeSite
+    if (typePermis) params.typePermis = typePermis
+    return api
+      .get<PermitTravailStatsJournalieresData>('/api/permits-travail/suivi/stats-journalieres', { params })
+      .then((r) => r.data)
+  },
 
   downloadPdf: async (id: string): Promise<void> => {
     const token = localStorage.getItem('access_token') ?? ''

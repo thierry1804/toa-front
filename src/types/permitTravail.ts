@@ -2,6 +2,42 @@ export type ProcessusPermit = 'NOUVEAU_SITE' | 'MAINTENANCE' | 'RENOUVELLEMENT'
 export type TypePermit = 'GENERAL' | 'ELECTRIQUE' | 'HAUTEUR'
 export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE'
 
+export type ActionPermitTravailLog = 'CONSULTE' | 'DOCUMENT_TELECHARGE' | 'STATUT_CHANGE' | 'PDF_GENERE'
+
+export interface PermitTravailLog {
+  id: string
+  action: ActionPermitTravailLog
+  declenchePar: { id: number; email: string; name: string; firstname?: string } | null
+  codeSite: string
+  typePermis: TypePermit
+  metadata: Record<string, string> | null
+  createdAt: string
+}
+
+export interface PermitTravailSuiviData {
+  totalPermis: number
+  parStatut: Partial<Record<StatutPermitTravail, number>>
+  parType: Partial<Record<TypePermit, number>>
+  parSite: Record<string, number>
+  expirantSous7j: PermitTravail[]
+  logsRecents: PermitTravailLog[]
+}
+
+export interface PermitTravailStatsJournalieresData {
+  nbConsultations: number
+  nbChangementsStatut: number
+  nbTelechargements: number
+  permisActifs: number
+}
+
+export interface PermitTravailSuiviFilters {
+  codeSite?: string
+  typePermis?: TypePermit | ''
+  statut?: StatutPermitTravail | ''
+  dateDebut?: string
+  dateFin?: string
+}
+
 export type TypeDocumentPermitTravail =
   | 'ATTESTATION_ENTREPRISE'
   | 'LISTE_INTERVENANTS'

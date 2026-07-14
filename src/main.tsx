@@ -28,6 +28,7 @@ import PermitTravailListPage from "@/pages/permitTravail/PermitTravailListPage";
 import PermitTravailCreatePage from "@/pages/permitTravail/PermitTravailCreatePage";
 import PermitTravailDetailPage from "@/pages/permitTravail/PermitTravailDetailPage";
 import PermitTravailEditPage from "@/pages/permitTravail/PermitTravailEditPage";
+import PermitTravailSuiviPage from "@/pages/permitTravail/PermitTravailSuiviPage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import "../app/globals.css";
 
@@ -103,6 +104,7 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/permits-travail" />}>
               <Route path="/permits-travail" element={<PermitTravailListPage />} />
+              <Route path="/permits-travail/suivi" element={<PermitTravailSuiviPage />} />
               <Route path="/permits-travail/new" element={<PermitTravailCreatePage />} />
               <Route path="/permits-travail/:id/edit" element={<PermitTravailEditPage />} />
               <Route path="/permits-travail/:id" element={<PermitTravailDetailPage />} />

@@ -3,7 +3,46 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { PERMIT_TRAVAIL_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
-import type { PermitTravail, PermitTravailInput, StatutPermitTravailPdf, VersionPermitTravail } from '@/types/permitTravail'
+import type {
+  PermitTravail,
+  PermitTravailInput,
+  StatutPermitTravailPdf,
+  VersionPermitTravail,
+  PermitTravailSuiviFilters,
+} from '@/types/permitTravail'
+
+const SUIVI_REFETCH_MS = 60_000
+
+export function usePermitTravailSuivi(filters?: PermitTravailSuiviFilters) {
+  return useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, 'suivi', filters],
+    queryFn: () => permitTravailApi.getSuivi(filters),
+    staleTime: SUIVI_REFETCH_MS,
+    refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
+
+export function usePermitTravailLogs(permitId: string, date?: string) {
+  return useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, permitId, 'logs', date ?? 'today'],
+    queryFn: () => permitTravailApi.getLogs(permitId, date),
+    enabled: !!permitId,
+    select: (data) => data.member,
+  })
+}
+
+export function usePermitTravailStatsJournalieres(
+  date?: string,
+  codeSite?: string,
+  typePermis?: string,
+) {
+  return useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, 'stats-journalieres', date, codeSite, typePermis],
+    queryFn: () => permitTravailApi.getStatsJournalieres(date, codeSite, typePermis),
+    staleTime: SUIVI_REFETCH_MS,
+    refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
 
 const PDF_POLL_INTERVAL_MS = 2_000
 const PDF_POLL_TIMEOUT_MS  = 60_000
