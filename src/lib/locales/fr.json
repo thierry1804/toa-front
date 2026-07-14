@@ -181,7 +181,7 @@
       "site": "Site",
       "dates": "Dates",
       "status": "Statut",
-      "process": "Procédé *",
+      "process": "Projet *",
       "processPlaceholder": "Ex. : Maintenance groupe électrogène",
       "projectDescription": "Description du projet *",
       "projectDescriptionPlaceholder": "Décrire les travaux à réaliser...",
@@ -208,7 +208,7 @@
       "create": "Créer la planification"
     },
     "validation": {
-      "processRequired": "Le procédé est obligatoire",
+      "processRequired": "Le projet est obligatoire",
       "providerRequired": "Le prestataire est obligatoire",
       "descriptionRequired": "La description est obligatoire",
       "siteCodeRequired": "Le code site est obligatoire",

@@ -80,7 +80,7 @@ export default function PlanningFormPage() {
     region: "",
     expectedStartDate: "",
     expectedEndDate: "",
-    status: "brouillon",
+    status: "planifie",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -17,8 +17,10 @@ import HistoriqueVersions from '@/components/planPrevention/HistoriqueVersions'
 import {
   usePlanPrevention,
   usePlanPreventionDetail,
+  usePlanificationsDisponibles,
 } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
+import { useAuthStore } from '@/store/auth.store'
 import type { PlanPrevention, RisqueRow, SitePrevention, TypeDocumentPrevention } from '@/types/planPrevention'
 import type { KmzImportResult } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS } from '@/types/planPrevention'
@@ -111,7 +113,8 @@ export default function PlanPreventionCreatePage({
   const perms = usePermissions('/prevention')
   // In edit mode the prestataire is correcting their own refused plan —
   // authorization is enforced by the backend RESOUMETTRE voter, not menu permissions.
-  const canEdit = isEditMode ? true : (perms?.canEdit ?? true)
+  // In create mode, can_edit is irrelevant — gate on can_create (PRESTATAIRE has create but not edit).
+  const canEdit = isEditMode ? true : (perms?.canCreate ?? true)
   const canSubmit = isEditMode ? true : (perms?.canCreate ?? true)
 
   const {
@@ -145,10 +148,57 @@ export default function PlanPreventionCreatePage({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<Step0FormData>({
     resolver: zodResolver(step0Schema),
   })
+
+  // ── Planification selection (ROLE_PRESTATAIRE, create mode only) ─────────────
+  const roles = useAuthStore((s) => s.roles)
+  const isPrestataire = !isEditMode && roles.includes('ROLE_PRESTATAIRE')
+
+  const { data: planificationsDisponibles = [], isLoading: isLoadingPlanifs } =
+    usePlanificationsDisponibles({ enabled: isPrestataire })
+
+  const [selectedPlanifId, setSelectedPlanifId] = useState<number | null>(null)
+  const [autofillSource, setAutofillSource] = useState<string | null>(null)
+  const [autofillValues, setAutofillValues] = useState<Partial<Step0FormData> | null>(null)
+
+  const watchedCodSite = watch('codeSite')
+  const watchedLocalite = watch('localite')
+  const watchedActivite = watch('activitePlanifiee')
+  const watchedDebut = watch('dateDebut')
+  const watchedFin = watch('dateFin')
+
+  const isManuallyModified =
+    autofillValues !== null &&
+    (watchedCodSite !== autofillValues.codeSite ||
+      watchedLocalite !== autofillValues.localite ||
+      watchedActivite !== autofillValues.activitePlanifiee ||
+      watchedDebut !== autofillValues.dateDebut ||
+      watchedFin !== autofillValues.dateFin)
+
+  const handlePlanifSelect = (id: number | null) => {
+    setSelectedPlanifId(id)
+    if (id === null) {
+      setAutofillSource(null)
+      setAutofillValues(null)
+      return
+    }
+    const planif = planificationsDisponibles.find((p) => p.id === id)
+    if (!planif) return
+    const fills: Partial<Step0FormData> = {
+      codeSite: planif.siteCode,
+      localite: planif.siteName,
+      activitePlanifiee: planif.process,
+      dateDebut: planif.expectedStartDate?.slice(0, 10) ?? '',
+      dateFin: planif.expectedEndDate?.slice(0, 10) ?? '',
+    }
+    reset({ ...fills })
+    setAutofillValues(fills)
+    setAutofillSource(planif.process)
+  }
 
   // ── Pre-fill form in edit mode once plan loads ───────────────────────────────
   useEffect(() => {
@@ -303,6 +353,74 @@ export default function PlanPreventionCreatePage({
       case 0:
         return (
           <div className="space-y-4">
+            {/* Planification selector — PRESTATAIRE only */}
+            {isPrestataire && (
+              <>
+                {isLoadingPlanifs ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Chargement des planifications...
+                  </div>
+                ) : planificationsDisponibles.length === 0 ? (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-medium text-amber-800">Aucune planification disponible</p>
+                    <p className="mt-1 text-sm text-amber-700">
+                      Vous devez d'abord créer une planification avant de soumettre un plan de prévention.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/planning/new')}
+                      className="mt-2 text-sm font-medium text-blue-600 hover:underline"
+                    >
+                      Créer une planification →
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Planification *
+                    </label>
+                    <select
+                      value={selectedPlanifId ?? ''}
+                      onChange={(e) =>
+                        handlePlanifSelect(e.target.value ? Number(e.target.value) : null)
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      disabled={!canEdit}
+                    >
+                      <option value="">— Sélectionner une planification —</option>
+                      {planificationsDisponibles.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.process} — {p.siteCode} ({p.expectedStartDate?.slice(0, 10)} → {p.expectedEndDate?.slice(0, 10)})
+                        </option>
+                      ))}
+                    </select>
+                    {!selectedPlanifId && (
+                      <p className="mt-1 text-xs text-red-600">Sélectionnez une planification pour continuer</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Autofill badge */}
+                {autofillSource && (
+                  <div
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+                      isManuallyModified
+                        ? 'bg-orange-100 text-orange-700'
+                        : 'bg-green-100 text-green-700'
+                    }`}
+                  >
+                    {isManuallyModified
+                      ? 'Modifié manuellement'
+                      : `Pré-rempli depuis : ${autofillSource}`}
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Code site *"
@@ -524,6 +642,7 @@ export default function PlanPreventionCreatePage({
 
   const handleNext = async () => {
     if (step === 0) {
+      if (isPrestataire && !selectedPlanifId) return
       await handleStep0Next()
     } else if (step === 1) {
       await handleStep1Next()
@@ -618,7 +737,16 @@ export default function PlanPreventionCreatePage({
             </Button>
           )
         ) : (
-          <Button onClick={handleNext} disabled={isPending} loading={isPending} size="lg">
+          <Button
+            onClick={handleNext}
+            disabled={
+              isPending ||
+              (isPrestataire && step === 0 && !selectedPlanifId) ||
+              (isPrestataire && step === 0 && planificationsDisponibles.length === 0)
+            }
+            loading={isPending}
+            size="lg"
+          >
             Suivant
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>

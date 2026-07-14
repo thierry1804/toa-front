@@ -1,5 +1,5 @@
 import api from '@/lib/axios'
-import type { HydraCollection } from '@/types'
+import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
   PlanPreventionInput,
@@ -109,6 +109,15 @@ export const planPreventionApi = {
   getPdfStatus: (planId: string) =>
     api
       .get<PlanPreventionPdfStatus>(`/api/plans-prevention/${planId}/pdf/status`)
+      .then((r) => r.data),
+
+  // TODO: Backend must expose GET /api/planifications?disponible=true
+  // Filter: planifications owned by connected user AND not linked to any PlanPrevention
+  listPlanificationsDisponibles: () =>
+    api
+      .get<HydraCollection<ActivityPlanning>>('/api/planifications', {
+        params: { disponible: true },
+      })
       .then((r) => r.data),
 
   downloadPdf: async (planId: string): Promise<void> => {

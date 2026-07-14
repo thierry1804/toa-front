@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import { PLAN_PREVENTION_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
+import type { ActivityPlanning } from '@/types'
 import type {
   PlanPrevention,
   PlanPreventionInput,
@@ -131,6 +132,16 @@ function parseMissingDocuments(errorMessage: string): string[] {
   const match = errorMessage.match(/documents_manquants:\s*(.+)/)
   if (!match) return []
   return match[1].split(',').map((s) => s.trim())
+}
+
+export function usePlanificationsDisponibles(opts?: { enabled?: boolean }) {
+  return useQuery<{ member: ActivityPlanning[] }, Error, ActivityPlanning[]>({
+    queryKey: [...PLAN_PREVENTION_KEY, 'planifications-disponibles'],
+    queryFn: () => planPreventionApi.listPlanificationsDisponibles(),
+    select: (data) => data.member,
+    enabled: opts?.enabled ?? true,
+    staleTime: 2 * 60 * 1000,
+  })
 }
 
 export function usePlanPreventions(params?: Record<string, string>) {
