@@ -3,9 +3,10 @@ import type { DecisionHsePlanPrevention } from '@/types/planPrevention'
 
 interface BandeauRefusProps {
   decision: DecisionHsePlanPrevention
+  label?: string
 }
 
-export default function BandeauRefus({ decision }: BandeauRefusProps) {
+export default function BandeauRefus({ decision, label = 'Plan' }: BandeauRefusProps) {
   const refusedBy = `${decision.decidePar.firstname ?? ''} ${decision.decidePar.name}`.trim()
   const refusedAt = new Date(decision.decidedAt).toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -21,7 +22,7 @@ export default function BandeauRefus({ decision }: BandeauRefusProps) {
         <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
         <div className="space-y-1">
           <p className="text-sm font-semibold text-red-800">
-            Plan refusé le {refusedAt} par {refusedBy}
+            {label} refusé le {refusedAt} par {refusedBy}
           </p>
           {decision.commentaire && (
             <p className="text-sm text-red-700">

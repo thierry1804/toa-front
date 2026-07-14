@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
 import { useAuthStore, ROLE_PERMISSIONS, derivePermissionsFromRoles } from '@/store/auth.store'
@@ -20,6 +20,7 @@ function resolveRoles(payload: Record<string, unknown> | null): string[] {
 
 export function useLogin() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const setUser = useAuthStore((s) => s.setUser)
   const setPermissions = useAuthStore((s) => s.setPermissions)
   const setRoles = useAuthStore((s) => s.setRoles)
@@ -38,8 +39,27 @@ export function useLogin() {
       })
       setRoles(resolveRoles(payload))
       setPermissions(resolvePermissions(payload))
+      // force fresh DB permissions on next AppShell render
+      void queryClient.invalidateQueries({ queryKey: ['me', 'permissions'] })
       navigate('/dashboard')
     },
+  })
+}
+
+export function useRefreshPermissions() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const setPermissions = useAuthStore((s) => s.setPermissions)
+
+  return useQuery({
+    queryKey: ['me', 'permissions'],
+    queryFn: async () => {
+      const permissions = await authApi.getMyPermissions()
+      setPermissions(permissions)
+      return permissions
+    },
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 }
 

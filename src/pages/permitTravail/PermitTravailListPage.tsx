@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -18,11 +18,12 @@ interface PermitRowProps {
   showHseColumns: boolean
   canValider: boolean
   canRefuser: boolean
+  canResoumettre: boolean
   onValider: (permit: PermitTravail) => void
   onRefuser: (permit: PermitTravail) => void
 }
 
-function PermitRow({ permit, showHseColumns, canValider, canRefuser, onValider, onRefuser }: PermitRowProps) {
+function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumettre, onValider, onRefuser }: PermitRowProps) {
   const navigate = useNavigate()
   const latestDecision = permit.decisionsHse?.at(-1)
 
@@ -91,6 +92,18 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, onValider, 
               Refuser
             </Button>
           )}
+          {permit.statut === 'BROUILLON' &&
+            canResoumettre &&
+            permit.decisionsHse?.some((d) => d.decision === 'REFUSE') && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate(`/permits-travail/${permit.id}/edit`)}
+              >
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                Corriger
+              </Button>
+            )}
         </div>
       </td>
     </tr>
@@ -104,6 +117,7 @@ export default function PermitTravailListPage() {
   const canCreate = usePermission('permit_travail.create')
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
+  const canResoumettre = usePermission('permit_travail.resoumettre')
   const showHseColumns = canValider || canRefuser
 
   const [hseView, setHseView] = useState(false)
@@ -201,6 +215,7 @@ export default function PermitTravailListPage() {
                       showHseColumns={showHseColumns}
                       canValider={canValider}
                       canRefuser={canRefuser}
+                      canResoumettre={canResoumettre}
                       onValider={setSelectedForValider}
                       onRefuser={setSelectedForRefuser}
                     />

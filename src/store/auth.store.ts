@@ -29,18 +29,21 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
+    'permit_travail.generate_pdf',
   ],
-  ROLE_PRESTATAIRE:  ['plan_prevention.resoumettre'],
+  ROLE_PRESTATAIRE:  ['plan_prevention.resoumettre', 'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre'],
   ROLE_ADMIN:        [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
+    'permit_travail.generate_pdf',
     'edit_users', 'create_users',
   ],
   ROLE_SUPER_ADMIN:  [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
+    'permit_travail.generate_pdf',
     'edit_users', 'create_users',
   ],
 }

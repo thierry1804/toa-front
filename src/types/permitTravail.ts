@@ -60,6 +60,15 @@ export interface DecisionHsePermitTravail {
   decidePar: { id: number; email: string; name: string; firstname?: string }
 }
 
+export interface VersionPermitTravail {
+  id: string
+  numeroVersion: number
+  snapshotData?: Record<string, unknown>
+  createdBy: { id: number; email: string; name: string; firstname?: string }
+  createdAt: string
+  motifResoumission: string | null
+}
+
 export interface PermitTravailInput {
   processus: ProcessusPermit
   typePermis: TypePermit
@@ -69,6 +78,20 @@ export interface PermitTravailInput {
   dateDebutPrevue: string
   dateFinPrevue: string
   engagementAccepte?: boolean
+}
+
+export type StatutPermitTravailPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
+
+export interface PermitTravailPdfStatus {
+  statut: StatutPermitTravailPdf | null
+  jobId: string | null
+  genereAt?: string | null
+  tailleFichier?: number | null
+}
+
+export interface GeneratePermitTravailPdfResult {
+  jobId: string
+  statut: StatutPermitTravailPdf
 }
 
 export interface PermitTravail {
@@ -83,6 +106,7 @@ export interface PermitTravail {
   dateDebutPrevue: string
   dateFinPrevue: string
   statut: StatutPermitTravail
+  engagementAccepte: boolean
   createdBy: { id: number; email: string; name: string; firstname?: string }
   nomPrestataire?: string | null
   soumisAt?: string | null

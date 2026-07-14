@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, FileText, MapPin, Users, ShieldCheck, ShieldX } from 'lucide-react'
+import { ArrowLeft, Calendar, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -9,6 +9,7 @@ import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
 import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
+import PermitTravailPdfButton from '@/components/permitTravail/PermitTravailPdfButton'
 import { usePermitTravailDetail, usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
 import {
@@ -279,6 +280,21 @@ export default function PermitTravailDetailPage() {
                 />
               )}
             </dl>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* PDF officiel */}
+      {permit.statut === 'VALIDE_HSE' && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-800">
+              <FileDown className="inline mr-2 h-4 w-4 text-gray-400" />
+              Document officiel PDF
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PermitTravailPdfButton permitId={permit.id} permitStatut={permit.statut} />
           </CardContent>
         </Card>
       )}

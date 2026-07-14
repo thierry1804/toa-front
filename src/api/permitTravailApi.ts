@@ -4,6 +4,9 @@ import type {
   PermitTravail,
   PermitTravailInput,
   DocumentPermitTravail,
+  PermitTravailPdfStatus,
+  GeneratePermitTravailPdfResult,
+  VersionPermitTravail,
 } from '@/types/permitTravail'
 
 export const permitTravailApi = {
@@ -69,4 +72,42 @@ export const permitTravailApi = {
     api
       .post<PermitTravail>(`/api/permits-travail/${id}/refuser`, { commentaire })
       .then((r) => r.data),
+
+  resoumettre: (id: string, motifResoumission?: string) =>
+    api
+      .post<PermitTravail>(`/api/permits-travail/${id}/resoumettre`, motifResoumission ? { motifResoumission } : {})
+      .then((r) => r.data),
+
+  getVersions: (id: string) =>
+    api.get<VersionPermitTravail[]>(`/api/permits-travail/${id}/versions`).then((r) => r.data),
+
+  generatePdf: (id: string) =>
+    api
+      .post<GeneratePermitTravailPdfResult>(`/api/permits-travail/${id}/generate-pdf`)
+      .then((r) => r.data),
+
+  getPdfStatus: (id: string) =>
+    api
+      .get<PermitTravailPdfStatus>(`/api/permits-travail/${id}/pdf/status`)
+      .then((r) => r.data),
+
+  downloadPdf: async (id: string): Promise<void> => {
+    const token = localStorage.getItem('access_token') ?? ''
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/permits-travail/${id}/pdf/download`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    if (!res.ok) throw new Error('Téléchargement PDF échoué')
+    const blob = await res.blob()
+    const disposition = res.headers.get('Content-Disposition') ?? ''
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'permit_travail.pdf'
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
+  },
 }

@@ -1,8 +1,11 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { useRefreshPermissions } from '@/features/auth/useAuth'
 
 export function AppShell() {
+  useRefreshPermissions()
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
