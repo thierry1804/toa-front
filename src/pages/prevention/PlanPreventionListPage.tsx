@@ -100,10 +100,17 @@ function PlanRow({
       <td className="px-4 py-3">
         <StatutBadge statut={plan.statut} />
       </td>
-      <td className="px-4 py-3 text-sm text-gray-600">
-        {plan.chefProjet
-          ? `${plan.chefProjet.firstname ?? ''} ${plan.chefProjet.name}`.trim()
-          : <span className="text-gray-400 italic">—</span>}
+      <td className="px-4 py-3 text-sm">
+        {plan.chefProjet ? (
+          <div>
+            <p className="font-medium text-gray-800">
+              {`${plan.chefProjet.firstname ?? ''} ${plan.chefProjet.name}`.trim()}
+            </p>
+            <p className="text-xs text-gray-500">{plan.chefProjet.email}</p>
+          </div>
+        ) : (
+          <span className="text-gray-400 italic">—</span>
+        )}
       </td>
       <td className="px-4 py-3 text-sm text-gray-500">
         {latestExamen

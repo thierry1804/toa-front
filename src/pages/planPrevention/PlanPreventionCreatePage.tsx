@@ -8,6 +8,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import RisqueMatrice from '@/components/planPrevention/RisqueMatrice'
+import InstallationsTable from '@/components/planPrevention/InstallationsTable'
+import EquipementsTable from '@/components/planPrevention/EquipementsTable'
 import DocumentUploadZone from '@/components/planPrevention/DocumentUploadZone'
 import KmzImportButton from '@/components/planPrevention/KmzImportButton'
 import SitesKmzMap from '@/components/planPrevention/SitesKmzMap'
@@ -21,7 +23,7 @@ import {
 } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useAuthStore } from '@/store/auth.store'
-import type { PlanPrevention, RisqueRow, SitePrevention, TypeDocumentPrevention } from '@/types/planPrevention'
+import type { PlanPrevention, RisqueRow, SitePrevention, TypeDocumentPrevention, InstallationRow, EquipementRow } from '@/types/planPrevention'
 import type { KmzImportResult } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS } from '@/types/planPrevention'
 
@@ -47,6 +49,7 @@ const STEPS = [
   { title: 'Matrice des risques' },
   { title: 'Sites concernés' },
   { title: 'Documents obligatoires' },
+  { title: 'Installations & Équipements' },
   { title: 'Récapitulatif' },
 ]
 
@@ -139,6 +142,12 @@ export default function PlanPreventionCreatePage({
   const [plan, setPlan] = useState<PlanPrevention | null>(null)
   const [localRisques, setLocalRisques] = useState<RisqueRow[]>([])
   const [isSavingRisques, setIsSavingRisques] = useState(false)
+  const [localInstallations, setLocalInstallations] = useState<InstallationRow[]>([])
+  const [localEquipements, setLocalEquipements] = useState<EquipementRow[]>([])
+  const [installationsErrors, setInstallationsErrors] = useState<Record<number, string>>({})
+  const [equipementsErrors, setEquipementsErrors] = useState<Record<number, string>>({})
+  const [installationsMinError, setInstallationsMinError] = useState(false)
+  const [isSavingInstallations, setIsSavingInstallations] = useState(false)
   const [motif, setMotif] = useState('')
   const originalRisqueIds = useRef<Set<string>>(new Set())
   const hasInitialized = useRef(false)
@@ -221,6 +230,8 @@ export default function PlanPreventionCreatePage({
         })),
       )
       originalRisqueIds.current = new Set(editPlan.risques?.map((r) => r.id) ?? [])
+      setLocalInstallations(editPlan.installations ?? [])
+      setLocalEquipements(editPlan.equipements ?? [])
       setPlan(editPlan)
     }
   }, [editPlan, isEditMode, reset])
@@ -234,7 +245,9 @@ export default function PlanPreventionCreatePage({
       await updatePlan(activePlan.id, data)
       setStep(1)
     } else {
-      const created = await createPlan(data)
+      const selectedPlanif = planificationsDisponibles.find((p) => p.id === selectedPlanifId)
+      const chefProjetIri = selectedPlanif?.createdBy?.['@id'] ?? null
+      const created = await createPlan({ ...data, chefProjet: chefProjetIri })
       setPlan(created)
       setStep(1)
     }
@@ -283,11 +296,55 @@ export default function PlanPreventionCreatePage({
     }
   }
 
-  // ── Step 4: soumettre or resoumettre ──────────────────────────────────────────
+  // ── Step 4: save installations & équipements ──────────────────────────────────
+  const handleStep4Next = async () => {
+    if (!activePlan) return
+
+    const instErrors: Record<number, string> = {}
+    localInstallations.forEach((row, i) => {
+      if (!row.description.trim()) instErrors[i] = 'Description requise'
+    })
+    if (localInstallations.length === 0) {
+      setInstallationsMinError(true)
+      return
+    }
+    setInstallationsMinError(false)
+    if (Object.keys(instErrors).length > 0) {
+      setInstallationsErrors(instErrors)
+      return
+    }
+    setInstallationsErrors({})
+
+    const eqErrors: Record<number, string> = {}
+    localEquipements.forEach((row, i) => {
+      if (!row.description.trim()) eqErrors[i] = 'Description requise'
+    })
+    if (Object.keys(eqErrors).length > 0) {
+      setEquipementsErrors(eqErrors)
+      return
+    }
+    setEquipementsErrors({})
+
+    setIsSavingInstallations(true)
+    try {
+      await updatePlan(activePlan.id, {
+        installations: localInstallations,
+        equipements: localEquipements,
+      })
+      setStep(5)
+    } finally {
+      setIsSavingInstallations(false)
+    }
+  }
+
+  // ── Step 5: soumettre or resoumettre ──────────────────────────────────────────
+  const hasBeenRefused =
+    (activePlan?.decisionsHse ?? []).some((d) => d.decision === 'REFUSE')
+
   const handleSoumettre = async () => {
     if (!activePlan) return
     try {
-      if (isEditMode) {
+      if (hasBeenRefused) {
         await resoumettreplan(activePlan.id, motif || undefined)
       } else {
         await soumettrePlan(activePlan.id)
@@ -525,6 +582,49 @@ export default function PlanPreventionCreatePage({
       case 4:
         return (
           <div className="space-y-6">
+            {activePlan && <PlanReference reference={activePlan.reference} />}
+
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                Liste des installations et matériels utilisés{' '}
+                <span className="text-red-500 font-normal">(minimum 1 requis)</span>
+              </h3>
+              {installationsMinError && (
+                <p className="mb-2 text-xs text-red-600">
+                  Ajoutez au moins une installation pour continuer.
+                </p>
+              )}
+              <InstallationsTable
+                value={localInstallations}
+                onChange={(rows) => {
+                  setLocalInstallations(rows)
+                  setInstallationsErrors({})
+                  if (rows.length > 0) setInstallationsMinError(false)
+                }}
+                errors={installationsErrors}
+              />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                Liste des matériels, équipements et outillages{' '}
+                <span className="text-gray-400 font-normal">(optionnel)</span>
+              </h3>
+              <EquipementsTable
+                value={localEquipements}
+                onChange={(rows) => {
+                  setLocalEquipements(rows)
+                  setEquipementsErrors({})
+                }}
+                errors={equipementsErrors}
+              />
+            </div>
+          </div>
+        )
+
+      case 5:
+        return (
+          <div className="space-y-6">
             {activePlan && <PlanReference reference={activePlan.reference} className="mb-2" />}
 
             {/* General info recap */}
@@ -593,6 +693,26 @@ export default function PlanPreventionCreatePage({
               </div>
             )}
 
+            {/* Installations recap */}
+            {localInstallations.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  Installations ({localInstallations.length})
+                </h3>
+                <InstallationsTable value={localInstallations} onChange={() => {}} readonly />
+              </div>
+            )}
+
+            {/* Équipements recap */}
+            {localEquipements.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  Équipements ({localEquipements.length})
+                </h3>
+                <EquipementsTable value={localEquipements} onChange={() => {}} readonly />
+              </div>
+            )}
+
             {/* Documents recap */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Documents obligatoires</h3>
@@ -646,14 +766,22 @@ export default function PlanPreventionCreatePage({
       await handleStep0Next()
     } else if (step === 1) {
       await handleStep1Next()
+    } else if (step === 4) {
+      await handleStep4Next()
     } else if (!isLastStep) {
       setStep((s) => s + 1)
     }
   }
 
   const isPending = isEditMode
-    ? isUpdating || isSavingRisques || isResoumetting
-    : isCreating || isSavingRisques || isSubmitting
+    ? isUpdating || isSavingRisques || isSavingInstallations || isResoumetting
+    : isCreating || isSavingRisques || isSavingInstallations || isSubmitting
+
+  const isStep4Invalid =
+    step === 4 &&
+    (localInstallations.length === 0 ||
+      localInstallations.some((r) => !r.description.trim()) ||
+      localEquipements.some((r) => !r.description.trim()))
 
   // ── Loading state for edit mode ───────────────────────────────────────────────
   if (isEditMode && isLoadingEdit) {
@@ -730,10 +858,10 @@ export default function PlanPreventionCreatePage({
             <Button
               onClick={handleSoumettre}
               disabled={isPending}
-              loading={isEditMode ? isResoumetting : isSubmitting}
+              loading={hasBeenRefused ? isResoumetting : isSubmitting}
               size="lg"
             >
-              {isEditMode ? 'Resoumettre le plan' : 'Soumettre le plan'}
+              {hasBeenRefused ? 'Resoumettre le plan' : 'Soumettre le plan'}
             </Button>
           )
         ) : (
@@ -742,7 +870,8 @@ export default function PlanPreventionCreatePage({
             disabled={
               isPending ||
               (isPrestataire && step === 0 && !selectedPlanifId) ||
-              (isPrestataire && step === 0 && planificationsDisponibles.length === 0)
+              (isPrestataire && step === 0 && planificationsDisponibles.length === 0) ||
+              isStep4Invalid
             }
             loading={isPending}
             size="lg"

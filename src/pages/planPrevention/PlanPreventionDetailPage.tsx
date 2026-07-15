@@ -22,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PlanReference from '@/components/planPrevention/PlanReference'
 import SitesKmzMap from '@/components/planPrevention/SitesKmzMap'
 import RisqueMatrice from '@/components/planPrevention/RisqueMatrice'
+import InstallationsTable from '@/components/planPrevention/InstallationsTable'
+import EquipementsTable from '@/components/planPrevention/EquipementsTable'
 import StatutBadge from '@/components/planPrevention/StatutBadge'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
 import ValiderModal from '@/components/planPrevention/ValiderModal'
@@ -279,7 +281,37 @@ export default function PlanPreventionDetailPage() {
         </div>
       </SectionCard>
 
-      {/* 4. Documents requis */}
+      {/* 4. Installations & Équipements */}
+      <SectionCard title="Installations & Équipements">
+        <div className="space-y-6">
+          <div>
+            <p className="mb-2 text-sm font-medium text-gray-600">
+              Installations et matériels utilisés
+              {(plan.installations?.length ?? 0) > 0 && ` (${plan.installations!.length})`}
+            </p>
+            <InstallationsTable
+              value={plan.installations ?? []}
+              onChange={() => {}}
+              readonly
+              emptyLabel="Aucune installation renseignée."
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-gray-600">
+              Matériels, équipements et outillages
+              {(plan.equipements?.length ?? 0) > 0 && ` (${plan.equipements!.length})`}
+            </p>
+            <EquipementsTable
+              value={plan.equipements ?? []}
+              onChange={() => {}}
+              readonly
+              emptyLabel="Aucun équipement renseigné."
+            />
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* 5. Documents requis */}
       <SectionCard title={t('planPrevention.detail.sections.documents')}>
         <ul className="space-y-2.5">
           {ALL_DOCUMENT_TYPES.map((type) => {
@@ -311,7 +343,7 @@ export default function PlanPreventionDetailPage() {
         </ul>
       </SectionCard>
 
-      {/* 5. Historique des examens */}
+      {/* 6. Historique des examens */}
       <SectionCard title={t('planPrevention.detail.sections.examenHistory')}>
         {(plan.examens?.length ?? 0) === 0 ? (
           <p className="text-sm text-gray-400 italic">{t('planPrevention.detail.noExamens')}</p>
@@ -340,7 +372,7 @@ export default function PlanPreventionDetailPage() {
         )}
       </SectionCard>
 
-      {/* 6. Historique des décisions HSE */}
+      {/* 7. Historique des décisions HSE */}
       <SectionCard title={t('planPrevention.detail.sections.hseHistory')}>
         {(plan.decisionsHse?.length ?? 0) === 0 ? (
           <p className="text-sm text-gray-400 italic">{t('planPrevention.detail.noDecisions')}</p>

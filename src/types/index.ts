@@ -223,6 +223,7 @@ export interface ActivityPlanning {
   auditLogs?: ActivityPlanningAudit[]
   createdAt: string
   updatedAt: string
+  createdBy?: { '@id': string; id: number; email: string; name: string; firstname?: string | null } | null
 }
 
 export interface ActivityPlanningCreate {

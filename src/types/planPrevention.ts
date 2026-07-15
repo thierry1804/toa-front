@@ -33,12 +33,25 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
   'FICHE_CONFORMITE',
 ]
 
+export interface InstallationRow {
+  description: string
+  conditionsUtilisation: string
+}
+
+export interface EquipementRow {
+  description: string
+  conditionsUtilisation: string
+}
+
 export interface PlanPreventionInput {
   codeSite: string
   localite: string
   activitePlanifiee: string
   dateDebut: string
   dateFin: string
+  chefProjet?: string | null
+  installations?: InstallationRow[]
+  equipements?: EquipementRow[]
 }
 
 export interface RisquePreventionInput {
@@ -129,6 +142,8 @@ export interface PlanPrevention {
   examens?: ExamenPlanPrevention[]
   decisionsHse?: DecisionHsePlanPrevention[]
   versions?: VersionPlanPrevention[]
+  installations?: InstallationRow[]
+  equipements?: EquipementRow[]
 }
 
 export interface RisqueRow {
