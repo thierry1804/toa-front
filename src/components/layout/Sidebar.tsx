@@ -56,55 +56,51 @@ function ParentMenuItem({
   const [open, setOpen] = useState(isChildActive);
   const Icon = getIcon(node.icon);
 
-  // auto-open when a child becomes active
   useEffect(() => {
     if (isChildActive) setOpen(true);
   }, [isChildActive]);
 
   return (
     <div>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+      <div
+        className={`flex w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 ${
           isChildActive ? "text-blue-700" : "text-gray-700"
-        } hover:bg-gray-100 ${collapsed ? "justify-center" : ""}`}
-        title={collapsed ? node.name : undefined}
+        }`}
       >
-        {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+        <NavLink
+          to={node.route ?? "#"}
+          end
+          className={({ isActive }) =>
+            `flex flex-1 items-center gap-3 px-3 py-2.5 ${
+              collapsed ? "justify-center" : ""
+            }${isActive && !isChildActive ? " text-blue-700" : ""}`
+          }
+          title={collapsed ? node.name : undefined}
+          onClick={() => setOpen(true)}
+        >
+          {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+          {!collapsed && <span className="flex-1 truncate text-left">{node.name}</span>}
+        </NavLink>
         {!collapsed && (
-          <>
-            <span className="flex-1 truncate text-left">{node.name}</span>
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="px-2 py-2.5"
+          >
             <ChevronDown
               className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
             />
-          </>
+          </button>
         )}
-      </button>
+      </div>
 
       {open && !collapsed && (
         <div className="mt-0.5 flex flex-col gap-0.5">
-          {/* parent itself as a link */}
-          {node.route && (
-            <NavLink
-              to={node.route}
-              end
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg py-2 pr-3 pl-9 text-sm font-medium transition-colors ${
-                  isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`
-              }
-            >
-              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
-              <span className="truncate">{node.name}</span>
-            </NavLink>
-          )}
           {node.children.map((child) => (
             <ChildLink key={child.id} node={child} collapsed={collapsed} />
           ))}
         </div>
       )}
 
-      {/* collapsed: show children as tooltip targets */}
       {open && collapsed && (
         <div className="flex flex-col gap-0.5 pt-0.5">
           {node.children.map((child) => (
