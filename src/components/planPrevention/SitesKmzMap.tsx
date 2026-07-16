@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from 'react'
-import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api'
+import { useEffect, useRef } from 'react'
+import maplibregl from 'maplibre-gl'
 import type { SitePrevention } from '@/types/planPrevention'
 
 const DEFAULT_COLOR = '#FF6B35'
-const ANTANANARIVO = { lat: -18.9137, lng: 47.5361 }
+const ANTANANARIVO: [number, number] = [47.5361, -18.9137]
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY as string | undefined
 
 interface SitesKmzMapProps {
   sites: SitePrevention[]
@@ -12,17 +13,68 @@ interface SitesKmzMapProps {
   onDeleteSite?: (siteId: string) => Promise<void>
 }
 
-function getBarycenter(sites: SitePrevention[]): { lat: number; lng: number } {
+function getBarycenter(sites: SitePrevention[]): [number, number] {
   if (sites.length === 0) return ANTANANARIVO
-  return {
-    lat: sites.reduce((sum, s) => sum + s.latitude, 0) / sites.length,
-    lng: sites.reduce((sum, s) => sum + s.longitude, 0) / sites.length,
-  }
+  const lng = sites.reduce((sum, s) => sum + s.longitude, 0) / sites.length
+  const lat = sites.reduce((sum, s) => sum + s.latitude, 0) / sites.length
+  return [lng, lat]
 }
 
-function makeSvgMarkerUrl(color: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40"><path fill="${color}" stroke="#fff" stroke-width="2" d="M14 0C6.3 0 0 6.3 0 14c0 9.9 14 26 14 26S28 23.9 28 14C28 6.3 21.7 0 14 0z"/><circle fill="#fff" cx="14" cy="14" r="5"/></svg>`
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+function buildPopupEl(
+  site: SitePrevention,
+  readonly: boolean,
+  onDeleteSite: ((id: string) => Promise<void>) | undefined,
+): HTMLElement {
+  const wrap = document.createElement('div')
+  wrap.style.cssText = 'min-width:180px;padding:4px;font-size:13px;line-height:1.5'
+
+  const name = document.createElement('p')
+  name.style.cssText = 'font-weight:600;color:#111;margin:0 0 4px'
+  name.textContent = site.nom
+  wrap.appendChild(name)
+
+  if (site.description) {
+    const desc = document.createElement('p')
+    desc.style.cssText = 'color:#555;font-size:11px;margin:0 0 4px'
+    desc.textContent = site.description
+    wrap.appendChild(desc)
+  }
+
+  const coords = document.createElement('p')
+  coords.style.cssText = 'font-family:monospace;font-size:11px;color:#777;margin:0 0 4px'
+  coords.textContent = `${site.latitude.toFixed(6)}, ${site.longitude.toFixed(6)}`
+  wrap.appendChild(coords)
+
+  if (site.altitude != null) {
+    const alt = document.createElement('p')
+    alt.style.cssText = 'font-size:11px;color:#777;margin:0 0 4px'
+    alt.textContent = `Altitude : ${site.altitude.toFixed(0)} m`
+    wrap.appendChild(alt)
+  }
+
+  if (!readonly && onDeleteSite) {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.textContent = 'Supprimer ce site'
+    btn.style.cssText =
+      'margin-top:6px;width:100%;padding:3px 8px;font-size:11px;font-weight:500;' +
+      'color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:4px;cursor:pointer'
+    btn.addEventListener('mouseover', () => { btn.style.background = '#fee2e2' })
+    btn.addEventListener('mouseout', () => { btn.style.background = '#fef2f2' })
+    btn.addEventListener('click', async () => {
+      btn.disabled = true
+      btn.textContent = 'Suppression...'
+      try {
+        await onDeleteSite(site.id)
+      } finally {
+        btn.disabled = false
+        btn.textContent = 'Supprimer ce site'
+      }
+    })
+    wrap.appendChild(btn)
+  }
+
+  return wrap
 }
 
 export default function SitesKmzMap({
@@ -31,48 +83,107 @@ export default function SitesKmzMap({
   readonly = false,
   onDeleteSite,
 }: SitesKmzMapProps) {
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<maplibregl.Map | null>(null)
+  const markersRef = useRef<maplibregl.Marker[]>([])
+  const popupRef = useRef<maplibregl.Popup | null>(null)
+  const onDeleteRef = useRef(onDeleteSite)
+  const readonlyRef = useRef(readonly)
 
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-maps-script',
-    googleMapsApiKey: apiKey ?? '',
-  })
+  useEffect(() => { onDeleteRef.current = onDeleteSite }, [onDeleteSite])
+  useEffect(() => { readonlyRef.current = readonly }, [readonly])
 
-  const mapRef = useRef<google.maps.Map | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  // Initialize map once on mount
+  useEffect(() => {
+    if (!containerRef.current || !MAPTILER_KEY) return
 
-  const center = getBarycenter(sites)
-  const selectedSite = sites.find((s) => s.id === selectedId) ?? null
-
-  const onMapLoad = useCallback((map: google.maps.Map) => {
+    const center = getBarycenter(sites)
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
+      center,
+      zoom: sites.length > 1 ? 10 : 13,
+      attributionControl: false,
+    })
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     mapRef.current = map
+
+    return () => {
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
+      popupRef.current?.remove()
+      popupRef.current = null
+      map.remove()
+      mapRef.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleResetView = useCallback(() => {
-    if (!mapRef.current) return
-    mapRef.current.setCenter(center)
-    mapRef.current.setZoom(sites.length > 1 ? 10 : 13)
-  }, [center, sites.length])
+  // Sync markers whenever sites change
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
 
-  const handleDelete = async (siteId: string) => {
-    if (!onDeleteSite) return
-    setDeletingId(siteId)
-    try {
-      await onDeleteSite(siteId)
-      if (selectedId === siteId) setSelectedId(null)
-    } finally {
-      setDeletingId(null)
+    const syncMarkers = () => {
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
+      popupRef.current?.remove()
+      popupRef.current = null
+
+      sites.forEach((site) => {
+        const marker = new maplibregl.Marker({ color: site.couleurMarqueur ?? DEFAULT_COLOR })
+          .setLngLat([site.longitude, site.latitude])
+          .addTo(map)
+
+        marker.getElement().style.cursor = 'pointer'
+        marker.getElement().addEventListener('click', () => {
+          popupRef.current?.remove()
+          const popup = new maplibregl.Popup({ offset: 35, closeButton: true, maxWidth: '260px' })
+            .setLngLat([site.longitude, site.latitude])
+            .setDOMContent(buildPopupEl(site, readonlyRef.current, onDeleteRef.current))
+            .addTo(map)
+          popupRef.current = popup
+        })
+
+        markersRef.current.push(marker)
+      })
+
+      if (sites.length > 1) {
+        const bounds = new maplibregl.LngLatBounds()
+        sites.forEach((s) => bounds.extend([s.longitude, s.latitude]))
+        map.fitBounds(bounds, { padding: 60, maxZoom: 14 })
+      } else if (sites.length === 1) {
+        map.setCenter([sites[0].longitude, sites[0].latitude])
+        map.setZoom(13)
+      }
+    }
+
+    if (map.loaded()) {
+      syncMarkers()
+    } else {
+      map.once('load', syncMarkers)
+    }
+  }, [sites])
+
+  const handleResetView = () => {
+    const map = mapRef.current
+    if (!map) return
+    if (sites.length > 1) {
+      const bounds = new maplibregl.LngLatBounds()
+      sites.forEach((s) => bounds.extend([s.longitude, s.latitude]))
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14 })
+    } else if (sites.length === 1) {
+      map.flyTo({ center: [sites[0].longitude, sites[0].latitude], zoom: 13 })
     }
   }
 
-  if (!apiKey) {
+  if (!MAPTILER_KEY) {
     return (
       <div
         className="flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-700"
         style={{ height }}
       >
-        VITE_GOOGLE_MAPS_API_KEY non configurée
+        VITE_MAPTILER_KEY non configurée
       </div>
     )
   }
@@ -84,20 +195,6 @@ export default function SitesKmzMap({
         style={{ height }}
       >
         Aucun site importé — importez un fichier KMZ
-      </div>
-    )
-  }
-
-  if (!isLoaded) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50"
-        style={{ height }}
-      >
-        <svg className="h-5 w-5 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
       </div>
     )
   }
@@ -118,54 +215,7 @@ export default function SitesKmzMap({
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200" style={{ height }}>
-        <GoogleMap
-          mapContainerStyle={{ width: '100%', height: '100%' }}
-          center={center}
-          zoom={sites.length > 1 ? 10 : 13}
-          onLoad={onMapLoad}
-          options={{ streetViewControl: false, mapTypeControl: false }}
-        >
-          {sites.map((site) => (
-            <Marker
-              key={site.id}
-              position={{ lat: site.latitude, lng: site.longitude }}
-              icon={makeSvgMarkerUrl(site.couleurMarqueur ?? DEFAULT_COLOR)}
-              onClick={() => setSelectedId(site.id)}
-            />
-          ))}
-
-          {selectedSite && (
-            <InfoWindow
-              position={{ lat: selectedSite.latitude, lng: selectedSite.longitude }}
-              onCloseClick={() => setSelectedId(null)}
-            >
-              <div className="min-w-[180px] space-y-1.5 p-1 text-sm">
-                <p className="font-semibold text-gray-900">{selectedSite.nom}</p>
-                {selectedSite.description && (
-                  <p className="text-xs text-gray-600">{selectedSite.description}</p>
-                )}
-                <p className="font-mono text-xs text-gray-500">
-                  {selectedSite.latitude.toFixed(6)}, {selectedSite.longitude.toFixed(6)}
-                </p>
-                {selectedSite.altitude != null && (
-                  <p className="text-xs text-gray-500">
-                    Altitude : {selectedSite.altitude.toFixed(0)} m
-                  </p>
-                )}
-                {!readonly && onDeleteSite && (
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(selectedSite.id)}
-                    disabled={deletingId === selectedSite.id}
-                    className="mt-2 w-full rounded bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
-                  >
-                    {deletingId === selectedSite.id ? 'Suppression...' : 'Supprimer ce site'}
-                  </button>
-                )}
-              </div>
-            </InfoWindow>
-          )}
-        </GoogleMap>
+        <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>
   )

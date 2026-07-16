@@ -8,7 +8,9 @@ import {
   useUser,
   useCreateUser,
   useUpdateUser,
+  useUploadSignature,
 } from "@/features/users/hooks/useUsers";
+import { usersApi } from "@/api/usersApi";
 import { useUiStore } from "@/store/ui.store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -23,6 +25,8 @@ import {
   Building2,
   Eye,
   EyeOff,
+  Upload,
+  PenLine,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { parseApiFieldErrors } from "@/lib/apiErrors";
@@ -35,6 +39,9 @@ const PROPERTY_TO_FIELD: Record<string, string> = {
   firstname: "firstname",
   plainPassword: "plainPassword",
   entrepriseName: "entrepriseName",
+  numeroRegistreCommerce: "numeroRegistreCommerce",
+  siegeSocial: "siegeSocial",
+  qualiteRepresentant: "qualiteRepresentant",
   email_already_used: "email",
   email_invalid: "email",
   email_required: "email",
@@ -54,6 +61,7 @@ export default function UserFormPage() {
   const { data: existingUser } = useUser(id ? Number(id) : 0);
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+  const { mutate: uploadSignature, isPending: isUploadingSignature } = useUploadSignature();
   const { data: rolesData, isLoading: rolesLoading } = useRoles(1, 200);
   const allRoles = rolesData?.member ?? [];
   const dynamicRoleOptions = allRoles.map((r) => ({ value: r.name, label: r.label }));
@@ -98,6 +106,9 @@ export default function UserFormPage() {
     email: "",
     role: "ROLE_PRESTATAIRE",
     entrepriseName: "",
+    numeroRegistreCommerce: "",
+    siegeSocial: "",
+    qualiteRepresentant: "",
     actif: true,
     plainPassword: "",
     confirmPassword: "",
@@ -105,6 +116,8 @@ export default function UserFormPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (existingUser) {
@@ -116,6 +129,9 @@ export default function UserFormPage() {
           existingUser.roles.find((r) => r.startsWith("ROLE_")) ??
           "ROLE_PRESTATAIRE",
         entrepriseName: existingUser.entrepriseName ?? "",
+        numeroRegistreCommerce: existingUser.numeroRegistreCommerce ?? "",
+        siegeSocial: existingUser.siegeSocial ?? "",
+        qualiteRepresentant: existingUser.qualiteRepresentant ?? "",
         actif: existingUser.isActive,
         plainPassword: "",
         confirmPassword: "",
@@ -193,6 +209,18 @@ export default function UserFormPage() {
       formData.role === "ROLE_PRESTATAIRE"
         ? formData.entrepriseName.trim() || null
         : null;
+    const numeroRegistreCommerce =
+      formData.role === "ROLE_PRESTATAIRE"
+        ? formData.numeroRegistreCommerce.trim() || null
+        : null;
+    const siegeSocial =
+      formData.role === "ROLE_PRESTATAIRE"
+        ? formData.siegeSocial.trim() || null
+        : null;
+    const qualiteRepresentant =
+      formData.role === "ROLE_PRESTATAIRE"
+        ? formData.qualiteRepresentant.trim() || null
+        : null;
 
     if (isEditMode && existingUser) {
       updateUser(
@@ -205,6 +233,9 @@ export default function UserFormPage() {
             roles,
             isActive: formData.actif,
             entrepriseName,
+            numeroRegistreCommerce,
+            siegeSocial,
+            qualiteRepresentant,
             ...(formData.plainPassword
               ? { plainPassword: formData.plainPassword }
               : {}),
@@ -229,6 +260,9 @@ export default function UserFormPage() {
           roles,
           isActive: formData.actif,
           entrepriseName,
+          numeroRegistreCommerce,
+          siegeSocial,
+          qualiteRepresentant,
         },
         {
           onSuccess: () =>
@@ -244,10 +278,14 @@ export default function UserFormPage() {
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRole = e.target.value;
+    const isPrestataire = newRole === "ROLE_PRESTATAIRE";
     setFormData({
       ...formData,
       role: newRole,
-      entrepriseName: newRole === "ROLE_PRESTATAIRE" ? formData.entrepriseName : "",
+      entrepriseName: isPrestataire ? formData.entrepriseName : "",
+      numeroRegistreCommerce: isPrestataire ? formData.numeroRegistreCommerce : "",
+      siegeSocial: isPrestataire ? formData.siegeSocial : "",
+      qualiteRepresentant: isPrestataire ? formData.qualiteRepresentant : "",
     });
   };
 
@@ -360,6 +398,127 @@ export default function UserFormPage() {
                       error={errors.entrepriseName}
                       placeholder={t("users.form.entreprisePlaceholder")}
                     />
+                    <div className="mt-3">
+                      <Input
+                        label={t("users.form.numeroRegistreCommerce")}
+                        value={formData.numeroRegistreCommerce}
+                        onChange={(e) =>
+                          setFormData({ ...formData, numeroRegistreCommerce: e.target.value })
+                        }
+                        error={errors.numeroRegistreCommerce}
+                        placeholder={t("users.form.numeroRegistreCommercePlaceholder")}
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <Input
+                        label={t("users.form.siegeSocial")}
+                        value={formData.siegeSocial}
+                        onChange={(e) =>
+                          setFormData({ ...formData, siegeSocial: e.target.value })
+                        }
+                        error={errors.siegeSocial}
+                        placeholder={t("users.form.siegeSocialPlaceholder")}
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <Input
+                        label={t("users.form.qualiteRepresentant")}
+                        value={formData.qualiteRepresentant}
+                        onChange={(e) =>
+                          setFormData({ ...formData, qualiteRepresentant: e.target.value })
+                        }
+                        error={errors.qualiteRepresentant}
+                        placeholder={t("users.form.qualiteRepresentantPlaceholder")}
+                        maxLength={100}
+                      />
+                    </div>
+
+                    <div className="mt-4 border-t border-blue-200 pt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PenLine className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium text-blue-900 text-sm">
+                          {t("users.form.signatureElectronique")}
+                        </span>
+                      </div>
+
+                      {isEditMode && existingUser?.signaturePath && !signaturePreview && (
+                        <div className="mb-3">
+                          <p className="text-xs text-blue-700 mb-1">{t("users.form.signatureActuelle")}</p>
+                          <img
+                            src={usersApi.signatureDownloadUrl(existingUser.id)}
+                            alt="signature actuelle"
+                            className="h-16 border border-blue-200 rounded bg-white object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                          />
+                        </div>
+                      )}
+
+                      {signaturePreview && (
+                        <div className="mb-3">
+                          <p className="text-xs text-blue-700 mb-1">{t("users.form.signatureApercu")}</p>
+                          <img
+                            src={signaturePreview}
+                            alt="aperçu signature"
+                            className="h-16 border border-blue-300 rounded bg-white object-contain"
+                          />
+                        </div>
+                      )}
+
+                      {isEditMode ? (
+                        <div className="flex items-center gap-2">
+                          <label className="flex-1 cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/png,image/webp"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] ?? null;
+                                setSignatureFile(file);
+                                if (file) {
+                                  setSignaturePreview(URL.createObjectURL(file));
+                                } else {
+                                  setSignaturePreview(null);
+                                }
+                              }}
+                            />
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-blue-300 bg-white text-sm text-blue-700 hover:bg-blue-50 transition-colors">
+                              <Upload className="h-4 w-4" />
+                              {signatureFile ? signatureFile.name : t("users.form.signatureChoisir")}
+                            </span>
+                          </label>
+                          {signatureFile && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              isLoading={isUploadingSignature}
+                              onClick={() => {
+                                if (!existingUser) return;
+                                uploadSignature(
+                                  { id: existingUser.id, file: signatureFile },
+                                  {
+                                    onSuccess: () => {
+                                      addToast({ message: t("users.toast.signatureUploaded"), type: "success" });
+                                      setSignatureFile(null);
+                                    },
+                                    onError: () => {
+                                      addToast({ message: t("users.toast.signatureError"), type: "error" });
+                                    },
+                                  }
+                                );
+                              }}
+                            >
+                              {t("users.form.signatureUpload")}
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-blue-600 italic">
+                          {t("users.form.signatureApresCreation")}
+                        </p>
+                      )}
+                      <p className="text-xs text-blue-500 mt-1">{t("users.form.signatureHint")}</p>
+                    </div>
+
                     <p className="text-xs text-blue-700 mt-2">
                       {t("users.form.prestataireInfo")}
                     </p>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -119,7 +119,8 @@ export default function PermitTravailCreatePage() {
 
   // ── Step 0 state ─────────────────────────────────────────────────────────────
   const [processus, setProcessus] = useState<ProcessusPermit>('NOUVEAU_SITE')
-  const [typePermis, setTypePermis] = useState<TypePermit>('GENERAL')
+  // Default to ELECTRIQUE because default processus is NOUVEAU_SITE (no GENERAL option)
+  const [typePermis, setTypePermis] = useState<TypePermit>('ELECTRIQUE')
 
   // ── Step 1 state ─────────────────────────────────────────────────────────────
   const [planPreventionId, setPlanPreventionId] = useState<string>('')
@@ -140,8 +141,19 @@ export default function PermitTravailCreatePage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<Step2FormData>({ resolver: zodResolver(step2Schema) })
+
+  useEffect(() => {
+    if (!planPreventionId) return
+    const plan = plansValides.find((p) => String(p.id) === String(planPreventionId))
+    if (!plan) return
+    setValue('codeSite', plan.codeSite)
+    setValue('descriptionTravaux', plan.activitePlanifiee)
+    setValue('dateDebutPrevue', plan.dateDebut ? plan.dateDebut.slice(0, 10) : '')
+    setValue('dateFinPrevue', plan.dateFin ? plan.dateFin.slice(0, 10) : '')
+  }, [planPreventionId, plansValides, setValue])
 
   // ── Step 2 → 3: create permit ────────────────────────────────────────────────
   const handleStep2Next = handleSubmit(async (data) => {
@@ -456,11 +468,7 @@ export default function PermitTravailCreatePage() {
             </div>
 
             <EngagementSection
-              nomPrestataire={
-                user
-                  ? `${user.prenom ?? ''} ${user.nom}`.trim() || user.email
-                  : permit?.nomPrestataire
-              }
+              planPreventionId={planPreventionId || null}
               checked={engagementChecked}
               onChange={setEngagementChecked}
               statut={permit?.statut}

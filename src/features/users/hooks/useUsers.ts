@@ -57,6 +57,18 @@ export function useDeleteUser() {
   })
 }
 
+export function useUploadSignature() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) =>
+      usersApi.uploadSignature(id, file),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [...USERS_KEY, id] })
+    },
+  })
+}
+
 export function useToggleUserStatus() {
   const queryClient = useQueryClient()
 

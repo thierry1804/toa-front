@@ -114,6 +114,19 @@
       "namePlaceholder": "Ex. : RAKOTO",
       "emailPlaceholder": "exemple@entreprise.mg",
       "entreprisePlaceholder": "Ex. : eTech Consulting",
+      "numeroRegistreCommerce": "N° Registre du Commerce",
+      "numeroRegistreCommercePlaceholder": "Ex. : 2024 B 01234",
+      "siegeSocial": "Siège Social",
+      "siegeSocialPlaceholder": "Ex. : Lot II M 85 Antananarivo",
+      "qualiteRepresentant": "Qualité du Représentant",
+      "qualiteRepresentantPlaceholder": "Ex. : Directeur Général, Gérant",
+      "signatureElectronique": "Signature électronique",
+      "signatureActuelle": "Signature actuelle",
+      "signatureApercu": "Aperçu",
+      "signatureChoisir": "Choisir un fichier",
+      "signatureUpload": "Enregistrer",
+      "signatureApresCreation": "La signature peut être ajoutée après la création du compte.",
+      "signatureHint": "Formats acceptés : PNG, WebP — max 2 Mo",
       "keepPassword": "Laissez les champs vides pour conserver le mot de passe actuel.",
       "prestataireInfo": "TOA travaille avec des prestataires partenaires. Chaque prestataire doit remplir un plan de prévention et obtenir un permis avant chaque intervention.",
       "cancel": "Annuler",
@@ -140,7 +153,9 @@
       "createError": "Erreur lors de la création",
       "updateError": "Erreur lors de la modification",
       "deleteError": "Erreur lors de la suppression",
-      "permissionDenied": "Permission refusée"
+      "permissionDenied": "Permission refusée",
+      "signatureUploaded": "Signature enregistrée avec succès",
+      "signatureError": "Erreur lors de l'enregistrement de la signature"
     }
   },
   "planning": {

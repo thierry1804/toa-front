@@ -334,9 +334,7 @@ export default function PermitTravailEditPage() {
 
             <div ref={engagementRef}>
               <EngagementSection
-                nomPrestataire={
-                  user ? `${user.prenom ?? ''} ${user.nom}`.trim() || user.email : permit.nomPrestataire
-                }
+                planPreventionId={permit.planPreventionId ?? null}
                 checked={engagementChecked}
                 onChange={setEngagementChecked}
                 statut="BROUILLON"

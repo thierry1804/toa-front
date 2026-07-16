@@ -32,6 +32,10 @@ export interface User {
   firstname: string
   prenom?: string
   entrepriseName?: string | null
+  numeroRegistreCommerce?: string | null
+  siegeSocial?: string | null
+  qualiteRepresentant?: string | null
+  signaturePath?: string | null
   roles: string[]
   isActive: boolean
   createdAt: string
@@ -46,6 +50,9 @@ export interface UserCreate {
   roles: string[]
   isActive: boolean
   entrepriseName?: string | null
+  numeroRegistreCommerce?: string | null
+  siegeSocial?: string | null
+  qualiteRepresentant?: string | null
 }
 
 export interface UserUpdate {
@@ -56,6 +63,9 @@ export interface UserUpdate {
   roles?: string[]
   isActive?: boolean
   entrepriseName?: string | null
+  numeroRegistreCommerce?: string | null
+  siegeSocial?: string | null
+  qualiteRepresentant?: string | null
 }
 
 export interface HydraCollection<T> {

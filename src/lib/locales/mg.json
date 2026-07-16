@@ -114,6 +114,19 @@
       "namePlaceholder": "Ohatra: RAKOTO",
       "emailPlaceholder": "ohatra@orinasa.mg",
       "entreprisePlaceholder": "Ohatra: eTech Consulting",
+      "numeroRegistreCommerce": "Laharana Registre du Commerce",
+      "numeroRegistreCommercePlaceholder": "Ohatra: 2024 B 01234",
+      "siegeSocial": "Foibem-piasan'ny orinasa",
+      "siegeSocialPlaceholder": "Ohatra: Lot II M 85 Antananarivo",
+      "qualiteRepresentant": "Maha-izy ny Solontena",
+      "qualiteRepresentantPlaceholder": "Ohatra: Direktera Jeneraly, Mpitantana",
+      "signatureElectronique": "Sonia elektronika",
+      "signatureActuelle": "Sonia ankehitriny",
+      "signatureApercu": "Fijery mialoha",
+      "signatureChoisir": "Misafidy rakitra",
+      "signatureUpload": "Tehirizo",
+      "signatureApresCreation": "Azo atao ny manampy sonia aorian'ny famoronana ny kaonty.",
+      "signatureHint": "Endrika ekena: PNG, WebP — max 2 Mo",
       "keepPassword": "Avelao banga ireo saha mba hitazona ny tenimiafina ankehitriny.",
       "prestataireInfo": "TOA miara-miasa amin'ny mpiasa mpiara-miombon'antoka. Ny mpiasa tsirairay dia tsy maintsy mameno drafitra fisorohana ary mahazo permis alohan'ny fitsabahana rehetra.",
       "cancel": "Ajanony",
@@ -140,7 +153,9 @@
       "createError": "Hadisoana tamin'ny famoronana",
       "updateError": "Hadisoana tamin'ny fanovana",
       "deleteError": "Hadisoana tamin'ny famafana",
-      "permissionDenied": "Tsy nahazo alalana"
+      "permissionDenied": "Tsy nahazo alalana",
+      "signatureUploaded": "Sonia voatahiry soa aman-tsara",
+      "signatureError": "Hadisoana tamin'ny fitahirizana ny sonia"
     }
   },
   "planning": {

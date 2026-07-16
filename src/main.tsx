@@ -30,6 +30,7 @@ import PermitTravailDetailPage from "@/pages/permitTravail/PermitTravailDetailPa
 import PermitTravailEditPage from "@/pages/permitTravail/PermitTravailEditPage";
 import PermitTravailSuiviPage from "@/pages/permitTravail/PermitTravailSuiviPage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
 
 createRoot(document.getElementById("root")!).render(

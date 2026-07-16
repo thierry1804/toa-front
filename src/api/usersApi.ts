@@ -18,4 +18,14 @@ export const usersApi = {
     api.patch<User>(`/api/users/${id}`, data).then((r) => r.data),
 
   delete: (id: number) => api.delete(`/api/users/${id}`),
+
+  uploadSignature: (id: number, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post<User>(`/api/users/${id}/signature`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data)
+  },
+
+  signatureDownloadUrl: (id: number) => `/api/users/${id}/signature/download`,
 }
