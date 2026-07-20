@@ -33,6 +33,27 @@ function buildPopupEl(
   name.textContent = site.nom
   wrap.appendChild(name)
 
+  // ExtendedData badges
+  const badges = [
+    { label: site.fokontany },
+    { label: site.commune },
+    { label: site.district },
+  ].filter((b): b is { label: string } => Boolean(b.label))
+
+  if (badges.length > 0) {
+    const row = document.createElement('div')
+    row.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px'
+    badges.forEach(({ label }) => {
+      const span = document.createElement('span')
+      span.style.cssText =
+        'background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;' +
+        'padding:1px 6px;font-size:11px;color:#1d4ed8'
+      span.textContent = label
+      row.appendChild(span)
+    })
+    wrap.appendChild(row)
+  }
+
   if (site.description) {
     const desc = document.createElement('p')
     desc.style.cssText = 'color:#555;font-size:11px;margin:0 0 4px'
@@ -93,16 +114,15 @@ export default function SitesKmzMap({
   useEffect(() => { onDeleteRef.current = onDeleteSite }, [onDeleteSite])
   useEffect(() => { readonlyRef.current = readonly }, [readonly])
 
-  // Initialize map once on mount
+  // Initialize map once — container is always in DOM so this always succeeds
   useEffect(() => {
     if (!containerRef.current || !MAPTILER_KEY) return
 
-    const center = getBarycenter(sites)
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
-      center,
-      zoom: sites.length > 1 ? 10 : 13,
+      center: ANTANANARIVO,
+      zoom: 10,
       attributionControl: false,
     })
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
@@ -138,7 +158,7 @@ export default function SitesKmzMap({
         marker.getElement().style.cursor = 'pointer'
         marker.getElement().addEventListener('click', () => {
           popupRef.current?.remove()
-          const popup = new maplibregl.Popup({ offset: 35, closeButton: true, maxWidth: '260px' })
+          const popup = new maplibregl.Popup({ offset: 35, closeButton: true, maxWidth: '280px' })
             .setLngLat([site.longitude, site.latitude])
             .setDOMContent(buildPopupEl(site, readonlyRef.current, onDeleteRef.current))
             .addTo(map)
@@ -153,8 +173,7 @@ export default function SitesKmzMap({
         sites.forEach((s) => bounds.extend([s.longitude, s.latitude]))
         map.fitBounds(bounds, { padding: 60, maxZoom: 14 })
       } else if (sites.length === 1) {
-        map.setCenter([sites[0].longitude, sites[0].latitude])
-        map.setZoom(13)
+        map.flyTo({ center: [sites[0].longitude, sites[0].latitude], zoom: 13 })
       }
     }
 
@@ -188,33 +207,30 @@ export default function SitesKmzMap({
     )
   }
 
-  if (sites.length === 0) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-400 italic"
-        style={{ height }}
-      >
-        Aucun site importé — importez un fichier KMZ
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">
-          {sites.length} site{sites.length > 1 ? 's' : ''} affiché{sites.length > 1 ? 's' : ''}
-        </span>
-        <button
-          type="button"
-          onClick={handleResetView}
-          className="text-xs text-blue-600 hover:underline"
-        >
-          Réinitialiser la vue
-        </button>
-      </div>
+      {sites.length > 0 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">
+            {sites.length} site{sites.length > 1 ? 's' : ''} affiché{sites.length > 1 ? 's' : ''}
+          </span>
+          <button
+            type="button"
+            onClick={handleResetView}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Réinitialiser la vue
+          </button>
+        </div>
+      )}
 
-      <div className="overflow-hidden rounded-lg border border-gray-200" style={{ height }}>
+      {/* Container always in DOM so MapLibre always initializes on mount */}
+      <div className="relative overflow-hidden rounded-lg border border-gray-200" style={{ height }}>
+        {sites.length === 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-50 text-sm text-gray-400 italic">
+            Aucun site importé — importez un fichier KMZ
+          </div>
+        )}
         <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>

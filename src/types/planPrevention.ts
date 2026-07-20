@@ -88,6 +88,9 @@ export interface SitePrevention {
   description?: string | null
   couleurMarqueur?: string | null
   ordreAffichage?: number
+  fokontany?: string | null
+  commune?: string | null
+  district?: string | null
 }
 
 export interface KmzImportResult {

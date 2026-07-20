@@ -2,12 +2,14 @@ import { useRef, useState } from 'react'
 import { MapPin, Upload } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import type { KmzImportResult, SitePrevention } from '@/types/planPrevention'
+import { parseKmzFile, type KmzExtendedData } from '@/utils/kmzParser'
 
 interface KmzImportButtonProps {
   planId: string
   sites: SitePrevention[]
   onImport: (file: File) => Promise<KmzImportResult>
   onImportSuccess?: (sites: SitePrevention[]) => void
+  onPreview?: (sites: SitePrevention[], metadata: Record<string, KmzExtendedData>) => void
   disabled?: boolean
 }
 
@@ -16,12 +18,16 @@ export default function KmzImportButton({
   sites,
   onImport,
   onImportSuccess,
+  onPreview,
   disabled = false,
 }: KmzImportButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<{ imported: number; ignored: number } | null>(null)
+  const [previewSites, setPreviewSites] = useState<SitePrevention[] | null>(null)
+
+  const displaySites = previewSites ?? sites
 
   const handleFile = async (file: File | undefined) => {
     if (!file || disabled) return
@@ -36,6 +42,15 @@ export default function KmzImportButton({
       return
     }
 
+    // Parse locally for immediate map preview + metadata extraction
+    try {
+      const { sites: parsed, metadata } = await parseKmzFile(file)
+      setPreviewSites(parsed)
+      onPreview?.(parsed, metadata)
+    } catch {
+      // backend will validate
+    }
+
     setIsImporting(true)
     try {
       const result = await onImport(file)
@@ -47,8 +62,11 @@ export default function KmzImportButton({
       if (detail.includes('Format KMZ')) {
         setError('Format KMZ requis')
       }
+      setPreviewSites(null)
+      onPreview?.([], {})
     } finally {
       setIsImporting(false)
+      setPreviewSites(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
@@ -90,19 +108,37 @@ export default function KmzImportButton({
         </p>
       )}
 
-      {sites.length > 0 && (
+      {displaySites.length > 0 && (
         <div className="rounded-lg border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
             <p className="text-sm font-medium text-gray-700">
-              {sites.length} site{sites.length > 1 ? 's' : ''} détecté{sites.length > 1 ? 's' : ''}
+              {displaySites.length} site{displaySites.length > 1 ? 's' : ''} détecté{displaySites.length > 1 ? 's' : ''}
+              {previewSites && (
+                <span className="ml-2 text-xs font-normal text-blue-600">aperçu</span>
+              )}
             </p>
           </div>
           <ul className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
-            {sites.map((site) => (
+            {displaySites.map((site) => (
               <li key={site.id} className="flex items-start gap-3 px-4 py-3">
                 <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{site.nom}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-gray-900">{site.nom}</p>
+                    {(site.fokontany || site.commune || site.district) && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {site.fokontany && (
+                          <span className="bg-gray-100 rounded px-1.5 py-0.5 text-xs text-gray-600">{site.fokontany}</span>
+                        )}
+                        {site.commune && (
+                          <span className="bg-gray-100 rounded px-1.5 py-0.5 text-xs text-gray-600">{site.commune}</span>
+                        )}
+                        {site.district && (
+                          <span className="bg-gray-100 rounded px-1.5 py-0.5 text-xs text-gray-600">{site.district}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 font-mono mt-0.5">
                     {site.latitude.toFixed(6)}, {site.longitude.toFixed(6)}
                   </p>
@@ -118,7 +154,7 @@ export default function KmzImportButton({
         </div>
       )}
 
-      {sites.length === 0 && !summary && (
+      {displaySites.length === 0 && !summary && (
         <p className="text-sm text-gray-400 italic">
           Aucun site importé. Importez un fichier KMZ pour détecter les sites automatiquement.
         </p>
