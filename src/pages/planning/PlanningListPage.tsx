@@ -45,10 +45,16 @@ export default function PlanningListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const itemsPerPage = 10;
-  const { data: hydraData, isLoading } = useActivityPlannings(page, itemsPerPage);
+  const { data: hydraData, isLoading } = useActivityPlannings(
+    page,
+    itemsPerPage,
+  );
   const allPlannings = hydraData?.member ?? [];
   const totalItems = hydraData?.totalItems ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
@@ -73,15 +79,16 @@ export default function PlanningListPage() {
     total: totalItems,
     planifie: plannings?.filter((p) => p.status === "planifie").length ?? 0,
     en_cours: plannings?.filter((p) => p.status === "en_cours").length ?? 0,
-    valide:   plannings?.filter((p) => p.status === "valide").length ?? 0,
+    valide: plannings?.filter((p) => p.status === "valide").length ?? 0,
     brouillon: plannings?.filter((p) => p.status === "brouillon").length ?? 0,
   };
 
   // Gantt height: fit all valid rows (max 10) without internal vertical scroll
-  const validCount = plannings.filter(
-    (p) => p.expectedStartDate && p.expectedEndDate,
-  ).length
-  const ganttH = Math.min(Math.max(validCount, 1), 10) * 44 + 32 + 44
+  // const validCount = plannings.filter(
+  //   (p) => p.expectedStartDate && p.expectedEndDate,
+  // ).length;
+  // const ganttH = Math.min(Math.max(validCount, 1), 15) * 44 + 32 + 44;
+  const ganttH = 516;
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -106,14 +113,15 @@ export default function PlanningListPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Page header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {t("planning.title")}
           </h2>
-          <p className="mt-1 text-sm text-gray-600">{t("planning.description")}</p>
+          <p className="mt-1 text-sm text-gray-600">
+            {t("planning.description")}
+          </p>
         </div>
         {perms?.canCreate && (
           <Link to="/planning/new" className="self-start sm:self-auto">
@@ -136,8 +144,12 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("planning.stats.total")}</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-gray-600">
+                  {t("planning.stats.total")}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
               </div>
               <Calendar className="h-8 w-8 text-gray-400" />
             </div>
@@ -147,8 +159,12 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("planning.stats.planifie")}</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.planifie}</p>
+                <p className="text-sm text-gray-600">
+                  {t("planning.stats.planifie")}
+                </p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.planifie}
+                </p>
               </div>
               <CalendarCheck className="h-8 w-8 text-blue-400" />
             </div>
@@ -158,8 +174,12 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("planning.stats.en_cours")}</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.en_cours}</p>
+                <p className="text-sm text-gray-600">
+                  {t("planning.stats.en_cours")}
+                </p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.en_cours}
+                </p>
               </div>
               <Clock className="h-8 w-8 text-yellow-400" />
             </div>
@@ -169,8 +189,12 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("planning.stats.valide")}</p>
-                <p className="text-2xl font-bold text-green-600">{stats.valide}</p>
+                <p className="text-sm text-gray-600">
+                  {t("planning.stats.valide")}
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.valide}
+                </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-400" />
             </div>
@@ -180,8 +204,12 @@ export default function PlanningListPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{t("planning.stats.brouillon")}</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.brouillon}</p>
+                <p className="text-sm text-gray-600">
+                  {t("planning.stats.brouillon")}
+                </p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {stats.brouillon}
+                </p>
               </div>
               <FileText className="h-8 w-8 text-orange-400" />
             </div>
@@ -196,12 +224,18 @@ export default function PlanningListPage() {
             <Input
               placeholder={t("planning.search")}
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
             />
             <Select
               options={statusFilterOptions}
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               placeholder={t("planning.filterStatus")}
             />
           </div>
@@ -268,8 +302,12 @@ export default function PlanningListPage() {
                                 <FileText className="h-5 w-5 text-blue-700" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-gray-900">{p.process}</p>
-                                <p className="text-xs text-gray-500">{p.region}</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {p.process}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {p.region}
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -283,9 +321,13 @@ export default function PlanningListPage() {
                             </p>
                           </td>
                           <td className="px-4 py-4">
-                            <p className="text-sm text-gray-900">{p.provider}</p>
+                            <p className="text-sm text-gray-900">
+                              {p.provider}
+                            </p>
                             {p.providerEmail && (
-                              <p className="text-xs text-gray-500">{p.providerEmail}</p>
+                              <p className="text-xs text-gray-500">
+                                {p.providerEmail}
+                              </p>
                             )}
                           </td>
                           <td className="px-4 py-4">
@@ -298,7 +340,9 @@ export default function PlanningListPage() {
                           </td>
                           <td className="px-4 py-4">
                             {config ? (
-                              <Badge variant={config.variant}>{config.label}</Badge>
+                              <Badge variant={config.variant}>
+                                {config.label}
+                              </Badge>
                             ) : (
                               <Badge>{p.status}</Badge>
                             )}
@@ -307,7 +351,9 @@ export default function PlanningListPage() {
                             <div className="flex items-center justify-end gap-2">
                               {perms?.canEdit && (
                                 <button
-                                  onClick={() => navigate(`/planning/${p.id}/edit`)}
+                                  onClick={() =>
+                                    navigate(`/planning/${p.id}/edit`)
+                                  }
                                   className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                   title={t("common.edit")}
                                 >
@@ -316,7 +362,12 @@ export default function PlanningListPage() {
                               )}
                               {perms?.canDelete && (
                                 <button
-                                  onClick={() => setDeleteTarget({ id: p.id, name: p.process })}
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: p.id,
+                                      name: p.process,
+                                    })
+                                  }
                                   className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                   title={t("common.delete")}
                                 >
@@ -337,15 +388,22 @@ export default function PlanningListPage() {
                 {filtered.map((p) => {
                   const config = STATUS_CONFIG[p.status];
                   return (
-                    <div key={p.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={p.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <FileText className="h-5 w-5 text-blue-700" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{p.process}</p>
-                            <p className="text-xs text-gray-500 truncate">{p.region}</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {p.process}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {p.region}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -360,7 +418,9 @@ export default function PlanningListPage() {
                           )}
                           {perms?.canDelete && (
                             <button
-                              onClick={() => setDeleteTarget({ id: p.id, name: p.process })}
+                              onClick={() =>
+                                setDeleteTarget({ id: p.id, name: p.process })
+                              }
                               className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
                               title={t("common.delete")}
                             >
@@ -374,15 +434,23 @@ export default function PlanningListPage() {
                           <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">{p.siteName}</span>
                         </div>
-                        <p className="text-xs text-gray-500">{p.siteCode} - N°{p.siteNumber}</p>
+                        <p className="text-xs text-gray-500">
+                          {p.siteCode} - N°{p.siteNumber}
+                        </p>
                         <p className="text-gray-900">{p.provider}</p>
                         {p.providerEmail && (
-                          <p className="text-xs text-gray-500">{p.providerEmail}</p>
+                          <p className="text-xs text-gray-500">
+                            {p.providerEmail}
+                          </p>
                         )}
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-900">{formatDate(p.expectedStartDate)}</span>
+                          <span className="text-gray-900">
+                            {formatDate(p.expectedStartDate)}
+                          </span>
                           <span className="text-gray-400">→</span>
-                          <span className="text-gray-900">{formatDate(p.expectedEndDate)}</span>
+                          <span className="text-gray-900">
+                            {formatDate(p.expectedEndDate)}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-3">
@@ -402,7 +470,8 @@ export default function PlanningListPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
               <p className="text-sm text-gray-600">
-                Page {page} / {totalPages} ({totalItems} {t("planning.stats.total")})
+                Page {page} / {totalPages} ({totalItems}{" "}
+                {t("planning.stats.total")})
               </p>
               <div className="flex items-center gap-2">
                 <button
