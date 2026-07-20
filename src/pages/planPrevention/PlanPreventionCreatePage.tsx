@@ -298,6 +298,7 @@ export default function PlanPreventionCreatePage({
             description: r.description,
             gravite: r.gravite,
             probabilite: r.probabilite,
+            niveauRisque: r.gravite * r.probabilite,
             mesuresPreventives: r.mesuresPreventives,
           }))
         setPlan((prev) => (prev ? { ...prev, risques: savedRisques } : prev))
