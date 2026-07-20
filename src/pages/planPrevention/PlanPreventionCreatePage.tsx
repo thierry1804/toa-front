@@ -289,6 +289,18 @@ export default function PlanPreventionCreatePage({
             mesuresPreventives: row.mesuresPreventives,
           })
         }
+        // Update local plan state so the recap (step 5) can display the saved risques.
+        // In edit mode the query auto-refreshes; in create mode we must patch manually.
+        const savedRisques = localRisques
+          .filter((r) => r.description.trim() && r.mesuresPreventives.trim())
+          .map((r) => ({
+            id: r.localId,
+            description: r.description,
+            gravite: r.gravite,
+            probabilite: r.probabilite,
+            mesuresPreventives: r.mesuresPreventives,
+          }))
+        setPlan((prev) => (prev ? { ...prev, risques: savedRisques } : prev))
       }
       setStep(2)
     } finally {
