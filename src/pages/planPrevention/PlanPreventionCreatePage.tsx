@@ -424,8 +424,14 @@ export default function PlanPreventionCreatePage({
     await deleteSite(activePlan.id, siteId);
   };
 
-  const handleImportSuccess = (_newSites: SitePrevention[]) => {
-    // query invalidation in hook handles state refresh
+  const handleImportSuccess = (newSites: SitePrevention[]) => {
+    // In edit mode, React Query invalidation refreshes activePlan automatically.
+    // In create mode, activePlan is local state — we must patch it manually.
+    if (!isEditMode) {
+      setPlan((prev) =>
+        prev ? { ...prev, sites: [...(prev.sites ?? []), ...newSites] } : prev,
+      );
+    }
   };
 
   const handleDocumentUpload = async (
