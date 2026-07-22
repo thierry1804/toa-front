@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -11,6 +11,7 @@ import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
 import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
 import PermitTravailPdfButton from '@/components/permitTravail/PermitTravailPdfButton'
 import { usePermitTravailDetail, usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
+import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
 import {
   TYPE_PERMIT_LABELS,
@@ -32,10 +33,19 @@ export default function PermitTravailDetailPage() {
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
   const { validerPermit, refuserPermit, isValidating, isRefusing } = usePermitTravail()
+  const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
+  const canStartIntervention = usePermission('intervention.create')
+  const canViewIntervention = usePermission('intervention.view')
   const [validerOpen, setValiderOpen] = useState(false)
   const [refuserOpen, setRefuserOpen] = useState(false)
+
+  const handleStartIntervention = async () => {
+    if (!permit) return
+    const intervention = await createIntervention(permit.id)
+    navigate(`/interventions/${intervention.id}`)
+  }
 
   if (isLoading) {
     return (
@@ -280,6 +290,49 @@ export default function PermitTravailDetailPage() {
                 />
               )}
             </dl>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Évaluation des risques */}
+      {permit.statut === 'VALIDE_HSE' && (canStartIntervention || canViewIntervention) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-800">
+              <ClipboardList className="inline mr-2 h-4 w-4 text-gray-400" />
+              Évaluation des risques avant intervention
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {permit.interventionId ? (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/interventions/${permit.interventionId}`)}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Voir l'évaluation
+                </Button>
+                <span className="text-sm text-gray-500">
+                  Une évaluation des risques a déjà été créée pour ce permis.
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                {canStartIntervention && (
+                  <Button
+                    onClick={() => void handleStartIntervention()}
+                    disabled={isCreatingIntervention}
+                  >
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    {isCreatingIntervention ? 'Création…' : "Démarrer l'évaluation"}
+                  </Button>
+                )}
+                <span className="text-sm text-gray-500">
+                  Aucune évaluation des risques pour ce permis.
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

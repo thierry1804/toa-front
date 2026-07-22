@@ -137,6 +137,7 @@ export interface PermitTravail {
   processus: ProcessusPermit
   typePermis: TypePermit
   planPreventionId?: string | null
+  interventionId?: string | null
   codeSite: string
   descriptionTravaux: string
   dateDebutPrevue: string

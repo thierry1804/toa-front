@@ -12,4 +12,6 @@ export const PLAN_PREVENTION_KEY = ['plans-prevention'] as const
 
 export const PERMIT_TRAVAIL_KEY = ['permits-travail'] as const
 
+export const INTERVENTION_KEY = ['interventions'] as const
+
 export const ROLES_KEY = ['roles'] as const

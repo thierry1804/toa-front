@@ -32,7 +32,11 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'permit_travail.generate_pdf',
     'permit_travail.suivi', 'permit_travail.logs',
   ],
-  ROLE_PRESTATAIRE:  ['plan_prevention.resoumettre', 'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre'],
+  ROLE_PRESTATAIRE:  [
+    'plan_prevention.resoumettre',
+    'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre',
+    'intervention.create', 'intervention.view', 'intervention.edit', 'intervention.valider_evaluation',
+  ],
   ROLE_ADMIN:        [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
