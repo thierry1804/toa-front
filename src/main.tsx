@@ -33,6 +33,8 @@ import EvaluationRisquePage from "@/pages/intervention/EvaluationRisquePage";
 import SuiviJournalierPage from "@/pages/intervention/SuiviJournalierPage";
 import SuivisJournaliersPage from "@/pages/intervention/SuivisJournaliersPage";
 import InterventionsListPage from "@/pages/interventions/InterventionsListPage";
+import InterventionSuiviHsePage from "@/pages/interventions/InterventionSuiviHsePage";
+import InterventionDetailHsePage from "@/pages/interventions/InterventionDetailHsePage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
@@ -119,6 +121,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/interventions" element={<InterventionsListPage />} />
               <Route path="/interventions/new" element={<Navigate to="/permits-travail" replace />} />
               <Route path="/interventions/suivis" element={<SuivisJournaliersPage />} />
+              <Route path="/interventions/suivi-hse" element={<InterventionSuiviHsePage />} />
+              <Route path="/interventions/:id/suivi-hse" element={<InterventionDetailHsePage />} />
               <Route path="/interventions/:id" element={<EvaluationRisquePage />} />
               <Route path="/interventions/:id/suivis" element={<SuiviJournalierPage />} />
             </Route>

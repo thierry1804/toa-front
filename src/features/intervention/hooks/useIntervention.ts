@@ -7,7 +7,37 @@ import type {
   Intervention,
   SuiviJournalierInput,
   SuiviJournalierUpdateInput,
+  InterventionSuiviFilters,
 } from '@/types/intervention'
+
+const SUIVI_REFETCH_MS = 60_000
+
+export function useInterventionDashboard(filters?: InterventionSuiviFilters) {
+  return useQuery({
+    queryKey: [...INTERVENTION_KEY, 'dashboard', filters],
+    queryFn: () => interventionApi.getDashboard(filters),
+    staleTime: SUIVI_REFETCH_MS,
+    refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
+
+export function useInterventionSuiviHse(id: string) {
+  return useQuery({
+    queryKey: [...INTERVENTION_KEY, id, 'suivi-hse'],
+    queryFn: () => interventionApi.getSuiviHse(id),
+    enabled: !!id,
+  })
+}
+
+export function useInterventionStatsJournalieres(codeSite?: string, date?: string) {
+  return useQuery({
+    queryKey: [...INTERVENTION_KEY, 'stats-journalieres', codeSite, date],
+    queryFn: () => interventionApi.getStatsJournalieres(codeSite!, date),
+    enabled: !!codeSite,
+    staleTime: SUIVI_REFETCH_MS,
+    refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
 
 export function useInterventionDetail(id: string) {
   return useQuery({

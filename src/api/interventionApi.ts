@@ -8,6 +8,10 @@ import type {
   SuiviJournalierInput,
   SuiviJournalierUpdateInput,
   SuiviJournalierDocument,
+  InterventionSuiviFilters,
+  InterventionDashboard,
+  InterventionDetailHse,
+  InterventionStatsJournalieres,
 } from '@/types/intervention'
 
 export const interventionApi = {
@@ -70,4 +74,22 @@ export const interventionApi = {
     api
       .delete(`/api/suivis-journaliers/${suiviId}/documents/${docId}`)
       .then((r) => r.data),
+
+  getDashboard: (filters?: InterventionSuiviFilters) => {
+    const params: Record<string, string> = {}
+    if (filters?.codeSite)  params.codeSite  = filters.codeSite
+    if (filters?.dateDebut) params.dateDebut = filters.dateDebut
+    if (filters?.dateFin)   params.dateFin   = filters.dateFin
+    if (filters?.statut)    params.statut    = filters.statut
+    return api.get<InterventionDashboard>('/api/interventions/dashboard', { params }).then((r) => r.data)
+  },
+
+  getSuiviHse: (id: string) =>
+    api.get<InterventionDetailHse>(`/api/interventions/${id}/suivi-hse`).then((r) => r.data),
+
+  getStatsJournalieres: (codeSite: string, date?: string) => {
+    const params: Record<string, string> = { codeSite }
+    if (date) params.date = date
+    return api.get<InterventionStatsJournalieres>('/api/interventions/stats-journalieres', { params }).then((r) => r.data)
+  },
 }
