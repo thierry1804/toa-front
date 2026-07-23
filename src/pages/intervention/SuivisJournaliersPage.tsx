@@ -6,7 +6,21 @@ import Button from '@/components/ui/Button'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import { useQuery } from '@tanstack/react-query'
 import { interventionApi } from '@/api/interventionApi'
-import { INTERVENTION_KEY } from '@/data/constant/query'
+import { INTERVENTION_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
+
+function AvancementCell({ interventionId }: { interventionId: string }) {
+  const { data } = useQuery({
+    queryKey: [...SUIVI_JOURNALIER_KEY, interventionId],
+    queryFn: () => interventionApi.getSuivis(interventionId),
+    select: (d) => {
+      const items = d.member ?? []
+      if (items.length === 0) return 0
+      const sum = items.reduce((acc, s) => acc + (s.avancementPourcentage ?? 0), 0)
+      return Math.round(sum / items.length)
+    },
+  })
+  return <AvancementBadge pct={data ?? 0} />
+}
 
 export default function SuivisJournaliersPage() {
   const navigate = useNavigate()
@@ -71,7 +85,7 @@ export default function SuivisJournaliersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <AvancementBadge pct={0} />
+                    <AvancementCell interventionId={intervention.id} />
                     <Button
                       size="sm"
                       onClick={() => navigate(`/interventions/${intervention.id}/suivis`)}
