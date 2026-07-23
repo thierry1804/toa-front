@@ -30,6 +30,7 @@ export default function EvaluationRisquePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const canValider = usePermission('intervention.valider_evaluation')
+  const canViewSuivis = usePermission('suivi_journalier.view')
 
   const {
     data: intervention,
@@ -282,14 +283,22 @@ export default function EvaluationRisquePage() {
       {isComplete && (
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-green-700">
-              <CheckCircle2 className="h-6 w-6 shrink-0" />
-              <div>
-                <p className="font-semibold">Évaluation complète</p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  Tous les risques ont été réévalués et l'évaluation a été validée.
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-green-700">
+                <CheckCircle2 className="h-6 w-6 shrink-0" />
+                <div>
+                  <p className="font-semibold">Évaluation complète</p>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Tous les risques ont été réévalués et l'évaluation a été validée.
+                  </p>
+                </div>
               </div>
+              {canViewSuivis && (
+                <Button onClick={() => navigate(`/interventions/${id}/suivis`)}>
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Suivis journaliers
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

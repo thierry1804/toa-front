@@ -1,14 +1,30 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { interventionApi } from '@/api/interventionApi'
-import { INTERVENTION_KEY, PERMIT_TRAVAIL_KEY } from '@/data/constant/query'
+import { INTERVENTION_KEY, PERMIT_TRAVAIL_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
-import type { EvaluationRisqueInput, Intervention } from '@/types/intervention'
+import type {
+  EvaluationRisqueInput,
+  Intervention,
+  SuiviJournalierInput,
+  SuiviJournalierUpdateInput,
+} from '@/types/intervention'
 
 export function useInterventionDetail(id: string) {
   return useQuery({
     queryKey: [...INTERVENTION_KEY, id],
     queryFn: () => interventionApi.getById(id),
     enabled: !!id,
+  })
+}
+
+export function useInterventionSuivis(interventionId: string) {
+  return useQuery({
+    queryKey: [...SUIVI_JOURNALIER_KEY, interventionId],
+    queryFn: () => interventionApi.getSuivis(interventionId),
+    enabled: !!interventionId,
+    select: (data) => [...(data.member ?? [])].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    ),
   })
 }
 
@@ -99,5 +115,65 @@ export function useIntervention() {
     isCreating: createMutation.isPending,
     isUpdatingRisque: updateRisqueMutation.isPending,
     isValidating: validerMutation.isPending,
+  }
+}
+
+export function useSuiviJournalier(interventionId: string) {
+  const queryClient = useQueryClient()
+  const addToast = useUiStore((s) => s.addToast)
+
+  const suiviKey = [...SUIVI_JOURNALIER_KEY, interventionId]
+
+  const createMutation = useMutation({
+    mutationFn: (data: SuiviJournalierInput) => interventionApi.createSuivi(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: suiviKey })
+      addToast({ message: 'Suivi journalier enregistré', type: 'success' })
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: SuiviJournalierUpdateInput }) =>
+      interventionApi.updateSuivi(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: suiviKey })
+      addToast({ message: 'Suivi mis à jour', type: 'success' })
+    },
+  })
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: ({ suiviId, file }: { suiviId: string; file: File }) =>
+      interventionApi.uploadSuiviDocument(suiviId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: suiviKey })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de l\'upload du document', type: 'error' })
+    },
+  })
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: ({ suiviId, docId }: { suiviId: string; docId: string }) =>
+      interventionApi.deleteSuiviDocument(suiviId, docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: suiviKey })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de la suppression du document', type: 'error' })
+    },
+  })
+
+  return {
+    createSuivi: (data: SuiviJournalierInput) => createMutation.mutateAsync(data),
+    updateSuivi: (id: string, data: SuiviJournalierUpdateInput) =>
+      updateMutation.mutateAsync({ id, data }),
+    uploadSuiviDocument: (suiviId: string, file: File) =>
+      uploadDocumentMutation.mutateAsync({ suiviId, file }),
+    deleteSuiviDocument: (suiviId: string, docId: string) =>
+      deleteDocumentMutation.mutateAsync({ suiviId, docId }),
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    createError: createMutation.error,
+    updateError: updateMutation.error,
   }
 }

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInterventionStore } from '@/store/interventionStore';
-import { useAuthStore } from '@/store/authStore';
-import { usePermission } from '@/features/auth/usePermission';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
+import { interventionApi } from '@/api/interventionApi';
+import type { PermitTravailSummary } from '@/types/intervention';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -24,19 +24,64 @@ import {
 import { formatDate } from '@/lib/utils';
 import type { InterventionStatus } from '@/types';
 
+const STATUT_MAP: Record<string, string> = {
+  EN_PREPARATION: 'planifiee',
+  EVALUATION_COMPLETE: 'planifiee',
+  EN_COURS: 'en_cours',
+  TERMINEE: 'terminee',
+}
+
+function getPermit(intervention: any): PermitTravailSummary | null {
+  if (intervention.permitTravail && typeof intervention.permitTravail === 'object') {
+    return intervention.permitTravail as PermitTravailSummary
+  }
+  return null
+}
+
+function mapIntervention(raw: any) {
+  const permit = getPermit(raw)
+  const createdBy = permit?.createdBy
+  const prestataire = createdBy?.entrepriseName
+    ? `${createdBy.entrepriseName} (${createdBy.firstname ?? ''} ${createdBy.name})`
+    : `${createdBy?.firstname ?? ''} ${createdBy?.name ?? ''}`.trim()
+
+  return {
+    ...raw,
+    reference: permit?.reference ?? raw.id,
+    codeSite: permit?.codeSite ?? '—',
+    nomSite: permit?.codeSite ?? '—',
+    description: permit?.descriptionTravaux ?? '',
+    dateDebut: permit?.dateDebutPrevue ?? raw.createdAt,
+    dateFin: permit?.dateFinPrevue ?? raw.createdAt,
+    prestataire,
+    status: STATUT_MAP[raw.statut] ?? raw.statut,
+    creerPar: raw.createdBy?.email ?? '',
+    zoneEnclavee: false,
+    nombreIntervenants: 0,
+    validationsJournalieres: raw.validationsJournalieres ?? [],
+    incidents: raw.incidents ?? [],
+  }
+}
+
 export default function InterventionsListPage() {
-  const { interventions } = useInterventionStore();
-  const { user } = useAuthStore();
-  const canViewAllInterventions = usePermission('interventions.view_all');
+  const { interventions, setInterventions } = useInterventionStore();
   const perms = usePermissions('/interventions');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [siteFilter, setSiteFilter] = useState<string>('all');
 
-  // Filtrer les interventions
+  useEffect(() => {
+    interventionApi.getAll()
+      .then((col) => {
+        const mapped = (col.member ?? []).map(mapIntervention)
+        setInterventions(mapped)
+      })
+      .catch((err) => console.error('[InterventionsList] fetch error:', err))
+  }, []);
+
+  // Filtrer les interventions (ownership filtré par le backend)
   const filteredInterventions = interventions.filter((intervention) => {
-    // Filtre par recherche
     const matchSearch =
       searchQuery === '' ||
       intervention.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,18 +89,11 @@ export default function InterventionsListPage() {
       intervention.codeSite.toLowerCase().includes(searchQuery.toLowerCase()) ||
       intervention.prestataire.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Filtre par statut
     const matchStatus = statusFilter === 'all' || intervention.status === statusFilter;
 
-    // Filtre par site
     const matchSite = siteFilter === 'all' || intervention.codeSite === siteFilter;
 
-    const matchRole =
-      canViewAllInterventions ||
-      intervention.creerPar === user?.email ||
-      intervention.prestataire === user?.entreprise;
-
-    return matchSearch && matchStatus && matchSite && matchRole;
+    return matchSearch && matchStatus && matchSite;
   });
 
   // Extraire les sites uniques pour le filtre
@@ -246,11 +284,7 @@ export default function InterventionsListPage() {
       <Card>
         <CardHeader>
           <CardTitle>Interventions actives ({filteredInterventions.length})</CardTitle>
-          <CardDescription>
-            {canViewAllInterventions
-              ? 'Toutes les interventions'
-              : 'Vos interventions en cours'}
-          </CardDescription>
+          <CardDescription>Toutes vos interventions</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredInterventions.length === 0 ? (

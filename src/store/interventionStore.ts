@@ -4,6 +4,7 @@ interface InterventionState {
   selectedInterventionId: string | null
   interventions: any[]
   setSelectedInterventionId: (id: string | null) => void
+  setInterventions: (interventions: any[]) => void
   addIntervention: (intervention: any) => void
   addValidationJournaliere: (interventionId: string, validation: any) => void
   addTake5Record: (interventionId: string, record: any) => void
@@ -15,6 +16,7 @@ export const useInterventionStore = create<InterventionState>((set) => ({
   selectedInterventionId: null,
   interventions: [],
   setSelectedInterventionId: (id) => set({ selectedInterventionId: id }),
+  setInterventions: (interventions) => set({ interventions }),
   addIntervention: (intervention) =>
     set((state) => ({ interventions: [...state.interventions, intervention] })),
   addValidationJournaliere: (interventionId, validation) =>

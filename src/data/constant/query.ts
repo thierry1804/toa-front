@@ -15,3 +15,5 @@ export const PERMIT_TRAVAIL_KEY = ['permits-travail'] as const
 export const INTERVENTION_KEY = ['interventions'] as const
 
 export const ROLES_KEY = ['roles'] as const
+
+export const SUIVI_JOURNALIER_KEY = ['suivis-journaliers'] as const
