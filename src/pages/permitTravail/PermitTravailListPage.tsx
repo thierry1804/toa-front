@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -8,10 +8,25 @@ import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
 import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
-import { usePermitsTravail, usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
+import { usePermitsTravail, usePermitTravail, usePvReceptionPdf } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
 import type { PermitTravail } from '@/types/permitTravail'
 import { TYPE_PERMIT_LABELS, PROCESSUS_LABELS } from '@/types/permitTravail'
+
+function PvDownloadCell({ permitId }: { permitId: string }) {
+  const { pvStatut, downloadPv } = usePvReceptionPdf(permitId, { enabled: true })
+  if (pvStatut !== 'GENERE') return null
+  return (
+    <button
+      title="Télécharger le PV de réception"
+      className="ml-1 inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+      onClick={(e) => { e.stopPropagation(); void downloadPv() }}
+    >
+      <FileDown className="h-3.5 w-3.5" />
+      PV
+    </button>
+  )
+}
 
 interface PermitRowProps {
   permit: PermitTravail
@@ -45,6 +60,9 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
       <td className="px-4 py-3">
         <div className="flex items-center gap-2 flex-wrap">
           <StatutPermitBadge statut={permit.statut} />
+          {permit.statut === 'CLOTURE' && (
+            <PvDownloadCell permitId={permit.id} />
+          )}
           {permit.groupeId && (
             <span
               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 cursor-pointer hover:bg-purple-200"

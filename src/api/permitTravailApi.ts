@@ -11,6 +11,9 @@ import type {
   PermitTravailStatsJournalieresData,
   PermitTravailLog,
   PermitTravailSuiviFilters,
+  CloturePermData,
+  PvReceptionStatus,
+  CloturerPermitResult,
 } from '@/types/permitTravail'
 
 export const permitTravailApi = {
@@ -121,6 +124,37 @@ export const permitTravailApi = {
     return api
       .get<PermitTravailStatsJournalieresData>('/api/permits-travail/suivi/stats-journalieres', { params })
       .then((r) => r.data)
+  },
+
+  cloturerPermit: (id: string, data: { commentaire?: string; accordClient?: boolean }) =>
+    api
+      .post<CloturerPermitResult>(`/api/permits-travail/${id}/cloturer`, data)
+      .then((r) => r.data),
+
+  getCloture: (id: string) =>
+    api.get<CloturePermData>(`/api/permits-travail/${id}/cloture`).then((r) => r.data),
+
+  getPvStatus: (id: string) =>
+    api.get<PvReceptionStatus>(`/api/permits-travail/${id}/pv/status`).then((r) => r.data),
+
+  downloadPv: async (id: string): Promise<void> => {
+    const token = localStorage.getItem('access_token') ?? ''
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/permits-travail/${id}/pv/download`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    if (!res.ok) throw new Error('Téléchargement PV échoué')
+    const blob = await res.blob()
+    const disposition = res.headers.get('Content-Disposition') ?? ''
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'pv_reception.pdf'
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
   },
 
   downloadPdf: async (id: string): Promise<void> => {

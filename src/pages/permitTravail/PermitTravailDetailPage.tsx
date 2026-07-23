@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -10,7 +10,9 @@ import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentU
 import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
 import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
 import PermitTravailPdfButton from '@/components/permitTravail/PermitTravailPdfButton'
-import { usePermitTravailDetail, usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
+import CloturerModal from '@/components/permitTravail/CloturerModal'
+import PvReceptionButton from '@/components/permitTravail/PvReceptionButton'
+import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
 import {
@@ -32,14 +34,19 @@ export default function PermitTravailDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
-  const { validerPermit, refuserPermit, isValidating, isRefusing } = usePermitTravail()
+  const { validerPermit, refuserPermit, cloturerPermit, isValidating, isRefusing, isCloturer } = usePermitTravail()
   const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
+  const { data: clotureData } = usePermitTravailCloture(
+    permit?.statut === 'CLOTURE' ? (id ?? '') : '',
+  )
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
+  const canCloturer = usePermission('permit_travail.cloturer')
   const canStartIntervention = usePermission('intervention.create')
   const canViewIntervention = usePermission('intervention.view')
   const [validerOpen, setValiderOpen] = useState(false)
   const [refuserOpen, setRefuserOpen] = useState(false)
+  const [cloturerOpen, setCloturerOpen] = useState(false)
 
   const handleStartIntervention = async () => {
     if (!permit) return
@@ -352,6 +359,107 @@ export default function PermitTravailDetailPage() {
         </Card>
       )}
 
+      {/* Clôturer */}
+      {(permit.statut === 'VALIDE_HSE' || permit.statut === 'EN_COURS') && canCloturer && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-800">
+              <Lock className="inline mr-2 h-4 w-4 text-gray-400" />
+              Clôture du permis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-gray-500">
+              Clôturer ce permis génère automatiquement un PV de réception et archive le dossier.
+            </p>
+            <Button
+              className="bg-gray-800 text-white hover:bg-gray-900"
+              onClick={() => setCloturerOpen(true)}
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              Clôturer le permis
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section CLOTURE */}
+      {permit.statut === 'CLOTURE' && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-800">
+              <Lock className="inline mr-2 h-4 w-4 text-gray-800" />
+              Permis clôturé
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {clotureData?.typeCloture === 'AUTOMATIQUE' && (
+              <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                <p className="text-xs text-orange-800">
+                  <strong>Clôture automatique</strong> — la date de fin prévue a été dépassée.
+                </p>
+              </div>
+            )}
+            {clotureData && (
+              <dl className="space-y-3">
+                <InfoRow
+                  label="Type de clôture"
+                  value={
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      clotureData.typeCloture === 'AUTOMATIQUE'
+                        ? 'bg-orange-100 text-orange-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {clotureData.typeCloture}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Date effective"
+                  value={new Date(clotureData.dateClotureEffective).toLocaleString('fr-FR')}
+                />
+                <InfoRow
+                  label="Accord client"
+                  value={
+                    clotureData.accordClient ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 text-sm">
+                        <CheckCircle className="h-3.5 w-3.5" /> Obtenu
+                        {clotureData.accordClientAt && ` le ${new Date(clotureData.accordClientAt).toLocaleDateString('fr-FR')}`}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-gray-500 text-sm">
+                        <XCircle className="h-3.5 w-3.5" /> Non requis
+                      </span>
+                    )
+                  }
+                />
+                {clotureData.clotureBy && (
+                  <InfoRow
+                    label="Clôturé par"
+                    value={`${clotureData.clotureBy.firstname ?? ''} ${clotureData.clotureBy.name}`.trim()}
+                  />
+                )}
+                {clotureData.commentaire && (
+                  <InfoRow
+                    label="Commentaire"
+                    value={
+                      <p className="text-sm rounded bg-gray-50 px-3 py-2 text-gray-700">
+                        {clotureData.commentaire}
+                      </p>
+                    }
+                  />
+                )}
+              </dl>
+            )}
+            <div>
+              <p className="mb-2 text-xs font-medium text-gray-500">PV de réception</p>
+              <PvReceptionButton permitId={permit.id} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <ValiderPermitModal
         isOpen={validerOpen}
         permitId={permit.id}
@@ -367,6 +475,14 @@ export default function PermitTravailDetailPage() {
         isRefusing={isRefusing}
         onClose={() => setRefuserOpen(false)}
         onRefuser={refuserPermit}
+      />
+      <CloturerModal
+        isOpen={cloturerOpen}
+        permitId={permit.id}
+        permitReference={permit.reference}
+        isCloturer={isCloturer}
+        onClose={() => setCloturerOpen(false)}
+        onCloturer={cloturerPermit}
       />
     </div>
   )

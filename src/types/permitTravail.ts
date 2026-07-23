@@ -1,6 +1,8 @@
 export type ProcessusPermit = 'NOUVEAU_SITE' | 'MAINTENANCE' | 'RENOUVELLEMENT'
 export type TypePermit = 'GENERAL' | 'ELECTRIQUE' | 'HAUTEUR'
-export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE'
+export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE' | 'CLOTURE'
+export type TypeCloturePerm = 'MANUELLE' | 'AUTOMATIQUE'
+export type StatutPvReceptionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
 
 export type ActionPermitTravailLog = 'CONSULTE' | 'DOCUMENT_TELECHARGE' | 'STATUT_CHANGE' | 'PDF_GENERE'
 
@@ -128,6 +130,29 @@ export interface PermitTravailPdfStatus {
 export interface GeneratePermitTravailPdfResult {
   jobId: string
   statut: StatutPermitTravailPdf
+}
+
+export interface CloturePermData {
+  id: string
+  typeCloture: TypeCloturePerm
+  dateClotureEffective: string
+  commentaire?: string | null
+  accordClient: boolean
+  accordClientAt?: string | null
+  clotureBy?: { id: number; name: string; firstname?: string } | null
+  createdAt: string
+}
+
+export interface PvReceptionStatus {
+  statut: StatutPvReceptionPdf | null
+  genereAt?: string | null
+  tailleFichier?: number | null
+}
+
+export interface CloturerPermitResult {
+  jobId: string
+  statut: string
+  message: string
 }
 
 export interface PermitTravail {

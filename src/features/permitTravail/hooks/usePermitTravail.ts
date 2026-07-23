@@ -7,6 +7,7 @@ import type {
   PermitTravail,
   PermitTravailInput,
   StatutPermitTravailPdf,
+  StatutPvReceptionPdf,
   VersionPermitTravail,
   PermitTravailSuiviFilters,
 } from '@/types/permitTravail'
@@ -159,6 +160,118 @@ export function usePermitTravailPdf(permitId: string, opts?: { enabled?: boolean
   return { pdfStatut, isPolling, pdfMeta, pollError, generatePdf, downloadPdf }
 }
 
+const PV_POLL_INTERVAL_MS = 2_000
+const PV_POLL_TIMEOUT_MS  = 60_000
+
+export function usePvReceptionPdf(permitId: string, opts?: { enabled?: boolean }) {
+  const hookEnabled = opts?.enabled ?? true
+  const addToast = useUiStore((s) => s.addToast)
+
+  const [pvStatut, setPvStatut]   = useState<StatutPvReceptionPdf | null>(null)
+  const [pvMeta, setPvMeta]       = useState<{ genereAt?: string; tailleFichier?: number } | null>(null)
+  const [pollError, setPollError]   = useState<string | null>(null)
+  const [isPolling, setIsPolling]   = useState(false)
+
+  const pollingRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isPollingRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
+  const { data: initialStatus } = useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, permitId, 'pv-status'],
+    queryFn: () => permitTravailApi.getPvStatus(permitId),
+    enabled: !!permitId && hookEnabled,
+    retry: false,
+    staleTime: 30_000,
+  })
+
+  const stopPolling = () => {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null }
+    isPollingRef.current = false
+    setIsPolling(false)
+  }
+
+  const startPolling = () => {
+    if (isPollingRef.current) return
+    isPollingRef.current = true
+    setIsPolling(true)
+
+    timeoutRef.current = setTimeout(() => {
+      stopPolling()
+      setPvStatut('ERREUR')
+      setPollError('Génération trop longue, réessayez')
+      addToast({ message: 'Génération du PV trop longue, réessayez', type: 'error' })
+    }, PV_POLL_TIMEOUT_MS)
+
+    pollingRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const status = await permitTravailApi.getPvStatus(permitId)
+          setPvStatut(status.statut)
+          if (status.genereAt) {
+            setPvMeta({
+              genereAt: status.genereAt ?? undefined,
+              tailleFichier: status.tailleFichier ?? undefined,
+            })
+          }
+          if (status.statut === 'GENERE') {
+            stopPolling()
+            addToast({ message: 'PV de réception généré avec succès', type: 'success' })
+          } else if (status.statut === 'ERREUR') {
+            stopPolling()
+            setPollError('Erreur lors de la génération du PV')
+            addToast({ message: 'Erreur lors de la génération du PV de réception', type: 'error' })
+          }
+        } catch {
+          // silent — keep polling
+        }
+      })()
+    }, PV_POLL_INTERVAL_MS)
+  }
+
+  useEffect(() => {
+    if (!initialStatus || isPollingRef.current) return
+    setPvStatut(initialStatus.statut)
+    if (initialStatus.genereAt) {
+      setPvMeta({
+        genereAt: initialStatus.genereAt ?? undefined,
+        tailleFichier: initialStatus.tailleFichier ?? undefined,
+      })
+    }
+    if (initialStatus.statut === 'EN_COURS') {
+      startPolling()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStatus])
+
+  const downloadPv = async () => {
+    try {
+      await permitTravailApi.downloadPv(permitId)
+    } catch {
+      addToast({ message: 'Erreur lors du téléchargement du PV', type: 'error' })
+    }
+  }
+
+  return { pvStatut, isPolling, pvMeta, pollError, downloadPv, startPolling }
+}
+
+export function usePermitTravailCloture(permitId: string) {
+  return useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, permitId, 'cloture'],
+    queryFn: () => permitTravailApi.getCloture(permitId),
+    enabled: !!permitId,
+    retry: false,
+    staleTime: 60_000,
+  })
+}
+
 export function usePermitsTravail(params?: Record<string, string>) {
   return useQuery({
     queryKey: [...PERMIT_TRAVAIL_KEY, params],
@@ -252,6 +365,18 @@ export function usePermitTravail() {
     },
   })
 
+  const cloturerMutation = useMutation({
+    mutationFn: ({ id, commentaire, accordClient }: { id: string; commentaire?: string; accordClient?: boolean }) =>
+      permitTravailApi.cloturerPermit(id, { commentaire, accordClient }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+      addToast({ message: 'Permis clôturé — PV de réception en cours de génération', type: 'success' })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de la clôture du permis', type: 'error' })
+    },
+  })
+
   const resoumettresMutation = useMutation({
     mutationFn: ({ id, motif }: { id: string; motif?: string }) =>
       permitTravailApi.resoumettre(id, motif),
@@ -285,6 +410,10 @@ export function usePermitTravail() {
     return resoumettresMutation.mutateAsync({ id, motif })
   }
 
+  const cloturerPermit = async (id: string, commentaire?: string, accordClient?: boolean) => {
+    return cloturerMutation.mutateAsync({ id, commentaire, accordClient })
+  }
+
   const soumettrePermit = async (id: string): Promise<void> => {
     try {
       await soumettresMutation.mutateAsync(id)
@@ -316,6 +445,7 @@ export function usePermitTravail() {
     validerPermit,
     refuserPermit,
     resoumettrePermit,
+    cloturerPermit,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isUploading: uploadMutation.isPending,
@@ -323,5 +453,6 @@ export function usePermitTravail() {
     isValidating: validerMutation.isPending,
     isRefusing: refuserMutation.isPending,
     isResoumitting: resoumettresMutation.isPending,
+    isCloturer: cloturerMutation.isPending,
   }
 }

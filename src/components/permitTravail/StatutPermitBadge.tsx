@@ -1,4 +1,4 @@
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, ShieldCheck, ShieldX } from 'lucide-react'
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, ShieldCheck, ShieldX, Lock } from 'lucide-react'
 import type { StatutPermitTravail } from '@/types/permitTravail'
 
 type StatutConfig = {
@@ -13,8 +13,9 @@ const STATUT_CONFIG: Record<StatutPermitTravail, StatutConfig> = {
   EN_COURS:   { label: 'En cours',    color: 'bg-orange-100 text-orange-700', icon: AlertCircle },
   VALIDE:     { label: 'Validé',      color: 'bg-green-100 text-green-700', icon: CheckCircle },
   REJETE:     { label: 'Rejeté',      color: 'bg-red-100 text-red-700',     icon: XCircle     },
-  VALIDE_HSE: { label: 'Validé HSE',  color: 'bg-green-100 text-green-700', icon: ShieldCheck },
-  REFUSE_HSE: { label: 'Refusé HSE',  color: 'bg-red-100 text-red-700',     icon: ShieldX     },
+  VALIDE_HSE: { label: 'Validé HSE',  color: 'bg-green-100 text-green-700',  icon: ShieldCheck },
+  REFUSE_HSE: { label: 'Refusé HSE',  color: 'bg-red-100 text-red-700',      icon: ShieldX     },
+  CLOTURE:    { label: 'Clôturé',     color: 'bg-gray-800 text-gray-100',     icon: Lock        },
 }
 
 interface StatutPermitBadgeProps {
