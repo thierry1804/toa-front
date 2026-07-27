@@ -1,7 +1,8 @@
 export type ProcessusPermit = 'NOUVEAU_SITE' | 'MAINTENANCE' | 'RENOUVELLEMENT'
 export type TypePermit = 'GENERAL' | 'ELECTRIQUE' | 'HAUTEUR'
-export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE' | 'CLOTURE'
+export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE' | 'CLOTURE' | 'PV_VALIDE' | 'PV_REFUSE'
 export type TypeCloturePerm = 'MANUELLE' | 'AUTOMATIQUE'
+export type DecisionCdpPv = 'VALIDE' | 'REFUSE'
 export type StatutPvReceptionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
 
 export type ActionPermitTravailLog = 'CONSULTE' | 'DOCUMENT_TELECHARGE' | 'STATUT_CHANGE' | 'PDF_GENERE'
@@ -153,6 +154,22 @@ export interface CloturerPermitResult {
   jobId: string
   statut: string
   message: string
+}
+
+export interface DecisionCdpPvReception {
+  id: string
+  decision: DecisionCdpPv
+  decidePar: { id: number; name: string; firstname?: string } | null
+  commentaire?: string | null
+  signatureElectronique: string
+  decidedAt: string
+}
+
+export interface KpiIntervention {
+  nbPermisCloturesValides: number
+  nbPermisCloturesTotal: number
+  tauxCloture: number
+  delaiMoyenValidationCdp: number
 }
 
 export interface PermitTravail {

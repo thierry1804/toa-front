@@ -15,6 +15,8 @@ import { usePermission } from '@/features/auth/usePermission'
 import type { PermitTravail, StatutPermitTravail, TypePermit, PermitTravailSuiviFilters } from '@/types/permitTravail'
 import { TYPE_PERMIT_LABELS } from '@/types/permitTravail'
 
+const ITEMS_PER_PAGE = 10
+
 const STATUT_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
   { value: 'BROUILLON',  label: 'Brouillon' },
@@ -101,13 +103,21 @@ export default function PermitTravailSuiviPage() {
     dateFin:    searchParams.get('dateFin')    ?? undefined,
   }), [searchParams])
 
+  const [page, setPage] = useState(1)
+  const [sortKey, setSortKey] = useState<SortKey>('soumisAt')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [drawerPermit, setDrawerPermit] = useState<PermitTravail | null>(null)
+
   const listParams = useMemo(() => {
-    const p: Record<string, string> = {}
-    if (activeFilters.codeSite)  p.codeSite  = activeFilters.codeSite
-    if (activeFilters.typePermis) p.typePermis = activeFilters.typePermis
-    if (activeFilters.statut)    p.statut    = activeFilters.statut
+    const p: Record<string, string> = {
+      page: String(page),
+      itemsPerPage: String(ITEMS_PER_PAGE),
+    }
+    if (activeFilters.codeSite)   p.codeSite   = activeFilters.codeSite
+    if (activeFilters.typePermis) p.typePermis  = activeFilters.typePermis
+    if (activeFilters.statut)     p.statut      = activeFilters.statut
     return p
-  }, [activeFilters])
+  }, [activeFilters, page])
 
   const { data: suiviData, isLoading: loadingSuivi } = usePermitTravailSuivi(activeFilters)
   const { data: stats, isLoading: loadingStats }      = usePermitTravailStatsJournalieres(
@@ -115,11 +125,10 @@ export default function PermitTravailSuiviPage() {
     activeFilters.codeSite,
     activeFilters.typePermis,
   )
-  const { data: permits = [], isLoading: loadingPermits } = usePermitsTravail(listParams)
-
-  const [sortKey, setSortKey] = useState<SortKey>('soumisAt')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [drawerPermit, setDrawerPermit] = useState<PermitTravail | null>(null)
+  const { data: permitsData, isLoading: loadingPermits } = usePermitsTravail(listParams)
+  const permits = permitsData?.member ?? []
+  const totalItems = permitsData?.totalItems ?? 0
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 
   const sorted = useMemo(() => {
     return [...permits].sort((a, b) => {
@@ -151,11 +160,13 @@ export default function PermitTravailSuiviPage() {
     if (draft.statut)     p.statut      = draft.statut
     if (draft.dateDebut)  p.dateDebut   = draft.dateDebut
     if (draft.dateFin)    p.dateFin     = draft.dateFin
+    setPage(1)
     setSearchParams(p, { replace: true })
   }
 
   const resetFilters = () => {
     setDraft({ codeSite: '', typePermis: '', statut: '', dateDebut: '', dateFin: '' })
+    setPage(1)
     setSearchParams({}, { replace: true })
   }
 
@@ -266,7 +277,7 @@ export default function PermitTravailSuiviPage() {
       <Card>
         <div className="border-b px-6 py-4">
           <h2 className="text-sm font-semibold text-gray-900">
-            Permis ({permits.length})
+            Permis ({totalItems})
           </h2>
         </div>
         <div className="overflow-x-auto">
@@ -359,6 +370,29 @@ export default function PermitTravailSuiviPage() {
             </table>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+            <p className="text-sm text-gray-600">
+              Page {page} / {totalPages} ({totalItems} permis)
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Précédent
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Aggregates */}

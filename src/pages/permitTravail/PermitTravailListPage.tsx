@@ -60,7 +60,7 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
       <td className="px-4 py-3">
         <div className="flex items-center gap-2 flex-wrap">
           <StatutPermitBadge statut={permit.statut} />
-          {permit.statut === 'CLOTURE' && (
+          {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
             <PvDownloadCell permitId={permit.id} />
           )}
           {permit.groupeId && (
@@ -128,7 +128,8 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
   )
 }
 
-const HSE_STATUTS = new Set<string>(['SOUMIS', 'EN_COURS', 'VALIDE', 'VALIDE_HSE', 'REFUSE_HSE'])
+const HSE_STATUTS: string[] = ['SOUMIS', 'EN_COURS', 'VALIDE', 'VALIDE_HSE', 'REFUSE_HSE']
+const ITEMS_PER_PAGE = 10
 
 export default function PermitTravailListPage() {
   const navigate = useNavigate()
@@ -139,13 +140,27 @@ export default function PermitTravailListPage() {
   const showHseColumns = canValider || canRefuser
 
   const [hseView, setHseView] = useState(false)
+  const [page, setPage] = useState(1)
   const [selectedForValider, setSelectedForValider] = useState<PermitTravail | null>(null)
   const [selectedForRefuser, setSelectedForRefuser] = useState<PermitTravail | null>(null)
 
-  const { data: permits = [], isLoading, isError } = usePermitsTravail()
+  const queryParams: Record<string, string | string[]> = {
+    page: String(page),
+    itemsPerPage: String(ITEMS_PER_PAGE),
+    ...(hseView ? { statut: HSE_STATUTS } : {}),
+  }
+
+  const { data, isLoading, isError } = usePermitsTravail(queryParams)
   const { validerPermit, refuserPermit, isValidating, isRefusing } = usePermitTravail()
 
-  const displayedPermits = hseView ? permits.filter((p) => HSE_STATUTS.has(p.statut)) : permits
+  const displayedPermits = data?.member ?? []
+  const totalItems = data?.totalItems ?? 0
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+
+  const handleHseViewToggle = () => {
+    setHseView((v) => !v)
+    setPage(1)
+  }
 
   const headers = [
     'Référence', 'Type', 'Processus', 'Site', 'Statut', 'Date soumission',
@@ -163,7 +178,7 @@ export default function PermitTravailListPage() {
             {showHseColumns && (
               <Button
                 variant={hseView ? 'primary' : 'outline'}
-                onClick={() => setHseView((v) => !v)}
+                onClick={handleHseViewToggle}
               >
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Vue HSE
@@ -211,36 +226,61 @@ export default function PermitTravailListPage() {
           )}
 
           {!isLoading && !isError && displayedPermits.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {headers.map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
-                      >
-                        {h}
-                      </th>
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {headers.map((h) => (
+                        <th
+                          key={h}
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {displayedPermits.map((permit) => (
+                      <PermitRow
+                        key={permit.id}
+                        permit={permit}
+                        showHseColumns={showHseColumns}
+                        canValider={canValider}
+                        canRefuser={canRefuser}
+                        canResoumettre={canResoumettre}
+                        onValider={setSelectedForValider}
+                        onRefuser={setSelectedForRefuser}
+                      />
                     ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {displayedPermits.map((permit) => (
-                    <PermitRow
-                      key={permit.id}
-                      permit={permit}
-                      showHseColumns={showHseColumns}
-                      canValider={canValider}
-                      canRefuser={canRefuser}
-                      canResoumettre={canResoumettre}
-                      onValider={setSelectedForValider}
-                      onRefuser={setSelectedForRefuser}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+                  <p className="text-sm text-gray-600">
+                    Page {page} / {totalPages} ({totalItems} permis)
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Précédent
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

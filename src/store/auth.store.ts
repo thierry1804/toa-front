@@ -24,13 +24,14 @@ interface AuthState {
 }
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
-  ROLE_CHEF_PROJET:  ['plan_prevention.examine'],
+  ROLE_CHEF_PROJET:  ['plan_prevention.examine', 'permit_travail.view', 'permit_travail.pv_valider', 'permit_travail.pv_refuser'],
   ROLE_HSE:          [
     'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
     'permit_travail.generate_pdf', 'permit_travail.cloturer',
     'permit_travail.suivi', 'permit_travail.logs',
+    'dashboard.kpis.view',
   ],
   ROLE_PRESTATAIRE:  [
     'plan_prevention.resoumettre',
@@ -47,16 +48,19 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'edit_users', 'create_users',
     'intervention.view', 'intervention.view_all',
     'suivi_journalier.view',
+    'dashboard.kpis.view',
   ],
   ROLE_SUPER_ADMIN:  [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
     'permit_travail.valider_hse', 'permit_travail.refuser_hse',
     'permit_travail.generate_pdf', 'permit_travail.cloturer',
+    'permit_travail.pv_valider', 'permit_travail.pv_refuser',
     'permit_travail.suivi', 'permit_travail.logs',
     'edit_users', 'create_users',
     'intervention.view', 'intervention.view_all',
     'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
+    'dashboard.kpis.view',
   ],
 }
 

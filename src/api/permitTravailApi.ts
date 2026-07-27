@@ -14,10 +14,11 @@ import type {
   CloturePermData,
   PvReceptionStatus,
   CloturerPermitResult,
+  DecisionCdpPvReception,
 } from '@/types/permitTravail'
 
 export const permitTravailApi = {
-  list: (params?: Record<string, string>) =>
+  list: (params?: Record<string, string | string[]>) =>
     api
       .get<HydraCollection<PermitTravail>>('/api/permits-travail', { params })
       .then((r) => r.data),
@@ -133,6 +134,19 @@ export const permitTravailApi = {
 
   getCloture: (id: string) =>
     api.get<CloturePermData>(`/api/permits-travail/${id}/cloture`).then((r) => r.data),
+
+  validerPv: (id: string, commentaire?: string) =>
+    api
+      .post<PermitTravail>(`/api/permits-travail/${id}/pv/valider`, commentaire ? { commentaire } : {})
+      .then((r) => r.data),
+
+  refuserPv: (id: string, commentaire: string) =>
+    api
+      .post<PermitTravail>(`/api/permits-travail/${id}/pv/refuser`, { commentaire })
+      .then((r) => r.data),
+
+  getPvDecision: (id: string) =>
+    api.get<DecisionCdpPvReception[]>(`/api/permits-travail/${id}/pv/decision`).then((r) => r.data),
 
   getPvStatus: (id: string) =>
     api.get<PvReceptionStatus>(`/api/permits-travail/${id}/pv/status`).then((r) => r.data),

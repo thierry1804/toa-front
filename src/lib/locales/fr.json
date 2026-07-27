@@ -450,6 +450,48 @@
   "statistics": {
     "title": "Statistiques"
   },
+  "dashboardKpis": {
+    "title": "Dashboard KPIs HSE",
+    "description": "Indicateurs de performance HSE, actualisés toutes les 60 secondes",
+    "accessDenied": "Accès non autorisé",
+    "loading": "Chargement…",
+    "noData": "Aucune donnée disponible",
+    "filters": {
+      "site": "Site",
+      "periode": "Période (AAAA-MM)",
+      "debut": "Début",
+      "fin": "Fin",
+      "apply": "Appliquer",
+      "reset": "Réinitialiser"
+    },
+    "kpis": {
+      "tauxIncidents": "Taux incidents",
+      "delaiPlan": "Délai moyen validation plan",
+      "delaiPermis": "Délai moyen validation permis",
+      "delaiPv": "Délai moyen validation PV",
+      "avancement": "Avancement moyen",
+      "tauxCloture": "Taux clôture",
+      "suffixJours": " j"
+    },
+    "charts": {
+      "evolution": "Évolution sur {{nbMois}} mois",
+      "evolutionSite": " — {{site}}",
+      "evolutionAllSites": " — tous sites",
+      "noEvolution": "Aucune donnée d'évolution",
+      "barSite": "Avancement moyen par site",
+      "pie": "Répartition par statut"
+    },
+    "table": {
+      "title": "KPIs par site ({{nb}})",
+      "rank": "#",
+      "site": "Site",
+      "nbPermis": "Nb permis",
+      "tauxCloture": "Taux clôture",
+      "avancement": "Avancement",
+      "tauxIncidents": "Taux incidents",
+      "delai": "Délai validation"
+    }
+  },
   "roles": {
     "super_admin": "Super Admin",
     "admin": "Admin",

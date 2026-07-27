@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Activity, TrendingUp, Play, CheckCircle, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { Activity, TrendingUp, Play, CheckCircle, ChevronUp, ChevronDown, ChevronsUpDown, FileCheck, BarChart2, Clock } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
@@ -11,6 +11,7 @@ import {
   useInterventionDashboard,
   useInterventionStatsJournalieres,
 } from '@/features/intervention/hooks/useIntervention'
+import { useKpisIntervention } from '@/features/permitTravail/hooks/usePermitTravail'
 import type { InterventionSuiviFilters, StatutIntervention } from '@/types/intervention'
 
 const STATUT_OPTIONS = [
@@ -110,6 +111,7 @@ export default function InterventionSuiviHsePage() {
     activeFilters.codeSite,
     undefined,
   )
+  const { data: kpis } = useKpisIntervention(activeFilters.codeSite || undefined)
 
   const [sortKey, setSortKey] = useState<SortKey>('dernierSuivi')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -236,6 +238,30 @@ export default function InterventionSuiviHsePage() {
           value={parStatut.TERMINEE}
           icon={CheckCircle}
           color="bg-green-100 text-green-700"
+        />
+      </div>
+
+      {/* KPI PV — mois courant */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          label="PV validés ce mois"
+          value={kpis?.nbPermisCloturesValides}
+          icon={FileCheck}
+          color="bg-green-100 text-green-700"
+        />
+        <StatCard
+          label="Taux de clôture"
+          value={kpis !== undefined ? Math.round(kpis.tauxCloture * 100) : undefined}
+          icon={BarChart2}
+          color={kpis !== undefined && kpis.tauxCloture >= 0.8 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}
+          suffix="%"
+        />
+        <StatCard
+          label="Délai moyen validation CdP"
+          value={kpis !== undefined ? Math.round(kpis.delaiMoyenValidationCdp) : undefined}
+          icon={Clock}
+          color="bg-purple-100 text-purple-700"
+          suffix=" j"
         />
       </div>
 

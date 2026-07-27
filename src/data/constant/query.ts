@@ -17,3 +17,5 @@ export const INTERVENTION_KEY = ['interventions'] as const
 export const ROLES_KEY = ['roles'] as const
 
 export const SUIVI_JOURNALIER_KEY = ['suivis-journaliers'] as const
+
+export const DASHBOARD_KEY = ['dashboard-kpis'] as const

@@ -13,6 +13,7 @@ import type {
   InterventionDetailHse,
   InterventionStatsJournalieres,
 } from '@/types/intervention'
+import type { KpiIntervention } from '@/types/permitTravail'
 
 export const interventionApi = {
   getAll: () =>
@@ -91,5 +92,12 @@ export const interventionApi = {
     const params: Record<string, string> = { codeSite }
     if (date) params.date = date
     return api.get<InterventionStatsJournalieres>('/api/interventions/stats-journalieres', { params }).then((r) => r.data)
+  },
+
+  getKpis: (codeSite?: string, periode?: string) => {
+    const params: Record<string, string> = {}
+    if (codeSite) params.codeSite = codeSite
+    if (periode) params.periode = periode
+    return api.get<KpiIntervention>('/api/interventions/kpis', { params }).then((r) => r.data)
   },
 }

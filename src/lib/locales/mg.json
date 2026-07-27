@@ -447,6 +447,48 @@
   "statistics": {
     "title": "Antontan'isa"
   },
+  "dashboardKpis": {
+    "title": "Dashboard KPIs HSE",
+    "description": "Fampisehoana ny fandrefesana HSE, havaozina isaky ny 60 segondra",
+    "accessDenied": "Voarara ny fidirana",
+    "loading": "Ampidina...",
+    "noData": "Tsy misy angona",
+    "filters": {
+      "site": "Toerana",
+      "periode": "Fotoana (TAONA-VOLANA)",
+      "debut": "Fanombohana",
+      "fin": "Famaranana",
+      "apply": "Ampiharo",
+      "reset": "Avereno"
+    },
+    "kpis": {
+      "tauxIncidents": "Tahan'ny trangan-javatra",
+      "delaiPlan": "Faran'ny fanamarinana drafitra",
+      "delaiPermis": "Faran'ny fanamarinana permis",
+      "delaiPv": "Faran'ny fanamarinana PV",
+      "avancement": "Fandrosoan'ny ankapobe",
+      "tauxCloture": "Tahan'ny fanakatona",
+      "suffixJours": " andro"
+    },
+    "charts": {
+      "evolution": "Fivoarana nandritra ny {{nbMois}} volana",
+      "evolutionSite": " — {{site}}",
+      "evolutionAllSites": " — toerana rehetra",
+      "noEvolution": "Tsy misy angona fandrosoan",
+      "barSite": "Fandrosoana ankapoben'ny toerana",
+      "pie": "Fizarana araka ny sata"
+    },
+    "table": {
+      "title": "KPIs araka ny toerana ({{nb}})",
+      "rank": "#",
+      "site": "Toerana",
+      "nbPermis": "Isan'ny permis",
+      "tauxCloture": "Tahan'ny fanakatona",
+      "avancement": "Fandrosoana",
+      "tauxIncidents": "Tahan'ny trangan-javatra",
+      "delai": "Faran'ny fanamarinana"
+    }
+  },
   "roles": {
     "super_admin": "Super Admin",
     "admin": "Admin",

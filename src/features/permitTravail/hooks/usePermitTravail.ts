@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { permitTravailApi } from '@/api/permitTravailApi'
-import { PERMIT_TRAVAIL_KEY } from '@/data/constant/query'
+import { interventionApi } from '@/api/interventionApi'
+import { PERMIT_TRAVAIL_KEY, INTERVENTION_KEY, DASHBOARD_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
 import type {
   PermitTravail,
@@ -10,9 +11,19 @@ import type {
   StatutPvReceptionPdf,
   VersionPermitTravail,
   PermitTravailSuiviFilters,
+  DecisionCdpPvReception,
 } from '@/types/permitTravail'
 
 const SUIVI_REFETCH_MS = 60_000
+
+export function useKpisIntervention(codeSite?: string, periode?: string) {
+  return useQuery({
+    queryKey: [...INTERVENTION_KEY, 'kpis', codeSite, periode],
+    queryFn: () => interventionApi.getKpis(codeSite, periode),
+    staleTime: SUIVI_REFETCH_MS,
+    refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
 
 export function usePermitTravailSuivi(filters?: PermitTravailSuiviFilters) {
   return useQuery({
@@ -272,11 +283,20 @@ export function usePermitTravailCloture(permitId: string) {
   })
 }
 
-export function usePermitsTravail(params?: Record<string, string>) {
+export function usePvDecision(permitId: string, opts?: { enabled?: boolean }) {
+  return useQuery<DecisionCdpPvReception[]>({
+    queryKey: [...PERMIT_TRAVAIL_KEY, permitId, 'pv-decision'],
+    queryFn: () => permitTravailApi.getPvDecision(permitId),
+    enabled: !!permitId && (opts?.enabled ?? true),
+    retry: false,
+    staleTime: 30_000,
+  })
+}
+
+export function usePermitsTravail(params?: Record<string, string | string[]>) {
   return useQuery({
     queryKey: [...PERMIT_TRAVAIL_KEY, params],
     queryFn: () => permitTravailApi.list(params),
-    select: (data) => data.member,
   })
 }
 
@@ -386,6 +406,33 @@ export function usePermitTravail() {
     },
   })
 
+  const validerPvMutation = useMutation({
+    mutationFn: ({ id, commentaire }: { id: string; commentaire?: string }) =>
+      permitTravailApi.validerPv(id, commentaire),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+      queryClient.invalidateQueries({ queryKey: [...INTERVENTION_KEY, 'kpis'] })
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY })
+      addToast({ message: 'PV de réception validé avec succès', type: 'success' })
+      addToast({ message: 'HSE notifié pour archivage', type: 'info' })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors de la validation du PV', type: 'error' })
+    },
+  })
+
+  const refuserPvMutation = useMutation({
+    mutationFn: ({ id, commentaire }: { id: string; commentaire: string }) =>
+      permitTravailApi.refuserPv(id, commentaire),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+      addToast({ message: 'PV de réception refusé — prestataire notifié', type: 'success' })
+    },
+    onError: () => {
+      addToast({ message: 'Erreur lors du refus du PV', type: 'error' })
+    },
+  })
+
   const createPermit = async (data: PermitTravailInput): Promise<PermitTravail> => {
     return createMutation.mutateAsync(data)
   }
@@ -412,6 +459,20 @@ export function usePermitTravail() {
 
   const cloturerPermit = async (id: string, commentaire?: string, accordClient?: boolean) => {
     return cloturerMutation.mutateAsync({ id, commentaire, accordClient })
+  }
+
+  const validerPv = async (id: string, commentaire?: string): Promise<{ signatureElectronique?: string }> => {
+    await validerPvMutation.mutateAsync({ id, commentaire })
+    try {
+      const decisions = await permitTravailApi.getPvDecision(id)
+      return { signatureElectronique: decisions.at(-1)?.signatureElectronique }
+    } catch {
+      return {}
+    }
+  }
+
+  const refuserPv = async (id: string, commentaire: string): Promise<void> => {
+    await refuserPvMutation.mutateAsync({ id, commentaire })
   }
 
   const soumettrePermit = async (id: string): Promise<void> => {
@@ -446,6 +507,8 @@ export function usePermitTravail() {
     refuserPermit,
     resoumettrePermit,
     cloturerPermit,
+    validerPv,
+    refuserPv,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isUploading: uploadMutation.isPending,
@@ -454,5 +517,7 @@ export function usePermitTravail() {
     isRefusing: refuserMutation.isPending,
     isResoumitting: resoumettresMutation.isPending,
     isCloturer: cloturerMutation.isPending,
+    isValiderPv: validerPvMutation.isPending,
+    isRefuserPv: refuserPvMutation.isPending,
   }
 }

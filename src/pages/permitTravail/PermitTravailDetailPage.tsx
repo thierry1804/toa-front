@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -12,7 +12,9 @@ import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
 import PermitTravailPdfButton from '@/components/permitTravail/PermitTravailPdfButton'
 import CloturerModal from '@/components/permitTravail/CloturerModal'
 import PvReceptionButton from '@/components/permitTravail/PvReceptionButton'
-import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture } from '@/features/permitTravail/hooks/usePermitTravail'
+import PvValiderModal from '@/components/permitTravail/PvValiderModal'
+import PvRefuserModal from '@/components/permitTravail/PvRefuserModal'
+import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
 import {
@@ -34,19 +36,27 @@ export default function PermitTravailDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
-  const { validerPermit, refuserPermit, cloturerPermit, isValidating, isRefusing, isCloturer } = usePermitTravail()
+  const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
   const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
   const { data: clotureData } = usePermitTravailCloture(
-    permit?.statut === 'CLOTURE' ? (id ?? '') : '',
+    ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit?.statut ?? '') ? (id ?? '') : '',
   )
+  const { data: pvDecisionsData } = usePvDecision(id ?? '', {
+    enabled: !!id && ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit?.statut ?? ''),
+  })
+  const latestPvDecision = pvDecisionsData?.at(-1)
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
   const canCloturer = usePermission('permit_travail.cloturer')
+  const canValiderPv = usePermission('permit_travail.pv_valider')
+  const canRefuserPv = usePermission('permit_travail.pv_refuser')
   const canStartIntervention = usePermission('intervention.create')
   const canViewIntervention = usePermission('intervention.view')
   const [validerOpen, setValiderOpen] = useState(false)
   const [refuserOpen, setRefuserOpen] = useState(false)
   const [cloturerOpen, setCloturerOpen] = useState(false)
+  const [pvValiderOpen, setPvValiderOpen] = useState(false)
+  const [pvRefuserOpen, setPvRefuserOpen] = useState(false)
 
   const handleStartIntervention = async () => {
     if (!permit) return
@@ -383,8 +393,8 @@ export default function PermitTravailDetailPage() {
         </Card>
       )}
 
-      {/* Section CLOTURE */}
-      {permit.statut === 'CLOTURE' && (
+      {/* Section CLOTURE / PV */}
+      {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold text-gray-800">
@@ -460,6 +470,98 @@ export default function PermitTravailDetailPage() {
         </Card>
       )}
 
+      {/* Validation PV — Chef de Projet */}
+      {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (canValiderPv || canRefuserPv || !!latestPvDecision) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-800">
+              <ClipboardCheck className="inline mr-2 h-4 w-4 text-gray-400" />
+              Validation PV — Chef de Projet
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {permit.statut === 'CLOTURE' && (canValiderPv || canRefuserPv) && (
+              <div className="flex items-center gap-3">
+                {canValiderPv && (
+                  <Button
+                    className="bg-green-600 text-white hover:bg-green-700"
+                    onClick={() => setPvValiderOpen(true)}
+                  >
+                    <ClipboardCheck className="mr-2 h-4 w-4" />
+                    Valider le PV
+                  </Button>
+                )}
+                {canRefuserPv && (
+                  <Button variant="danger" onClick={() => setPvRefuserOpen(true)}>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Refuser le PV
+                  </Button>
+                )}
+              </div>
+            )}
+            {latestPvDecision ? (
+              <dl className="space-y-3">
+                <InfoRow
+                  label="Décision"
+                  value={
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                      latestPvDecision.decision === 'VALIDE'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {latestPvDecision.decision === 'VALIDE' ? (
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5" />
+                      )}
+                      {latestPvDecision.decision === 'VALIDE' ? 'PV Validé' : 'PV Refusé'}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Décidé par"
+                  value={
+                    latestPvDecision.decidePar
+                      ? `${latestPvDecision.decidePar.firstname ?? ''} ${latestPvDecision.decidePar.name}`.trim()
+                      : '—'
+                  }
+                />
+                <InfoRow
+                  label="Date"
+                  value={new Date(latestPvDecision.decidedAt).toLocaleDateString('fr-FR')}
+                />
+                <InfoRow
+                  label="Signature électronique"
+                  value={
+                    <span className="font-mono text-xs text-gray-600 break-all">
+                      {latestPvDecision.signatureElectronique}
+                    </span>
+                  }
+                />
+                {latestPvDecision.commentaire && (
+                  <InfoRow
+                    label={latestPvDecision.decision === 'REFUSE' ? 'Motif du refus' : 'Commentaire'}
+                    value={
+                      <p className={`text-sm rounded px-3 py-2 ${
+                        latestPvDecision.decision === 'REFUSE'
+                          ? 'bg-red-50 text-red-700'
+                          : 'bg-gray-50 text-gray-700'
+                      }`}>
+                        {latestPvDecision.commentaire}
+                      </p>
+                    }
+                  />
+                )}
+              </dl>
+            ) : (
+              permit.statut === 'CLOTURE' && !canValiderPv && !canRefuserPv && (
+                <p className="text-sm text-gray-500">En attente de validation par le Chef de Projet.</p>
+              )
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <ValiderPermitModal
         isOpen={validerOpen}
         permitId={permit.id}
@@ -483,6 +585,22 @@ export default function PermitTravailDetailPage() {
         isCloturer={isCloturer}
         onClose={() => setCloturerOpen(false)}
         onCloturer={cloturerPermit}
+      />
+      <PvValiderModal
+        isOpen={pvValiderOpen}
+        permitId={permit.id}
+        permitReference={permit.reference}
+        isValiderPv={isValiderPv}
+        onClose={() => setPvValiderOpen(false)}
+        onValider={validerPv}
+      />
+      <PvRefuserModal
+        isOpen={pvRefuserOpen}
+        permitId={permit.id}
+        permitReference={permit.reference}
+        isRefuserPv={isRefuserPv}
+        onClose={() => setPvRefuserOpen(false)}
+        onRefuser={refuserPv}
       />
     </div>
   )
