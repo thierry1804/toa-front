@@ -4,6 +4,7 @@ import { permitTravailApi } from '@/api/permitTravailApi'
 import { interventionApi } from '@/api/interventionApi'
 import { PERMIT_TRAVAIL_KEY, INTERVENTION_KEY, DASHBOARD_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
+import { isOfflineQueued } from '@/offline/offlineError'
 import type {
   PermitTravail,
   PermitTravailInput,
@@ -325,7 +326,7 @@ export function usePermitTravail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la création du permis', type: 'error' })
     },
   })
@@ -336,7 +337,7 @@ export function usePermitTravail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la mise à jour du permis', type: 'error' })
     },
   })
@@ -348,7 +349,7 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'Document téléversé avec succès', type: 'success' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors du téléversement du document', type: 'error' })
     },
   })
@@ -368,7 +369,7 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'Permis validé avec succès', type: 'success' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la validation du permis', type: 'error' })
     },
   })
@@ -380,7 +381,7 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'Permis refusé', type: 'success' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors du refus du permis', type: 'error' })
     },
   })
@@ -392,7 +393,7 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'Permis clôturé — PV de réception en cours de génération', type: 'success' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la clôture du permis', type: 'error' })
     },
   })
@@ -416,7 +417,7 @@ export function usePermitTravail() {
       addToast({ message: 'PV de réception validé avec succès', type: 'success' })
       addToast({ message: 'HSE notifié pour archivage', type: 'info' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la validation du PV', type: 'error' })
     },
   })
@@ -428,7 +429,7 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'PV de réception refusé — prestataire notifié', type: 'success' })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors du refus du PV', type: 'error' })
     },
   })

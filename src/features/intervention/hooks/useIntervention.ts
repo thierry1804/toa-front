@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isOfflineQueued } from '@/offline/offlineError'
 import { interventionApi } from '@/api/interventionApi'
 import { INTERVENTION_KEY, PERMIT_TRAVAIL_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
@@ -78,7 +79,7 @@ export function useIntervention() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       return data
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: "Erreur lors de la création de l'évaluation", type: 'error' })
     },
   })
@@ -96,7 +97,7 @@ export function useIntervention() {
     onSuccess: (_, { interventionId }) => {
       queryClient.invalidateQueries({ queryKey: [...INTERVENTION_KEY, interventionId] })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la mise à jour du risque', type: 'error' })
     },
   })
@@ -177,7 +178,7 @@ export function useSuiviJournalier(interventionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: suiviKey })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de l\'upload du document', type: 'error' })
     },
   })
@@ -188,7 +189,7 @@ export function useSuiviJournalier(interventionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: suiviKey })
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: 'Erreur lors de la suppression du document', type: 'error' })
     },
   })

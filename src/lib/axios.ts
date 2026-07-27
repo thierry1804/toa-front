@@ -3,6 +3,8 @@ import i18n from "@/lib/i18n";
 import { useUiStore } from "@/store/ui.store";
 import { useAuthStore, derivePermissionsFromRoles } from "@/store/auth.store";
 import { decodeJwtPayload } from "@/utils/jwt";
+import { syncQueue } from "@/offline/syncQueue";
+import { OfflineQueuedError } from "@/offline/offlineError";
 
 declare module "axios" {
   interface AxiosRequestConfig {
@@ -101,6 +103,39 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+      }
+    }
+
+    // Network error on mutating request → queue for offline sync
+    if (!error.response && !originalRequest?._skipAuthInterceptor) {
+      const method = (originalRequest?.method ?? '').toUpperCase() as string
+      const queueable = ['POST', 'PUT', 'PATCH', 'DELETE']
+      const isFormData =
+        typeof FormData !== 'undefined' && originalRequest?.data instanceof FormData
+
+      if (queueable.includes(method) && !isFormData) {
+        let body: unknown
+        try {
+          body =
+            typeof originalRequest?.data === 'string'
+              ? JSON.parse(originalRequest.data)
+              : originalRequest?.data
+        } catch {
+          body = originalRequest?.data
+        }
+
+        void syncQueue.add({
+          url:    originalRequest?.url ?? '',
+          method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+          body,
+        })
+
+        useUiStore.getState().addToast({
+          message: i18n.t('offline.queued', 'Action sauvegardée hors ligne'),
+          type:    'warning',
+        })
+
+        return Promise.reject(new OfflineQueuedError())
       }
     }
 

@@ -9,7 +9,12 @@ import StatutBadge from '@/components/planPrevention/StatutBadge'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
 import ValiderModal from '@/components/planPrevention/ValiderModal'
 import RefuserModal from '@/components/planPrevention/RefuserModal'
-import { usePlanPreventions, usePlanPrevention, usePlanPreventionPdf } from '@/features/planPrevention/hooks/usePlanPrevention'
+import {
+  usePlanPreventionList,
+  PLAN_PREVENTION_PAGE_SIZE,
+  usePlanPrevention,
+  usePlanPreventionPdf,
+} from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { usePermission, useHasRole } from '@/features/auth/usePermission'
 import { useAuthStore } from '@/store/auth.store'
@@ -179,7 +184,12 @@ export default function PlanPreventionListPage() {
   const isPrestataire = useHasRole('ROLE_PRESTATAIRE')
   const currentUserId = useAuthStore((s) => s.user?.id)
 
-  const { data: plans = [], isLoading, isError } = usePlanPreventions()
+  const [page, setPage] = useState(1)
+  const { data: collection, isLoading, isError } = usePlanPreventionList(page)
+  const plans      = collection?.member ?? []
+  const totalItems = collection?.totalItems ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalItems / PLAN_PREVENTION_PAGE_SIZE))
+
   const { examinerPlan, isExamining, validerPlan, isValidating, refuserPlan, isRefusing } =
     usePlanPrevention()
 
@@ -232,7 +242,7 @@ export default function PlanPreventionListPage() {
             </div>
           )}
 
-          {!isLoading && !isError && plans.length === 0 && (
+          {!isLoading && !isError && totalItems === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <FileText className="mb-4 h-12 w-12 text-gray-300" />
               <p className="font-medium text-gray-500">{t('planPrevention.list.empty')}</p>
@@ -245,39 +255,64 @@ export default function PlanPreventionListPage() {
           )}
 
           {!isLoading && !isError && plans.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {headers.map((h, i) => (
-                      <th
-                        key={i}
-                        className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
-                      >
-                        {h}
-                      </th>
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {headers.map((h, i) => (
+                        <th
+                          key={i}
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {plans.map((plan) => (
+                      <PlanRow
+                        key={plan.id}
+                        plan={plan}
+                        canExamine={canExamine}
+                        canValiderHse={canValiderHse}
+                        canRefuserHse={canRefuserHse}
+                        canResoumettre={canResoumettre}
+                        isOwnPlan={!!currentUserId && String(plan.createdBy.id) === currentUserId}
+                        isPrestataire={isPrestataire}
+                        onExaminerClick={setSelectedExaminer}
+                        onValiderClick={setSelectedValider}
+                        onRefuserClick={setSelectedRefuser}
+                      />
                     ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {plans.map((plan) => (
-                    <PlanRow
-                      key={plan.id}
-                      plan={plan}
-                      canExamine={canExamine}
-                      canValiderHse={canValiderHse}
-                      canRefuserHse={canRefuserHse}
-                      canResoumettre={canResoumettre}
-                      isOwnPlan={!!currentUserId && String(plan.createdBy.id) === currentUserId}
-                      isPrestataire={isPrestataire}
-                      onExaminerClick={setSelectedExaminer}
-                      onValiderClick={setSelectedValider}
-                      onRefuserClick={setSelectedRefuser}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+                  <p className="text-sm text-gray-600">
+                    Page {page} / {totalPages} ({totalItems} plan{totalItems !== 1 ? 's' : ''})
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Précédent
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

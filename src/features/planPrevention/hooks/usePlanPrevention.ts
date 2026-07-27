@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { isOfflineQueued } from "@/offline/offlineError";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { planPreventionApi } from "@/api/planPreventionApi";
@@ -175,6 +176,23 @@ export function usePlanPreventions(params?: Record<string, string>) {
   });
 }
 
+const PAGE_SIZE = 10
+
+export function usePlanPreventionList(page: number, filters?: Record<string, string>) {
+  const params: Record<string, string> = {
+    ...filters,
+    page: String(page),
+    itemsPerPage: String(PAGE_SIZE),
+  }
+  return useQuery({
+    queryKey: [...PLAN_PREVENTION_KEY, 'list', page, filters],
+    queryFn: () => planPreventionApi.list(params),
+    placeholderData: (prev) => prev,
+  })
+}
+
+export { PAGE_SIZE as PLAN_PREVENTION_PAGE_SIZE }
+
 export function usePlanPreventionDetail(id: string) {
   return useQuery({
     queryKey: [...PLAN_PREVENTION_KEY, id],
@@ -194,7 +212,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors de la création du plan",
         type: "error",
@@ -213,7 +231,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors de la mise à jour du plan",
         type: "error",
@@ -235,7 +253,7 @@ export function usePlanPrevention() {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
       addToast({ message: "Document téléversé avec succès", type: "success" });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors du téléversement du document",
         type: "error",
@@ -261,7 +279,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors de la suppression du site",
         type: "error",
@@ -323,7 +341,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({ message: "Erreur lors de l'ajout du risque", type: "error" });
     },
   });
@@ -341,7 +359,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors de la mise à jour du risque",
         type: "error",
@@ -355,7 +373,7 @@ export function usePlanPrevention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
-    onError: () => {
+    onError: (error) => { if (isOfflineQueued(error)) return
       addToast({
         message: "Erreur lors de la suppression du risque",
         type: "error",

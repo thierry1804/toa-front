@@ -2,9 +2,11 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { useRefreshPermissions } from '@/features/auth/useAuth'
+import { useSyncOnReconnect } from '@/hooks/useSyncOnReconnect'
 
 export function AppShell() {
   useRefreshPermissions()
+  useSyncOnReconnect()
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">

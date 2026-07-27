@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import "@/lib/i18n";
+import { restoreQueryCache, setupQueryPersistence } from "@/offline/setupQueryPersistence";
 import { AppShell } from "@/components/layout/AppShell";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import LoginPage from "@/pages/auth/LoginPage";
@@ -39,6 +40,10 @@ import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import DashboardKpisPage from "@/pages/hse/DashboardKpisPage";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
+
+setupQueryPersistence(queryClient)
+
+restoreQueryCache(queryClient).catch(() => {})
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
