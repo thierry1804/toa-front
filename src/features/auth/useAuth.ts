@@ -29,6 +29,9 @@ export function useLogin() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       localStorage.setItem('access_token', data.token)
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token)
+      }
       const payload = decodeJwtPayload(data.token)
       setUser({
         id: String(data.user?.id ?? payload?.id ?? ''),
