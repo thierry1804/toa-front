@@ -159,6 +159,7 @@
     }
   },
   "planning": {
+    "project": "Projet",
     "title": "Planification des activités ",
     "newPlanning": "Nouvelle planification",
     "description": "Gestion du calendrier des interventions sur sites",
