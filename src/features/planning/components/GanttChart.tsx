@@ -3,6 +3,7 @@ import type { ActivityPlanning, ActivityPlanningStatus } from '@/types'
 import { formatDate } from '@/utils/date'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { BarChart2 } from 'lucide-react'
+import { useTranslation } from "react-i18next";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -188,6 +189,8 @@ export default function GanttChart({ activities }: Props) {
     }
   }
 
+  const { t } = useTranslation();
+
   // ── render ──
   return (
     <Card className="w-full max-w-full h-full flex flex-col overflow-hidden">
@@ -225,7 +228,9 @@ export default function GanttChart({ activities }: Props) {
               className="shrink-0 px-3 flex items-center text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200"
               style={{ height: HEADER_H }}
             >
-              Activité
+            {
+              t('planning.project')
+            }
             </div>
 
             {/* Label rows — overflow hidden, scrollTop driven by rightRef */}
