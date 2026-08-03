@@ -160,6 +160,19 @@
   },
   "planning": {
     "project": "Projet",
+    "sections": {
+      "ajouter_section": "Ajouter une section",
+      "supprimer_section": "Supprimer la section",
+      "nom_section": "Nom de la section",
+      "nom_section_mg": "Nom (Malagasy)",
+      "col_tache": "Tâche",
+      "col_materiel": "Matériel/Outillage",
+      "col_qui": "Qui ?",
+      "ajouter_ligne": "Ajouter une ligne",
+      "aucune_section": "Aucune section",
+      "aucune_tache": "Aucune tâche",
+      "title": "Sections et tâches"
+    },
     "title": "Planification des activités ",
     "newPlanning": "Nouvelle planification",
     "description": "Gestion du calendrier des interventions sur sites",
@@ -174,7 +187,7 @@
     "search": "Rechercher par procédé, prestataire, site...",
     "filterStatus": "Filtrer par statut",
     "table": {
-      "activity": "Activité",
+      "project": "Projet",
       "site": "Site",
       "provider": "Prestataire",
       "dates": "Dates",

@@ -211,17 +211,44 @@ export interface ActivityPlanningAudit {
   changedAt: string
 }
 
+export interface TachePlanifieeItem {
+  id: string
+  ordre: number
+  tache: string
+  materiel?: string | null
+  qui?: string | null
+}
+
+export interface SectionPlanifieeItem {
+  id: string
+  libelle: string
+  ordre: number
+  taches: TachePlanifieeItem[]
+  createdAt?: string
+}
+
+export interface TaskRow {
+  localId: string
+  tache: string
+  materiel: string
+  qui: string
+}
+
+export interface SectionRow {
+  localId: string
+  libelle: string
+  libelleMg: string
+  taches: TaskRow[]
+}
+
 export interface ActivityPlanning {
   '@id': string
   id: number
   process: string
   provider: string
   providerEmail: string | null
-  projectDescription: string
   siteCode: string
-  siteNumber: string
   siteName: string
-  region: string
   theoreticalStartDate?: string | null
   expectedStartDate: string
   expectedEndDate: string
@@ -230,42 +257,45 @@ export interface ActivityPlanning {
   status: ActivityPlanningStatus
   permitReference: string | null
   permitValidated: boolean
+  sections?: SectionPlanifieeItem[]
   auditLogs?: ActivityPlanningAudit[]
   createdAt: string
   updatedAt: string
   createdBy?: { '@id': string; id: number; email: string; name: string; firstname?: string | null } | null
 }
 
+export interface SectionPayload {
+  libelle: string
+  ordre: number
+  taches: { ordre: number; tache: string; materiel?: string; qui?: string }[]
+}
+
 export interface ActivityPlanningCreate {
   process: string
   provider: string
   providerEmail?: string
-  projectDescription: string
   siteCode: string
-  siteNumber: string
   siteName: string
-  region: string
   expectedStartDate: string
   expectedEndDate: string
   status?: ActivityPlanningStatus
   permitReference?: string
   permitValidated?: boolean
+  sections?: SectionPayload[]
 }
 
 export interface ActivityPlanningUpdate {
   process?: string
   provider?: string
   providerEmail?: string
-  projectDescription?: string
   siteCode?: string
-  siteNumber?: string
   siteName?: string
-  region?: string
   expectedStartDate?: string
   expectedEndDate?: string
   status?: ActivityPlanningStatus
   permitReference?: string
   permitValidated?: boolean
+  sections?: SectionPayload[]
 }
 
 export interface ValidationInterventionJournaliere {

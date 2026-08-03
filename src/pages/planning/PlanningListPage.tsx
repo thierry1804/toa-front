@@ -272,7 +272,7 @@ export default function PlanningListPage() {
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        {t("planning.table.activity")}
+                        {t("planning.table.project")}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {t("planning.table.site")}
@@ -305,9 +305,6 @@ export default function PlanningListPage() {
                                 <p className="text-sm font-medium text-gray-900">
                                   {p.process}
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                  {p.region}
-                                </p>
                               </div>
                             </div>
                           </td>
@@ -317,7 +314,7 @@ export default function PlanningListPage() {
                               {p.siteName}
                             </div>
                             <p className="text-xs text-gray-500">
-                              {p.siteCode} - N°{p.siteNumber}
+                              {p.siteCode}
                             </p>
                           </td>
                           <td className="px-4 py-4">
@@ -401,9 +398,6 @@ export default function PlanningListPage() {
                             <p className="text-sm font-semibold text-gray-900 truncate">
                               {p.process}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {p.region}
-                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -435,7 +429,7 @@ export default function PlanningListPage() {
                           <span className="truncate">{p.siteName}</span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          {p.siteCode} - N°{p.siteNumber}
+                          {p.siteCode}
                         </p>
                         <p className="text-gray-900">{p.provider}</p>
                         {p.providerEmail && (

@@ -160,6 +160,19 @@
   },
   "planning": {
     "project": "Tetikasa",
+    "sections": {
+      "ajouter_section": "Manampy fizarana",
+      "supprimer_section": "Fafao ny fizarana",
+      "nom_section": "Anarana ny fizarana",
+      "nom_section_mg": "Anarana (Malagasy)",
+      "col_tache": "Asa hatao",
+      "col_materiel": "Fitaovana",
+      "col_qui": "Iza ?",
+      "ajouter_ligne": "Manampy andalana",
+      "aucune_section": "Tsy misy fizarana",
+      "aucune_tache": "Tsy misy asa",
+      "title": "Fizarana sy asa"
+    },
     "title": "Fandrindrana ny hetsika ",
     "newPlanning": "Fandrindrana vaovao",
     "description": "Fitantanana ny fandaharam-potoan'ny fitsabahana eny an-toerana",
@@ -174,7 +187,7 @@
     "search": "Karohina araka ny dingana, mpanome tolotra, toerana...",
     "filterStatus": "Sivanina araka ny sata",
     "table": {
-      "activity": "Hetsika",
+      "project": "Tetikasa",
       "site": "Toerana",
       "provider": "Mpanome tolotra",
       "dates": "Daty",

@@ -13,8 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import Textarea from "@/components/ui/Textarea";
-import type { ActivityPlanning } from "@/types";
+import type { ActivityPlanning, SectionRow } from "@/types";
 import { formatUserDisplayName } from "@/utils/format";
 import {
   ArrowLeft,
@@ -23,8 +22,10 @@ import {
   MapPin,
   Building2,
   Clock,
+  ListChecks,
 } from "lucide-react";
 import { statusOptions } from "@/data/constant/planning";
+import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
 
 function toLocalDatetimeInput(isoString: string): string {
   const d = new Date(isoString)
@@ -33,7 +34,8 @@ function toLocalDatetimeInput(isoString: string): string {
 }
 
 export default function PlanningFormPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = (i18n.language?.startsWith('mg') ? 'mg' : 'fr') as 'fr' | 'mg';
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const perms = usePermissions('/planning');
@@ -59,13 +61,11 @@ export default function PlanningFormPage() {
       fields.push(
         "process",
         "siteCode",
-        "siteNumber",
         "siteName",
-        "region",
         "expectedStartDate",
         "expectedEndDate",
       );
-    if (existing.permitValidated) fields.push("provider", "projectDescription");
+    if (existing.permitValidated) fields.push("provider");
     return fields;
   })();
 
@@ -73,16 +73,14 @@ export default function PlanningFormPage() {
     process: "",
     provider: "",
     providerEmail: "",
-    projectDescription: "",
     siteCode: "",
-    siteNumber: "",
     siteName: "",
-    region: "",
     expectedStartDate: "",
     expectedEndDate: "",
     status: "planifie",
   });
 
+  const [sections, setSections] = useState<SectionRow[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const prestataireOptions = prestataires.map((p) => ({
@@ -105,15 +103,25 @@ export default function PlanningFormPage() {
         process: existing.process,
         provider: existing.provider,
         providerEmail: existing.providerEmail ?? "",
-        projectDescription: existing.projectDescription,
         siteCode: existing.siteCode,
-        siteNumber: existing.siteNumber,
         siteName: existing.siteName,
-        region: existing.region,
         expectedStartDate: toLocalDatetimeInput(existing.expectedStartDate),
         expectedEndDate: toLocalDatetimeInput(existing.expectedEndDate),
         status: existing.status,
       });
+      setSections(
+        (existing.sections ?? []).map((s) => ({
+          localId: s.id,
+          libelle: s.libelle,
+          libelleMg: '',
+          taches: s.taches.map((tk) => ({
+            localId: tk.id,
+            tache: tk.tache,
+            materiel: tk.materiel ?? '',
+            qui: tk.qui ?? '',
+          })),
+        }))
+      );
     }
   }, [existing]);
 
@@ -131,15 +139,10 @@ export default function PlanningFormPage() {
       newErrors.process = t('planning.validation.processRequired');
     if (!formData.provider.trim())
       newErrors.provider = t('planning.validation.providerRequired');
-    if (!formData.projectDescription.trim())
-      newErrors.projectDescription = t('planning.validation.descriptionRequired');
     if (!formData.siteCode.trim())
       newErrors.siteCode = t('planning.validation.siteCodeRequired');
-    if (!formData.siteNumber.trim())
-      newErrors.siteNumber = t('planning.validation.siteNumberRequired');
     if (!formData.siteName.trim())
       newErrors.siteName = t('planning.validation.siteNameRequired');
-    if (!formData.region.trim()) newErrors.region = t('planning.validation.regionRequired');
     if (!formData.expectedStartDate)
       newErrors.expectedStartDate = t('planning.validation.expectedStartDateRequired');
     if (!formData.expectedEndDate)
@@ -165,18 +168,27 @@ export default function PlanningFormPage() {
       return;
     }
 
+    const sectionsPayload = sections.map((s, si) => ({
+      libelle: s.libelle,
+      ordre: si,
+      taches: s.taches.map((tk, ti) => ({
+        ordre: ti,
+        tache: tk.tache,
+        materiel: tk.materiel || undefined,
+        qui: tk.qui || undefined,
+      })),
+    }));
+
     const payload = {
       process: formData.process.trim(),
       provider: formData.provider.trim(),
       providerEmail: formData.providerEmail.trim() || undefined,
-      projectDescription: formData.projectDescription.trim(),
       siteCode: formData.siteCode.trim(),
-      siteNumber: formData.siteNumber.trim(),
       siteName: formData.siteName.trim(),
-      region: formData.region.trim(),
       expectedStartDate: new Date(formData.expectedStartDate).toISOString(),
       expectedEndDate: new Date(formData.expectedEndDate).toISOString(),
       status: formData.status as ActivityPlanning["status"],
+      sections: sectionsPayload,
     };
 
     if (isEditMode && existing) {
@@ -259,16 +271,6 @@ export default function PlanningFormPage() {
               required
               disabled={lockedFields.includes("process")}
             />
-            <Textarea
-              className="text-gray-900"
-              label={t('planning.form.projectDescription')}
-              value={formData.projectDescription}
-              onChange={(e) => set("projectDescription", e.target.value)}
-              error={errors.projectDescription}
-              placeholder={t('planning.form.projectDescriptionPlaceholder')}
-              required
-              disabled={lockedFields.includes("projectDescription")}
-            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label={t('planning.form.provider')}
@@ -300,7 +302,7 @@ export default function PlanningFormPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t('planning.form.siteCode')}
                 value={formData.siteCode}
@@ -309,15 +311,6 @@ export default function PlanningFormPage() {
                 placeholder={t('planning.form.siteCodePlaceholder')}
                 required
                 disabled={lockedFields.includes("siteCode")}
-              />
-              <Input
-                label={t('planning.form.siteNumber')}
-                value={formData.siteNumber}
-                onChange={(e) => set("siteNumber", e.target.value)}
-                error={errors.siteNumber}
-                placeholder={t('planning.form.siteNumberPlaceholder')}
-                required
-                disabled={lockedFields.includes("siteNumber")}
               />
               <Input
                 label={t('planning.form.siteName')}
@@ -329,15 +322,6 @@ export default function PlanningFormPage() {
                 disabled={lockedFields.includes("siteName")}
               />
             </div>
-            <Input
-              label={t('planning.form.region')}
-              value={formData.region}
-              onChange={(e) => set("region", e.target.value)}
-              error={errors.region}
-              placeholder={t('planning.form.regionPlaceholder')}
-              required
-              disabled={lockedFields.includes("region")}
-            />
           </CardContent>
         </Card>
 
@@ -390,6 +374,22 @@ export default function PlanningFormPage() {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <ListChecks className="h-5 w-5 text-blue-600" />
+              {t('planning.sections.title')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PlanningSectionManager
+              value={sections}
+              onChange={setSections}
+              lang={currentLang}
+            />
           </CardContent>
         </Card>
 

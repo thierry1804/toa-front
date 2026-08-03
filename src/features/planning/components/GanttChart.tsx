@@ -238,13 +238,14 @@ export default function GanttChart({ activities }: Props) {
               {valid.map((a) => (
                 <div
                   key={a.id}
-                  className="px-3 flex flex-col justify-center border-b border-gray-100 hover:bg-blue-50/30 transition-colors"
+                  className="px-3 flex flex-col justify-center overflow-hidden border-b border-gray-100 hover:bg-blue-50/30 transition-colors"
                   style={{ height: ROW_H }}
                 >
-                  <p className="text-xs sm:text-sm font-medium text-gray-900 truncate" title={a.process}>
+                  <p className="text-xs sm:text-sm font-medium leading-tight text-gray-900 truncate" title={a.process}>
                     {a.process}
                   </p>
-                  <p className="text-[10px] sm:text-xs text-gray-400 truncate">{a.siteName}</p>
+                  <p className="text-[10px] sm:text-xs leading-tight text-gray-400 truncate">{a.siteName}</p>
+                  <p className="text-[10px] leading-tight text-blue-500 truncate" title={a.provider}>{a.provider}</p>
                 </div>
               ))}
             </div>
