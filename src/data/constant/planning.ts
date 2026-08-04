@@ -28,3 +28,18 @@ export const statusOptions = [
   { value: "annule", label: "Annulé" },
   { value: "stand_by", label: "Stand By" },
 ]
+
+export const INTERVENTION_TYPES = [
+  'Nouveau site',
+  'Vie de Réseau',
+  'Infrastructure',
+  'Opération et Mainténance',
+  'Energie',
+] as const
+
+export type InterventionType = typeof INTERVENTION_TYPES[number]
+
+export const interventionTypeOptions = [
+  { value: '', label: '— Choisir un type —' },
+  ...INTERVENTION_TYPES.map((t) => ({ value: t, label: t })),
+]

@@ -507,48 +507,6 @@
     }
   },
   "roles": {
-    "super_admin": "Super Admin",
-    "admin": "Admin",
-    "chef_projet": "Chef de Projet",
-    "hse": "HSE",
-    "prestataire": "Prestataire",
-    "dg": "DG"
-  },
-  "offline": {
-    "banner": "Mode hors-ligne"
-  },
-  "errors": {
-    "incorrect_credentials": "Identifiants incorrects",
-    "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
-    "email_required": "L'email est obligatoire",
-    "email_invalid": "L'email n'est pas un email valide",
-    "email_already_used": "Email déjà utilisé",
-    "name_required": "Le nom est obligatoire",
-    "password_required": "Le mot de passe est obligatoire",
-    "role_required": "Le rôle est obligatoire",
-    "site_code_required": "Le code site est requis",
-    "activity_site_code_required": "Le code site est requis",
-    "process_required": "Le procédé est obligatoire",
-    "provider_required": "Le prestataire est obligatoire",
-    "project_description_required": "La description du projet est obligatoire",
-    "site_number_required": "Le numéro site est obligatoire",
-    "site_name_required": "Le nom du site est obligatoire",
-    "region_required": "La région est obligatoire",
-    "theoretical_start_date_required": "La date théorique de début est obligatoire",
-    "expected_start_date_required": "La date de début prévue est obligatoire",
-    "expected_end_date_required": "La date de fin prévue est obligatoire",
-    "dates_incoherent": "Les dates ne sont pas cohérentes",
-    "locked_fields_not_modifiable": "Certains champs ne peuvent pas être modifiés car le planning est verrouillé",
-    "conflict_with_active_interventions": "Conflit avec des interventions en cours",
-    "menu_name_required": "Le nom du menu est obligatoire",
-    "menu_position_required": "La position du menu est obligatoire",
-    "menu_access_menu_required": "Le menu est obligatoire",
-    "menu_access_role_required": "Le rôle est obligatoire",
-    "access_denied": "Accès refusé",
-    "account_not_activated": "Compte non activé",
-    "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte."
-  },
-  "roles": {
     "title": "Gestion des rôles",
     "newRole": "Nouveau rôle",
     "description": "Créer et gérer les rôles de la plateforme",
@@ -605,6 +563,85 @@
       "saveError": "Erreur lors de l'enregistrement",
       "deleteError": "Erreur lors de la suppression",
       "deleteErrorInUse": "Ce rôle est assigné à des utilisateurs et ne peut pas être supprimé"
+    }
+  },
+  "offline": {
+    "banner": "Mode hors-ligne"
+  },
+  "errors": {
+    "incorrect_credentials": "Identifiants incorrects",
+    "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
+    "email_required": "L'email est obligatoire",
+    "email_invalid": "L'email n'est pas un email valide",
+    "email_already_used": "Email déjà utilisé",
+    "name_required": "Le nom est obligatoire",
+    "password_required": "Le mot de passe est obligatoire",
+    "role_required": "Le rôle est obligatoire",
+    "site_code_required": "Le code site est requis",
+    "activity_site_code_required": "Le code site est requis",
+    "process_required": "Le procédé est obligatoire",
+    "provider_required": "Le prestataire est obligatoire",
+    "project_description_required": "La description du projet est obligatoire",
+    "site_number_required": "Le numéro site est obligatoire",
+    "site_name_required": "Le nom du site est obligatoire",
+    "region_required": "La région est obligatoire",
+    "theoretical_start_date_required": "La date théorique de début est obligatoire",
+    "expected_start_date_required": "La date de début prévue est obligatoire",
+    "expected_end_date_required": "La date de fin prévue est obligatoire",
+    "dates_incoherent": "Les dates ne sont pas cohérentes",
+    "locked_fields_not_modifiable": "Certains champs ne peuvent pas être modifiés car le planning est verrouillé",
+    "conflict_with_active_interventions": "Conflit avec des interventions en cours",
+    "menu_name_required": "Le nom du menu est obligatoire",
+    "menu_position_required": "La position du menu est obligatoire",
+    "menu_access_menu_required": "Le menu est obligatoire",
+    "menu_access_role_required": "Le rôle est obligatoire",
+    "access_denied": "Accès refusé",
+    "account_not_activated": "Compte non activé",
+    "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte."
+  },
+  "referentiel": {
+    "title": "Référentiel",
+    "sites": {
+      "title": "Gestion de sites",
+      "subtitle": "Import et gestion des sites depuis fichiers KMZ",
+      "importSection": "Importer un fichier KMZ",
+      "historySection": "Historique des imports",
+      "listSection": "Liste des sites",
+      "import": {
+        "button": "Importer un fichier KMZ",
+        "loading": "Import en cours...",
+        "hint": "Format accepté : .kmz (Google Earth) — max 20 MB",
+        "success": "{{count}} site(s) importé(s) avec succès",
+        "ignored": "· {{count}} ignoré(s) (sans coordonnées)",
+        "error": "Erreur lors de l'import du fichier KMZ",
+        "formatError": "Format KMZ requis (.kmz)"
+      },
+      "table": {
+        "fichier": "Fichier",
+        "date": "Date d'import",
+        "nbSites": "Nb. sites",
+        "actions": "Actions",
+        "nom": "Nom du site",
+        "fokontany": "Fokontany",
+        "commune": "Commune",
+        "district": "District",
+        "coordonnees": "Coordonnées",
+        "source": "Import source",
+        "empty": "Aucun import KMZ.",
+        "emptySites": "Aucun site trouvé."
+      },
+      "delete": {
+        "title": "Supprimer l'import KMZ",
+        "message": "Supprimer cet import supprimera également tous les sites liés dans les Plans de Prévention. Cette action est irréversible.",
+        "confirm": "Supprimer",
+        "cancel": "Annuler",
+        "success": "Import KMZ supprimé avec succès",
+        "error": "Erreur lors de la suppression"
+      }
+    },
+    "listes": {
+      "title": "Gestion de liste",
+      "subtitle": "À implémenter"
     }
   }
 }

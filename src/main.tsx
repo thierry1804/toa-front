@@ -38,6 +38,8 @@ import InterventionSuiviHsePage from "@/pages/interventions/InterventionSuiviHse
 import InterventionDetailHsePage from "@/pages/interventions/InterventionDetailHsePage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import DashboardKpisPage from "@/pages/hse/DashboardKpisPage";
+import GestionSitesPage from "@/pages/referentiel/GestionSitesPage";
+import GestionListesPage from "@/pages/referentiel/GestionListesPage";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
 
@@ -139,6 +141,14 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/hse/dashboard" />}>
               <Route path="/hse/dashboard" element={<DashboardKpisPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/referentiel/sites" />}>
+              <Route path="/referentiel/sites" element={<GestionSitesPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/referentiel/listes" />}>
+              <Route path="/referentiel/listes" element={<GestionListesPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

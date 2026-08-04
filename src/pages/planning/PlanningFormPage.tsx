@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { statusOptions } from "@/data/constant/planning";
 import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
+import SiteSelectorBlock from "@/components/planning/SiteSelectorBlock";
+import type { PlanSiteRow } from "@/components/planning/SiteSelectorBlock";
 
 function toLocalDatetimeInput(isoString: string): string {
   const d = new Date(isoString)
@@ -64,10 +66,14 @@ export default function PlanningFormPage() {
         "siteName",
         "expectedStartDate",
         "expectedEndDate",
+        "typeIntervention",
+        "sites",
       );
     if (existing.permitValidated) fields.push("provider");
     return fields;
   })();
+
+  const sitesLocked = lockedFields.includes("sites");
 
   const [formData, setFormData] = useState({
     process: "",
@@ -75,11 +81,13 @@ export default function PlanningFormPage() {
     providerEmail: "",
     siteCode: "",
     siteName: "",
+    typeIntervention: "",
     expectedStartDate: "",
     expectedEndDate: "",
     status: "planifie",
   });
 
+  const [planSites, setPlanSites] = useState<PlanSiteRow[]>([]);
   const [sections, setSections] = useState<SectionRow[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -105,10 +113,14 @@ export default function PlanningFormPage() {
         providerEmail: existing.providerEmail ?? "",
         siteCode: existing.siteCode,
         siteName: existing.siteName,
+        typeIntervention: existing.typeIntervention ?? "",
         expectedStartDate: toLocalDatetimeInput(existing.expectedStartDate),
         expectedEndDate: toLocalDatetimeInput(existing.expectedEndDate),
         status: existing.status,
       });
+      if (existing.sites && existing.sites.length > 0) {
+        setPlanSites(existing.sites.map((s) => ({ ...s, found: null })))
+      }
       setSections(
         (existing.sections ?? []).map((s) => ({
           localId: s.id,
@@ -139,10 +151,20 @@ export default function PlanningFormPage() {
       newErrors.process = t('planning.validation.processRequired');
     if (!formData.provider.trim())
       newErrors.provider = t('planning.validation.providerRequired');
-    if (!formData.siteCode.trim())
-      newErrors.siteCode = t('planning.validation.siteCodeRequired');
-    if (!formData.siteName.trim())
-      newErrors.siteName = t('planning.validation.siteNameRequired');
+
+    if (!formData.typeIntervention)
+      newErrors.typeIntervention = "Type d'intervention requis";
+
+    if (formData.typeIntervention === 'Nouveau site') {
+      if (!formData.siteCode.trim())
+        newErrors.siteCode = t('planning.validation.siteCodeRequired');
+      if (!formData.siteName.trim())
+        newErrors.siteName = t('planning.validation.siteNameRequired');
+    } else if (formData.typeIntervention) {
+      if (planSites.length === 0)
+        newErrors.planSites = "Au moins un site est requis";
+    }
+
     if (!formData.expectedStartDate)
       newErrors.expectedStartDate = t('planning.validation.expectedStartDateRequired');
     if (!formData.expectedEndDate)
@@ -168,6 +190,16 @@ export default function PlanningFormPage() {
       return;
     }
 
+    const isNewSite = formData.typeIntervention === 'Nouveau site';
+
+    // Compute siteCode/siteName for backward compat
+    const primaryCode = isNewSite
+      ? formData.siteCode.trim()
+      : (planSites[0]?.codeSite ?? '')
+    const primaryName = isNewSite
+      ? formData.siteName.trim()
+      : (planSites[0]?.nomSite ?? '')
+
     const sectionsPayload = sections.map((s, si) => ({
       libelle: s.libelle,
       ordre: si,
@@ -183,8 +215,10 @@ export default function PlanningFormPage() {
       process: formData.process.trim(),
       provider: formData.provider.trim(),
       providerEmail: formData.providerEmail.trim() || undefined,
-      siteCode: formData.siteCode.trim(),
-      siteName: formData.siteName.trim(),
+      siteCode: primaryCode,
+      siteName: primaryName,
+      typeIntervention: formData.typeIntervention || undefined,
+      sites: isNewSite ? undefined : planSites.map(({ codeSite, nomSite }) => ({ codeSite, nomSite })),
       expectedStartDate: new Date(formData.expectedStartDate).toISOString(),
       expectedEndDate: new Date(formData.expectedEndDate).toISOString(),
       status: formData.status as ActivityPlanning["status"],
@@ -192,7 +226,6 @@ export default function PlanningFormPage() {
     };
 
     if (isEditMode && existing) {
-      // Override locked fields with original values so they're never sent modified
       for (const field of lockedFields) {
         (payload as any)[field] = (existing as any)[field];
       }
@@ -298,30 +331,22 @@ export default function PlanningFormPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900">
               <MapPin className="h-5 w-5 text-blue-600" />
-              {t('planning.form.site')}
+              Type d'intervention &amp; Sites
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label={t('planning.form.siteCode')}
-                value={formData.siteCode}
-                onChange={(e) => set("siteCode", e.target.value)}
-                error={errors.siteCode}
-                placeholder={t('planning.form.siteCodePlaceholder')}
-                required
-                disabled={lockedFields.includes("siteCode")}
-              />
-              <Input
-                label={t('planning.form.siteName')}
-                value={formData.siteName}
-                onChange={(e) => set("siteName", e.target.value)}
-                error={errors.siteName}
-                placeholder={t('planning.form.siteNamePlaceholder')}
-                required
-                disabled={lockedFields.includes("siteName")}
-              />
-            </div>
+          <CardContent>
+            <SiteSelectorBlock
+              typeIntervention={formData.typeIntervention}
+              onTypeChange={(t) => set("typeIntervention", t)}
+              siteCode={formData.siteCode}
+              siteName={formData.siteName}
+              onSiteCodeChange={(c) => set("siteCode", c)}
+              onSiteNameChange={(n) => set("siteName", n)}
+              planSites={planSites}
+              onPlanSitesChange={setPlanSites}
+              errors={errors}
+              disabled={sitesLocked}
+            />
           </CardContent>
         </Card>
 
@@ -418,8 +443,7 @@ export default function PlanningFormPage() {
         <div className="flex items-center justify-between gap-4 pt-4 border-t">
           <Link to="/planning">
             <Button type="button" variant="outline">
-              {" "}
-              {t('common.cancel')}{" "}
+              {t('common.cancel')}
             </Button>
           </Link>
           <Button type="submit" isLoading={isCreating || isUpdating}>

@@ -241,6 +241,11 @@ export interface SectionRow {
   taches: TaskRow[]
 }
 
+export interface PlanSite {
+  codeSite: string
+  nomSite: string
+}
+
 export interface ActivityPlanning {
   '@id': string
   id: number
@@ -249,6 +254,8 @@ export interface ActivityPlanning {
   providerEmail: string | null
   siteCode: string
   siteName: string
+  typeIntervention: string | null
+  sites: PlanSite[] | null
   theoreticalStartDate?: string | null
   expectedStartDate: string
   expectedEndDate: string
@@ -276,6 +283,8 @@ export interface ActivityPlanningCreate {
   providerEmail?: string
   siteCode: string
   siteName: string
+  typeIntervention?: string
+  sites?: PlanSite[]
   expectedStartDate: string
   expectedEndDate: string
   status?: ActivityPlanningStatus
@@ -290,6 +299,8 @@ export interface ActivityPlanningUpdate {
   providerEmail?: string
   siteCode?: string
   siteName?: string
+  typeIntervention?: string
+  sites?: PlanSite[]
   expectedStartDate?: string
   expectedEndDate?: string
   status?: ActivityPlanningStatus

@@ -504,48 +504,6 @@
     }
   },
   "roles": {
-    "super_admin": "Super Admin",
-    "admin": "Admin",
-    "chef_projet": "Chef de Projet",
-    "hse": "HSE",
-    "prestataire": "Mpiasa",
-    "dg": "DG"
-  },
-  "offline": {
-    "banner": "Mode tsy misy tambajotra"
-  },
-  "errors": {
-    "incorrect_credentials": "Diso ny mombamomba",
-    "too_many_login_attempts": "Be loatra ny andrana fidirana. Andramo indray any aoriana.",
-    "email_required": "Ilaina ny mailaka",
-    "email_invalid": "Tsy manan-kery ny mailaka",
-    "email_already_used": "Efa ampiasaina ity mailaka ity",
-    "name_required": "Ilaina ny anarana",
-    "password_required": "Ilaina ny tenimiafina",
-    "role_required": "Ilaina ny andraikitra",
-    "site_code_required": "Ilaina ny kaody toerana",
-    "activity_site_code_required": "Ilaina ny kaody toerana",
-    "process_required": "Ilaina ny dingana",
-    "provider_required": "Ilaina ny mpanome tolotra",
-    "project_description_required": "Ilaina ny famaritana ny tetikasa",
-    "site_number_required": "Ilaina ny laharana toerana",
-    "site_name_required": "Ilaina ny anaran'ny toerana",
-    "region_required": "Ilaina ny faritra",
-    "theoretical_start_date_required": "Ilaina ny daty teorika fanombohana",
-    "expected_start_date_required": "Ilaina ny daty fanombohana voalahatra",
-    "expected_end_date_required": "Ilaina ny daty famaranana voalahatra",
-    "dates_incoherent": "Tsy mifanaraka ny daty",
-    "locked_fields_not_modifiable": "Tsy azo ovaina ny saha sasany satria voahidy ny fandrindrana",
-    "conflict_with_active_interventions": "Misy fifandonana amin'ny fitsabahana mandeha",
-    "menu_name_required": "Ilaina ny anaran'ny menu",
-    "menu_position_required": "Ilaina ny toeran'ny menu",
-    "menu_access_menu_required": "Ilaina ny menu",
-    "menu_access_role_required": "Ilaina ny andraikitra",
-    "access_denied": "Voarara ny fidirana",
-    "account_not_activated": "Tsy niasana ny kaonty",
-    "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao."
-  },
-  "roles": {
     "title": "Fitantanana ny anjara",
     "newRole": "Anjara vaovao",
     "description": "Mamorona sy mitantana ny anjara amin'ny rindranasa",
@@ -602,6 +560,85 @@
       "saveError": "Hadisoana tamin'ny fitahirizana",
       "deleteError": "Hadisoana tamin'ny fafana",
       "deleteErrorInUse": "Ity anjara ity dia ampiasain'ny mpampiasa ary tsy azo esorina"
+    }
+  },
+  "offline": {
+    "banner": "Mode tsy misy tambajotra"
+  },
+  "errors": {
+    "incorrect_credentials": "Diso ny mombamomba",
+    "too_many_login_attempts": "Be loatra ny andrana fidirana. Andramo indray any aoriana.",
+    "email_required": "Ilaina ny mailaka",
+    "email_invalid": "Tsy manan-kery ny mailaka",
+    "email_already_used": "Efa ampiasaina ity mailaka ity",
+    "name_required": "Ilaina ny anarana",
+    "password_required": "Ilaina ny tenimiafina",
+    "role_required": "Ilaina ny andraikitra",
+    "site_code_required": "Ilaina ny kaody toerana",
+    "activity_site_code_required": "Ilaina ny kaody toerana",
+    "process_required": "Ilaina ny dingana",
+    "provider_required": "Ilaina ny mpanome tolotra",
+    "project_description_required": "Ilaina ny famaritana ny tetikasa",
+    "site_number_required": "Ilaina ny laharana toerana",
+    "site_name_required": "Ilaina ny anaran'ny toerana",
+    "region_required": "Ilaina ny faritra",
+    "theoretical_start_date_required": "Ilaina ny daty teorika fanombohana",
+    "expected_start_date_required": "Ilaina ny daty fanombohana voalahatra",
+    "expected_end_date_required": "Ilaina ny daty famaranana voalahatra",
+    "dates_incoherent": "Tsy mifanaraka ny daty",
+    "locked_fields_not_modifiable": "Tsy azo ovaina ny saha sasany satria voahidy ny fandrindrana",
+    "conflict_with_active_interventions": "Misy fifandonana amin'ny fitsabahana mandeha",
+    "menu_name_required": "Ilaina ny anaran'ny menu",
+    "menu_position_required": "Ilaina ny toeran'ny menu",
+    "menu_access_menu_required": "Ilaina ny menu",
+    "menu_access_role_required": "Ilaina ny andraikitra",
+    "access_denied": "Voarara ny fidirana",
+    "account_not_activated": "Tsy niasana ny kaonty",
+    "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao."
+  },
+  "referentiel": {
+    "title": "Referentialy",
+    "sites": {
+      "title": "Fitantanana toerana",
+      "subtitle": "Fampidirana sy fitantanana toerana avy amin'ny fichier KMZ",
+      "importSection": "Hampiditra fichier KMZ",
+      "historySection": "Tantaran'ny fampidirana",
+      "listSection": "Lisitry ny toerana",
+      "import": {
+        "button": "Hampiditra fichier KMZ",
+        "loading": "Fandefasana ...",
+        "hint": "Format ekena : .kmz (Google Earth) — max 20 MB",
+        "success": "{{count}} toerana nampidirina",
+        "ignored": "· {{count}} tsy nampidirina (tsy misy coordinates)",
+        "error": "Nisy olana tamin'ny fampidirana",
+        "formatError": "Format KMZ ilaina (.kmz)"
+      },
+      "table": {
+        "fichier": "Fichier",
+        "date": "Datin'ny fampidirana",
+        "nbSites": "Isan'ny toerana",
+        "actions": "Hetsika",
+        "nom": "Anarana",
+        "fokontany": "Fokontany",
+        "commune": "Kaominina",
+        "district": "Distrika",
+        "coordonnees": "Coordinates",
+        "source": "Loharanon'ny fampidirana",
+        "empty": "Tsy misy fampidirana KMZ.",
+        "emptySites": "Tsy misy toerana hita."
+      },
+      "delete": {
+        "title": "Fafana ny fampidirana KMZ",
+        "message": "Ny fafana ity fampidirana ity dia hamafa ny toerana rehetra mifandray ao amin'ny Plans de Prévention. Tsy azo averina izany.",
+        "confirm": "Fafana",
+        "cancel": "Hanafoana",
+        "success": "Fampidirana KMZ nafafa",
+        "error": "Nisy olana tamin'ny fafana"
+      }
+    },
+    "listes": {
+      "title": "Fitantanana lisitra",
+      "subtitle": "Ho ampidirina"
     }
   }
 }
