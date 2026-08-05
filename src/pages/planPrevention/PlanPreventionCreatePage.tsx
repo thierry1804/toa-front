@@ -11,8 +11,6 @@ import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import DocumentUploadZone from "@/components/planPrevention/DocumentUploadZone";
-import KmzImportButton from "@/components/planPrevention/KmzImportButton";
-import SitesKmzMap from "@/components/planPrevention/SitesKmzMap";
 import PlanReference from "@/components/planPrevention/PlanReference";
 import BandeauRefus from "@/components/planPrevention/BandeauRefus";
 import HistoriqueVersions from "@/components/planPrevention/HistoriqueVersions";
@@ -26,14 +24,11 @@ import { useAuthStore } from "@/store/auth.store";
 import type {
   PlanPrevention,
   RisqueRow,
-  SitePrevention,
   TypeDocumentPrevention,
   InstallationRow,
   EquipementRow,
 } from "@/types/planPrevention";
-import type { KmzImportResult } from "@/types/planPrevention";
 import { TYPES_DOCUMENT_LABELS } from "@/types/planPrevention";
-import type { KmzExtendedData } from "@/utils/kmzParser";
 
 // ─── Zod schema for step 0 ────────────────────────────────────────────────────
 const step0Schema = z
@@ -43,6 +38,7 @@ const step0Schema = z
     activitePlanifiee: z
       .string()
       .min(3, "Activité planifiée requise (min 3 caractères)"),
+    referenceActivite: z.string().optional(),
     dateDebut: z.string().min(1, "Date de début requise"),
     dateFin: z.string().min(1, "Date de fin requise"),
   })
@@ -57,7 +53,6 @@ type Step0FormData = z.infer<typeof step0Schema>;
 const STEPS = [
   { title: "Informations générales" },
   { title: "Matrice des risques" },
-  { title: "Sites concernés" },
   { title: "Documents obligatoires" },
   { title: "Installations & Équipements" },
   { title: "Récapitulatif" },
@@ -141,8 +136,6 @@ export default function PlanPreventionCreatePage({
     updateRisque,
     deleteRisque,
     uploadDocument,
-    importKmz,
-    deleteSite,
     soumettrePlan,
     resoumettreplan,
     missingDocuments,
@@ -154,12 +147,6 @@ export default function PlanPreventionCreatePage({
 
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<PlanPrevention | null>(null);
-  const [kmzPreviewSites, setKmzPreviewSites] = useState<SitePrevention[]>([]);
-  // Metadata keyed by site name — persists after import for display below map
-  const [kmzMetadata, setKmzMetadata] = useState<
-    Record<string, KmzExtendedData>
-  >({});
-  const [kmzError, setKmzError] = useState(false);
   const [localRisques, setLocalRisques] = useState<RisqueRow[]>([]);
   const [isSavingRisques, setIsSavingRisques] = useState(false);
   const [localInstallations, setLocalInstallations] = useState<
@@ -228,6 +215,7 @@ export default function PlanPreventionCreatePage({
       codeSite: planif.siteCode,
       localite: planif.siteName,
       activitePlanifiee: planif.process,
+      referenceActivite: planif.permitReference ?? "",
       dateDebut: planif.expectedStartDate?.slice(0, 10) ?? "",
       dateFin: planif.expectedEndDate?.slice(0, 10) ?? "",
     };
@@ -244,6 +232,7 @@ export default function PlanPreventionCreatePage({
         codeSite: editPlan.codeSite,
         localite: editPlan.localite,
         activitePlanifiee: editPlan.activitePlanifiee,
+        referenceActivite: editPlan.referenceActivite ?? "",
         dateDebut: editPlan.dateDebut?.slice(0, 10) ?? "",
         dateFin: editPlan.dateFin?.slice(0, 10) ?? "",
       });
@@ -378,7 +367,7 @@ export default function PlanPreventionCreatePage({
         installations: localInstallations,
         equipements: localEquipements,
       });
-      setStep(5);
+      setStep(4);
     } finally {
       setIsSavingInstallations(false);
     }
@@ -400,37 +389,8 @@ export default function PlanPreventionCreatePage({
       navigate("/prevention");
     } catch (err) {
       if ((err as { message?: string })?.message === "documents_manquants") {
-        setStep(3);
+        setStep(2);
       }
-    }
-  };
-
-  const handleKmzImport = async (file: File): Promise<KmzImportResult> => {
-    if (!activePlan) throw new Error("no_plan");
-    return importKmz(activePlan.id, file);
-  };
-
-  const handleKmzPreview = (
-    sites: SitePrevention[],
-    metadata: Record<string, KmzExtendedData>,
-  ) => {
-    setKmzPreviewSites(sites);
-    if (Object.keys(metadata).length > 0) setKmzMetadata(metadata);
-    if (sites.length > 0) setKmzError(false);
-  };
-
-  const handleDeleteSite = async (siteId: string) => {
-    if (!activePlan) return;
-    await deleteSite(activePlan.id, siteId);
-  };
-
-  const handleImportSuccess = (newSites: SitePrevention[]) => {
-    // In edit mode, React Query invalidation refreshes activePlan automatically.
-    // In create mode, activePlan is local state — we must patch it manually.
-    if (!isEditMode) {
-      setPlan((prev) =>
-        prev ? { ...prev, sites: [...(prev.sites ?? []), ...newSites] } : prev,
-      );
     }
   };
 
@@ -463,16 +423,6 @@ export default function PlanPreventionCreatePage({
 
   const currentSites = activePlan?.sites ?? [];
   const currentDocuments = activePlan?.documents ?? [];
-
-  // activePlan?.sites is a stable React Query reference; safe as dependency.
-  // currentSites uses ?? [] which creates a new array every render — never use that as dep.
-  useEffect(() => {
-    if (kmzPreviewSites.length > 0) setKmzPreviewSites([]);
-    if (activePlan?.sites && activePlan.sites.length > 0) setKmzError(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePlan?.sites]);
-
-  const mapSites = kmzPreviewSites.length > 0 ? kmzPreviewSites : currentSites;
 
   // ── Derived state for edit mode UI ───────────────────────────────────────────
   const lastRefusDecision = isEditMode
@@ -580,27 +530,91 @@ export default function PlanPreventionCreatePage({
               </>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Code site *"
-                {...register("codeSite")}
-                error={errors.codeSite?.message}
-                placeholder="Ex. : ANT-001"
-                disabled={!canEdit}
-              />
-              <Input
-                label="Localité *"
-                {...register("localite")}
-                error={errors.localite?.message}
-                placeholder="Ex. : Antananarivo"
-                disabled={!canEdit}
-              />
-            </div>
+            {/* Sites concernés — tableau pour PRESTATAIRE, champs texte sinon */}
+            {isPrestataire ? (
+              (() => {
+                const planif = selectedPlanifId
+                  ? planificationsDisponibles.find((p) => p.id === selectedPlanifId)
+                  : null;
+                const planifSites = planif?.sites ?? [];
+                return (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Sites concernés
+                      {planifSites.length > 0 && (
+                        <span className="ml-1 text-gray-400 font-normal">
+                          ({planifSites.length})
+                        </span>
+                      )}
+                    </p>
+                    {planifSites.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">
+                        Sélectionnez une planification pour voir les sites
+                      </p>
+                    ) : (
+                      <div className="rounded-lg border border-gray-200 overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Code site
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Nom du site
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {planifSites.map((site, i) => (
+                              <tr key={site.codeSite ?? i} className="hover:bg-gray-50">
+                                <td className="px-4 py-2 font-mono text-xs text-gray-700">
+                                  {site.codeSite}
+                                </td>
+                                <td className="px-4 py-2 text-gray-900">
+                                  {site.nomSite}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    {/* Hidden inputs pour soumission formulaire */}
+                    <input type="hidden" {...register("codeSite")} />
+                    <input type="hidden" {...register("localite")} />
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Code site *"
+                  {...register("codeSite")}
+                  error={errors.codeSite?.message}
+                  placeholder="Ex. : ANT-001"
+                  disabled={!canEdit}
+                />
+                <Input
+                  label="Localité *"
+                  {...register("localite")}
+                  error={errors.localite?.message}
+                  placeholder="Ex. : Antananarivo"
+                  disabled={!canEdit}
+                />
+              </div>
+            )}
+
             <Input
               label="Activité planifiée *"
               {...register("activitePlanifiee")}
               error={errors.activitePlanifiee?.message}
               placeholder="Ex. : Maintenance préventive équipements télécoms"
+              disabled={!canEdit}
+            />
+            <Input
+              label="Référence d'activité"
+              {...register("referenceActivite")}
+              placeholder="Ex. : REF-2026-001"
               disabled={!canEdit}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -609,14 +623,14 @@ export default function PlanPreventionCreatePage({
                 type="date"
                 {...register("dateDebut")}
                 error={errors.dateDebut?.message}
-                disabled={!canEdit}
+                disabled={!canEdit || (isPrestataire && !!selectedPlanifId)}
               />
               <Input
                 label="Date de fin *"
                 type="date"
                 {...register("dateFin")}
                 error={errors.dateFin?.message}
-                disabled={!canEdit}
+                disabled={!canEdit || (isPrestataire && !!selectedPlanifId)}
               />
             </div>
           </div>
@@ -635,83 +649,6 @@ export default function PlanPreventionCreatePage({
         );
 
       case 2:
-        return (
-          <div className="space-y-4">
-            {activePlan && <PlanReference reference={activePlan.reference} />}
-            <KmzImportButton
-              planId={activePlan?.id ?? ""}
-              sites={currentSites}
-              onImport={handleKmzImport}
-              onImportSuccess={handleImportSuccess}
-              onPreview={handleKmzPreview}
-              disabled={!canEdit}
-            />
-            <SitesKmzMap
-              sites={mapSites}
-              height="380px"
-              readonly={false}
-              onDeleteSite={canEdit ? handleDeleteSite : undefined}
-            />
-
-            {kmzError && currentSites.length === 0 && (
-              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">
-                  Completez tous les informations avant de soumettre le plan
-                </p>
-              </div>
-            )}
-
-            {currentSites.length > 0 && (
-              <div className="rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                  <p className="text-sm font-medium text-gray-700">
-                    {currentSites.length} site
-                    {currentSites.length > 1 ? "s" : ""} importé
-                    {currentSites.length > 1 ? "s" : ""}
-                  </p>
-                </div>
-                <ul className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
-                  {currentSites.map((site) => {
-                    const meta = kmzMetadata[site.nom];
-                    return (
-                      <li
-                        key={site.id}
-                        className="flex items-center gap-2 px-4 py-2"
-                      >
-                        <span className="text-sm font-medium text-gray-900 shrink-0">
-                          {site.nom}
-                        </span>
-                        {meta &&
-                          (meta.fokontany || meta.commune || meta.district) && (
-                            <div className="flex items-center gap-1 flex-wrap">
-                              {meta.fokontany && (
-                                <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                                  {meta.fokontany}
-                                </span>
-                              )}
-                              {meta.commune && (
-                                <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                                  {meta.commune}
-                                </span>
-                              )}
-                              {meta.district && (
-                                <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                                  {meta.district}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
-        );
-
-      case 3:
         return (
           <div className="space-y-4">
             {activePlan && <PlanReference reference={activePlan.reference} />}
@@ -743,7 +680,7 @@ export default function PlanPreventionCreatePage({
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             {activePlan && <PlanReference reference={activePlan.reference} />}
@@ -788,7 +725,7 @@ export default function PlanPreventionCreatePage({
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             {activePlan && (
@@ -801,11 +738,13 @@ export default function PlanPreventionCreatePage({
             {/* General info recap */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               {[
-                { label: "Code site", value: activePlan?.codeSite },
-                { label: "Localité", value: activePlan?.localite },
                 {
                   label: "Activité planifiée",
                   value: activePlan?.activitePlanifiee,
+                },
+                {
+                  label: "Référence d'activité",
+                  value: activePlan?.referenceActivite ?? "—",
                 },
                 {
                   label: "Date de début",
@@ -831,6 +770,39 @@ export default function PlanPreventionCreatePage({
                 </div>
               ))}
             </div>
+
+            {/* Sites concernés recap */}
+            {(activePlan?.codeSite || activePlan?.localite) && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  Sites concernés
+                </h3>
+                <div className="rounded-lg border border-gray-200 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                          Code site
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                          Nom du site
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="px-4 py-2 font-mono text-xs text-gray-700">
+                          {activePlan?.codeSite ?? "—"}
+                        </td>
+                        <td className="px-4 py-2 text-gray-900">
+                          {activePlan?.localite ?? "—"}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Risques recap */}
             {activePlan?.risques && activePlan.risques.length > 0 && (
@@ -957,13 +929,7 @@ export default function PlanPreventionCreatePage({
       await handleStep0Next();
     } else if (step === 1) {
       await handleStep1Next();
-    } else if (step === 2) {
-      if (currentSites.length === 0) {
-        setKmzError(true);
-        return;
-      }
-      setStep((s) => s + 1);
-    } else if (step === 4) {
+    } else if (step === 3) {
       await handleStep4Next();
     } else if (!isLastStep) {
       setStep((s) => s + 1);
@@ -975,7 +941,7 @@ export default function PlanPreventionCreatePage({
     : isCreating || isSavingRisques || isSavingInstallations || isSubmitting;
 
   const isStep4Invalid =
-    step === 4 &&
+    step === 3 &&
     (localInstallations.length === 0 ||
       localInstallations.some((r) => !r.description.trim()) ||
       localEquipements.some((r) => !r.description.trim()));

@@ -47,6 +47,7 @@ export interface PlanPreventionInput {
   codeSite: string
   localite: string
   activitePlanifiee: string
+  referenceActivite?: string | null
   dateDebut: string
   dateFin: string
   chefProjet?: string | null
@@ -133,6 +134,7 @@ export interface PlanPrevention {
   codeSite: string
   localite: string
   activitePlanifiee: string
+  referenceActivite?: string | null
   dateDebut: string
   dateFin: string
   statut: StatutPlanPrevention
