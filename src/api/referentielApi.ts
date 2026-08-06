@@ -1,5 +1,5 @@
 import api from '@/lib/axios'
-import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse } from '@/types/referentiel'
+import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse, InstallationEquipement, InstallationEquipementInput, InstallationEquipementListResponse } from '@/types/referentiel'
 import type { HydraCollection } from '@/types'
 import type { FeatureCollection, Point } from 'geojson'
 
@@ -56,4 +56,18 @@ export const referentielApi = {
 
   deleteCategorieRisque: (id: string): Promise<void> =>
     api.delete(`/api/referentiel/categories-risque/${id}`).then(() => undefined),
+
+  listInstallationsEquipements: (params?: { page?: number; limit?: number; search?: string }): Promise<InstallationEquipementListResponse> =>
+    api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', { params }).then((r) => r.data),
+
+  createInstallationEquipement: (data: InstallationEquipementInput): Promise<InstallationEquipement> =>
+    api.post<InstallationEquipement>('/api/referentiel/installations-equipements', data).then((r) => r.data),
+
+  updateInstallationEquipement: (id: string, data: InstallationEquipementInput): Promise<InstallationEquipement> =>
+    api.patch<InstallationEquipement>(`/api/referentiel/installations-equipements/${id}`, data, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+    }).then((r) => r.data),
+
+  deleteInstallationEquipement: (id: string): Promise<void> =>
+    api.delete(`/api/referentiel/installations-equipements/${id}`).then(() => undefined),
 }

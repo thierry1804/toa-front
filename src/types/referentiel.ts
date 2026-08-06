@@ -47,6 +47,23 @@ export interface CategorieRisqueInput {
   nom: string
 }
 
+export interface InstallationEquipement {
+  id: string
+  nom: string
+  createdAt: string
+  updatedAt: string | null
+  deletedAt: string | null
+}
+
+export interface InstallationEquipementInput {
+  nom: string
+}
+
+export interface InstallationEquipementListResponse {
+  member: InstallationEquipement[]
+  totalItems: number
+}
+
 export interface CategorieRisqueListResponse {
   member: CategorieRisque[]
   totalItems: number

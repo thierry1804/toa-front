@@ -40,6 +40,7 @@ import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import DashboardKpisPage from "@/pages/hse/DashboardKpisPage";
 import GestionSitesPage from "@/pages/referentiel/GestionSitesPage";
 import GestionListesPage from "@/pages/referentiel/GestionListesPage";
+import InstallationsEquipementsPage from "@/pages/referentiel/InstallationsEquipementsPage";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
 
@@ -149,6 +150,10 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/referentiel/listes" />}>
               <Route path="/referentiel/listes" element={<GestionListesPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/referentiel/installations" />}>
+              <Route path="/referentiel/installations" element={<InstallationsEquipementsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
