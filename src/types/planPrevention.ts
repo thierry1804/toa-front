@@ -39,8 +39,6 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
 export interface InstallationRow {
   description: string
   conditionsUtilisation: string
-  dateVerification?: string | null
-  verifiePar?: string | null
 }
 
 export interface EquipementRow {

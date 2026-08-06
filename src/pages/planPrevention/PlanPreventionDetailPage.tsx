@@ -335,7 +335,10 @@ export default function PlanPreventionDetailPage() {
 
       {/* 3. Sites concernés (depuis la planification liée) */}
       {(() => {
-        const planifSites = plan.planificationSites ?? [];
+        const rawPlanifSites = plan.planificationSites ?? [];
+        const planifSites = rawPlanifSites.length === 0 && plan.codeSite
+          ? [{ codeSite: plan.codeSite, nomSite: plan.localite ?? '' }]
+          : rawPlanifSites;
         return (
           <SectionCard
             title={`Sites concernés${planifSites.length > 0 ? ` (${planifSites.length})` : ''}`}

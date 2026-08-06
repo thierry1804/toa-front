@@ -561,7 +561,10 @@ export default function PlanPreventionCreatePage({
             {/* Sites concernés — tableau pour PRESTATAIRE, champs texte sinon */}
             {isPrestataire ? (
               (() => {
-                const planifSites = activePlanif?.sites ?? [];
+                const rawSites = activePlanif?.sites ?? [];
+                const planifSites = rawSites.length === 0 && activePlanif?.siteCode
+                  ? [{ codeSite: activePlanif.siteCode, nomSite: activePlanif.siteName }]
+                  : rawSites;
                 return (
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">

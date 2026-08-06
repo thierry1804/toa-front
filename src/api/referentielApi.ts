@@ -60,6 +60,9 @@ export const referentielApi = {
   listInstallationsEquipements: (params?: { page?: number; limit?: number; search?: string }): Promise<InstallationEquipementListResponse> =>
     api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', { params }).then((r) => r.data),
 
+  getAllInstallationsEquipements: (): Promise<InstallationEquipementListResponse> =>
+    api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-all').then((r) => r.data),
+
   createInstallationEquipement: (data: InstallationEquipementInput): Promise<InstallationEquipement> =>
     api.post<InstallationEquipement>('/api/referentiel/installations-equipements', data).then((r) => r.data),
 
