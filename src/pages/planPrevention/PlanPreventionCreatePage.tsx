@@ -829,37 +829,46 @@ export default function PlanPreventionCreatePage({
             </div>
 
             {/* Sites concernés recap */}
-            {(activePlan?.codeSite || activePlan?.localite) && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  Sites concernés
-                </h3>
-                <div className="rounded-lg border border-gray-200 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                          Code site
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                          Nom du site
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="px-4 py-2 font-mono text-xs text-gray-700">
-                          {activePlan?.codeSite ?? "—"}
-                        </td>
-                        <td className="px-4 py-2 text-gray-900">
-                          {activePlan?.localite ?? "—"}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            {(() => {
+              const planifSites = activePlan?.planificationSites ?? [];
+              const fallbackSites = planifSites.length === 0 && (activePlan?.codeSite || activePlan?.localite)
+                ? [{ codeSite: activePlan!.codeSite, nomSite: activePlan!.localite }]
+                : planifSites;
+              if (fallbackSites.length === 0) return null;
+              return (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                    Sites concernés ({fallbackSites.length})
+                  </h3>
+                  <div className={`rounded-lg border border-gray-200 overflow-hidden${fallbackSites.length > 10 ? ' overflow-y-auto max-h-[26rem]' : ''}`}>
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-white">
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Code site
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Nom du site
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {fallbackSites.map((site, i) => (
+                          <tr key={site.codeSite ?? i} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 font-mono text-xs text-gray-700">
+                              {site.codeSite}
+                            </td>
+                            <td className="px-4 py-2 text-gray-900">
+                              {site.nomSite}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Risques recap */}
             {activePlan?.risques && activePlan.risques.length > 0 && (
