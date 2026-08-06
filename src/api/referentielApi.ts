@@ -1,5 +1,5 @@
 import api from '@/lib/axios'
-import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature } from '@/types/referentiel'
+import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse } from '@/types/referentiel'
 import type { HydraCollection } from '@/types'
 import type { FeatureCollection, Point } from 'geojson'
 
@@ -39,4 +39,21 @@ export const referentielApi = {
         params: { q, limit },
       })
       .then((r) => r.data),
+
+  listCategoriesRisque: (params?: { page?: number; limit?: number; search?: string }): Promise<CategorieRisqueListResponse> =>
+    api.get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-list', { params }).then((r) => r.data),
+
+  getAllCategoriesRisque: (): Promise<CategorieRisqueListResponse> =>
+    api.get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-all').then((r) => r.data),
+
+  createCategorieRisque: (data: CategorieRisqueInput): Promise<CategorieRisque> =>
+    api.post<CategorieRisque>('/api/referentiel/categories-risque', data).then((r) => r.data),
+
+  updateCategorieRisque: (id: string, data: CategorieRisqueInput): Promise<CategorieRisque> =>
+    api.patch<CategorieRisque>(`/api/referentiel/categories-risque/${id}`, data, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+    }).then((r) => r.data),
+
+  deleteCategorieRisque: (id: string): Promise<void> =>
+    api.delete(`/api/referentiel/categories-risque/${id}`).then(() => undefined),
 }

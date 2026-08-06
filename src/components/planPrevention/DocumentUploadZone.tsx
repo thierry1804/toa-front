@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
-import { CheckCircle, XCircle, Upload } from 'lucide-react'
+import { CheckCircle, XCircle, Upload, Eye } from 'lucide-react'
 import type { TypeDocumentPrevention, DocumentPrevention } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from '@/types/planPrevention'
+import { planPreventionApi } from '@/api/planPreventionApi'
 
 const ACCEPTED_MIME = ['application/pdf', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg'
@@ -17,6 +18,7 @@ interface DocumentUploadZoneProps {
 interface ZoneState {
   dragging: boolean
   uploading: boolean
+  viewing: boolean
 }
 
 export default function DocumentUploadZone({
@@ -27,7 +29,7 @@ export default function DocumentUploadZone({
   disabled = false,
 }: DocumentUploadZoneProps) {
   const [zoneStates, setZoneStates] = useState<Record<string, ZoneState>>(
-    Object.fromEntries(ALL_DOCUMENT_TYPES.map((t) => [t, { dragging: false, uploading: false }])),
+    Object.fromEntries(ALL_DOCUMENT_TYPES.map((t) => [t, { dragging: false, uploading: false, viewing: false }])),
   )
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -52,6 +54,17 @@ export default function DocumentUploadZone({
       if (fileInputRefs.current[type]) {
         fileInputRefs.current[type]!.value = ''
       }
+    }
+  }
+
+  const handleView = async (type: TypeDocumentPrevention) => {
+    const doc = uploadedDocuments.find((d) => d.type === type)
+    if (!doc) return
+    setZoneState(type, { viewing: true })
+    try {
+      await planPreventionApi.viewDocument(planId, doc.id)
+    } finally {
+      setZoneState(type, { viewing: false })
     }
   }
 
@@ -122,38 +135,61 @@ export default function DocumentUploadZone({
               )}
             </div>
 
-            {/* Upload button */}
-            {!disabled && (
-              <div className="flex-shrink-0">
-                <input
-                  type="file"
-                  accept={ACCEPTED_EXTENSIONS}
-                  ref={(el) => { fileInputRefs.current[type] = el }}
-                  className="hidden"
-                  onChange={(e) => handleInputChange(type, e)}
-                />
+            {/* Action buttons */}
+            <div className="flex-shrink-0 flex items-center gap-2">
+              {/* View button — shown when uploaded */}
+              {uploaded && (
                 <button
                   type="button"
-                  onClick={() => fileInputRefs.current[type]?.click()}
-                  disabled={state.uploading}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors
-                    ${uploaded
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  onClick={() => handleView(type)}
+                  disabled={state.viewing}
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Visualiser le document"
                 >
-                  {state.uploading ? (
+                  {state.viewing ? (
                     <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                   ) : (
-                    <Upload className="h-3.5 w-3.5" />
+                    <Eye className="h-3.5 w-3.5" />
                   )}
-                  {state.uploading ? 'Envoi...' : uploaded ? 'Remplacer' : 'Choisir'}
+                  Voir
                 </button>
-              </div>
-            )}
+              )}
+              {/* Upload button */}
+              {!disabled && (
+                <>
+                  <input
+                    type="file"
+                    accept={ACCEPTED_EXTENSIONS}
+                    ref={(el) => { fileInputRefs.current[type] = el }}
+                    className="hidden"
+                    onChange={(e) => handleInputChange(type, e)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefs.current[type]?.click()}
+                    disabled={state.uploading}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors
+                      ${uploaded
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {state.uploading ? (
+                      <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
+                    {state.uploading ? 'Envoi...' : uploaded ? 'Remplacer' : 'Choisir'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         )
       })}

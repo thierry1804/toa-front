@@ -11,7 +11,7 @@ interface EquipementsTableProps {
 }
 
 function createEmptyRow(): EquipementRow {
-  return { description: '', conditionsUtilisation: '' }
+  return { description: '', conditionsUtilisation: '', dateVerification: null, verifiePar: null }
 }
 
 export default function EquipementsTable({
@@ -22,12 +22,12 @@ export default function EquipementsTable({
   emptyLabel = 'Aucun équipement ajouté.',
 }: EquipementsTableProps) {
   const handleAdd = () => onChange([...value, createEmptyRow()])
-
   const handleRemove = (index: number) => onChange(value.filter((_, i) => i !== index))
-
-  const handleChange = (index: number, field: keyof EquipementRow, val: string) => {
+  const handleChange = (index: number, field: keyof EquipementRow, val: string | null) => {
     onChange(value.map((row, i) => (i === index ? { ...row, [field]: val } : row)))
   }
+
+  const colSpan = readonly ? 4 : 5
 
   return (
     <div className="space-y-3">
@@ -35,11 +35,17 @@ export default function EquipementsTable({
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-3 py-3 text-left font-medium text-gray-700 w-1/2">
+              <th className="px-3 py-3 text-left font-medium text-gray-700 w-1/3">
                 Description du matériel/équipement/outillage <span className="text-red-500">*</span>
               </th>
               <th className="px-3 py-3 text-left font-medium text-gray-700">
                 Conditions d'utilisation
+              </th>
+              <th className="px-3 py-3 text-left font-medium text-gray-700 w-36">
+                Date de vérification
+              </th>
+              <th className="px-3 py-3 text-left font-medium text-gray-700 w-36">
+                Vérifié par
               </th>
               {!readonly && <th className="px-3 py-3 w-12" />}
             </tr>
@@ -47,10 +53,7 @@ export default function EquipementsTable({
           <tbody className="divide-y divide-gray-100 bg-white">
             {value.length === 0 && (
               <tr>
-                <td
-                  colSpan={readonly ? 2 : 3}
-                  className="px-4 py-8 text-center text-gray-400 italic"
-                >
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-gray-400 italic">
                   {emptyLabel}
                 </td>
               </tr>
@@ -87,6 +90,31 @@ export default function EquipementsTable({
                       placeholder="Ex. : Vérification avant chaque utilisation"
                       rows={2}
                       className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                    />
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  {readonly ? (
+                    <p className="text-sm text-gray-700">{row.dateVerification || '—'}</p>
+                  ) : (
+                    <input
+                      type="date"
+                      value={row.dateVerification ?? ''}
+                      onChange={(e) => handleChange(index, 'dateVerification', e.target.value || null)}
+                      className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  {readonly ? (
+                    <p className="text-sm text-gray-700">{row.verifiePar || '—'}</p>
+                  ) : (
+                    <input
+                      type="text"
+                      value={row.verifiePar ?? ''}
+                      onChange={(e) => handleChange(index, 'verifiePar', e.target.value || null)}
+                      placeholder="Nom du vérificateur"
+                      className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </td>

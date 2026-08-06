@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
+import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import DocumentUploadZone from "@/components/planPrevention/DocumentUploadZone";
@@ -19,6 +20,7 @@ import {
   usePlanPreventionDetail,
   usePlanificationsDisponibles,
 } from "@/features/planPrevention/hooks/usePlanPrevention";
+import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useAuthStore } from "@/store/auth.store";
 import type {
@@ -28,7 +30,7 @@ import type {
   InstallationRow,
   EquipementRow,
 } from "@/types/planPrevention";
-import { TYPES_DOCUMENT_LABELS } from "@/types/planPrevention";
+import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from "@/types/planPrevention";
 
 // ─── Zod schema for step 0 ────────────────────────────────────────────────────
 const step0Schema = z
@@ -38,7 +40,6 @@ const step0Schema = z
     activitePlanifiee: z
       .string()
       .min(3, "Activité planifiée requise (min 3 caractères)"),
-    referenceActivite: z.string().optional(),
     dateDebut: z.string().min(1, "Date de début requise"),
     dateFin: z.string().min(1, "Date de fin requise"),
   })
@@ -52,7 +53,7 @@ type Step0FormData = z.infer<typeof step0Schema>;
 // ─── Step indicator ────────────────────────────────────────────────────────────
 const STEPS = [
   { title: "Informations générales" },
-  { title: "Matrice des risques" },
+  { title: "Analyse des risques" },
   { title: "Documents obligatoires" },
   { title: "Installations & Équipements" },
   { title: "Récapitulatif" },
@@ -178,10 +179,14 @@ export default function PlanPreventionCreatePage({
 
   // ── Planification selection (ROLE_PRESTATAIRE, create mode only) ─────────────
   const roles = useAuthStore((s) => s.roles);
-  const isPrestataire = !isEditMode && roles.includes("ROLE_PRESTATAIRE");
+  const isPrestataire = roles.includes("ROLE_PRESTATAIRE");
+  const showPlanifSelector = isPrestataire && !isEditMode;
 
   const { data: planificationsDisponibles = [], isLoading: isLoadingPlanifs } =
     usePlanificationsDisponibles({ enabled: isPrestataire });
+
+  const { data: categoriesData } = useCategoriesRisqueAll()
+  const allCategories = categoriesData?.member ?? []
 
   const [selectedPlanifId, setSelectedPlanifId] = useState<number | null>(null);
   const [autofillSource, setAutofillSource] = useState<string | null>(null);
@@ -204,6 +209,7 @@ export default function PlanPreventionCreatePage({
 
   const handlePlanifSelect = (id: number | null) => {
     setSelectedPlanifId(id);
+    setLocalRisques([]);
     if (id === null) {
       setAutofillSource(null);
       setAutofillValues(null);
@@ -215,7 +221,6 @@ export default function PlanPreventionCreatePage({
       codeSite: planif.siteCode,
       localite: planif.siteName,
       activitePlanifiee: planif.process,
-      referenceActivite: planif.permitReference ?? "",
       dateDebut: planif.expectedStartDate?.slice(0, 10) ?? "",
       dateFin: planif.expectedEndDate?.slice(0, 10) ?? "",
     };
@@ -232,17 +237,18 @@ export default function PlanPreventionCreatePage({
         codeSite: editPlan.codeSite,
         localite: editPlan.localite,
         activitePlanifiee: editPlan.activitePlanifiee,
-        referenceActivite: editPlan.referenceActivite ?? "",
         dateDebut: editPlan.dateDebut?.slice(0, 10) ?? "",
         dateFin: editPlan.dateFin?.slice(0, 10) ?? "",
       });
       setLocalRisques(
         (editPlan.risques ?? []).map((r) => ({
           localId: r.id,
+          tachePlanifieeId: r.tachePlanifieeId ?? null,
           description: r.description,
           gravite: r.gravite,
           probabilite: r.probabilite,
           mesuresPreventives: r.mesuresPreventives,
+          risqueResiduel: r.risqueResiduel ?? null,
         })),
       );
       originalRisqueIds.current = new Set(
@@ -267,7 +273,11 @@ export default function PlanPreventionCreatePage({
         (p) => p.id === selectedPlanifId,
       );
       const chefProjetIri = selectedPlanif?.createdBy?.["@id"] ?? null;
-      const created = await createPlan({ ...data, chefProjet: chefProjetIri });
+      const created = await createPlan({
+        ...data,
+        chefProjet: chefProjetIri,
+        planificationId: selectedPlanifId,
+      });
       setPlan(created);
       setStep(1);
     }
@@ -290,10 +300,12 @@ export default function PlanPreventionCreatePage({
           if (!row.description.trim() || !row.mesuresPreventives.trim())
             continue;
           const payload = {
+            tachePlanifieeId: row.tachePlanifieeId ?? null,
             description: row.description,
             gravite: row.gravite,
             probabilite: row.probabilite,
             mesuresPreventives: row.mesuresPreventives,
+            risqueResiduel: row.risqueResiduel ?? null,
           };
           if (origIds.has(row.localId)) {
             await updateRisque(activePlan.id, row.localId, payload);
@@ -306,23 +318,27 @@ export default function PlanPreventionCreatePage({
           if (!row.description.trim() || !row.mesuresPreventives.trim())
             continue;
           await addRisque(activePlan.id, {
+            tachePlanifieeId: row.tachePlanifieeId ?? null,
             description: row.description,
             gravite: row.gravite,
             probabilite: row.probabilite,
             mesuresPreventives: row.mesuresPreventives,
+            risqueResiduel: row.risqueResiduel ?? null,
           });
         }
-        // Update local plan state so the recap (step 5) can display the saved risques.
+        // Update local plan state so the recap can display the saved risques.
         // In edit mode the query auto-refreshes; in create mode we must patch manually.
         const savedRisques = localRisques
           .filter((r) => r.description.trim() && r.mesuresPreventives.trim())
           .map((r) => ({
             id: r.localId,
+            tachePlanifieeId: r.tachePlanifieeId ?? null,
             description: r.description,
             gravite: r.gravite,
             probabilite: r.probabilite,
             niveauRisque: r.gravite * r.probabilite,
             mesuresPreventives: r.mesuresPreventives,
+            risqueResiduel: r.risqueResiduel ?? null,
           }));
         setPlan((prev) => (prev ? { ...prev, risques: savedRisques } : prev));
       }
@@ -340,7 +356,7 @@ export default function PlanPreventionCreatePage({
     localInstallations.forEach((row, i) => {
       if (!row.description.trim()) instErrors[i] = "Description requise";
     });
-    if (localInstallations.length === 0) {
+    if (isNouveauSite && localInstallations.length === 0) {
       setInstallationsMinError(true);
       return;
     }
@@ -399,7 +415,7 @@ export default function PlanPreventionCreatePage({
     file: File,
   ) => {
     if (!activePlan) return;
-    await uploadDocument(activePlan.id, type, file);
+    const savedDoc = await uploadDocument(activePlan.id, type, file);
     if (!isEditMode) {
       setPlan((prev) =>
         prev
@@ -407,13 +423,7 @@ export default function PlanPreventionCreatePage({
               ...prev,
               documents: [
                 ...prev.documents.filter((d) => d.type !== type),
-                {
-                  id: crypto.randomUUID(),
-                  type,
-                  filePath: "",
-                  mimeType: file.type,
-                  uploadedAt: new Date().toISOString(),
-                },
+                savedDoc,
               ],
             }
           : prev,
@@ -423,6 +433,22 @@ export default function PlanPreventionCreatePage({
 
   const currentSites = activePlan?.sites ?? [];
   const currentDocuments = activePlan?.documents ?? [];
+
+  // Sections from the linked planning (create mode: selected planif; edit mode: stored planificationId)
+  const activePlanifId = isEditMode
+    ? (activePlan?.planificationId ?? null)
+    : selectedPlanifId;
+  const activePlanif = activePlanifId != null
+    ? planificationsDisponibles.find((p) => p.id === activePlanifId) ?? null
+    : null;
+  const activeSections = activePlanif?.sections ?? []
+
+  // Step 3 (Installations & Équipements) is shown only for "Nouveau site" interventions.
+  // If no planning is linked (no planificationId), default to showing it.
+  const isNouveauSite =
+    activePlanifId == null
+      ? true
+      : activePlanif?.typeIntervention === 'Nouveau site';
 
   // ── Derived state for edit mode UI ───────────────────────────────────────────
   const lastRefusDecision = isEditMode
@@ -436,8 +462,8 @@ export default function PlanPreventionCreatePage({
       case 0:
         return (
           <div className="space-y-4">
-            {/* Planification selector — PRESTATAIRE only */}
-            {isPrestataire && (
+            {/* Planification selector — PRESTATAIRE create mode only */}
+            {showPlanifSelector && (
               <>
                 {isLoadingPlanifs ? (
                   <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -462,7 +488,7 @@ export default function PlanPreventionCreatePage({
                     </svg>
                     Chargement des planifications...
                   </div>
-                ) : planificationsDisponibles.length === 0 ? (
+                ) : planificationsDisponibles.filter(p => p.disponible !== false && p.status === 'planifie').length === 0 ? (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                     <p className="text-sm font-medium text-amber-800">
                       Aucune planification disponible
@@ -497,13 +523,15 @@ export default function PlanPreventionCreatePage({
                       <option value="">
                         — Sélectionner une planification —
                       </option>
-                      {planificationsDisponibles.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.process} — {p.siteCode} (
-                          {p.expectedStartDate?.slice(0, 10)} →{" "}
-                          {p.expectedEndDate?.slice(0, 10)})
-                        </option>
-                      ))}
+                      {planificationsDisponibles
+                        .filter((p) => p.disponible !== false && p.status === 'planifie')
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.process} — {p.siteCode} (
+                            {p.expectedStartDate?.slice(0, 10)} →{" "}
+                            {p.expectedEndDate?.slice(0, 10)})
+                          </option>
+                        ))}
                     </select>
                     {!selectedPlanifId && (
                       <p className="mt-1 text-xs text-red-600">
@@ -533,10 +561,7 @@ export default function PlanPreventionCreatePage({
             {/* Sites concernés — tableau pour PRESTATAIRE, champs texte sinon */}
             {isPrestataire ? (
               (() => {
-                const planif = selectedPlanifId
-                  ? planificationsDisponibles.find((p) => p.id === selectedPlanifId)
-                  : null;
-                const planifSites = planif?.sites ?? [];
+                const planifSites = activePlanif?.sites ?? [];
                 return (
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">
@@ -549,7 +574,7 @@ export default function PlanPreventionCreatePage({
                     </p>
                     {planifSites.length === 0 ? (
                       <p className="text-sm text-gray-400 italic">
-                        Sélectionnez une planification pour voir les sites
+                        {isEditMode ? "Aucun site lié à cette planification" : "Sélectionnez une planification pour voir les sites"}
                       </p>
                     ) : (
                       <div className="rounded-lg border border-gray-200 overflow-hidden">
@@ -611,12 +636,18 @@ export default function PlanPreventionCreatePage({
               placeholder="Ex. : Maintenance préventive équipements télécoms"
               disabled={!canEdit}
             />
-            <Input
-              label="Référence d'activité"
-              {...register("referenceActivite")}
-              placeholder="Ex. : REF-2026-001"
-              disabled={!canEdit}
-            />
+
+            {activePlan?.referenceActivite && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                  Référence d'activité
+                </p>
+                <p className="text-sm font-mono font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  {activePlan.referenceActivite}
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Date de début *"
@@ -640,11 +671,22 @@ export default function PlanPreventionCreatePage({
         return (
           <div className="space-y-4">
             {activePlan && <PlanReference reference={activePlan.reference} />}
-            <RisqueMatrice
+            <AnalyseRisquesPlanning
+              sections={activeSections}
               rows={localRisques}
               onChange={setLocalRisques}
+              categories={allCategories}
               disabled={!canEdit}
             />
+            {isStep1Invalid && (
+              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  Certaines lignes sont incomplètes : renseignez les{" "}
+                  <strong>mesures préventives</strong> pour chaque risque identifié.
+                </p>
+              </div>
+            )}
           </div>
         );
 
@@ -677,6 +719,21 @@ export default function PlanPreventionCreatePage({
               missingTypes={missingDocuments}
               disabled={!canEdit}
             />
+            {isStep2Invalid && (
+              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    {missingUploadedDocs.length} document(s) manquant(s) :
+                  </p>
+                  <ul className="mt-1 list-disc list-inside text-sm text-amber-700">
+                    {missingUploadedDocs.map((t) => (
+                      <li key={t}>{TYPES_DOCUMENT_LABELS[t]}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -808,19 +865,37 @@ export default function PlanPreventionCreatePage({
             {activePlan?.risques && activePlan.risques.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  Risques identifiés ({activePlan.risques.length})
+                  Analyse des risques ({activePlan.risques.length})
                 </h3>
-                <RisqueMatrice
-                  rows={activePlan.risques.map((r) => ({
-                    localId: r.id,
-                    description: r.description,
-                    gravite: r.gravite,
-                    probabilite: r.probabilite,
-                    mesuresPreventives: r.mesuresPreventives,
-                  }))}
-                  onChange={() => {}}
-                  disabled
-                />
+                {activeSections.length > 0 ? (
+                  <AnalyseRisquesPlanning
+                    sections={activeSections}
+                    rows={activePlan.risques.map((r) => ({
+                      localId: r.id,
+                      tachePlanifieeId: r.tachePlanifieeId ?? null,
+                      description: r.description,
+                      gravite: r.gravite,
+                      probabilite: r.probabilite,
+                      mesuresPreventives: r.mesuresPreventives,
+                      risqueResiduel: r.risqueResiduel ?? null,
+                    }))}
+                    onChange={() => {}}
+                    categories={allCategories}
+                    disabled
+                  />
+                ) : (
+                  <RisqueMatrice
+                    rows={activePlan.risques.map((r) => ({
+                      localId: r.id,
+                      description: r.description,
+                      gravite: r.gravite,
+                      probabilite: r.probabilite,
+                      mesuresPreventives: r.mesuresPreventives,
+                    }))}
+                    onChange={() => {}}
+                    disabled
+                  />
+                )}
               </div>
             )}
 
@@ -925,10 +1000,13 @@ export default function PlanPreventionCreatePage({
 
   const handleNext = async () => {
     if (step === 0) {
-      if (isPrestataire && !selectedPlanifId) return;
+      if (showPlanifSelector && !selectedPlanifId) return;
       await handleStep0Next();
     } else if (step === 1) {
       await handleStep1Next();
+    } else if (step === 2) {
+      // Skip installations step when not "Nouveau site"
+      setStep(isNouveauSite ? 3 : 4);
     } else if (step === 3) {
       await handleStep4Next();
     } else if (!isLastStep) {
@@ -942,9 +1020,20 @@ export default function PlanPreventionCreatePage({
 
   const isStep4Invalid =
     step === 3 &&
-    (localInstallations.length === 0 ||
+    ((isNouveauSite && localInstallations.length === 0) ||
       localInstallations.some((r) => !r.description.trim()) ||
       localEquipements.some((r) => !r.description.trim()));
+
+  // Step 1: block only when categories selected but mesures still empty
+  const step1PartialRows = localRisques.filter(
+    (r) => !!r.description.trim() && !r.mesuresPreventives.trim(),
+  );
+  const isStep1Invalid = step === 1 && step1PartialRows.length > 0;
+
+  // Step 2: all 6 document types must be uploaded
+  const uploadedDocTypes = new Set(currentDocuments.map((d) => d.type));
+  const missingUploadedDocs = ALL_DOCUMENT_TYPES.filter((t) => !uploadedDocTypes.has(t));
+  const isStep2Invalid = step === 2 && missingUploadedDocs.length > 0;
 
   // ── Loading state for edit mode ───────────────────────────────────────────────
   if (isEditMode && isLoadingEdit) {
@@ -1014,7 +1103,7 @@ export default function PlanPreventionCreatePage({
       <div className="flex flex-col-reverse sm:flex-row justify-between gap-3">
         <Button
           variant="outline"
-          onClick={() => setStep((s) => s - 1)}
+          onClick={() => setStep(step === 4 && !isNouveauSite ? 2 : step - 1)}
           disabled={step === 0 || isPending}
           size="lg"
         >
@@ -1038,10 +1127,12 @@ export default function PlanPreventionCreatePage({
             onClick={handleNext}
             disabled={
               isPending ||
-              (isPrestataire && step === 0 && !selectedPlanifId) ||
-              (isPrestataire &&
+              (showPlanifSelector && step === 0 && !selectedPlanifId) ||
+              (showPlanifSelector &&
                 step === 0 &&
-                planificationsDisponibles.length === 0) ||
+                planificationsDisponibles.filter(p => p.disponible !== false && p.status === 'planifie').length === 0) ||
+              isStep1Invalid ||
+              isStep2Invalid ||
               isStep4Invalid
             }
             loading={isPending}

@@ -120,6 +120,19 @@ export const planPreventionApi = {
       })
       .then((r) => r.data),
 
+  viewDocument: async (planId: string, documentId: string): Promise<void> => {
+    const token = localStorage.getItem('access_token') ?? ''
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/plans-prevention/${planId}/documents/${documentId}/download`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    if (!res.ok) throw new Error('Visualisation impossible')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  },
+
   downloadPdf: async (planId: string): Promise<void> => {
     const token = localStorage.getItem('access_token') ?? ''
     const res = await fetch(

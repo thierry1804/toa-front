@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
-  MapPin,
+
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -20,8 +20,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import PlanReference from "@/components/planPrevention/PlanReference";
-import SitesKmzMap from "@/components/planPrevention/SitesKmzMap";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
+import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
@@ -35,6 +35,7 @@ import {
   usePlanPrevention,
   usePlanPreventionPdf,
 } from "@/features/planPrevention/hooks/usePlanPrevention";
+import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
 import { usePermission } from "@/features/auth/usePermission";
 import {
   TYPES_DOCUMENT_LABELS,
@@ -109,6 +110,8 @@ export default function PlanPreventionDetailPage() {
   const { pdfStatut } = usePlanPreventionPdf(id ?? "", {
     enabled: plan?.statut === "VALIDE_HSE",
   });
+  const { data: categoriesData } = useCategoriesRisqueAll();
+  const allCategories = categoriesData?.member ?? [];
 
   const [examinerOpen, setExaminerOpen] = useState(false);
   const [validerOpen, setValiderOpen] = useState(false);
@@ -170,10 +173,12 @@ export default function PlanPreventionDetailPage() {
 
   const risqueRows: RisqueRow[] = (plan.risques ?? []).map((r) => ({
     localId: r.id,
+    tachePlanifieeId: r.tachePlanifieeId ?? null,
     description: r.description,
     gravite: r.gravite,
     probabilite: r.probabilite,
     mesuresPreventives: r.mesuresPreventives,
+    risqueResiduel: r.risqueResiduel ?? null,
   }));
 
   const uploadedTypes = new Set((plan.documents ?? []).map((d) => d.type));
@@ -311,100 +316,97 @@ export default function PlanPreventionDetailPage() {
         </div>
       </SectionCard>
 
-      {/* 2. Matrice des risques */}
+      {/* 2. Analyse des risques */}
       <SectionCard
-        title={t("planPrevention.detail.sections.riskMatrix", {
-          count: risqueRows.length,
-        })}
+        title={`Analyse des risques (${risqueRows.length})`}
       >
-        <RisqueMatrice rows={risqueRows} onChange={() => undefined} disabled />
+        {(plan.planificationSections?.length ?? 0) > 0 ? (
+          <AnalyseRisquesPlanning
+            sections={plan.planificationSections!}
+            rows={risqueRows}
+            onChange={() => undefined}
+            categories={allCategories}
+            disabled
+          />
+        ) : (
+          <RisqueMatrice rows={risqueRows} onChange={() => undefined} disabled />
+        )}
       </SectionCard>
 
-      {/* 3. Sites concernés */}
-      <SectionCard
-        title={t("planPrevention.detail.sections.sites", {
-          count: plan.sites?.length ?? 0,
-        })}
-      >
-        <div className="space-y-4">
-          <SitesKmzMap sites={plan.sites ?? []} height="360px" readonly />
-          {(plan.sites?.length ?? 0) > 0 && (
-            <ul className="divide-y divide-gray-100">
-              {plan.sites.map((site) => (
-                <li key={site.id} className="flex items-center gap-3 py-2.5">
-                  <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-gray-800">
-                        {site.nom}
-                      </p>
-                      {(site.fokontany || site.commune || site.district) && (
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {site.fokontany && (
-                            <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                              {site.fokontany}
-                            </span>
-                          )}
-                          {site.commune && (
-                            <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                              {site.commune}
-                            </span>
-                          )}
-                          {site.district && (
-                            <span className="rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                              {site.district}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {site.latitude.toFixed(6)}, {site.longitude.toFixed(6)}
-                    </p>
-                  </div>
-                  {site.sourceKmz && (
-                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      KMZ
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </SectionCard>
+      {/* 3. Sites concernés (depuis la planification liée) */}
+      {(() => {
+        const planifSites = plan.planificationSites ?? [];
+        return (
+          <SectionCard
+            title={`Sites concernés${planifSites.length > 0 ? ` (${planifSites.length})` : ''}`}
+          >
+            {planifSites.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">Aucun site renseigné.</p>
+            ) : (
+              <div className={planifSites.length > 10 ? "overflow-y-auto max-h-[26rem]" : ""}>
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b border-gray-200">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Code site
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Nom du site
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {planifSites.map((site, i) => (
+                      <tr key={site.codeSite ?? i} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-mono text-xs text-gray-700">
+                          {site.codeSite}
+                        </td>
+                        <td className="px-3 py-2 text-gray-900">
+                          {site.nomSite}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        );
+      })()}
 
-      {/* 4. Installations & Équipements */}
-      <SectionCard title="Installations & Équipements">
-        <div className="space-y-6">
-          <div>
-            <p className="mb-2 text-sm font-medium text-gray-600">
-              Installations et matériels utilisés
-              {(plan.installations?.length ?? 0) > 0 &&
-                ` (${plan.installations!.length})`}
-            </p>
-            <InstallationsTable
-              value={plan.installations ?? []}
-              onChange={() => {}}
-              readonly
-              emptyLabel="Aucune installation renseignée."
-            />
+      {/* 4. Installations & Équipements — only for "Nouveau site" */}
+      {plan.typeIntervention === "Nouveau site" && (
+        <SectionCard title="Installations & Équipements">
+          <div className="space-y-6">
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-600">
+                Installations et matériels utilisés
+                {(plan.installations?.length ?? 0) > 0 &&
+                  ` (${plan.installations!.length})`}
+              </p>
+              <InstallationsTable
+                value={plan.installations ?? []}
+                onChange={() => {}}
+                readonly
+                emptyLabel="Aucune installation renseignée."
+              />
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-600">
+                Matériels, équipements et outillages
+                {(plan.equipements?.length ?? 0) > 0 &&
+                  ` (${plan.equipements!.length})`}
+              </p>
+              <EquipementsTable
+                value={plan.equipements ?? []}
+                onChange={() => {}}
+                readonly
+                emptyLabel="Aucun équipement renseigné."
+              />
+            </div>
           </div>
-          <div>
-            <p className="mb-2 text-sm font-medium text-gray-600">
-              Matériels, équipements et outillages
-              {(plan.equipements?.length ?? 0) > 0 &&
-                ` (${plan.equipements!.length})`}
-            </p>
-            <EquipementsTable
-              value={plan.equipements ?? []}
-              onChange={() => {}}
-              readonly
-              emptyLabel="Aucun équipement renseigné."
-            />
-          </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      )}
 
       {/* 5. Documents requis */}
       <SectionCard title={t("planPrevention.detail.sections.documents")}>

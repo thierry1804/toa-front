@@ -162,7 +162,7 @@ export function usePlanificationsDisponibles(opts?: { enabled?: boolean }) {
   return useQuery<{ member: ActivityPlanning[] }, Error, ActivityPlanning[]>({
     queryKey: [...PLAN_PREVENTION_KEY, "planifications-disponibles"],
     queryFn: () => planPreventionApi.listPlanificationsDisponibles(),
-    select: (data) => data.member.filter((p) => p.status === "planifie"),
+    select: (data) => data.member,
     enabled: opts?.enabled ?? true,
     staleTime: 2 * 60 * 1000,
   });

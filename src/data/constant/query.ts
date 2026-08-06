@@ -25,3 +25,5 @@ export const REFERENTIEL_SITES_KEY = ['referentiel', 'sites'] as const
 export const REFERENTIEL_IMPORT_KMZ_KEY = ['referentiel', 'import-kmz'] as const
 
 export const REFERENTIEL_SITES_GEOJSON_KEY = ['referentiel', 'sites', 'geojson'] as const
+
+export const REFERENTIEL_CATEGORIES_RISQUE_KEY = ['referentiel', 'categories-risque'] as const

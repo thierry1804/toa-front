@@ -264,6 +264,7 @@ export interface ActivityPlanning {
   status: ActivityPlanningStatus
   permitReference: string | null
   permitValidated: boolean
+  disponible?: boolean
   sections?: SectionPlanifieeItem[]
   auditLogs?: ActivityPlanningAudit[]
   createdAt: string

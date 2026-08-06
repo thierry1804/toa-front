@@ -16,6 +16,7 @@ export type TypeDocumentPrevention =
   | 'LISTE_INTERVENANTS'
   | 'ATTESTATION_HSE'
   | 'FICHE_CONFORMITE'
+  | 'LISTE_VEHICULES'
 
 export const TYPES_DOCUMENT_LABELS: Record<TypeDocumentPrevention, string> = {
   PLAN_URGENCE: "Plan d'urgence",
@@ -23,6 +24,7 @@ export const TYPES_DOCUMENT_LABELS: Record<TypeDocumentPrevention, string> = {
   LISTE_INTERVENANTS: 'Liste des intervenants',
   ATTESTATION_HSE: 'Attestation HSE',
   FICHE_CONFORMITE: 'Fiche de conformité',
+  LISTE_VEHICULES: 'Liste des véhicules et des chauffeurs',
 }
 
 export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
@@ -31,44 +33,54 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
   'LISTE_INTERVENANTS',
   'ATTESTATION_HSE',
   'FICHE_CONFORMITE',
+  'LISTE_VEHICULES',
 ]
 
 export interface InstallationRow {
   description: string
   conditionsUtilisation: string
+  dateVerification?: string | null
+  verifiePar?: string | null
 }
 
 export interface EquipementRow {
   description: string
   conditionsUtilisation: string
+  dateVerification?: string | null
+  verifiePar?: string | null
 }
+
 
 export interface PlanPreventionInput {
   codeSite: string
   localite: string
   activitePlanifiee: string
-  referenceActivite?: string | null
   dateDebut: string
   dateFin: string
   chefProjet?: string | null
   installations?: InstallationRow[]
   equipements?: EquipementRow[]
+  planificationId?: number | null
 }
 
 export interface RisquePreventionInput {
+  tachePlanifieeId?: string | null
   description: string
   gravite: number
   probabilite: number
   mesuresPreventives: string
+  risqueResiduel?: number | null
 }
 
 export interface RisquePrevention {
   id: string
+  tachePlanifieeId?: string | null
   description: string
   gravite: number
   probabilite: number
   niveauRisque: number
   mesuresPreventives: string
+  risqueResiduel?: number | null
 }
 
 export interface DocumentPrevention {
@@ -135,6 +147,7 @@ export interface PlanPrevention {
   localite: string
   activitePlanifiee: string
   referenceActivite?: string | null
+  planificationId?: number | null
   dateDebut: string
   dateFin: string
   statut: StatutPlanPrevention
@@ -149,14 +162,19 @@ export interface PlanPrevention {
   versions?: VersionPlanPrevention[]
   installations?: InstallationRow[]
   equipements?: EquipementRow[]
+  typeIntervention?: string | null
+  planificationSites?: { codeSite: string; nomSite: string }[]
+  planificationSections?: import('@/types').SectionPlanifieeItem[]
 }
 
 export interface RisqueRow {
   localId: string
+  tachePlanifieeId?: string | null
   description: string
   gravite: number
   probabilite: number
   mesuresPreventives: string
+  risqueResiduel?: number | null
 }
 
 export type StatutPlanPreventionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'

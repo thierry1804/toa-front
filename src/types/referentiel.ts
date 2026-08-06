@@ -36,6 +36,22 @@ export interface SiteGeoJsonFeature {
   dis: string | null
 }
 
+export interface CategorieRisque {
+  id: string
+  nom: string
+  createdAt: string
+  updatedAt: string | null
+}
+
+export interface CategorieRisqueInput {
+  nom: string
+}
+
+export interface CategorieRisqueListResponse {
+  member: CategorieRisque[]
+  totalItems: number
+}
+
 export interface KmzImportResponse {
   importId: string
   nomFichier: string
