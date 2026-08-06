@@ -143,7 +143,7 @@ export default function GestionListesPage() {
             <List className="h-5 w-5 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Gestion de liste</h1>
+            <h1 className="text-xl font-semibold text-gray-900">Gestion de risques</h1>
             <p className="text-sm text-gray-500">Catégories de risque</p>
           </div>
         </div>
