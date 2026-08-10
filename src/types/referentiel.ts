@@ -32,6 +32,7 @@ export interface Site {
 
 export interface SiteGeoJsonFeature {
   id: string
+  cs: string
   n: string
   a: number | null
   c: string | null

@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ArrowRight, Activity } from "lucide-react";
+import { ArrowRight, Activity, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { stats, quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
 import type { MenuNode } from "@/types";
+import ReferentielSitesMap from "@/components/referentiel/ReferentielSitesMap";
+import { useDashboardMap } from "@/features/dashboard/hooks/useDashboardMap";
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   const out: MenuNode[] = [];
@@ -20,11 +22,38 @@ function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   return out;
 }
 
+function WelcomePage({ name }: { name: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <div className="rounded-full bg-blue-50 p-6 mb-6">
+        <Activity className="h-12 w-12 text-blue-500" />
+      </div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-3">
+        Bienvenue, {name}
+      </h1>
+      <p className="text-gray-500 max-w-md">
+        Votre espace de travail est prêt. Utilisez le menu de navigation pour
+        accéder à vos fonctionnalités.
+      </p>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const roles = useAuthStore((s) => s.roles);
   const menuItems = useMenuStore((s) => s.items);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const isAdmin =
+    roles.includes("ROLE_ADMIN") || roles.includes("ROLE_SUPER_ADMIN");
+
+  const [filterProvider, setFilterProvider] = useState("");
+  const [filterProcess, setFilterProcess] = useState("");
+
+  const { filteredGeoJson, prestataires, processTypes, isLoading: mapLoading } =
+    useDashboardMap(filterProvider, filterProcess);
 
   const visibleQuickLinks = useMemo(() => {
     if (menuItems.length === 0) return quickLinks;
@@ -37,12 +66,77 @@ export default function DashboardPage() {
     return quickLinks.filter((l) => viewable.has(l.route));
   }, [menuItems]);
 
+  const userName = user
+    ? `${user.prenom ? `${user.prenom} ` : ""}${user.nom}`
+    : "";
+
+  if (!isAdmin) {
+    return <WelcomePage name={userName} />;
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`${t("dashboard.greeting")}${user ? `, ${user.prenom ? `${user.prenom} ` : ""}${user.nom}` : ""}`}
+        title={`${t("dashboard.greeting")}${userName ? `, ${userName}` : ""}`}
         description={t("dashboard.description")}
       />
+
+      {/* Map section */}
+      <div className="rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
+            <h2 className="text-base font-semibold text-gray-900">
+              Carte des sites
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-400 shrink-0" />
+            <select
+              value={filterProvider}
+              onChange={(e) => setFilterProvider(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              <option value="">Tous les prestataires</option>
+              {prestataires.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterProcess}
+              onChange={(e) => setFilterProcess(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              <option value="">Tous les projets</option>
+              {processTypes.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            {(filterProvider || filterProcess) && (
+              <button
+                onClick={() => {
+                  setFilterProvider("");
+                  setFilterProcess("");
+                }}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
+        </div>
+        {mapLoading ? (
+          <div className="flex items-center justify-center h-[500px] text-gray-400 text-sm">
+            Chargement de la carte…
+          </div>
+        ) : (
+          <ReferentielSitesMap geoJson={filteredGeoJson} height="500px" />
+        )}
+      </div>
 
       {/* Stats grid */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
