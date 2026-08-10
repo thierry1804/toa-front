@@ -1,295 +1,165 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
-import { useUser } from '@/features/users/hooks/useUsers'
-import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
-import { usersApi } from '@/api/usersApi'
 import type { StatutPermitTravail } from '@/types/permitTravail'
 
-const ENGAGEMENTS_PPHSSES = [
-  "La mise en œuvre efficace des mesures de prévention et de protection en matière de HSSES préalablement identifiées dans le présent plan,",
-  "Déployer nos actions pour s'aligner aux dispositions réglementaires nationales et aux normes de performances IFC,",
-  "Prendre en compte les bonnes pratiques internationales des industries,",
-  "Transmettre à nos sous-traitants les exigences de ce PPHSSES,",
-  "Respecter les clauses des Autorisations de nettoiement et Cahiers de Charges Environnementales si applicable,",
-  "Fournir à TOA les informations HSSES requises jusqu'au repli chantier,",
-  "Envoyer à TOA le présent PPHSSES validé avec documents d'évidences.",
-]
+export type NiveauRisque = 'rouge' | 'jaune' | 'vert'
 
-const SITUATION_OPTIONS = ['En ville', 'Rurale', 'Sur montagne', 'Autres']
+export interface EvaluationData {
+  dangers: string
+  evaluationPreliminaire: NiveauRisque | ''
+  moyensMaitrise: string
+  evaluationFinale: NiveauRisque | ''
+}
 
 interface EngagementSectionProps {
-  planPreventionId?: string | null
   checked: boolean
   onChange: (checked: boolean) => void
   statut?: StatutPermitTravail
+  evaluation: EvaluationData
+  onEvaluationChange: (data: EvaluationData) => void
+  onSaveEvaluation?: () => Promise<void>
 }
 
-interface InlineInputProps {
-  value: string
-  onChange: (v: string) => void
-  placeholder: string
-  readonly: boolean
-  width?: string
+const NIVEAU_OPTIONS: { value: NiveauRisque; bg: string; ring: string; filled: string }[] = [
+  { value: 'rouge', bg: 'bg-white', ring: 'border-red-400',    filled: 'bg-red-400 border-red-400' },
+  { value: 'jaune', bg: 'bg-white', ring: 'border-yellow-400', filled: 'bg-yellow-400 border-yellow-400' },
+  { value: 'vert',  bg: 'bg-white', ring: 'border-green-500',  filled: 'bg-green-500 border-green-500' },
+]
+
+interface NiveauPickerProps {
+  label: string
+  value: NiveauRisque | ''
+  onChange: (v: NiveauRisque) => void
+  disabled?: boolean
 }
 
-function InlineInput({ value, onChange, placeholder, readonly, width = '140px' }: InlineInputProps) {
-  if (readonly) {
-    return (
-      <span className="font-semibold">{value || `[${placeholder}]`}</span>
-    )
-  }
+function NiveauPicker({ label, value, onChange, disabled }: NiveauPickerProps) {
   return (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="inline-block border-b border-dashed border-blue-400 bg-transparent px-1 text-sm focus:outline-none focus:border-blue-600 placeholder-gray-400"
-      style={{ minWidth: width }}
-    />
+    <div className="flex items-center gap-3 py-2">
+      <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
+        {label}
+      </span>
+      <div className="flex items-center gap-2">
+        {NIVEAU_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            disabled={disabled}
+            onClick={() => !disabled && onChange(opt.value)}
+            className={`h-6 w-6 rounded-full border-2 transition-all focus:outline-none ${
+              value === opt.value ? opt.filled : `${opt.bg} ${opt.ring}`
+            } ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:opacity-80'}`}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
 export default function EngagementSection({
-  planPreventionId,
   checked,
   onChange,
   statut,
+  evaluation,
+  onEvaluationChange,
+  onSaveEvaluation,
 }: EngagementSectionProps) {
   const readonly = statut !== undefined && statut !== 'BROUILLON'
   const authUser = useAuthStore((s) => s.user)
-  const userId = authUser ? parseInt(authUser.id, 10) : 0
-
-  const { data: fullUser } = useUser(userId)
-  const { data: plan } = usePlanPreventionDetail(planPreventionId ?? '')
-
-  const [inlineNomSociete, setInlineNomSociete] = useState('')
-  const [inlineNumeroRegistre, setInlineNumeroRegistre] = useState('')
-  const [inlineSiegeSocial, setInlineSiegeSocial] = useState('')
-  const [inlineQualite, setInlineQualite] = useState('')
-  const [fokontany, setFokontany] = useState('')
-  const [commune, setCommune] = useState('')
-  const [district, setDistrict] = useState('')
-  const [region, setRegion] = useState('')
-  const [situation, setSituation] = useState('')
-  const [sigError, setSigError] = useState(false)
-
-  const signatureUrl = userId && fullUser?.signaturePath
-    ? usersApi.signatureDownloadUrl(userId)
-    : null
 
   const nomRepresentant = authUser
     ? `${authUser.prenom ?? ''} ${authUser.nom}`.trim() || authUser.email
     : ''
-  const firstSite = plan?.sites?.[0]
-  const today = new Date().toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+
+  const handleSave = async () => {
+    if (!onSaveEvaluation) return
+    setSaving(true)
+    setSaved(false)
+    setSaveError(false)
+    try {
+      await onSaveEvaluation()
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setSaveError(true)
+      setTimeout(() => setSaveError(false), 4000)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
-      {/* ── Bloc 1: Identification société ── */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-800 leading-relaxed">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-          Identification de la société
-        </p>
-        <p className="leading-7">
-          Nous soussignés Société{' '}
-          {fullUser?.entrepriseName ? (
-            <span className="font-semibold">{fullUser.entrepriseName}</span>
-          ) : (
-            <InlineInput
-              value={inlineNomSociete}
-              onChange={setInlineNomSociete}
-              placeholder="Nom de la société"
-              readonly={readonly}
-              width="160px"
-            />
-          )}
-          , inscrite au registre du commerce sous le numéro{' '}
-          {fullUser?.numeroRegistreCommerce ? (
-            <span className="font-semibold">{fullUser.numeroRegistreCommerce}</span>
-          ) : (
-            <InlineInput
-              value={inlineNumeroRegistre}
-              onChange={setInlineNumeroRegistre}
-              placeholder="N° registre"
-              readonly={readonly}
-            />
-          )}{' '}
-          dont le siège social est situé{' '}
-          {fullUser?.siegeSocial ? (
-            <span className="font-semibold">{fullUser.siegeSocial}</span>
-          ) : (
-            <InlineInput
-              value={inlineSiegeSocial}
-              onChange={setInlineSiegeSocial}
-              placeholder="Siège social"
-              readonly={readonly}
-              width="180px"
-            />
-          )}
-          , représentée par{' '}
-          <span className="font-semibold">{nomRepresentant || '[Représentant]'}</span>
-          , agissant en sa qualité de{' '}
-          {fullUser?.qualiteRepresentant ? (
-            <span className="font-semibold">{fullUser.qualiteRepresentant}</span>
-          ) : (
-            <InlineInput
-              value={inlineQualite}
-              onChange={setInlineQualite}
-              placeholder="Qualité / fonction"
-              readonly={readonly}
-            />
-          )}
-          , dûment habilitée pour la signature du présent PPHSSES ;
-        </p>
-      </div>
-
-      {/* ── Bloc 2: Détails site ── */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Pour le site de télécommunication objet de ce PPHSSES
-        </p>
-        <table className="w-full">
-          <tbody className="divide-y divide-gray-100">
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap w-44">Localité</td>
-              <td className="py-2">
-                {plan?.localite ? (
-                  <span className="font-medium">{plan.localite}</span>
-                ) : planPreventionId ? (
-                  <span className="text-gray-400 italic text-xs">—</span>
-                ) : (
-                  <span className="text-gray-400 italic text-xs">Aucun plan sélectionné</span>
-                )}
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">Fokontany</td>
-              <td className="py-2">
-                <InlineInput
-                  value={fokontany}
-                  onChange={setFokontany}
-                  placeholder="Fokontany"
-                  readonly={readonly}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">Commune</td>
-              <td className="py-2">
-                <InlineInput
-                  value={commune}
-                  onChange={setCommune}
-                  placeholder="Commune"
-                  readonly={readonly}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">District</td>
-              <td className="py-2">
-                <InlineInput
-                  value={district}
-                  onChange={setDistrict}
-                  placeholder="District"
-                  readonly={readonly}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">Région</td>
-              <td className="py-2">
-                <InlineInput
-                  value={region}
-                  onChange={setRegion}
-                  placeholder="Région"
-                  readonly={readonly}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">Coordonnées géographiques</td>
-              <td className="py-2">
-                {firstSite ? (
-                  <span className="font-mono font-medium text-xs">
-                    {firstSite.latitude.toFixed(6)}, {firstSite.longitude.toFixed(6)}
-                  </span>
-                ) : (
-                  <span className="text-gray-400 italic text-xs">—</span>
-                )}
-              </td>
-            </tr>
-            <tr>
-              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">Situation</td>
-              <td className="py-2">
-                {readonly ? (
-                  <span className="font-medium">{situation || '—'}</span>
-                ) : (
-                  <select
-                    value={situation}
-                    onChange={(e) => setSituation(e.target.value)}
-                    className="rounded border border-gray-300 px-2 py-0.5 text-sm focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="">— Sélectionner —</option>
-                    {SITUATION_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                )}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Bloc 3: Engagements officiels PPHSSES (non éditable) ── */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
-        <p className="font-semibold text-gray-800 mb-2">Nous nous engageons à :</p>
-        <ul className="space-y-1.5">
-          {ENGAGEMENTS_PPHSSES.map((text, i) => (
-            <li key={i} className="flex items-start gap-2 text-gray-700">
-              <span className="mt-0.5 flex-shrink-0 text-blue-600 font-bold">•</span>
-              <span>{text}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* ── Bloc 4: Signature et date ── */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm">
-        <p className="text-gray-700 mb-3">
-          Fait à Antananarivo, ce <span className="font-semibold">{today}</span>
-        </p>
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Signature</p>
-          {signatureUrl && !sigError ? (
-            <img
-              src={signatureUrl}
-              alt="Signature"
-              className="max-h-20 max-w-xs border border-gray-200 rounded bg-white object-contain"
-              onError={() => setSigError(true)}
-            />
-          ) : (
-            <p className="text-sm text-gray-400 italic">
-              Aucune signature —{' '}
-              <Link
-                to={authUser ? `/users/${authUser.id}/edit` : '/users'}
-                className="text-blue-600 underline hover:text-blue-800"
-              >
-                ajoutez-en une dans votre profil
-              </Link>
-            </p>
-          )}
+      {/* ── Questionnaire évaluation ── */}
+      <div className="rounded-lg border border-red-300 bg-white p-4 space-y-1">
+        {/* Dangers */}
+        <div className="border-b border-gray-200 pb-2">
+          <textarea
+            value={evaluation.dangers}
+            onChange={(e) => onEvaluationChange({ ...evaluation, dangers: e.target.value })}
+            disabled={readonly}
+            placeholder="Quels sont les dangers?"
+            rows={2}
+            className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
+          />
         </div>
+
+        <NiveauPicker
+          label="Évaluation préliminaire des risques"
+          value={evaluation.evaluationPreliminaire}
+          onChange={(v) => onEvaluationChange({ ...evaluation, evaluationPreliminaire: v })}
+          disabled={readonly}
+        />
+
+        {/* Moyens de maîtrise */}
+        <div className="border-b border-gray-200 pt-1 pb-2">
+          <textarea
+            value={evaluation.moyensMaitrise}
+            onChange={(e) => onEvaluationChange({ ...evaluation, moyensMaitrise: e.target.value })}
+            disabled={readonly}
+            placeholder="Quels sont les moyens de maîtriser les dangers en sécurité?"
+            rows={2}
+            className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
+          />
+        </div>
+
+        <NiveauPicker
+          label="Évaluation finale des risques"
+          value={evaluation.evaluationFinale}
+          onChange={(v) => onEvaluationChange({ ...evaluation, evaluationFinale: v })}
+          disabled={readonly}
+        />
+
+        {/* Bouton enregistrer */}
+        {!readonly && (
+          <div className="pt-2 flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className={`px-6 py-1.5 text-sm font-semibold uppercase tracking-wide rounded transition-colors disabled:cursor-not-allowed ${
+                saved
+                  ? 'bg-green-100 text-green-700 border border-green-300'
+                  : saveError
+                  ? 'bg-red-100 text-red-700 border border-red-300'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+              }`}
+            >
+              {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : saveError ? 'Erreur — réessayer' : 'Enregistrer'}
+            </button>
+            {saveError && (
+              <p className="text-xs text-red-600">Impossible de sauvegarder. Vérifiez votre connexion.</p>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Bloc 5: Checkbox engagement ── */}
+      {/* ── Checkbox engagement ── */}
       <div
         className={`flex items-start gap-3 rounded-lg border-2 p-4 transition-colors ${
           readonly

@@ -20,7 +20,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
-import EngagementSection from '@/components/permitTravail/EngagementSection'
+import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
 import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
@@ -120,6 +120,12 @@ export default function PermitTravailCreatePage() {
   const [permit, setPermit] = useState<PermitTravail | null>(null)
   const [companionDocs, setCompanionDocs] = useState<DocumentPermitTravail[]>([])
   const [engagementChecked, setEngagementChecked] = useState(false)
+  const [evaluation, setEvaluation] = useState<EvaluationData>({
+    dangers: '',
+    evaluationPreliminaire: '',
+    moyensMaitrise: '',
+    evaluationFinale: '',
+  })
 
   // ── Plans by site ─────────────────────────────────────────────────────────────
   const { data: plansBySiteData, isLoading: isLoadingPlans } = useQuery({
@@ -241,7 +247,13 @@ export default function PermitTravailCreatePage() {
   // ── Submit ────────────────────────────────────────────────────────────────────
   const handleSoumettre = async () => {
     if (!permit) return
-    await updatePermit(permit.id, { engagementAccepte: true })
+    await updatePermit(permit.id, {
+      engagementAccepte: true,
+      dangers: evaluation.dangers || null,
+      evaluationPreliminaire: evaluation.evaluationPreliminaire || null,
+      moyensMaitrise: evaluation.moyensMaitrise || null,
+      evaluationFinale: evaluation.evaluationFinale || null,
+    })
     const companionId = permit.permitsGroupe?.[0]?.id
     if (companionId) {
       await updatePermit(companionId, { engagementAccepte: true })
@@ -539,14 +551,6 @@ export default function PermitTravailCreatePage() {
       case 3:
         return (
           <div className="space-y-6">
-            {/* Reference */}
-            {permit?.reference && (
-              <div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
-                <span className="text-xs text-blue-600 font-medium uppercase tracking-wide">Référence</span>
-                <span className="font-mono text-sm font-semibold text-blue-800">{permit.reference}</span>
-              </div>
-            )}
-
             {/* Documents */}
             {permit?.processus === 'NOUVEAU_SITE' && companionPermit ? (
               <>
@@ -584,10 +588,20 @@ export default function PermitTravailCreatePage() {
 
             {/* Engagement */}
             <EngagementSection
-              planPreventionId={selectedPlanId || null}
               checked={engagementChecked}
               onChange={setEngagementChecked}
               statut={permit?.statut}
+              evaluation={evaluation}
+              onEvaluationChange={setEvaluation}
+              onSaveEvaluation={async () => {
+                if (!permit) return
+                await updatePermit(permit.id, {
+                  dangers: evaluation.dangers || null,
+                  evaluationPreliminaire: evaluation.evaluationPreliminaire || null,
+                  moyensMaitrise: evaluation.moyensMaitrise || null,
+                  evaluationFinale: evaluation.evaluationFinale || null,
+                })
+              }}
             />
           </div>
         )

@@ -118,7 +118,7 @@ export default function ReferentielSitesMap({
         source.getClusterExpansionZoom(clusterId).then((zoom) => {
           const coords = (features[0].geometry as Point).coordinates as [number, number]
           map.easeTo({ center: coords, zoom: zoom ?? 10 })
-        })
+        }).catch(() => {})
       })
 
       map.on('click', 'unclustered-point', (e) => {

@@ -41,6 +41,11 @@ export interface InstallationRow {
   conditionsUtilisation: string
 }
 
+export interface VehiculeRow {
+  vehicule: string
+  chauffeur: string
+}
+
 export interface EquipementRow {
   description: string
   conditionsUtilisation: string
