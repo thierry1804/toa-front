@@ -165,6 +165,11 @@ export interface PlanPrevention {
   planificationSections?: import('@/types').SectionPlanifieeItem[]
 }
 
+export interface VehiculeRow {
+  vehicule: string
+  chauffeur: string
+}
+
 export interface RisqueRow {
   localId: string
   tachePlanifieeId?: string | null

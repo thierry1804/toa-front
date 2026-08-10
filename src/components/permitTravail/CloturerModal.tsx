@@ -8,7 +8,7 @@ interface CloturerModalProps {
   permitReference: string
   isCloturer: boolean
   onClose: () => void
-  onCloturer: (id: string, commentaire?: string, accordClient?: boolean) => Promise<void>
+  onCloturer: (id: string, commentaire?: string, accordClient?: boolean) => Promise<unknown>
 }
 
 export default function CloturerModal({

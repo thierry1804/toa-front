@@ -7,8 +7,8 @@ const ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf'
 
 interface SuiviDocumentUploadZoneProps {
   documents: SuiviJournalierDocument[]
-  onUpload: (file: File) => Promise<void>
-  onDelete: (docId: string) => Promise<void>
+  onUpload: (file: File) => Promise<unknown>
+  onDelete: (docId: string) => Promise<unknown>
   disabled?: boolean
 }
 
