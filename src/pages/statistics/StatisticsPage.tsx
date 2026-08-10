@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
 import { usePermitStore } from '@/store/permitStore';
-// import { useAuthStore } from '@/store/authStore'; // Unused import
-// import { useI18n } from '@/lib/i18n'; // Unused import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import {
@@ -13,14 +11,10 @@ import {
   Clock,
   Users,
   MapPin,
-  // Calendar, // Unused import
 } from 'lucide-react';
 
 export default function StatisticsPage() {
   const { permisGeneraux, plansPrevention } = usePermitStore();
-  // const { user } = useAuthStore(); // TODO: Use user data
-  // const { t } = useI18n(); // TODO: Use translations
-
   // Statistiques des permis
   const permitsStats = useMemo(() => {
     const total = permisGeneraux.length;

@@ -96,9 +96,8 @@ export default function PermitGeneralForm({
       },
     });
 
-    const onSubmit = (data: Step1Data) => {
-      // Cette fonction sera appelée par le MultiStepForm
-      console.log("Step1 data:", data);
+    const onSubmit = (_data: Step1Data) => {
+      // Called by MultiStepForm
     };
 
     return (
@@ -199,9 +198,8 @@ export default function PermitGeneralForm({
 
     const travauxAutres = watch("travauxAutres");
 
-    const onSubmit = (data: Step2Data) => {
-      console.log("Step2 data:", data);
-    };
+    const onSubmit = (_data: Step2Data) => {};
+
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -268,9 +266,8 @@ export default function PermitGeneralForm({
       },
     });
 
-    const onSubmit = (data: Step3Data) => {
-      console.log("Step3 data:", data);
-    };
+    const onSubmit = (_data: Step3Data) => {};
+
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

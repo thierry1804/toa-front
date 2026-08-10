@@ -9,10 +9,7 @@ interface PermitState {
   setPlansPrevention: (plans: PreventionPlan[]) => void
   getPermisGeneralById: (id: string) => any | undefined
   getPlanPreventionById: (id: string) => PreventionPlan | undefined
-  getPermisHauteurById: (id: string) => any | undefined
   addPermisGeneral: (permis: any) => void
-  addPermisHauteur: (permis: any) => void
-  addPermisElectrique: (permis: any) => void
   validerParChefProjet: (id: string, nom: string, commentaire: string) => void
   validerParHSE: (id: string, nom: string, commentaire: string) => void
   refuserPermis: (id: string, commentaire: string) => void
@@ -27,12 +24,7 @@ export const usePermitStore = create<PermitState>((set, get) => ({
   setPlansPrevention: (plans) => set({ plansPrevention: plans }),
   getPermisGeneralById: (id) => get().permisGeneraux.find((p) => p.id === id),
   getPlanPreventionById: (id) => get().plansPrevention.find((p) => p.id === id),
-  getPermisHauteurById: (id) => get().permisGeneraux.find((p) => p.id === id),
   addPermisGeneral: (permis) =>
-    set((state) => ({ permisGeneraux: [...state.permisGeneraux, permis] })),
-  addPermisHauteur: (permis) =>
-    set((state) => ({ permisGeneraux: [...state.permisGeneraux, permis] })),
-  addPermisElectrique: (permis) =>
     set((state) => ({ permisGeneraux: [...state.permisGeneraux, permis] })),
   validerParChefProjet: (id, _nom, commentaire) =>
     set((state) => ({

@@ -471,7 +471,6 @@ export default function PreventionMultiStepForm({
   }, [formData.coordonneesGPS]);
 
   const handleSubmit = (data: PreventionPlan) => {
-    console.log("Form submitted:", data);
     onSubmit(data);
   };
 
