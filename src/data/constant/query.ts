@@ -29,3 +29,5 @@ export const REFERENTIEL_SITES_GEOJSON_KEY = ['referentiel', 'sites', 'geojson']
 export const REFERENTIEL_CATEGORIES_RISQUE_KEY = ['referentiel', 'categories-risque'] as const
 
 export const REFERENTIEL_INSTALLATIONS_KEY = ['referentiel', 'installations-equipements'] as const
+
+export const ENTREPRISES_KEY = ['entreprises'] as const

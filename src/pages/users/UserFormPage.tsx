@@ -31,6 +31,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { parseApiFieldErrors } from "@/lib/apiErrors";
 import { useRoles } from "@/features/roles/hooks/useRoles";
+import { useEntreprises } from "@/features/referentiel/hooks/useEntreprises";
 
 // Maps API propertyPath / error_key values → form field names
 const PROPERTY_TO_FIELD: Record<string, string> = {
@@ -106,6 +107,7 @@ export default function UserFormPage() {
     email: "",
     role: "ROLE_PRESTATAIRE",
     entrepriseName: "",
+    entrepriseId: "",
     numeroRegistreCommerce: "",
     siegeSocial: "",
     qualiteRepresentant: "",
@@ -113,6 +115,10 @@ export default function UserFormPage() {
     plainPassword: "",
     confirmPassword: "",
   });
+
+  const { data: entreprises = [] } = useEntreprises();
+  const canHaveEntreprise = (role: string) =>
+    role === "ROLE_PRESTATAIRE" || role === "ROLE_HSE";
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -129,6 +135,7 @@ export default function UserFormPage() {
           existingUser.roles.find((r) => r.startsWith("ROLE_")) ??
           "ROLE_PRESTATAIRE",
         entrepriseName: existingUser.entrepriseName ?? "",
+        entrepriseId: existingUser.entreprise?.['@id'] ?? "",
         numeroRegistreCommerce: existingUser.numeroRegistreCommerce ?? "",
         siegeSocial: existingUser.siegeSocial ?? "",
         qualiteRepresentant: existingUser.qualiteRepresentant ?? "",
@@ -205,10 +212,13 @@ export default function UserFormPage() {
 
     const roles = [formData.role];
 
-    const entrepriseName =
-      formData.role === "ROLE_PRESTATAIRE"
-        ? formData.entrepriseName.trim() || null
-        : null;
+    const hasEntreprise = canHaveEntreprise(formData.role);
+    const entrepriseName = hasEntreprise
+      ? formData.entrepriseName.trim() || null
+      : null;
+    const entreprise = hasEntreprise
+      ? formData.entrepriseId || null
+      : null;
     const numeroRegistreCommerce =
       formData.role === "ROLE_PRESTATAIRE"
         ? formData.numeroRegistreCommerce.trim() || null
@@ -233,6 +243,7 @@ export default function UserFormPage() {
             roles,
             isActive: formData.actif,
             entrepriseName,
+            entreprise,
             numeroRegistreCommerce,
             siegeSocial,
             qualiteRepresentant,
@@ -260,6 +271,7 @@ export default function UserFormPage() {
           roles,
           isActive: formData.actif,
           entrepriseName,
+          entreprise,
           numeroRegistreCommerce,
           siegeSocial,
           qualiteRepresentant,
@@ -279,10 +291,12 @@ export default function UserFormPage() {
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRole = e.target.value;
     const isPrestataire = newRole === "ROLE_PRESTATAIRE";
+    const hasEnt = canHaveEntreprise(newRole);
     setFormData({
       ...formData,
       role: newRole,
       entrepriseName: isPrestataire ? formData.entrepriseName : "",
+      entrepriseId: hasEnt ? formData.entrepriseId : "",
       numeroRegistreCommerce: isPrestataire ? formData.numeroRegistreCommerce : "",
       siegeSocial: isPrestataire ? formData.siegeSocial : "",
       qualiteRepresentant: isPrestataire ? formData.qualiteRepresentant : "",
@@ -380,58 +394,86 @@ export default function UserFormPage() {
               disabled={rolesLoading}
             />
 
-            {formData.role === "ROLE_PRESTATAIRE" && (
+            {canHaveEntreprise(formData.role) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <Building2 className="h-5 w-5 text-blue-600 mt-0.5" />
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900 mb-2">
-                      {" "}
                       {t("users.form.entreprise")}
                     </h4>
-                    <Input
+                    <Select
                       label={t("users.form.entreprise")}
-                      value={formData.entrepriseName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, entrepriseName: e.target.value })
-                      }
-                      error={errors.entrepriseName}
-                      placeholder={t("users.form.entreprisePlaceholder")}
+                      value={formData.entrepriseId}
+                      onChange={(e) => {
+                        const iri = e.target.value
+                        const ent = entreprises.find((x) => x['@id'] === iri)
+                        setFormData({
+                          ...formData,
+                          entrepriseId: iri,
+                          entrepriseName: ent ? (ent.nom ?? '') : '',
+                          numeroRegistreCommerce: ent ? (ent.numeroRegistreCommerce ?? '') : '',
+                          siegeSocial: ent ? (ent.siegeSocial ?? '') : '',
+                          qualiteRepresentant: ent ? (ent.qualiteRepresentant ?? '') : '',
+                        })
+                      }}
+                      options={[
+                        { value: "", label: "— Sélectionner une entreprise —" },
+                        ...entreprises.map((ent) => ({
+                          value: ent['@id'],
+                          label: ent.nom,
+                        })),
+                      ]}
                     />
-                    <div className="mt-3">
-                      <Input
-                        label={t("users.form.numeroRegistreCommerce")}
-                        value={formData.numeroRegistreCommerce}
-                        onChange={(e) =>
-                          setFormData({ ...formData, numeroRegistreCommerce: e.target.value })
-                        }
-                        error={errors.numeroRegistreCommerce}
-                        placeholder={t("users.form.numeroRegistreCommercePlaceholder")}
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <Input
-                        label={t("users.form.siegeSocial")}
-                        value={formData.siegeSocial}
-                        onChange={(e) =>
-                          setFormData({ ...formData, siegeSocial: e.target.value })
-                        }
-                        error={errors.siegeSocial}
-                        placeholder={t("users.form.siegeSocialPlaceholder")}
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <Input
-                        label={t("users.form.qualiteRepresentant")}
-                        value={formData.qualiteRepresentant}
-                        onChange={(e) =>
-                          setFormData({ ...formData, qualiteRepresentant: e.target.value })
-                        }
-                        error={errors.qualiteRepresentant}
-                        placeholder={t("users.form.qualiteRepresentantPlaceholder")}
-                        maxLength={100}
-                      />
-                    </div>
+                    {canHaveEntreprise(formData.role) && (
+                      <>
+                        <div className="mt-3">
+                          <Input
+                            label={t("users.form.entreprise") + " (nom libre)"}
+                            value={formData.entrepriseName}
+                            onChange={(e) =>
+                              setFormData({ ...formData, entrepriseName: e.target.value })
+                            }
+                            error={errors.entrepriseName}
+                            placeholder={t("users.form.entreprisePlaceholder")}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <Input
+                            label={t("users.form.numeroRegistreCommerce")}
+                            value={formData.numeroRegistreCommerce}
+                            onChange={(e) =>
+                              setFormData({ ...formData, numeroRegistreCommerce: e.target.value })
+                            }
+                            error={errors.numeroRegistreCommerce}
+                            placeholder={t("users.form.numeroRegistreCommercePlaceholder")}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <Input
+                            label={t("users.form.siegeSocial")}
+                            value={formData.siegeSocial}
+                            onChange={(e) =>
+                              setFormData({ ...formData, siegeSocial: e.target.value })
+                            }
+                            error={errors.siegeSocial}
+                            placeholder={t("users.form.siegeSocialPlaceholder")}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <Input
+                            label={t("users.form.qualiteRepresentant")}
+                            value={formData.qualiteRepresentant}
+                            onChange={(e) =>
+                              setFormData({ ...formData, qualiteRepresentant: e.target.value })
+                            }
+                            error={errors.qualiteRepresentant}
+                            placeholder={t("users.form.qualiteRepresentantPlaceholder")}
+                            maxLength={100}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div className="mt-4 border-t border-blue-200 pt-4">
                       <div className="flex items-center gap-2 mb-2">

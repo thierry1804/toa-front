@@ -1,3 +1,14 @@
+export interface Entreprise {
+  '@id': string
+  id: string
+  nom: string
+  numeroRegistreCommerce?: string | null
+  siegeSocial?: string | null
+  qualiteRepresentant?: string | null
+  createdAt: string
+  updatedAt?: string | null
+}
+
 export type PermitStatus =
   | 'brouillon'
   | 'en_attente_validation_chef'
@@ -32,6 +43,7 @@ export interface User {
   firstname: string
   prenom?: string
   entrepriseName?: string | null
+  entreprise?: Entreprise | null
   numeroRegistreCommerce?: string | null
   siegeSocial?: string | null
   qualiteRepresentant?: string | null
@@ -50,6 +62,7 @@ export interface UserCreate {
   roles: string[]
   isActive: boolean
   entrepriseName?: string | null
+  entreprise?: string | null
   numeroRegistreCommerce?: string | null
   siegeSocial?: string | null
   qualiteRepresentant?: string | null
@@ -63,6 +76,7 @@ export interface UserUpdate {
   roles?: string[]
   isActive?: boolean
   entrepriseName?: string | null
+  entreprise?: string | null
   numeroRegistreCommerce?: string | null
   siegeSocial?: string | null
   qualiteRepresentant?: string | null
@@ -270,6 +284,7 @@ export interface ActivityPlanning {
   createdAt: string
   updatedAt: string
   createdBy?: { '@id': string; id: number; email: string; name: string; firstname?: string | null } | null
+  entreprise?: Entreprise | null
 }
 
 export interface SectionPayload {
@@ -292,6 +307,7 @@ export interface ActivityPlanningCreate {
   permitReference?: string
   permitValidated?: boolean
   sections?: SectionPayload[]
+  entreprise?: string | null
 }
 
 export interface ActivityPlanningUpdate {
@@ -308,6 +324,7 @@ export interface ActivityPlanningUpdate {
   permitReference?: string
   permitValidated?: boolean
   sections?: SectionPayload[]
+  entreprise?: string | null
 }
 
 export interface ValidationInterventionJournaliere {
