@@ -20,6 +20,10 @@ export interface Site {
   commune: string | null
   district: string | null
   situation: string | null
+  typeSite: string | null
+  zone: string | null
+  typePylone: string | null
+  hauteurPylone: number | null
   sourceKmz: boolean
   createdAt: string
   updatedAt: string
@@ -87,5 +91,9 @@ export interface KmzImportResponse {
     commune: string | null
     district: string | null
     couleurMarqueur: string | null
+    typeSite: string | null
+    zone: string | null
+    typePylone: string | null
+    hauteurPylone: number | null
   }>
 }
