@@ -20,7 +20,7 @@ export async function drainSyncQueue(
         method: item.method,
         url: item.url,
         data: item.body,
-        headers: item.contentType ? { 'Content-Type': item.contentType } : undefined,
+        ...(item.contentType ? { headers: { 'Content-Type': item.contentType } } : {}),
       })
       await syncQueue.remove(item.id)
       synced++

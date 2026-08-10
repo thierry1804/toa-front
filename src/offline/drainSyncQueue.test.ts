@@ -40,7 +40,7 @@ function item(overrides: Partial<SyncItem> = {}): SyncItem {
 beforeEach(() => {
   vi.clearAllMocks()
   mockRemove.mockResolvedValue(undefined)
-  mockIncrementRetries.mockResolvedValue(undefined)
+  mockIncrementRetries.mockResolvedValue(1)
 })
 
 describe('drainSyncQueue', () => {
