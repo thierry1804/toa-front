@@ -78,10 +78,14 @@ api.interceptors.response.use(
           `${import.meta.env.VITE_API_URL}/api/token/refresh`,
           { refresh_token: refreshToken },
         );
-        localStorage.setItem("access_token", data.access_token);
+        const newAccessToken: string = data.token ?? data.access_token;
+        localStorage.setItem("access_token", newAccessToken);
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token);
+        }
 
         // Sync auth store with the new token's claims
-        const payload = decodeJwtPayload(data.access_token)
+        const payload = decodeJwtPayload(newAccessToken)
         if (payload) {
           const roles = Array.isArray(payload.roles) ? (payload.roles as string[]) : []
           const rawPerms = payload.permissions
@@ -93,8 +97,8 @@ api.interceptors.response.use(
           useAuthStore.getState().setPermissions(perms)
         }
 
-        processQueue(null, data.access_token);
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        processQueue(null, newAccessToken);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
@@ -124,10 +128,15 @@ api.interceptors.response.use(
           body = originalRequest?.data
         }
 
+        const contentType =
+          (originalRequest?.headers?.['Content-Type'] as string | undefined) ??
+          (originalRequest?.headers?.['content-type'] as string | undefined)
+
         void syncQueue.add({
           url:    originalRequest?.url ?? '',
           method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
           body,
+          contentType,
         })
 
         useUiStore.getState().addToast({

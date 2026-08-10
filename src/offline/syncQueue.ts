@@ -1,10 +1,11 @@
 import { openDB, type IDBPDatabase } from 'idb'
 
-interface SyncItem {
+export interface SyncItem {
   id: string
   url: string
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
+  contentType?: string
   createdAt: number
   retries: number
 }
@@ -48,13 +49,15 @@ export const syncQueue = {
     await db.delete(STORE_NAME, id)
   },
 
-  async incrementRetries(id: string) {
+  async incrementRetries(id: string): Promise<number> {
     const db = await getDb()
     const item = await db.get(STORE_NAME, id)
     if (item) {
       item.retries += 1
       await db.put(STORE_NAME, item)
+      return item.retries
     }
+    return 0
   },
 
   async clear() {
