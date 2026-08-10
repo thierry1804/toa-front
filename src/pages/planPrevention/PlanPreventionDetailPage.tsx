@@ -270,14 +270,6 @@ export default function PlanPreventionDetailPage() {
           </div>
           <dl className="space-y-3">
             <InfoRow
-              label={t("planPrevention.detail.fields.codeSite")}
-              value={plan.codeSite}
-            />
-            <InfoRow
-              label={t("planPrevention.detail.fields.localite")}
-              value={plan.localite}
-            />
-            <InfoRow
               label={t("planPrevention.detail.fields.activitePlanifiee")}
               value={plan.activitePlanifiee}
             />

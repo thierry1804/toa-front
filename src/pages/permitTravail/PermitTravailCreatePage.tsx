@@ -1,85 +1,90 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ChevronLeft, ChevronRight, Check, AlertTriangle, AlertCircle, Info } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Search,
+  AlertTriangle,
+  Info,
+  MapPin,
+  CalendarDays,
+  ShieldAlert,
+  Wrench,
+} from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import EngagementSection from '@/components/permitTravail/EngagementSection'
+import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
 import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
-import { usePlanPreventions } from '@/features/planPrevention/hooks/usePlanPrevention'
+import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
 import { usePermission } from '@/features/auth/usePermission'
-import { useAuthStore } from '@/store/auth.store'
+import { planPreventionApi } from '@/api/planPreventionApi'
 import type {
   PermitTravail,
-  ProcessusPermit,
   TypePermit,
   TypeDocumentPermitTravail,
   DocumentPermitTravail,
 } from '@/types/permitTravail'
-import {
-  PROCESSUS_LABELS,
-  TYPE_PERMIT_LABELS,
-  DOCUMENT_TYPES_BY_PERMIT,
-} from '@/types/permitTravail'
+import type { PlanBySiteResult, RisqueRow } from '@/types/planPrevention'
+import { TYPE_PERMIT_LABELS, DOCUMENT_TYPES_BY_PERMIT } from '@/types/permitTravail'
 
-// ─── Zod schema step 2 ────────────────────────────────────────────────────────
+// ─── Step 2 schema ────────────────────────────────────────────────────────────
 const step2Schema = z
   .object({
-    codeSite: z.string().min(1, 'Code site requis'),
-    descriptionTravaux: z.string().min(3, 'Description requise (min 3 caractères)'),
     dateDebutPrevue: z.string().min(1, 'Date de début requise'),
     dateFinPrevue: z.string().min(1, 'Date de fin requise'),
   })
   .refine((d) => !d.dateDebutPrevue || !d.dateFinPrevue || d.dateFinPrevue >= d.dateDebutPrevue, {
-    message: 'La date de fin doit être postérieure ou égale à la date de début',
+    message: 'La date de fin doit être ≥ à la date de début',
     path: ['dateFinPrevue'],
   })
 
-type Step2FormData = z.infer<typeof step2Schema>
+type Step2Data = z.infer<typeof step2Schema>
 
-// ─── Steps definition ─────────────────────────────────────────────────────────
+// ─── Steps ────────────────────────────────────────────────────────────────────
 const STEPS = [
-  { title: 'Type et processus' },
-  { title: 'Plan de prévention' },
+  { title: 'Site & Plan' },
+  { title: 'Aperçu plan' },
   { title: 'Informations travaux' },
-  { title: 'Documents obligatoires' },
-  { title: 'Engagements et soumission' },
+  { title: 'Documents & Engagements' },
 ]
 
+// ─── StepIndicator ────────────────────────────────────────────────────────────
 function StepIndicator({ current }: { current: number }) {
   return (
     <div className="w-full mb-6">
       <div className="flex items-start w-full">
-        {STEPS.map((step, index) => (
-          <div key={step.title} className="flex items-start flex-1">
+        {STEPS.map((s, i) => (
+          <div key={s.title} className="flex items-start flex-1">
             <div className="flex flex-col items-center flex-1 min-w-0 px-1">
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                  index < current
+                  i < current
                     ? 'bg-green-500 text-white'
-                    : index === current
+                    : i === current
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-500'
                 }`}
               >
-                {index < current ? <Check className="h-4 w-4" /> : index + 1}
+                {i < current ? <Check className="h-4 w-4" /> : i + 1}
               </div>
               <p
                 className={`mt-2 text-xs text-center leading-tight px-1 ${
-                  index <= current ? 'text-gray-900 font-medium' : 'text-gray-400'
+                  i <= current ? 'text-gray-900 font-medium' : 'text-gray-400'
                 }`}
               >
-                {step.title}
+                {s.title}
               </p>
             </div>
-            {index < STEPS.length - 1 && (
-              <div
-                className={`h-0.5 flex-1 mt-4 ${index < current ? 'bg-green-500' : 'bg-gray-200'}`}
-              />
+            {i < STEPS.length - 1 && (
+              <div className={`h-0.5 flex-1 mt-4 ${i < current ? 'bg-green-500' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
@@ -94,48 +99,103 @@ function StepIndicator({ current }: { current: number }) {
   )
 }
 
-// ─── Navigation helpers ───────────────────────────────────────────────────────
-function getNextStep(current: number, processus: ProcessusPermit): number {
-  if (current === 0 && processus === 'MAINTENANCE') return 2
-  return current + 1
-}
-
-function getPrevStep(current: number, processus: ProcessusPermit): number {
-  if (current === 2 && processus === 'MAINTENANCE') return 0
-  return current - 1
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function PermitTravailCreatePage() {
   const navigate = useNavigate()
   const canSubmit = usePermission('permit_travail.submit')
-  const user = useAuthStore((s) => s.user)
 
   const { createPermit, updatePermit, uploadDocument, soumettrePermit, isCreating, isSubmitting } =
     usePermitTravail()
 
-  const { data: plansValidesHSE = [] } = usePlanPreventions()
-  const plansValides = plansValidesHSE.filter((p) => p.statut === 'VALIDE_HSE')
-
   // ── Step 0 state ─────────────────────────────────────────────────────────────
-  const [processus, setProcessus] = useState<ProcessusPermit>('NOUVEAU_SITE')
-  // Default to ELECTRIQUE because default processus is NOUVEAU_SITE (no GENERAL option)
+  const [codeSiteInput, setCodeSiteInput] = useState('')
+  const [codeSiteSearched, setCodeSiteSearched] = useState('')
+  const [selectedPlanId, setSelectedPlanId] = useState('')
   const [typePermis, setTypePermis] = useState<TypePermit>('ELECTRIQUE')
-
-  // ── Step 1 state ─────────────────────────────────────────────────────────────
-  const [planPreventionId, setPlanPreventionId] = useState<string>('')
 
   // ── Step navigation ───────────────────────────────────────────────────────────
   const [step, setStep] = useState(0)
 
-  // ── Created permit ────────────────────────────────────────────────────────────
+  // ── Step 3 state ─────────────────────────────────────────────────────────────
   const [permit, setPermit] = useState<PermitTravail | null>(null)
-  // Track companion permit docs locally (for NOUVEAU_SITE dual-upload)
   const [companionDocs, setCompanionDocs] = useState<DocumentPermitTravail[]>([])
-
-  // ── Step 4 state ─────────────────────────────────────────────────────────────
   const [engagementChecked, setEngagementChecked] = useState(false)
-  const [planRequiredError, setPlanRequiredError] = useState(false)
+
+  // ── Plans by site ─────────────────────────────────────────────────────────────
+  const { data: plansBySiteData, isLoading: isLoadingPlans } = useQuery({
+    queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
+    queryFn: () => planPreventionApi.getPlansBySite(codeSiteSearched),
+    enabled: codeSiteSearched.length > 0,
+    staleTime: 30_000,
+  })
+  const suggestedPlans: PlanBySiteResult[] = plansBySiteData?.plans ?? []
+  const selectedPlan = suggestedPlans.find((p) => p.id === selectedPlanId) ?? null
+
+  // ── Categories for risk filter ────────────────────────────────────────────────
+  const { data: categoriesData } = useCategoriesRisqueAll()
+  const allCategories = categoriesData?.member ?? []
+
+  // ── Derived ───────────────────────────────────────────────────────────────────
+  const isNouveauSite = selectedPlan?.typeIntervention === 'NOUVEAU_SITE'
+
+  const typePermisOptions: TypePermit[] = isNouveauSite
+    ? ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
+    : ['ELECTRIQUE', 'HAUTEUR']
+
+  const matchingCatNames = useMemo(
+    () => new Set(allCategories.filter((c) => c.typePermis === typePermis).map((c) => c.nom)),
+    [allCategories, typePermis],
+  )
+
+  const showAllRisks = isNouveauSite || typePermis === 'GENERAL' || matchingCatNames.size === 0
+  const unconfiguredWarning = !isNouveauSite && typePermis !== 'GENERAL' && matchingCatNames.size === 0
+
+  const allRisqueRows = useMemo((): RisqueRow[] =>
+    (selectedPlan?.risques ?? []).map((r) => ({
+      localId: r.id,
+      tachePlanifieeId: r.tachePlanifieeId ?? null,
+      description: r.description ?? '',
+      gravite: r.gravite ?? 1,
+      probabilite: r.probabilite ?? 1,
+      mesuresPreventives: r.mesuresPreventives ?? '',
+      risqueResiduel: r.risqueResiduel ?? null,
+    })),
+    [selectedPlan],
+  )
+
+  const filteredRisqueRows = useMemo((): RisqueRow[] => {
+    if (showAllRisks) return allRisqueRows
+    return allRisqueRows
+      .filter((r) => {
+        const names = r.description.split(', ').filter(Boolean)
+        return names.some((n) => matchingCatNames.has(n))
+      })
+      .map((r) => ({
+        ...r,
+        description: r.description
+          .split(', ')
+          .filter((n) => matchingCatNames.has(n))
+          .join(', '),
+      }))
+  }, [allRisqueRows, showAllRisks, matchingCatNames])
+
+  const filteredSections = useMemo(() => {
+    const sections = selectedPlan?.planificationSections ?? []
+    if (showAllRisks) return sections
+    const matchingTacheIds = new Set(filteredRisqueRows.map((r) => r.tachePlanifieeId).filter(Boolean))
+    return sections
+      .map((s) => ({ ...s, taches: s.taches.filter((t) => matchingTacheIds.has(t.id)) }))
+      .filter((s) => s.taches.length > 0)
+  }, [selectedPlan, showAllRisks, filteredRisqueRows])
+
+  const siteInfo = useMemo(
+    () =>
+      selectedPlan?.planificationSites.find((s) => s.codeSite === codeSiteSearched) ?? {
+        codeSite: codeSiteSearched,
+        nomSite: '',
+      },
+    [selectedPlan, codeSiteSearched],
+  )
 
   // ── Step 2 form ───────────────────────────────────────────────────────────────
   const {
@@ -143,31 +203,15 @@ export default function PermitTravailCreatePage() {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<Step2FormData>({ resolver: zodResolver(step2Schema) })
+  } = useForm<Step2Data>({ resolver: zodResolver(step2Schema) })
 
   useEffect(() => {
-    if (!planPreventionId) return
-    const plan = plansValides.find((p) => String(p.id) === String(planPreventionId))
-    if (!plan) return
-    setValue('codeSite', plan.codeSite)
-    setValue('descriptionTravaux', plan.activitePlanifiee)
-    setValue('dateDebutPrevue', plan.dateDebut ? plan.dateDebut.slice(0, 10) : '')
-    setValue('dateFinPrevue', plan.dateFin ? plan.dateFin.slice(0, 10) : '')
-  }, [planPreventionId, plansValides, setValue])
+    if (!selectedPlan) return
+    setValue('dateDebutPrevue', selectedPlan.dateDebut?.slice(0, 10) ?? '')
+    setValue('dateFinPrevue', selectedPlan.dateFin?.slice(0, 10) ?? '')
+  }, [selectedPlan, setValue])
 
-  // ── Step 2 → 3: create permit ────────────────────────────────────────────────
-  const handleStep2Next = handleSubmit(async (data) => {
-    const created = await createPermit({
-      processus,
-      typePermis,
-      planPreventionId: planPreventionId || undefined,
-      ...data,
-    })
-    setPermit(created)
-    setStep(3)
-  })
-
-  // ── Document upload: main permit ──────────────────────────────────────────────
+  // ── Document upload handlers ──────────────────────────────────────────────────
   const handleMainDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
     if (!permit) return
     await uploadDocument(permit.id, type, file)
@@ -177,201 +221,303 @@ export default function PermitTravailCreatePage() {
             ...prev,
             documents: [
               ...prev.documents.filter((d) => d.type !== type),
-              {
-                id: crypto.randomUUID(),
-                type,
-                filePath: '',
-                mimeType: file.type,
-                uploadedAt: new Date().toISOString(),
-              },
+              { id: crypto.randomUUID(), type, filePath: '', mimeType: file.type, uploadedAt: new Date().toISOString() },
             ],
           }
         : prev,
     )
   }
 
-  // ── Document upload: companion permit (NOUVEAU_SITE) ──────────────────────────
   const handleCompanionDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
     const companionId = permit?.permitsGroupe?.[0]?.id
     if (!companionId) return
     await uploadDocument(companionId, type, file)
     setCompanionDocs((prev) => [
       ...prev.filter((d) => d.type !== type),
-      {
-        id: crypto.randomUUID(),
-        type,
-        filePath: '',
-        mimeType: file.type,
-        uploadedAt: new Date().toISOString(),
-      },
+      { id: crypto.randomUUID(), type, filePath: '', mimeType: file.type, uploadedAt: new Date().toISOString() },
     ])
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────────
   const handleSoumettre = async () => {
     if (!permit) return
-    try {
-      await updatePermit(permit.id, { engagementAccepte: true })
-      const companionId = permit.permitsGroupe?.[0]?.id
-      if (companionId) {
-        await updatePermit(companionId, { engagementAccepte: true })
-      }
-      await soumettrePermit(permit.id)
-      navigate('/permits-travail')
-    } catch (err: unknown) {
-      const msg = (err as Error).message
-      if (msg === 'plan_prevention_required') {
-        setPlanRequiredError(true)
-        setStep(1)
-      }
+    await updatePermit(permit.id, { engagementAccepte: true })
+    const companionId = permit.permitsGroupe?.[0]?.id
+    if (companionId) {
+      await updatePermit(companionId, { engagementAccepte: true })
+    }
+    await soumettrePermit(permit.id)
+    navigate('/permits-travail')
+  }
+
+  // ── Step 0: search ────────────────────────────────────────────────────────────
+  const handleSearch = () => {
+    const trimmed = codeSiteInput.trim()
+    if (trimmed) {
+      setCodeSiteSearched(trimmed)
+      setSelectedPlanId('')
     }
   }
 
-  // ── Derived ───────────────────────────────────────────────────────────────────
-  const isLastStep = step === STEPS.length - 1
-  const isPending = isCreating || isSubmitting
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlanId(planId)
+    setTypePermis('ELECTRIQUE')
+  }
 
-  const companionPermit = permit?.permitsGroupe?.[0]
-  // For NOUVEAU_SITE: main permit has typePermis (ELECTRIQUE/HAUTEUR), companion is GENERAL
-  // For other processus: single permit
+  // ── Step 2 → 3: create permit ────────────────────────────────────────────────
+  const handleStep2Next = handleSubmit(async (data) => {
+    const processus = isNouveauSite ? 'NOUVEAU_SITE' : 'RENOUVELLEMENT'
+    const created = await createPermit({
+      processus,
+      typePermis,
+      planPreventionId: selectedPlanId,
+      codeSite: codeSiteSearched,
+      descriptionTravaux: selectedPlan?.activitePlanifiee ?? '',
+      dateDebutPrevue: data.dateDebutPrevue,
+      dateFinPrevue: data.dateFinPrevue,
+    })
+    setPermit(created)
+    setStep(3)
+  })
+
+  // ── Navigation ────────────────────────────────────────────────────────────────
+  const handleNext = async () => {
+    if (step === 0) {
+      if (codeSiteSearched && selectedPlanId) setStep(1)
+    } else if (step === 1) {
+      setStep(2)
+    } else if (step === 2) {
+      await handleStep2Next()
+    }
+  }
+
+  const canGoNext =
+    step === 0 ? !!(codeSiteSearched && selectedPlanId) : step < 3
+
+  const isPending = isCreating || isSubmitting
   const mainDocTypes = permit ? DOCUMENT_TYPES_BY_PERMIT[permit.typePermis] : []
-  const companionDocTypes =
-    permit?.processus === 'NOUVEAU_SITE' && companionPermit
-      ? DOCUMENT_TYPES_BY_PERMIT[companionPermit.typePermis]
-      : []
+  const companionPermit = permit?.permitsGroupe?.[0]
+  const companionDocTypes = companionPermit ? DOCUMENT_TYPES_BY_PERMIT[companionPermit.typePermis] : []
 
   // ── Render steps ──────────────────────────────────────────────────────────────
   const renderStep = () => {
     switch (step) {
+      // ── Step 0: Site & Plan ─────────────────────────────────────────────────
       case 0:
         return (
           <div className="space-y-5">
-            {/* NOUVEAU_SITE bandeau */}
-            {processus === 'NOUVEAU_SITE' && (
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-                <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-medium">2 permis requis pour un Nouveau Site</p>
-                  <p className="mt-0.5">
-                    Général + Électrique <em>ou</em> Général + Hauteur selon les risques identifiés.
-                    Sélectionnez le type secondaire ci-dessous — le permis Général sera créé automatiquement.
-                  </p>
-                </div>
-              </div>
-            )}
-
+            {/* Code site input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Processus *</label>
-              <select
-                value={processus}
-                onChange={(e) => {
-                  setProcessus(e.target.value as ProcessusPermit)
-                  // Reset typePermis when changing processus
-                  if (e.target.value === 'NOUVEAU_SITE') setTypePermis('ELECTRIQUE')
-                  else setTypePermis('GENERAL')
-                }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {(['NOUVEAU_SITE', 'MAINTENANCE', 'RENOUVELLEMENT'] as ProcessusPermit[]).map((p) => (
-                  <option key={p} value={p}>{PROCESSUS_LABELS[p]}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Code site *</label>
+              <div className="flex gap-2">
+                <Input
+                  value={codeSiteInput}
+                  onChange={(e) => setCodeSiteInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
+                  placeholder="Ex: AND-001"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSearch}
+                  disabled={!codeSiteInput.trim()}
+                >
+                  <Search className="h-4 w-4 mr-1" />
+                  Rechercher
+                </Button>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type de permis *</label>
-              <select
-                value={typePermis}
-                onChange={(e) => setTypePermis(e.target.value as TypePermit)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {(
-                  processus === 'NOUVEAU_SITE'
-                    ? (['ELECTRIQUE', 'HAUTEUR'] as TypePermit[])
-                    : (['GENERAL', 'ELECTRIQUE', 'HAUTEUR'] as TypePermit[])
-                ).map((t) => (
-                  <option key={t} value={t}>{TYPE_PERMIT_LABELS[t]}</option>
-                ))}
-              </select>
-              {processus === 'NOUVEAU_SITE' && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Pour Nouveau Site, sélectionnez le type secondaire. Le permis Général est auto-créé.
-                </p>
-              )}
-            </div>
-          </div>
-        )
-
-      case 1:
-        return (
-          <div className="space-y-4">
-            {planRequiredError && (
-              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">
-                  Un plan de prévention validé HSE est requis pour soumettre ce permis.
-                </p>
-              </div>
+            {/* Loading */}
+            {isLoadingPlans && codeSiteSearched && (
+              <p className="text-sm text-gray-500 italic">Chargement des plans...</p>
             )}
 
-            {plansValides.length === 0 ? (
+            {/* No plans */}
+            {!isLoadingPlans && codeSiteSearched && suggestedPlans.length === 0 && (
               <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
                 <Info className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-medium">Aucun plan de prévention validé</p>
-                  <p className="mt-0.5">
-                    Vous devez disposer d'un plan validé HSE avant de créer un permis.{' '}
-                    <Link to="/prevention/new" className="underline font-medium hover:text-amber-900">
-                      Créer un plan de prévention
-                    </Link>
-                  </p>
+                <p className="text-sm text-amber-800">
+                  Aucun plan de prévention validé disponible pour le site{' '}
+                  <strong>{codeSiteSearched}</strong>.
+                </p>
+              </div>
+            )}
+
+            {/* Plans list */}
+            {suggestedPlans.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Plan de prévention *
+                </label>
+                <div className="space-y-2">
+                  {suggestedPlans.map((plan) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => handleSelectPlan(plan.id)}
+                      className={`w-full text-left rounded-lg border px-4 py-3 transition-colors ${
+                        selectedPlanId === plan.id
+                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-400'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{plan.reference}</p>
+                          <p className="text-sm text-gray-600 mt-0.5">{plan.activitePlanifiee}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {plan.dateDebut} → {plan.dateFin}
+                          </p>
+                        </div>
+                        {selectedPlanId === plan.id && (
+                          <Check className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Type permis */}
+            {selectedPlanId && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Plan de prévention associé *
+                  Type de permis *
                 </label>
                 <select
-                  value={planPreventionId}
-                  onChange={(e) => setPlanPreventionId(e.target.value)}
+                  value={typePermis}
+                  onChange={(e) => setTypePermis(e.target.value as TypePermit)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="">— Sélectionnez un plan —</option>
-                  {plansValides.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.reference} — {p.codeSite} — {p.activitePlanifiee}
+                  {typePermisOptions.map((t) => (
+                    <option key={t} value={t}>
+                      {TYPE_PERMIT_LABELS[t]}
                     </option>
                   ))}
                 </select>
+                {isNouveauSite && typePermis !== 'GENERAL' && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800">
+                      Plan Nouveau site — un permis Général sera automatiquement créé en complément.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )
 
+      // ── Step 1: Aperçu plan ─────────────────────────────────────────────────
+      case 1:
+        return (
+          <div className="space-y-5">
+            {/* Plan header */}
+            <div className="rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-900">{selectedPlan?.reference}</p>
+                <p className="text-sm text-blue-700 mt-0.5">{selectedPlan?.activitePlanifiee}</p>
+                <p className="text-xs text-blue-500 mt-1">
+                  {selectedPlan?.dateDebut} → {selectedPlan?.dateFin}
+                </p>
+              </div>
+            </div>
+
+            {/* Type de permis */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Type sélectionné :</span>
+              <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">
+                {TYPE_PERMIT_LABELS[typePermis]}
+              </span>
+            </div>
+
+            {/* Site concerné */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-700">Site concerné</h3>
+              </div>
+              <div className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm">
+                <span className="font-medium text-gray-900">{siteInfo.codeSite}</span>
+                {siteInfo.nomSite && (
+                  <span className="text-gray-500 ml-2">— {siteInfo.nomSite}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Risques */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldAlert className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-700">
+                  Analyse des risques
+                  {!isNouveauSite && typePermis !== 'GENERAL' && !unconfiguredWarning && (
+                    <span className="ml-1 text-xs font-normal text-gray-400">
+                      (filtrés : {TYPE_PERMIT_LABELS[typePermis]})
+                    </span>
+                  )}
+                </h3>
+              </div>
+              {unconfiguredWarning && (
+                <div className="mb-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    Catégories non configurées — tous les risques sont affichés.
+                    Configurer dans <strong>Référentiel &gt; Gestion de risques</strong>.
+                  </span>
+                </div>
+              )}
+              <AnalyseRisquesPlanning
+                sections={filteredSections}
+                rows={filteredRisqueRows}
+                onChange={() => {}}
+                categories={[]}
+                disabled={true}
+              />
+            </div>
+
+            {/* Installations */}
+            {(selectedPlan?.installations ?? []).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Wrench className="h-4 w-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-700">Installations et matériels</h3>
+                </div>
+                <ul className="space-y-1">
+                  {selectedPlan!.installations.map((inst, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <span className="font-medium">{inst.description}</span>
+                      {inst.conditionsUtilisation && (
+                        <span className="text-gray-500">— {inst.conditionsUtilisation}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )
+
+      // ── Step 2: Informations travaux ────────────────────────────────────────
       case 2:
         return (
           <div className="space-y-4">
-            <Input
-              label="Code site *"
-              {...register('codeSite')}
-              error={errors.codeSite?.message}
-              placeholder="Ex. : ANT-001"
-            />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description des travaux *
-              </label>
-              <textarea
-                {...register('descriptionTravaux')}
-                rows={4}
-                placeholder="Décrivez les travaux à réaliser..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-              />
-              {errors.descriptionTravaux && (
-                <p className="mt-1 text-xs text-red-600">{errors.descriptionTravaux.message}</p>
-              )}
+            <div className="flex items-start gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3">
+              <CalendarDays className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-gray-600">
+                <p className="font-medium text-gray-800">{selectedPlan?.reference}</p>
+                <p className="mt-0.5">Site : <span className="font-medium">{codeSiteSearched}</span></p>
+                <p className="mt-0.5">
+                  Permis : <span className="font-medium">{TYPE_PERMIT_LABELS[typePermis]}</span>
+                </p>
+              </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Date de début prévue *"
@@ -389,9 +535,19 @@ export default function PermitTravailCreatePage() {
           </div>
         )
 
+      // ── Step 3: Documents + Engagements ────────────────────────────────────
       case 3:
         return (
           <div className="space-y-6">
+            {/* Reference */}
+            {permit?.reference && (
+              <div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+                <span className="text-xs text-blue-600 font-medium uppercase tracking-wide">Référence</span>
+                <span className="font-mono text-sm font-semibold text-blue-800">{permit.reference}</span>
+              </div>
+            )}
+
+            {/* Documents */}
             {permit?.processus === 'NOUVEAU_SITE' && companionPermit ? (
               <>
                 <div>
@@ -425,50 +581,10 @@ export default function PermitTravailCreatePage() {
                 onUpload={handleMainDocUpload}
               />
             )}
-          </div>
-        )
 
-      case 4:
-        return (
-          <div className="space-y-6">
-            {/* Reference */}
-            {permit?.reference && (
-              <div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
-                <span className="text-xs text-blue-600 font-medium uppercase tracking-wide">Référence</span>
-                <span className="font-mono text-sm font-semibold text-blue-800">{permit.reference}</span>
-              </div>
-            )}
-
-            {/* Recap */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              {[
-                { label: 'Type de permis', value: permit ? TYPE_PERMIT_LABELS[permit.typePermis] : '' },
-                { label: 'Processus', value: permit ? PROCESSUS_LABELS[permit.processus] : '' },
-                { label: 'Code site', value: permit?.codeSite },
-                { label: 'Description travaux', value: permit?.descriptionTravaux },
-                {
-                  label: 'Date de début prévue',
-                  value: permit?.dateDebutPrevue
-                    ? new Date(permit.dateDebutPrevue).toLocaleDateString('fr-FR')
-                    : '',
-                },
-                {
-                  label: 'Date de fin prévue',
-                  value: permit?.dateFinPrevue
-                    ? new Date(permit.dateFinPrevue).toLocaleDateString('fr-FR')
-                    : '',
-                },
-                { label: 'Statut', value: permit?.statut },
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-                  <p className="font-medium text-gray-900 mt-0.5">{value ?? '—'}</p>
-                </div>
-              ))}
-            </div>
-
+            {/* Engagement */}
             <EngagementSection
-              planPreventionId={planPreventionId || null}
+              planPreventionId={selectedPlanId || null}
               checked={engagementChecked}
               onChange={setEngagementChecked}
               statut={permit?.statut}
@@ -481,22 +597,11 @@ export default function PermitTravailCreatePage() {
     }
   }
 
-  // ── handleNext ────────────────────────────────────────────────────────────────
-  const handleNext = async () => {
-    if (step === 2) {
-      await handleStep2Next()
-    } else if (!isLastStep) {
-      setStep(getNextStep(step, processus))
-    }
-  }
-
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Nouveau permis de travail</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Renseignez les informations en suivant les étapes
-        </p>
+        <p className="text-sm text-gray-500 mt-1">Renseignez les informations en suivant les étapes</p>
       </div>
 
       <StepIndicator current={step} />
@@ -508,19 +613,28 @@ export default function PermitTravailCreatePage() {
         <CardContent>{renderStep()}</CardContent>
       </Card>
 
-      {/* Navigation */}
       <div className="flex flex-col-reverse sm:flex-row justify-between gap-3">
         <Button
           variant="outline"
-          onClick={() => setStep(getPrevStep(step, processus))}
-          disabled={step === 0 || isPending}
+          onClick={() => setStep(step - 1)}
+          disabled={step === 0 || step === 3 || isPending}
           size="lg"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Précédent
         </Button>
 
-        {isLastStep ? (
+        {step < 3 ? (
+          <Button
+            onClick={handleNext}
+            disabled={!canGoNext || isPending}
+            loading={isPending}
+            size="lg"
+          >
+            Suivant
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
           canSubmit && (
             <Button
               onClick={handleSoumettre}
@@ -531,11 +645,6 @@ export default function PermitTravailCreatePage() {
               Soumettre le permis
             </Button>
           )
-        ) : (
-          <Button onClick={handleNext} disabled={isPending} loading={isPending} size="lg">
-            Suivant
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
         )}
       </div>
     </div>

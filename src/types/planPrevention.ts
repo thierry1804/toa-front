@@ -175,6 +175,25 @@ export interface RisqueRow {
   risqueResiduel?: number | null
 }
 
+export interface PlanBySiteResult {
+  id: string
+  reference: string
+  activitePlanifiee: string
+  dateDebut: string
+  dateFin: string
+  typeIntervention: string | null
+  planificationSites: { codeSite: string; nomSite: string }[]
+  planificationSections: import('@/types').SectionPlanifieeItem[]
+  risques: RisquePrevention[]
+  codeSite: string
+  localite: string
+  installations: InstallationRow[]
+}
+
+export interface PlansBySiteResponse {
+  plans: PlanBySiteResult[]
+}
+
 export type StatutPlanPreventionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
 
 export interface PlanPreventionPdfStatus {

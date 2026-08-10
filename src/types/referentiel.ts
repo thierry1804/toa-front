@@ -39,12 +39,14 @@ export interface SiteGeoJsonFeature {
 export interface CategorieRisque {
   id: string
   nom: string
+  typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
   createdAt: string
   updatedAt: string | null
 }
 
 export interface CategorieRisqueInput {
   nom: string
+  typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
 }
 
 export interface InstallationEquipement {

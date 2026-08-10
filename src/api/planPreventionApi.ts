@@ -10,6 +10,7 @@ import type {
   KmzImportResult,
   PlanPreventionPdfStatus,
   GeneratePdfResult,
+  PlansBySiteResponse,
 } from '@/types/planPrevention'
 
 export const planPreventionApi = {
@@ -109,6 +110,11 @@ export const planPreventionApi = {
   getPdfStatus: (planId: string) =>
     api
       .get<PlanPreventionPdfStatus>(`/api/plans-prevention/${planId}/pdf/status`)
+      .then((r) => r.data),
+
+  getPlansBySite: (codeSite: string): Promise<PlansBySiteResponse> =>
+    api
+      .get<PlansBySiteResponse>('/api/plans-prevention/by-site', { params: { codeSite } })
       .then((r) => r.data),
 
   // TODO: Backend must expose GET /api/planifications?disponible=true

@@ -113,7 +113,7 @@ export interface PermitTravailInput {
   typePermis: TypePermit
   planPreventionId?: string
   codeSite: string
-  descriptionTravaux: string
+  descriptionTravaux?: string
   dateDebutPrevue: string
   dateFinPrevue: string
   engagementAccepte?: boolean
