@@ -117,6 +117,10 @@ export interface PermitTravailInput {
   dateDebutPrevue: string
   dateFinPrevue: string
   engagementAccepte?: boolean
+  dangers?: string | null
+  evaluationPreliminaire?: string | null
+  moyensMaitrise?: string | null
+  evaluationFinale?: string | null
 }
 
 export type StatutPermitTravailPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
@@ -186,6 +190,10 @@ export interface PermitTravail {
   dateFinPrevue: string
   statut: StatutPermitTravail
   engagementAccepte: boolean
+  dangers?: string | null
+  evaluationPreliminaire?: string | null
+  moyensMaitrise?: string | null
+  evaluationFinale?: string | null
   createdBy: { id: number; email: string; name: string; firstname?: string }
   nomPrestataire?: string | null
   soumisAt?: string | null

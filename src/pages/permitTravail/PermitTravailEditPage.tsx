@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
-import EngagementSection from '@/components/permitTravail/EngagementSection'
+import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import BandeauRefus from '@/components/planPrevention/BandeauRefus'
 import HistoriqueVersions from '@/components/planPrevention/HistoriqueVersions'
 import {
@@ -105,6 +105,12 @@ export default function PermitTravailEditPage() {
 
   const [step, setStep] = useState(0)
   const [engagementChecked, setEngagementChecked] = useState(false)
+  const [evaluation, setEvaluation] = useState<EvaluationData>({
+    dangers: '',
+    evaluationPreliminaire: '',
+    moyensMaitrise: '',
+    evaluationFinale: '',
+  })
   const [motif, setMotif] = useState('')
   const [inlineError, setInlineError] = useState<string | null>(null)
   const [missingDocTypes, setMissingDocTypes] = useState<TypeDocumentPermitTravail[]>([])
@@ -132,6 +138,12 @@ export default function PermitTravailEditPage() {
     })
     setEngagementChecked(permit.engagementAccepte ?? false)
     setLocalDocs(permit.documents ?? [])
+    setEvaluation({
+      dangers: permit.dangers ?? '',
+      evaluationPreliminaire: (permit.evaluationPreliminaire as EvaluationData['evaluationPreliminaire']) ?? '',
+      moyensMaitrise: permit.moyensMaitrise ?? '',
+      evaluationFinale: (permit.evaluationFinale as EvaluationData['evaluationFinale']) ?? '',
+    })
   }, [permit, reset])
 
   if (isLoading) {
@@ -334,10 +346,11 @@ export default function PermitTravailEditPage() {
 
             <div ref={engagementRef}>
               <EngagementSection
-                planPreventionId={permit.planPreventionId ?? null}
                 checked={engagementChecked}
                 onChange={setEngagementChecked}
                 statut="BROUILLON"
+                evaluation={evaluation}
+                onEvaluationChange={setEvaluation}
               />
             </div>
 

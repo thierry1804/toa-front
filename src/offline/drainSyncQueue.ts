@@ -4,7 +4,7 @@ import { syncQueue } from './syncQueue'
 
 export async function drainSyncQueue(
   queryClient: QueryClient,
-  addToast: (t: { message: string; type: string }) => void,
+  addToast: (t: { message: string; type: 'success' | 'error' | 'info' | 'warning' }) => void,
 ): Promise<number> {
   const items = await syncQueue.getAll()
   if (items.length === 0) return 0

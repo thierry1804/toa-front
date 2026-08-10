@@ -164,6 +164,63 @@ export default function PermitTravailDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Évaluation des risques */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-gray-800">Évaluation des risques</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border border-red-300 bg-white p-4 space-y-3 text-sm">
+            <div className="border-b border-gray-200 pb-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Quels sont les dangers ?
+              </p>
+              <p className="text-gray-800 whitespace-pre-wrap">{permit.dangers || <span className="italic text-gray-400">—</span>}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
+                Évaluation préliminaire des risques
+              </span>
+              {permit.evaluationPreliminaire ? (
+                <>
+                  <span className={`inline-block h-5 w-5 rounded-full border-2 ${
+                    permit.evaluationPreliminaire === 'rouge' ? 'bg-red-400 border-red-400' :
+                    permit.evaluationPreliminaire === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
+                    'bg-green-500 border-green-500'
+                  }`} />
+                  <span className="text-gray-700 capitalize">{permit.evaluationPreliminaire}</span>
+                </>
+              ) : (
+                <span className="italic text-gray-400">—</span>
+              )}
+            </div>
+            <div className="border-t border-gray-200 pt-3 border-b border-gray-200 pb-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Quels sont les moyens de maîtriser les dangers en sécurité ?
+              </p>
+              <p className="text-gray-800 whitespace-pre-wrap">{permit.moyensMaitrise || <span className="italic text-gray-400">—</span>}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
+                Évaluation finale des risques
+              </span>
+              {permit.evaluationFinale ? (
+                <>
+                  <span className={`inline-block h-5 w-5 rounded-full border-2 ${
+                    permit.evaluationFinale === 'rouge' ? 'bg-red-400 border-red-400' :
+                    permit.evaluationFinale === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
+                    'bg-green-500 border-green-500'
+                  }`} />
+                  <span className="text-gray-700 capitalize">{permit.evaluationFinale}</span>
+                </>
+              ) : (
+                <span className="italic text-gray-400">—</span>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Groupe (NOUVEAU_SITE) */}
       {companionPermit && (
         <Card>

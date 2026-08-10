@@ -387,7 +387,7 @@ export default function DashboardKpisPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip formatter={(v: number) => `${v.toFixed(1)} %`} />
+                  <Tooltip formatter={(v) => v != null ? `${(v as number).toFixed(1)} %` : ''} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Line
                     type="monotone"
@@ -434,7 +434,7 @@ export default function DashboardKpisPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="site" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} unit="%" domain={[0, 100]} />
-                  <Tooltip formatter={(v: number) => `${v.toFixed(1)} %`} />
+                  <Tooltip formatter={(v) => v != null ? `${(v as number).toFixed(1)} %` : ''} />
                   <Bar dataKey="Avancement" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, idx) => (
                       <Cell key={idx} fill={barFill(entry.Avancement)} />

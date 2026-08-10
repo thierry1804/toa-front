@@ -115,11 +115,10 @@ export default function ReferentielSitesMap({
         if (!features.length) return
         const clusterId = features[0].properties?.cluster_id as number
         const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return
+        source.getClusterExpansionZoom(clusterId).then((zoom) => {
           const coords = (features[0].geometry as Point).coordinates as [number, number]
           map.easeTo({ center: coords, zoom: zoom ?? 10 })
-        })
+        }).catch(() => {})
       })
 
       map.on('click', 'unclustered-point', (e) => {
