@@ -24,9 +24,21 @@
     "previous": "Précédent",
     "next": "Suivant"
   },
+  "nav": {
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "collapseSidebar": "Réduire la barre latérale",
+    "expandSidebar": "Développer la barre latérale",
+    "expandSection": "Développer la section",
+    "collapseSection": "Réduire la section"
+  },
   "auth": {
     "login": "Connexion",
     "logout": "Déconnexion",
+    "logoutConfirmTitle": "Actions non synchronisées",
+    "logoutConfirmMessage_one": "{{count}} action hors ligne en attente sera perdue si vous vous déconnectez maintenant. Se déconnecter quand même ?",
+    "logoutConfirmMessage_other": "{{count}} actions hors ligne en attente seront perdues si vous vous déconnectez maintenant. Se déconnecter quand même ?",
+    "logoutConfirmAction": "Se déconnecter quand même",
     "email": "Email",
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié ?",

@@ -24,9 +24,21 @@
     "previous": "Teo aloha",
     "next": "Manaraka"
   },
+  "nav": {
+    "openMenu": "Sokafy ny menio",
+    "closeMenu": "Hidio ny menio",
+    "collapseSidebar": "Ahakeleo ny tsipika ivelany",
+    "expandSidebar": "Ahalehibiazo ny tsipika ivelany",
+    "expandSection": "Ahalehibiazo ny fizarana",
+    "collapseSection": "Ahakeleo ny fizarana"
+  },
   "auth": {
     "login": "Hiditra",
     "logout": "Hivoaka",
+    "logoutConfirmTitle": "Asa tsy mbola voatambatra",
+    "logoutConfirmMessage_one": "Asa {{count}} tsy misy tambajotra miandry no ho very raha mivoaka ianao izao. Mbola te hivoaka ihany ?",
+    "logoutConfirmMessage_other": "Asa {{count}} tsy misy tambajotra miandry no ho very raha mivoaka ianao izao. Mbola te hivoaka ihany ?",
+    "logoutConfirmAction": "Mivoaka ihany",
     "email": "Mailaka",
     "password": "Tenimiafina",
     "forgotPassword": "Adino ny tenimiafina ?",

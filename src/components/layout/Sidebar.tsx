@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useUiStore } from "@/store/ui.store";
 import { useMenuStore } from "@/store/menu.store";
 import {
@@ -52,6 +53,7 @@ function ParentMenuItem({
   collapsed: boolean;
 }) {
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   const isChildActive = hasActiveChild(node, pathname);
   const [open, setOpen] = useState(isChildActive);
   const Icon = getIcon(node.icon);
@@ -84,6 +86,8 @@ function ParentMenuItem({
         {!collapsed && (
           <button
             onClick={() => setOpen((o) => !o)}
+            aria-label={t(open ? "nav.collapseSection" : "nav.expandSection")}
+            aria-expanded={open}
             className="px-2 py-2.5"
           >
             <ChevronDown
@@ -136,6 +140,7 @@ function MenuItemLink({ node, collapsed }: { node: MenuNode; collapsed: boolean 
 }
 
 export function Sidebar() {
+  const { t } = useTranslation();
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const menuStore = useMenuStore();
@@ -183,6 +188,7 @@ export function Sidebar() {
           <div className="absolute right-2 flex items-center gap-1">
             <button
               onClick={() => setSidebarOpen(false)}
+              aria-label={t("nav.closeMenu")}
               className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 lg:hidden"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -195,6 +201,8 @@ export function Sidebar() {
             </button>
             <button
               onClick={() => setCollapsed(!collapsed)}
+              aria-label={t(collapsed ? "nav.expandSidebar" : "nav.collapseSidebar")}
+              aria-expanded={!collapsed}
               className="hidden rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 lg:block"
             >
               {collapsed ? (

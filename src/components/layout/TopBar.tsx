@@ -6,6 +6,8 @@ import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
 import { useTranslation } from "react-i18next";
 import { LogOut, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { Modal, ModalFooter } from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
 
 const FlagFR = () => (
   <svg
@@ -40,6 +42,15 @@ export function TopBar() {
 
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const handleLogoutClick = () => {
+    if (pendingSyncCount > 0) {
+      setLogoutConfirmOpen(true);
+    } else {
+      logout();
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -59,6 +70,7 @@ export function TopBar() {
         </div>
         <button
           onClick={toggleSidebar}
+          aria-label={t("nav.openMenu")}
           className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
         >
           <svg
@@ -133,14 +145,39 @@ export function TopBar() {
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-gray-700">{user?.nom}</span>
           <button
-            onClick={() => logout()}
+            onClick={handleLogoutClick}
             title={t("auth.logout")}
+            aria-label={t("auth.logout")}
             className="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 active:scale-95"
           >
             <LogOut className="h-5 w-5" />
           </button>
         </div>
       </div>
+
+      <Modal
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        title={t("auth.logoutConfirmTitle")}
+      >
+        <p className="text-sm text-gray-600">
+          {t("auth.logoutConfirmMessage", { count: pendingSyncCount })}
+        </p>
+        <ModalFooter>
+          <Button variant="secondary" onClick={() => setLogoutConfirmOpen(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setLogoutConfirmOpen(false);
+              logout();
+            }}
+          >
+            {t("auth.logoutConfirmAction")}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </header>
   );
 }
