@@ -504,13 +504,17 @@ export default function DashboardKpisPage() {
                   {columns.map(([key, label]) => (
                     <th
                       key={key}
-                      className="cursor-pointer select-none px-4 py-3 font-medium text-gray-600 hover:text-gray-900"
-                      onClick={() => toggleSort(key)}
+                      className="px-4 py-3 font-medium text-gray-600"
+                      aria-sort={sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(key)}
+                        className="inline-flex select-none items-center gap-1 hover:text-gray-900"
+                      >
                         {label}
                         <SortIcon active={sortKey === key} dir={sortDir} />
-                      </span>
+                      </button>
                     </th>
                   ))}
                 </tr>

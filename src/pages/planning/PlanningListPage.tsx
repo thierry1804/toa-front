@@ -123,7 +123,7 @@ export default function PlanningListPage() {
         </div>
         {perms?.canCreate && (
           <Link to="/planning/new" className="self-start sm:self-auto">
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
+            <Button>
               <Plus className="h-5 w-5 mr-2" />
               {t("planning.newPlanning")}
             </Button>
