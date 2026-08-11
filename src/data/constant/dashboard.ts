@@ -1,34 +1,41 @@
-import { FileText, Users, Calendar, Shield, Clipboard } from "lucide-react"
+import { FileText, Users, Calendar, Shield, Clipboard, type LucideIcon } from "lucide-react"
 
-export const quickLinks = [
+export interface QuickLink {
+  labelKey: string
+  descKey: string
+  icon: LucideIcon
+  route: string
+}
+
+export const quickLinks: QuickLink[] = [
   {
-    label: "Planification",
+    labelKey: "dashboard.quickLinks.planning",
+    descKey: "dashboard.quickLinks.planningDesc",
     icon: Calendar,
     route: "/planning",
-    desc: "Gérer le planning des activités",
   },
   {
-    label: "Permis de travail",
+    labelKey: "dashboard.quickLinks.permits",
+    descKey: "dashboard.quickLinks.permitsDesc",
     icon: FileText,
     route: "/permits-travail",
-    desc: "Consulter et créer des permis",
   },
   {
-    label: "Prévention",
+    labelKey: "dashboard.quickLinks.prevention",
+    descKey: "dashboard.quickLinks.preventionDesc",
     icon: Shield,
     route: "/prevention",
-    desc: "Plans de prévention",
   },
   {
-    label: "Interventions",
+    labelKey: "dashboard.quickLinks.interventions",
+    descKey: "dashboard.quickLinks.interventionsDesc",
     icon: Clipboard,
     route: "/interventions",
-    desc: "Suivi des interventions",
   },
   {
-    label: "Utilisateurs",
+    labelKey: "dashboard.quickLinks.users",
+    descKey: "dashboard.quickLinks.usersDesc",
     icon: Users,
     route: "/users",
-    desc: "Gestion des comptes",
   },
 ]

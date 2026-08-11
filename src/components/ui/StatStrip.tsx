@@ -5,18 +5,32 @@ export interface StatItem {
   value: ReactNode
 }
 
-// Flat, bordered row of label/value pairs replacing the repeated
-// icon+title+number card-grid pattern (DESIGN.md bans it as decorative
-// filler for what is really a single, dense strip of numbers).
+// Dense label/value strip: 2-column grid on phones, single row on wider screens.
 export function StatStrip({ items }: { items: StatItem[] }) {
+  const oddLastSpansTwo =
+    items.length > 2 && items.length % 2 === 1
+
   return (
-    <div className="flex flex-wrap divide-x divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
-      {items.map((item) => (
-        <div key={item.label} className="min-w-[140px] flex-1 px-5 py-4">
-          <p className="text-2xl font-bold text-gray-900">{item.value}</p>
-          <p className="mt-1 text-sm text-gray-500">{item.label}</p>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="grid grid-cols-2 divide-x divide-y divide-gray-200 sm:flex sm:divide-y-0">
+        {items.map((item, index) => (
+          <div
+            key={item.label}
+            className={`min-h-[4.5rem] px-3 py-3 sm:min-w-[140px] sm:flex-1 sm:px-4 ${
+              oddLastSpansTwo && index === items.length - 1
+                ? "col-span-2 sm:col-span-1"
+                : ""
+            }`}
+          >
+            <p className="text-xs font-medium leading-snug text-gray-500">
+              {item.label}
+            </p>
+            <p className="mt-1 text-base font-semibold tabular-nums text-gray-900 sm:text-lg">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -30,7 +30,8 @@
     "collapseSidebar": "Réduire la barre latérale",
     "expandSidebar": "Développer la barre latérale",
     "expandSection": "Développer la section",
-    "collapseSection": "Réduire la section"
+    "collapseSection": "Réduire la section",
+    "changeLanguage": "Changer la langue"
   },
   "auth": {
     "login": "Connexion",
@@ -54,6 +55,20 @@
     "quickAccess": "Accès rapide",
     "recentActivity": "Activité récente",
     "noActivity": "Aucune activité récente",
+    "noQuickAccess": "Aucun accès rapide disponible pour votre profil.",
+    "mapTitle": "Carte des sites",
+    "mapLoading": "Chargement de la carte…",
+    "filterProvider": "Prestataire",
+    "filterProject": "Projet",
+    "allProviders": "Tous les prestataires",
+    "allProjects": "Tous les projets",
+    "resetFilters": "Réinitialiser",
+    "kpis": {
+      "plansValides": "Plans validés",
+      "permisValides": "Permis validés",
+      "permisClotures": "Permis clôturés",
+      "tauxCloture": "Taux de clôture"
+    },
     "stats": {
       "activePermits": "Permis actifs",
       "pending": "En attente",
@@ -97,9 +112,22 @@
     },
     "empty": "Aucun utilisateur trouvé",
     "createAction": "Créer un utilisateur",
+    "listTitle": "Utilisateurs ({{count}})",
+    "listSubtitle": "{{count}} prestataires sur les entreprises partenaires",
+    "you": "Vous",
+    "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "iso": {
+      "title": "Certification ISO 14001",
+      "body": "TowerCo of Africa est certifiée ISO 14001 (management environnemental) et ISO 45001 (santé et sécurité au travail). La gestion des utilisateurs et des accès fait partie du système de maîtrise des risques HSE."
+    },
     "deleteConfirm": {
       "title": "Confirmer la suppression",
-      "message": "Supprimer l'utilisateur"
+      "message": "Supprimer l'utilisateur",
+      "irreversible": "Cette action est irréversible."
     },
     "form": {
       "editTitle": "Modifier l'utilisateur",
@@ -185,7 +213,8 @@
       "aucune_tache": "Aucune tâche",
       "title": "Sections et tâches"
     },
-    "title": "Planification des activités ",
+    "title": "Planification des activités",
+    "listTitle": "Liste des planifications ({{count}})",
     "newPlanning": "Nouvelle planification",
     "description": "Gestion du calendrier des interventions sur sites",
     "stats": {
@@ -520,6 +549,12 @@
   },
   "roles": {
     "title": "Gestion des rôles",
+    "super_admin": "Super Admin",
+    "admin": "Administrateur",
+    "chef_projet": "Chef de projet",
+    "hse": "HSE",
+    "prestataire": "Prestataire",
+    "dg": "Direction générale",
     "newRole": "Nouveau rôle",
     "description": "Créer et gérer les rôles de la plateforme",
     "tableDescription": "Les rôles système sont protégés et ne peuvent pas être supprimés",

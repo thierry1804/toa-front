@@ -30,7 +30,8 @@
     "collapseSidebar": "Ahakeleo ny tsipika ivelany",
     "expandSidebar": "Ahalehibiazo ny tsipika ivelany",
     "expandSection": "Ahalehibiazo ny fizarana",
-    "collapseSection": "Ahakeleo ny fizarana"
+    "collapseSection": "Ahakeleo ny fizarana",
+    "changeLanguage": "Hanova ny fiteny"
   },
   "auth": {
     "login": "Hiditra",
@@ -54,6 +55,20 @@
     "quickAccess": "Fidirana haingana",
     "recentActivity": "Hetsika vao haingana",
     "noActivity": "Tsy misy hetsika vao haingana",
+    "noQuickAccess": "Tsy misy fidirana haingana ho an'ny profilanao.",
+    "mapTitle": "Sarintany toerana",
+    "mapLoading": "Mampiditra sarintany…",
+    "filterProvider": "Mpanome serivisy",
+    "filterProject": "Tetikasa",
+    "allProviders": "Mpanome serivisy rehetra",
+    "allProjects": "Tetikasa rehetra",
+    "resetFilters": "Averina",
+    "kpis": {
+      "plansValides": "Drafitra voamarina",
+      "permisValides": "Permis voamarina",
+      "permisClotures": "Permis voatapitra",
+      "tauxCloture": "Tahan'ny fampitahana"
+    },
     "stats": {
       "activePermits": "Permis mavitrika",
       "pending": "Miandry",
@@ -97,9 +112,22 @@
     },
     "empty": "Tsy misy mpampiasa hita",
     "createAction": "Hamorona mpampiasa",
+    "listTitle": "Mpampiasa ({{count}})",
+    "listSubtitle": "{{count}} mpiasa amin'ny orinasa mpiara-miasa",
+    "you": "Ianao",
+    "cannotDeleteSelf": "Tsy afaka mamafa ny kaontinao manokana ianao",
+    "status": {
+      "active": "Mavitrika",
+      "inactive": "Tsy mavitrika"
+    },
+    "iso": {
+      "title": "Fanamarinana ISO 14001",
+      "body": "TowerCo of Africa dia manana fanamarinana ISO 14001 (fitantanana ny tontolo iainana) sy ISO 45001 (fiarovana ara-pahasalamana). Ny fitantanana mpampiasa sy fidirana dia ampahany amin'ny rafitra fitantanana ny loza HSE."
+    },
     "deleteConfirm": {
       "title": "Hanamafy ny famafana",
-      "message": "Fafao ny mpampiasa"
+      "message": "Fafao ny mpampiasa",
+      "irreversible": "Ity hetsika ity tsy azo averina."
     },
     "form": {
       "editTitle": "Hanova ny mpampiasa",
@@ -185,7 +213,8 @@
       "aucune_tache": "Tsy misy asa",
       "title": "Fizarana sy asa"
     },
-    "title": "Fandrindrana ny hetsika ",
+    "title": "Fandrindrana ny hetsika",
+    "listTitle": "Lisitry ny fandrindrana ({{count}})",
     "newPlanning": "Fandrindrana vaovao",
     "description": "Fitantanana ny fandaharam-potoan'ny fitsabahana eny an-toerana",
     "stats": {
@@ -517,6 +546,12 @@
   },
   "roles": {
     "title": "Fitantanana ny anjara",
+    "super_admin": "Super Admin",
+    "admin": "Mpitantana",
+    "chef_projet": "Mpitarika tetikasa",
+    "hse": "HSE",
+    "prestataire": "Mpiasa",
+    "dg": "Filaminam-panjakana",
     "newRole": "Anjara vaovao",
     "description": "Mamorona sy mitantana ny anjara amin'ny rindranasa",
     "tableDescription": "Ny anjara raki-teny dia voarindra ary tsy azo esorina",

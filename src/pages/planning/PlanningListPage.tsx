@@ -7,10 +7,10 @@ import {
 import { useUiStore } from "@/store/ui.store";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useTranslation } from "react-i18next";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
@@ -32,6 +32,11 @@ import {
 import { formatDate } from "@/utils/date";
 import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
 import GanttChart from "@/features/planning/components/GanttChart";
+
+const GANTT_ROW_H = 44;
+const GANTT_TIMELINE_HEADER_H = 32;
+const GANTT_MAX_ROWS = 10;
+const GANTT_CHROME_H = 120;
 
 export default function PlanningListPage() {
   const { t } = useTranslation();
@@ -82,12 +87,14 @@ export default function PlanningListPage() {
     brouillon: allPlannings.filter((p) => p.status === "brouillon").length,
   };
 
-  // Gantt height: fit all valid rows (max 10) without internal vertical scroll
-  // const validCount = plannings.filter(
-  //   (p) => p.expectedStartDate && p.expectedEndDate,
-  // ).length;
-  // const ganttH = Math.min(Math.max(validCount, 1), 15) * 44 + 32 + 44;
-  const ganttH = 516;
+  const ganttActivities = filtered.filter(
+    (p) => p.expectedStartDate && p.expectedEndDate,
+  );
+  const ganttVisibleRows = Math.min(ganttActivities.length, GANTT_MAX_ROWS);
+  const ganttHeight =
+    GANTT_CHROME_H +
+    GANTT_TIMELINE_HEADER_H +
+    ganttVisibleRows * GANTT_ROW_H;
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -107,33 +114,22 @@ export default function PlanningListPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {t("planning.title")}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {t("planning.description")}
-          </p>
-        </div>
-        {perms?.canCreate && (
-          <Link to="/planning/new" className="self-start sm:self-auto">
-            <Button>
-              <Plus className="h-5 w-5 mr-2" />
-              {t("planning.newPlanning")}
-            </Button>
-          </Link>
-        )}
-      </div>
+    <div className="space-y-4">
+      <PageHeader
+        title={t("planning.title")}
+        description={t("planning.description")}
+        actions={
+          perms?.canCreate ? (
+            <Link to="/planning/new">
+              <Button>
+                <Plus className="mr-2 h-5 w-5" />
+                {t("planning.newPlanning")}
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
 
-      {/* Gantt — height fits all rows, timeline scrolls internally */}
-      <div className="overflow-hidden" style={{ height: ganttH }}>
-        <GanttChart activities={plannings} />
-      </div>
-
-      {/* Stats */}
       <StatStrip
         items={[
           { label: t("planning.stats.total"), value: stats.total },
@@ -144,38 +140,39 @@ export default function PlanningListPage() {
         ]}
       />
 
-      {/* Search + filter */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder={t("planning.search")}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-            />
-            <Select
-              options={statusFilterOptions}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("planning.filterStatus")}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Input
+            placeholder={t("planning.search")}
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+          />
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            placeholder={t("planning.filterStatus")}
+          />
+        </div>
+      </div>
 
-      {/* Activity list */}
+      {ganttActivities.length > 0 && (
+        <div className="overflow-hidden" style={{ height: ganttHeight }}>
+          <GanttChart activities={ganttActivities} />
+        </div>
+      )}
+
       <Card>
-        <CardHeader>
-          <CardTitle className="text-gray-900">
-            {t("planning.title")} ({filtered.length})
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-gray-900">
+            {t("planning.listTitle", { count: filtered.length })}
           </CardTitle>
-          <CardDescription>{t("planning.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
