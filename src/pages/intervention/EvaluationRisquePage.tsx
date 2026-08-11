@@ -227,11 +227,8 @@ export default function EvaluationRisquePage() {
 
               <div className="h-2.5 w-full rounded-full bg-gray-200">
                 <div
-                  className="h-2.5 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${progressPct}%`,
-                    backgroundColor: allReevalues ? '#16a34a' : '#2563eb',
-                  }}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${allReevalues ? 'bg-green-600' : 'bg-blue-600'}`}
+                  style={{ width: `${progressPct}%` }}
                 />
               </div>
 

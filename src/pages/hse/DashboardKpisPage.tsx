@@ -43,9 +43,9 @@ function tauxColor(taux: number): string {
 }
 
 function barFill(pct: number): string {
-  if (pct >= 76) return '#3b82f6'
-  if (pct >= 26) return '#f97316'
-  return '#ef4444'
+  if (pct >= 76) return '#2563eb'
+  if (pct >= 26) return '#ca8a04'
+  return '#dc2626'
 }
 
 // ---------- sub-components ----------
@@ -97,10 +97,13 @@ function StatCard({
   )
 }
 
+// CLOTURE/PV_VALIDE keep a distinct hue outside the DESIGN.md semantic tokens:
+// 5 statuses share only 4 tokens (neutral/primary/success), so these two need
+// a hue of their own to stay visually distinguishable from VALIDE_HSE.
 const STATUT_PIE_CONFIG: Partial<Record<StatutPermitTravail, { label: string; color: string }>> = {
-  BROUILLON:  { label: 'Brouillon',   color: '#94a3b8' },
-  SOUMIS:     { label: 'Soumis',      color: '#60a5fa' },
-  VALIDE_HSE: { label: 'Validé HSE',  color: '#4ade80' },
+  BROUILLON:  { label: 'Brouillon',   color: '#9ca3af' },
+  SOUMIS:     { label: 'Soumis',      color: '#2563eb' },
+  VALIDE_HSE: { label: 'Validé HSE',  color: '#16a34a' },
   CLOTURE:    { label: 'Clôturé',     color: '#f97316' },
   PV_VALIDE:  { label: 'PV validé',   color: '#22c55e' },
 }
@@ -373,21 +376,21 @@ export default function DashboardKpisPage() {
                   <Line
                     type="monotone"
                     dataKey="Taux incidents"
-                    stroke="#ef4444"
+                    stroke="#dc2626"
                     strokeWidth={2}
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="Avancement %"
-                    stroke="#3b82f6"
+                    stroke="#2563eb"
                     strokeWidth={2}
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="Taux clôture %"
-                    stroke="#22c55e"
+                    stroke="#16a34a"
                     strokeWidth={2}
                     dot={false}
                   />
