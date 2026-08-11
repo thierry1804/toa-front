@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -155,15 +156,9 @@ export default function ValidationHSEModal({
                       </div>
                     </div>
                     <div className="text-right">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          verification.conforme
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
+                      <Badge variant={verification.conforme ? "success" : "danger"}>
                         {verification.conforme ? "Conforme" : "Non conforme"}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 ))}
@@ -281,7 +276,7 @@ export default function ValidationHSEModal({
                   </Button>
                   <Button
                     onClick={handleValidate}
-                    className="bg-green-600 hover:bg-green-700"
+                    variant="success"
                     disabled={!conformiteGenerale}
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -318,7 +313,7 @@ export default function ValidationHSEModal({
                   </Button>
                   <Button
                     onClick={handleReject}
-                    className="bg-red-600 hover:bg-red-700"
+                    variant="danger"
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Confirmer le refus

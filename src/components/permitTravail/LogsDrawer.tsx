@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, Download, FileDown, RefreshCw, ChevronDown } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
+import Input from '@/components/ui/Input'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import { usePermitTravailLogs } from '@/features/permitTravail/hooks/usePermitTravail'
 import type { PermitTravail, PermitTravailLog, ActionPermitTravailLog } from '@/types/permitTravail'
@@ -111,12 +112,11 @@ export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps)
 
       <div className="mb-4 flex items-end gap-3">
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-700">Date</label>
-          <input
+          <Input
+            label="Date"
             type="date"
             value={date}
             onChange={(e) => { setDate(e.target.value); setVisibleCount(PAGE_SIZE) }}
-            className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {logs.length > 0 && (

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { AlertTriangle, Lock } from 'lucide-react'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import Textarea from '@/components/ui/Textarea'
+import Checkbox from '@/components/ui/Checkbox'
 
 interface CloturerModalProps {
   isOpen: boolean
@@ -55,34 +57,21 @@ export default function CloturerModal({
           </p>
         </div>
 
-        <div>
-          <label
-            htmlFor="cloturer-permit-commentaire"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Commentaire <span className="text-gray-400 font-normal">(optionnel)</span>
-          </label>
-          <textarea
-            id="cloturer-permit-commentaire"
-            rows={3}
-            value={commentaire}
-            onChange={(e) => setCommentaire(e.target.value)}
-            placeholder="Motif de clôture, remarques de réception…"
-            disabled={isCloturer}
-            className="block w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-        </div>
+        <Textarea
+          label="Commentaire"
+          rows={3}
+          value={commentaire}
+          onChange={(e) => setCommentaire(e.target.value)}
+          placeholder="Motif de clôture, remarques de réception…"
+          disabled={isCloturer}
+        />
 
-        <label className="flex cursor-pointer items-center gap-3">
-          <input
-            type="checkbox"
-            checked={accordClient}
-            onChange={(e) => setAccordClient(e.target.checked)}
-            disabled={isCloturer}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-700">Accord client obtenu</span>
-        </label>
+        <Checkbox
+          label="Accord client obtenu"
+          checked={accordClient}
+          onChange={(e) => setAccordClient(e.target.checked)}
+          disabled={isCloturer}
+        />
 
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>

@@ -4,6 +4,7 @@ import { Activity, TrendingUp, Play, CheckCircle, ChevronUp, ChevronDown, Chevro
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
+import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import { usePermission } from '@/features/auth/usePermission'
@@ -170,40 +171,31 @@ export default function InterventionSuiviHsePage() {
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Site</label>
-              <input
-                type="text"
-                value={draft.codeSite ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
-                placeholder="Code site…"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label="Site"
+              type="text"
+              value={draft.codeSite ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
+              placeholder="Code site…"
+            />
             <Select
               label="Statut"
               value={draft.statut ?? ''}
               options={STATUT_OPTIONS}
               onChange={(e) => setDraft((d) => ({ ...d, statut: e.target.value as StatutIntervention | '' }))}
             />
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Début</label>
-              <input
-                type="date"
-                value={draft.dateDebut ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">Fin</label>
-              <input
-                type="date"
-                value={draft.dateFin ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label="Début"
+              type="date"
+              value={draft.dateDebut ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
+            />
+            <Input
+              label="Fin"
+              type="date"
+              value={draft.dateFin ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
+            />
           </div>
           <div className="mt-4 flex gap-2">
             <Button onClick={applyFilters}>Appliquer</Button>

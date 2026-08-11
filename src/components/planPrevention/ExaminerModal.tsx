@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import Textarea from '@/components/ui/Textarea'
 
 interface ExaminerModalProps {
   isOpen: boolean
@@ -53,21 +54,14 @@ export default function ExaminerModal({
           <strong>examiné</strong>. Les utilisateurs HSE concernés seront notifiés pour validation.
         </p>
 
-        <div>
-          <label htmlFor="examiner-commentaire" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Commentaire{' '}
-            <span className="text-gray-400 font-normal">(optionnel)</span>
-          </label>
-          <textarea
-            id="examiner-commentaire"
-            value={commentaire}
-            onChange={(e) => setCommentaire(e.target.value)}
-            rows={4}
-            placeholder="Ajoutez un commentaire sur votre examen..."
-            disabled={isExamining}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-gray-400"
-          />
-        </div>
+        <Textarea
+          label="Commentaire"
+          value={commentaire}
+          onChange={(e) => setCommentaire(e.target.value)}
+          rows={4}
+          placeholder="Ajoutez un commentaire sur votre examen..."
+          disabled={isExamining}
+        />
 
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>

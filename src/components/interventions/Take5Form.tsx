@@ -365,7 +365,7 @@ export default function Take5Form({
       </Card>
 
       {/* Étape 1: ARRÊTER */}
-      <Card className="border-l-4 border-l-red-500">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -412,7 +412,7 @@ export default function Take5Form({
       </Card>
 
       {/* Étape 2: OBSERVER */}
-      <Card className="border-l-4 border-l-orange-500">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
@@ -491,7 +491,7 @@ export default function Take5Form({
       </Card>
 
       {/* Étape 3: ANALYSER */}
-      <Card className="border-l-4 border-l-yellow-500">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -640,7 +640,7 @@ export default function Take5Form({
       </Card>
 
       {/* Étape 4: CONTRÔLER */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -787,7 +787,7 @@ export default function Take5Form({
       </Card>
 
       {/* Étape 5: PROCÉDER */}
-      <Card className="border-l-4 border-l-green-500">
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">

@@ -29,7 +29,7 @@ export default function PdfGenerationButton({ planId, planStatut }: PdfGeneratio
     return (
       <div className="flex flex-col items-start gap-1">
         <Button
-          className="bg-green-600 text-white hover:bg-green-700"
+          variant="success"
           disabled={!canDownload}
           onClick={() => void downloadPdf()}
         >

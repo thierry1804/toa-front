@@ -129,7 +129,7 @@ export default function RisquesIdentifiesSection({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Risques liés à l'environnement */}
-          <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded-r-lg">
+          <div className="bg-green-50 p-4 rounded-lg">
             <div className="space-y-3">
               <Checkbox
                 label={
@@ -150,7 +150,7 @@ export default function RisquesIdentifiesSection({
               />
 
               {risquesActivites.environnement.actif && (
-                <div className="ml-8 space-y-2 border-l-2 border-green-300 pl-4">
+                <div className="ml-8 space-y-2 pl-4">
                   <Checkbox
                     label="Pollutions (déversement)"
                     checked={risquesActivites.environnement.pollutions}
@@ -183,7 +183,7 @@ export default function RisquesIdentifiesSection({
           </div>
 
           {/* Risque Social */}
-          <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+          <div className="bg-blue-50 p-4 rounded-lg">
             <div className="space-y-3">
               <Checkbox
                 label={
@@ -202,7 +202,7 @@ export default function RisquesIdentifiesSection({
               />
 
               {risquesActivites.social.actif && (
-                <div className="ml-8 space-y-2 border-l-2 border-blue-300 pl-4">
+                <div className="ml-8 space-y-2 pl-4">
                   <Checkbox
                     label="Contestation riveraine"
                     checked={risquesActivites.social.contestationRiveraine}
@@ -249,7 +249,7 @@ export default function RisquesIdentifiesSection({
           </div>
 
           {/* Risque lié à la santé et sécurité */}
-          <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+          <div className="bg-red-50 p-4 rounded-lg">
             <div className="space-y-3">
               <Checkbox
                 label={
@@ -270,7 +270,7 @@ export default function RisquesIdentifiesSection({
               />
 
               {risquesActivites.santeSécurite.actif && (
-                <div className="ml-8 space-y-2 border-l-2 border-red-300 pl-4">
+                <div className="ml-8 space-y-2 pl-4">
                   <Checkbox
                     label="Accident lié à la sécurité routière"
                     checked={risquesActivites.santeSécurite.accidentSecuriteRoutiere}
@@ -525,7 +525,7 @@ export default function RisquesIdentifiesSection({
           </div>
 
           {/* Risque lié aux installation/infrastructure existants */}
-          <div className="border-l-4 border-orange-500 bg-orange-50 p-4 rounded-r-lg">
+          <div className="bg-orange-50 p-4 rounded-lg">
             <div className="space-y-3">
               <Checkbox
                 label={
@@ -546,7 +546,7 @@ export default function RisquesIdentifiesSection({
               />
 
               {risquesActivites.infrastructures.actif && (
-                <div className="ml-8 space-y-2 border-l-2 border-orange-300 pl-4">
+                <div className="ml-8 space-y-2 pl-4">
                   <Checkbox
                     label="Risques liés à l'accès sur site"
                     checked={risquesActivites.infrastructures.risqueAccesSite}

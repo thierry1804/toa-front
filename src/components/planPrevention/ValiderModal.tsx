@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import Textarea from '@/components/ui/Textarea'
 import type { PlanPrevention } from '@/types/planPrevention'
 
 interface ValiderModalProps {
@@ -86,26 +87,14 @@ export default function ValiderModal({
               {t('planPrevention.validerModal.description')}
             </p>
 
-            <div>
-              <label
-                htmlFor="valider-commentaire"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                {t('planPrevention.validerModal.commentaireLabel')}{' '}
-                <span className="text-gray-400 font-normal">
-                  {t('planPrevention.validerModal.commentaireOptional')}
-                </span>
-              </label>
-              <textarea
-                id="valider-commentaire"
-                value={commentaire}
-                onChange={(e) => setCommentaire(e.target.value)}
-                rows={3}
-                placeholder={t('planPrevention.validerModal.commentairePlaceholder')}
-                disabled={isValidating}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-gray-400"
-              />
-            </div>
+            <Textarea
+              label={t('planPrevention.validerModal.commentaireLabel')}
+              value={commentaire}
+              onChange={(e) => setCommentaire(e.target.value)}
+              rows={3}
+              placeholder={t('planPrevention.validerModal.commentairePlaceholder')}
+              disabled={isValidating}
+            />
 
             {missingDocuments.length > 0 && (
               <div className="rounded-lg bg-red-50 px-3 py-2">

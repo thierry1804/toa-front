@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import Textarea from '@/components/ui/Textarea'
 import type { PermitTravail } from '@/types/permitTravail'
 
 interface ValiderPermitModalProps {
@@ -82,21 +83,14 @@ export default function ValiderPermitModal({
               Confirmez la validation du permis de travail{' '}
               <span className="font-semibold text-blue-700">{permitReference}</span>.
             </p>
-            <div>
-              <label htmlFor="valider-permit-commentaire" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Commentaire{' '}
-                <span className="text-gray-400 font-normal">(optionnel)</span>
-              </label>
-              <textarea
-                id="valider-permit-commentaire"
-                value={commentaire}
-                onChange={(e) => setCommentaire(e.target.value)}
-                rows={3}
-                placeholder="Observations ou remarques..."
-                disabled={isValidating}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-gray-400"
-              />
-            </div>
+            <Textarea
+              label="Commentaire"
+              value={commentaire}
+              onChange={(e) => setCommentaire(e.target.value)}
+              rows={3}
+              placeholder="Observations ou remarques..."
+              disabled={isValidating}
+            />
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
             )}

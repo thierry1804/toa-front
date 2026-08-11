@@ -14,6 +14,7 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import { usePermission } from '@/features/auth/usePermission'
 import {
@@ -259,50 +260,30 @@ export default function DashboardKpisPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.site')}
-              </label>
-              <input
-                type="text"
-                value={draft.codeSite ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.periode')}
-              </label>
-              <input
-                type="month"
-                value={draft.periode ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, periode: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.debut')}
-              </label>
-              <input
-                type="date"
-                value={draft.dateDebut ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.fin')}
-              </label>
-              <input
-                type="date"
-                value={draft.dateFin ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label={t('dashboardKpis.filters.site')}
+              type="text"
+              value={draft.codeSite ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.periode')}
+              type="month"
+              value={draft.periode ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, periode: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.debut')}
+              type="date"
+              value={draft.dateDebut ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.fin')}
+              type="date"
+              value={draft.dateFin ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
+            />
           </div>
           <div className="mt-4 flex gap-2">
             <Button onClick={applyFilters}>{t('dashboardKpis.filters.apply')}</Button>

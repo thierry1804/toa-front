@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Textarea from '@/components/ui/Textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import SuiviDocumentUploadZone from '@/components/intervention/SuiviDocumentUploadZone'
@@ -134,31 +136,19 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           {/* Date (readonly for create, hidden for edit) */}
           {!isEdit && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-              <input
-                type="date"
-                value={TODAY}
-                readOnly
-                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
-              />
-            </div>
+            <Input label="Date" type="date" value={TODAY} disabled />
           )}
 
           {/* Nom responsable */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nom du responsable <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={form.nomResponsable}
-              onChange={(e) => set({ nomResponsable: e.target.value })}
-              placeholder="Nom et prénom du responsable de chantier"
-              maxLength={150}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
+          <Input
+            label="Nom du responsable"
+            required
+            type="text"
+            value={form.nomResponsable}
+            onChange={(e) => set({ nomResponsable: e.target.value })}
+            placeholder="Nom et prénom du responsable de chantier"
+            maxLength={150}
+          />
 
           {/* Toggle réalisé */}
           <div>
@@ -193,18 +183,14 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
 
           {/* Motif (si non réalisé) */}
           {!form.realise && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Motif de non-réalisation <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={form.motifNonRealisation}
-                onChange={(e) => set({ motifNonRealisation: e.target.value })}
-                placeholder="Ex : Intempéries, absence intervenant..."
-                rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+            <Textarea
+              label="Motif de non-réalisation"
+              required
+              value={form.motifNonRealisation}
+              onChange={(e) => set({ motifNonRealisation: e.target.value })}
+              placeholder="Ex : Intempéries, absence intervenant..."
+              rows={3}
+            />
           )}
 
           {/* Avancement */}
@@ -213,18 +199,16 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
               Avancement <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-3">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={form.avancementPourcentage}
-                onChange={(e) => handleAvancement(e.target.value)}
-                className={`w-24 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
-                  avancementError
-                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                }`}
-              />
+              <div className="w-24">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={form.avancementPourcentage}
+                  onChange={(e) => handleAvancement(e.target.value)}
+                  error={avancementError || undefined}
+                />
+              </div>
               <span className="text-sm text-gray-500">%</span>
               <input
                 type="range"
@@ -236,22 +220,16 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
               />
               <AvancementBadge pct={form.avancementPourcentage} />
             </div>
-            {avancementError && (
-              <p className="mt-1 text-xs text-red-600">{avancementError}</p>
-            )}
           </div>
 
           {/* Commentaire */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Commentaire</label>
-            <textarea
-              value={form.commentaire}
-              onChange={(e) => set({ commentaire: e.target.value })}
-              placeholder="Observations, remarques..."
-              rows={3}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
+          <Textarea
+            label="Commentaire"
+            value={form.commentaire}
+            onChange={(e) => set({ commentaire: e.target.value })}
+            placeholder="Observations, remarques..."
+            rows={3}
+          />
 
           {/* API error */}
           {apiDetail && (

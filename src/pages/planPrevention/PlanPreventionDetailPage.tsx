@@ -25,6 +25,7 @@ import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPl
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
+import Badge from "@/components/ui/Badge";
 import ExaminerModal from "@/components/planPrevention/ExaminerModal";
 import ValiderModal from "@/components/planPrevention/ValiderModal";
 import RefuserModal from "@/components/planPrevention/RefuserModal";
@@ -78,15 +79,15 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function DecisionBadge({ decision }: { decision: "VALIDE" | "REFUSE" }) {
   const { t } = useTranslation();
   return decision === "VALIDE" ? (
-    <span className="inline-flex items-center gap-1 rounded-full bg-blue-700 px-2 py-0.5 text-xs font-medium text-white">
-      <ShieldCheck className="h-3 w-3" />
+    <Badge variant="success">
+      <ShieldCheck className="mr-1 h-3 w-3" />
       {t("planPrevention.decision.VALIDE")}
-    </span>
+    </Badge>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
-      <ShieldX className="h-3 w-3" />
+    <Badge variant="danger">
+      <ShieldX className="mr-1 h-3 w-3" />
       {t("planPrevention.decision.REFUSE")}
-    </span>
+    </Badge>
   );
 }
 

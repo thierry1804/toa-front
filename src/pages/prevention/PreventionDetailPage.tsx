@@ -527,7 +527,7 @@ export default function PreventionDetailPage() {
                   {plan.risques.map((risque, index) => {
                     const niveau = getRisqueLevel(risque.niveauGravite || 'faible');
                     return (
-                      <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium">{risque.description}</p>
