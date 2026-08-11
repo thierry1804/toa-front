@@ -566,7 +566,9 @@
     }
   },
   "offline": {
-    "banner": "Mode hors-ligne"
+    "banner": "Mode hors-ligne",
+    "pending_one": "{{count}} en attente",
+    "pending_other": "{{count}} en attente"
   },
   "errors": {
     "incorrect_credentials": "Identifiants incorrects",

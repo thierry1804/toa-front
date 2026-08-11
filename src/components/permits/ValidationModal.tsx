@@ -50,7 +50,6 @@ export default function ValidationModal({
       }
 
       onClose();
-      window.location.reload(); // Refresh pour voir les changements
     } catch (err) {
       console.error('Erreur lors de la validation:', err);
       toast.showError('Une erreur est survenue lors de la validation');
@@ -88,6 +87,7 @@ export default function ValidationModal({
           onChange={(e) => setCommentaire(e.target.value)}
           placeholder="Ajoutez un commentaire (optionnel)"
           rows={4}
+          disabled={loading}
         />
 
         {type === 'hse' && action === 'valider' && (
@@ -105,7 +105,8 @@ export default function ValidationModal({
         <div className="flex gap-4">
           <button
             onClick={() => setAction('valider')}
-            className={`flex-1 p-4 border-2 rounded-lg transition-all ${
+            disabled={loading}
+            className={`flex-1 p-4 border-2 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
               action === 'valider'
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-300 hover:border-green-400'
@@ -130,7 +131,8 @@ export default function ValidationModal({
 
           <button
             onClick={() => setAction('refuser')}
-            className={`flex-1 p-4 border-2 rounded-lg transition-all ${
+            disabled={loading}
+            className={`flex-1 p-4 border-2 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
               action === 'refuser'
                 ? 'border-red-500 bg-red-50'
                 : 'border-gray-300 hover:border-red-400'
@@ -165,7 +167,7 @@ export default function ValidationModal({
       </div>
 
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={loading}>
           Annuler
         </Button>
         <Button

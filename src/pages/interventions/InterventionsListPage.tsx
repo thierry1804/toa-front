@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
+import { StatStrip } from '@/components/ui/StatStrip';
 import {
   Clipboard,
   Plus,
@@ -70,14 +71,17 @@ export default function InterventionsListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [siteFilter, setSiteFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     interventionApi.getAll()
       .then((col) => {
         const mapped = (col.member ?? []).map(mapIntervention)
         setInterventions(mapped)
       })
       .catch((err) => console.error('[InterventionsList] fetch error:', err))
+      .finally(() => setIsLoading(false))
   }, []);
 
   // Filtrer les interventions (ownership filtré par le backend)
@@ -174,6 +178,14 @@ export default function InterventionsListPage() {
     return latestValidation.avancementPourcentage || 0;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-500">Chargement...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -194,63 +206,15 @@ export default function InterventionsListPage() {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-              <Clipboard className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">En cours</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.enCours}</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Planifiées</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.planifiees}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Terminées</p>
-                <p className="text-2xl font-bold text-green-600">{stats.terminees}</p>
-              </div>
-              <CheckCircle2 className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Zones enclavées</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.zonesEnclavees}</p>
-              </div>
-              <WifiOff className="h-8 w-8 text-orange-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip
+        items={[
+          { label: 'Total', value: stats.total },
+          { label: 'En cours', value: stats.enCours },
+          { label: 'Planifiées', value: stats.planifiees },
+          { label: 'Terminées', value: stats.terminees },
+          { label: 'Zones enclavées', value: stats.zonesEnclavees },
+        ]}
+      />
 
       {/* Filtres */}
       <Card>

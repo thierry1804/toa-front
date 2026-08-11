@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { usePermitStore } from '@/store/permitStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { StatStrip } from '@/components/ui/StatStrip';
 import {
   FileText,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -108,63 +108,14 @@ export default function StatisticsPage() {
       </div>
 
       {/* KPIs Principaux */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Permis</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{permitsStats.total}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <FileText className="h-6 w-6 text-primary-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Taux de Validation</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{validationRate}%</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">En Attente</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{permitsStats.enAttente}</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Taux de Refus</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{refusalRate}%</p>
-              </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip
+        items={[
+          { label: 'Total Permis', value: permitsStats.total },
+          { label: 'Taux de Validation', value: `${validationRate}%` },
+          { label: 'En Attente', value: permitsStats.enAttente },
+          { label: 'Taux de Refus', value: `${refusalRate}%` },
+        ]}
+      />
 
       {/* Répartition par statut */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

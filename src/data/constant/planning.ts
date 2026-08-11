@@ -1,10 +1,10 @@
 export const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: "warning" | "info" | "success" | "danger" | "default" | "secondary" }
+  { label: string; variant: "warning" | "info" | "primary" | "success" | "danger" | "default" | "secondary" }
 > = {
-  brouillon: { label: "Brouillon", variant: "warning" },
+  brouillon: { label: "Brouillon", variant: "default" },
   planifie: { label: "Planifié", variant: "info" },
-  en_cours: { label: "En cours", variant: "default" },
+  en_cours: { label: "En cours", variant: "primary" },
   valide: { label: "Validé", variant: "success" },
   annule: { label: "Annulé", variant: "danger" },
   stand_by: { label: "Stand By", variant: "secondary" },

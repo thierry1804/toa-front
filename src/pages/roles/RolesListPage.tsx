@@ -15,6 +15,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import { StatStrip } from "@/components/ui/StatStrip";
 import { ShieldCheck, Plus, Edit, Trash2, Lock } from "lucide-react";
 import { formatDate } from "@/utils/date";
 
@@ -99,41 +100,13 @@ export default function RolesListPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t("roles.stats.total")}</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-              <ShieldCheck className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t("roles.stats.system")}</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.system}</p>
-              </div>
-              <Lock className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{t("roles.stats.custom")}</p>
-                <p className="text-2xl font-bold text-green-600">{stats.custom}</p>
-              </div>
-              <Plus className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip
+        items={[
+          { label: t("roles.stats.total"), value: stats.total },
+          { label: t("roles.stats.system"), value: stats.system },
+          { label: t("roles.stats.custom"), value: stats.custom },
+        ]}
+      />
 
       {/* Search */}
       <Card>

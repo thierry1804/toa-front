@@ -91,7 +91,7 @@ export default function PvValiderModal({
                 rows={3}
                 placeholder="Observations de réception..."
                 disabled={isValiderPv}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none disabled:bg-gray-50 disabled:text-gray-400"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-gray-400"
               />
             </div>
             {error && (

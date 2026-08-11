@@ -2,13 +2,15 @@ import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StatStrip } from "@/components/ui/StatStrip";
 import { ArrowRight, Activity, MapPin, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { stats, quickLinks } from "@/data/constant/dashboard";
+import { quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
 import type { MenuNode } from "@/types";
 import ReferentielSitesMap from "@/components/referentiel/ReferentielSitesMap";
 import { useDashboardMap } from "@/features/dashboard/hooks/useDashboardMap";
+import { useDashboardKpis } from "@/features/dashboard/hooks/useDashboardKpis";
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   const out: MenuNode[] = [];
@@ -55,6 +57,17 @@ export default function DashboardPage() {
   const { filteredGeoJson, prestataires, processTypes, isLoading: mapLoading } =
     useDashboardMap(filterProvider, filterProcess);
 
+  const { data: kpis } = useDashboardKpis();
+  const statItems = [
+    { label: "Plans validés", value: kpis?.nbPlansValides ?? "—" },
+    { label: "Permis validés", value: kpis?.nbPermisValides ?? "—" },
+    { label: "Permis clôturés", value: kpis?.nbPermisClotures ?? "—" },
+    {
+      label: "Taux de clôture",
+      value: kpis ? `${Math.round(kpis.tauxCloture * 100)}%` : "—",
+    },
+  ];
+
   const visibleQuickLinks = useMemo(() => {
     if (menuItems.length === 0) return quickLinks;
     const flat = flattenMenu(menuItems);
@@ -95,7 +108,7 @@ export default function DashboardPage() {
             <select
               value={filterProvider}
               onChange={(e) => setFilterProvider(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tous les prestataires</option>
               {prestataires.map((p) => (
@@ -107,7 +120,7 @@ export default function DashboardPage() {
             <select
               value={filterProcess}
               onChange={(e) => setFilterProcess(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tous les projets</option>
               {processTypes.map((p) => (
@@ -138,33 +151,8 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Stats grid */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.label}
-              className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:shadow-md"
-            >
-              <div
-                className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${s.gradient}`}
-              />
-              <div className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className={`rounded-lg ${s.bgLight} p-2.5`}>
-                    <Icon className={`h-5 w-5 ${s.iconColor}`} />
-                  </div>
-                </div>
-                <p className="mt-4 text-2xl font-bold text-gray-900">
-                  {s.value}
-                </p>
-                <p className="mt-1 text-sm text-gray-500">{s.label}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Stats */}
+      <StatStrip items={statItems} />
 
       {/* Quick access + Activity */}
       <div className="grid gap-6 lg:grid-cols-3">

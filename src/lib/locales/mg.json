@@ -563,7 +563,9 @@
     }
   },
   "offline": {
-    "banner": "Mode tsy misy tambajotra"
+    "banner": "Mode tsy misy tambajotra",
+    "pending_one": "{{count}} miandry",
+    "pending_other": "{{count}} miandry"
   },
   "errors": {
     "incorrect_credentials": "Diso ny mombamomba",

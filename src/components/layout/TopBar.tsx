@@ -2,6 +2,7 @@ import { useUiStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
 import { useLogout } from "@/features/auth/useAuth";
 import { useOnline } from "@/hooks/useOnline";
+import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
 import { useTranslation } from "react-i18next";
 import { LogOut, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -34,6 +35,7 @@ export function TopBar() {
 
   const { mutate: logout } = useLogout();
   const isOnline = useOnline();
+  const pendingSyncCount = usePendingSyncCount();
   const { t, i18n } = useTranslation();
 
   const [langOpen, setLangOpen] = useState(false);
@@ -76,6 +78,13 @@ export function TopBar() {
         {!isOnline && (
           <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-700">
             {t("offline.banner")}
+            {pendingSyncCount > 0 &&
+              ` · ${t("offline.pending", { count: pendingSyncCount })}`}
+          </span>
+        )}
+        {isOnline && pendingSyncCount > 0 && (
+          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+            {t("offline.pending", { count: pendingSyncCount })}
           </span>
         )}
       </div>

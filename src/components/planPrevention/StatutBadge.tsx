@@ -9,7 +9,7 @@ type StatutConfig = {
 
 const STATUT_CONFIG: Record<StatutPlanPrevention, StatutConfig> = {
   BROUILLON:              { label: 'Brouillon',              color: 'bg-gray-100 text-gray-700',     icon: FileText     },
-  SOUMIS:                 { label: 'Soumis',                 color: 'bg-yellow-100 text-yellow-700', icon: Clock        },
+  SOUMIS:                 { label: 'Soumis',                 color: 'bg-blue-100 text-blue-700',     icon: Clock        },
   VALIDE:                 { label: 'Validé',                 color: 'bg-green-100 text-green-700',   icon: CheckCircle  },
   REJETE:                 { label: 'Rejeté',                 color: 'bg-red-100 text-red-700',       icon: XCircle      },
   EN_ATTENTE:             { label: 'En attente',             color: 'bg-gray-100 text-gray-600',     icon: Clock        },
@@ -17,7 +17,7 @@ const STATUT_CONFIG: Record<StatutPlanPrevention, StatutConfig> = {
   EN_COURS_DE_VALIDATION: { label: 'En cours de validation', color: 'bg-orange-100 text-orange-700', icon: AlertCircle  },
   EXAMINE:                { label: 'Examiné',                color: 'bg-green-100 text-green-700',   icon: Eye          },
   VALIDE_HSE:             { label: 'Validé HSE',             color: 'bg-blue-700 text-white',        icon: ShieldCheck  },
-  REFUSE_HSE:             { label: 'Refusé HSE',             color: 'bg-red-600 text-white',         icon: ShieldX      },
+  REFUSE_HSE:             { label: 'Refusé HSE',             color: 'bg-red-100 text-red-700',       icon: ShieldX      },
 }
 
 interface StatutBadgeProps {

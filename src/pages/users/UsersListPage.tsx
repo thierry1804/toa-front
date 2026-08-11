@@ -17,6 +17,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import { StatStrip } from "@/components/ui/StatStrip";
 import {
   Users,
   Plus,
@@ -24,7 +25,6 @@ import {
   Trash2,
   UserCheck,
   UserX,
-  Building2,
   Shield,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
@@ -53,12 +53,13 @@ export default function UsersListPage() {
   } | null>(null);
 
   const itemsPerPage = 10;
-  const { data: hydraData, isLoading } = useUsers(page, itemsPerPage);
-  const users = hydraData?.member ?? [];
-  const totalItems = hydraData?.totalItems ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  // Fetch the full collection once and filter/paginate client-side — the API
+  // has no server-side search, so paginating server-side first would filter
+  // only whatever 10 rows happened to land on the current page.
+  const { data: hydraData, isLoading } = useUsers(1, 1000);
+  const allUsers = hydraData?.member ?? [];
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = allUsers.filter((user) => {
     const fullName = formatUserDisplayName(user).toLowerCase();
     const matchSearch =
       searchQuery === "" ||
@@ -77,14 +78,20 @@ export default function UsersListPage() {
     return matchSearch && matchRole && matchStatus;
   });
 
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const pagedUsers = filteredUsers.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage,
+  );
+
   const stats = {
-    total: totalItems,
-    actifs: users?.filter((u) => u.isActive).length ?? 0,
-    inactifs: users?.filter((u) => !u.isActive).length ?? 0,
-    prestataires:
-      users?.filter((u) => u.roles.includes("ROLE_PRESTATAIRE")).length ?? 0,
-    toa:
-      users?.filter((u) => !u.roles.includes("ROLE_PRESTATAIRE")).length ?? 0,
+    total: allUsers.length,
+    actifs: allUsers.filter((u) => u.isActive).length,
+    inactifs: allUsers.filter((u) => !u.isActive).length,
+    prestataires: allUsers.filter((u) => u.roles.includes("ROLE_PRESTATAIRE"))
+      .length,
+    toa: allUsers.filter((u) => !u.roles.includes("ROLE_PRESTATAIRE")).length,
   };
 
   const handleDelete = () => {
@@ -131,93 +138,15 @@ export default function UsersListPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {" "}
-                  {t("users.stats.total")}{" "}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {" "}
-                  {stats.total}{" "}
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {" "}
-                  {t("users.stats.active")}{" "}
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {" "}
-                  {stats.actifs}{" "}
-                </p>
-              </div>
-              <UserCheck className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {" "}
-                  {t("users.stats.inactive")}{" "}
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {" "}
-                  {stats.inactifs}{" "}
-                </p>
-              </div>
-              <UserX className="h-8 w-8 text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {" "}
-                  {t("users.stats.prestataires")}{" "}
-                </p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {" "}
-                  {stats.prestataires}{" "}
-                </p>
-              </div>
-              <Building2 className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {" "}
-                  {t("users.stats.teamToa")}{" "}
-                </p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {" "}
-                  {stats.toa}{" "}
-                </p>
-              </div>
-              <Shield className="h-8 w-8 text-purple-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip
+        items={[
+          { label: t("users.stats.total"), value: stats.total },
+          { label: t("users.stats.active"), value: stats.actifs },
+          { label: t("users.stats.inactive"), value: stats.inactifs },
+          { label: t("users.stats.prestataires"), value: stats.prestataires },
+          { label: t("users.stats.teamToa"), value: stats.toa },
+        ]}
+      />
 
       <Card>
         <CardContent className="p-4">
@@ -308,7 +237,7 @@ export default function UsersListPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredUsers.map((user) => {
+                    {pagedUsers.map((user) => {
                       const role = getDisplayRole(user.roles);
                       const config = ROLE_CONFIG[role];
                       const Icon = config?.icon ?? Users;
@@ -412,7 +341,7 @@ export default function UsersListPage() {
 
               {/* Mobile cards */}
               <div className="lg:hidden space-y-3">
-                {filteredUsers.map((user) => {
+                {pagedUsers.map((user) => {
                   const role = getDisplayRole(user.roles);
                   const config = ROLE_CONFIG[role];
                   const Icon = config?.icon ?? Users;

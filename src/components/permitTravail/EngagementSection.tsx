@@ -20,10 +20,18 @@ interface EngagementSectionProps {
   onSaveEvaluation?: () => Promise<void>
 }
 
-const NIVEAU_OPTIONS: { value: NiveauRisque; bg: string; ring: string; filled: string }[] = [
-  { value: 'rouge', bg: 'bg-white', ring: 'border-red-400',    filled: 'bg-red-400 border-red-400' },
-  { value: 'jaune', bg: 'bg-white', ring: 'border-yellow-400', filled: 'bg-yellow-400 border-yellow-400' },
-  { value: 'vert',  bg: 'bg-white', ring: 'border-green-500',  filled: 'bg-green-500 border-green-500' },
+const NIVEAU_OPTIONS: {
+  value: NiveauRisque
+  label: string
+  letter: string
+  bg: string
+  ring: string
+  filled: string
+  filledText: string
+}[] = [
+  { value: 'rouge', label: 'Rouge', letter: 'R', bg: 'bg-white', ring: 'border-red-400',    filled: 'bg-red-400 border-red-400',    filledText: 'text-white' },
+  { value: 'jaune', label: 'Jaune', letter: 'J', bg: 'bg-white', ring: 'border-yellow-400', filled: 'bg-yellow-400 border-yellow-400', filledText: 'text-gray-900' },
+  { value: 'vert',  label: 'Vert',  letter: 'V', bg: 'bg-white', ring: 'border-green-500',  filled: 'bg-green-500 border-green-500', filledText: 'text-white' },
 ]
 
 interface NiveauPickerProps {
@@ -45,11 +53,15 @@ function NiveauPicker({ label, value, onChange, disabled }: NiveauPickerProps) {
             key={opt.value}
             type="button"
             disabled={disabled}
+            aria-label={`Niveau ${opt.label}`}
+            aria-pressed={value === opt.value}
             onClick={() => !disabled && onChange(opt.value)}
-            className={`h-6 w-6 rounded-full border-2 transition-all focus:outline-none ${
-              value === opt.value ? opt.filled : `${opt.bg} ${opt.ring}`
+            className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+              value === opt.value ? `${opt.filled} ${opt.filledText}` : `${opt.bg} ${opt.ring} text-gray-500`
             } ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:opacity-80'}`}
-          />
+          >
+            {opt.letter}
+          </button>
         ))}
       </div>
     </div>
