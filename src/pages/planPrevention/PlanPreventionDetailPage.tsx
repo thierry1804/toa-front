@@ -210,6 +210,10 @@ export default function PlanPreventionDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={[
+          { label: "Plans de prévention", href: "/prevention" },
+          { label: plan.reference },
+        ]}
         title={t("planPrevention.detail.title")}
         description={t("planPrevention.detail.description")}
         actions={

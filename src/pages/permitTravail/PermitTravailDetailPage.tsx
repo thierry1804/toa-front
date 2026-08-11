@@ -96,6 +96,10 @@ export default function PermitTravailDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={[
+          { label: 'Permis de travail', href: '/permits-travail' },
+          { label: permit.reference },
+        ]}
         title={
           <span className="flex items-center gap-3">
             <span className="font-mono text-blue-700">{permit.reference}</span>

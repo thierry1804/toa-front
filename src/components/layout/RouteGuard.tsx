@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useMenuStore } from '@/store/menu.store'
 import { useUiStore } from '@/store/ui.store'
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import type { MenuNode } from '@/types'
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
@@ -43,8 +43,10 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
 
   if (canView === null) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+      <div className="space-y-4 p-6" aria-hidden="true">
+        <div className="h-8 w-1/3 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-32 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-32 animate-pulse rounded-lg bg-gray-100" />
       </div>
     )
   }

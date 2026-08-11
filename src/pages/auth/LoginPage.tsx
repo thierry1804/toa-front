@@ -48,13 +48,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] p-4">
       <div className="w-full max-w-md">
         {/* Language toggle */}
         <div className="flex justify-end mb-1">
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-2 text-white hover:text-blue-100 transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <Globe className="h-5 w-5" />
             <span className="font-medium">
@@ -65,7 +65,7 @@ export default function LoginPage() {
 
         {/* Logo circle above card */}
         <div className="flex justify-center -mb-11 relative z-10">
-          <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center p-3">
+          <div className="w-24 h-24 rounded-full bg-white border border-gray-200 flex items-center justify-center p-3">
             <img src="/images/TOA.png" alt="TOA" className="w-full h-full object-contain" />
           </div>
         </div>

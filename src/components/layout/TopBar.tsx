@@ -1,5 +1,6 @@
 import { useUiStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
+import { ROLE_LABELS } from "@/data/constant/roles";
 import { useLogout } from "@/features/auth/useAuth";
 import { useOnline } from "@/hooks/useOnline";
 import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
@@ -34,6 +35,8 @@ const FlagMG = () => (
 export function TopBar() {
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
+  const roles = useAuthStore((s) => s.roles);
+  const roleLabel = roles.map((r) => ROLE_LABELS[r] ?? r).join(", ");
 
   const { mutate: logout } = useLogout();
   const isOnline = useOnline();
@@ -71,7 +74,7 @@ export function TopBar() {
         <button
           onClick={toggleSidebar}
           aria-label={t("nav.openMenu")}
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
+          className="touch-target flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 lg:hidden"
         >
           <svg
             className="h-6 w-6"
@@ -143,12 +146,15 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-700">{user?.nom}</span>
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-700">{user?.nom}</p>
+            {roleLabel && <p className="text-xs text-gray-500">{roleLabel}</p>}
+          </div>
           <button
             onClick={handleLogoutClick}
             title={t("auth.logout")}
             aria-label={t("auth.logout")}
-            className="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 active:scale-95"
+            className="touch-target flex items-center justify-center rounded-full text-gray-500 transition-all hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 active:scale-95"
           >
             <LogOut className="h-5 w-5" />
           </button>

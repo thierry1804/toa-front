@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Loader2,
   AlertCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -88,7 +87,7 @@ function ParentMenuItem({
             onClick={() => setOpen((o) => !o)}
             aria-label={t(open ? "nav.collapseSection" : "nav.expandSection")}
             aria-expanded={open}
-            className="px-2 py-2.5"
+            className="touch-target flex items-center justify-center px-2"
           >
             <ChevronDown
               className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
@@ -189,7 +188,7 @@ export function Sidebar() {
             <button
               onClick={() => setSidebarOpen(false)}
               aria-label={t("nav.closeMenu")}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 lg:hidden"
+              className="touch-target flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 lg:hidden"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -203,7 +202,7 @@ export function Sidebar() {
               onClick={() => setCollapsed(!collapsed)}
               aria-label={t(collapsed ? "nav.expandSidebar" : "nav.collapseSidebar")}
               aria-expanded={!collapsed}
-              className="hidden rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 lg:block"
+              className="touch-target hidden items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 lg:flex"
             >
               {collapsed ? (
                 <ChevronRight className="h-5 w-5" />
@@ -216,13 +215,21 @@ export function Sidebar() {
 
         <nav className="flex-1 overflow-y-auto p-4">
           {menuStore.loading && !initialized ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            <div className="flex flex-col gap-1" aria-hidden="true">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-9 animate-pulse rounded-lg bg-gray-100" />
+              ))}
             </div>
           ) : menuStore.error && rootItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <AlertCircle className="mb-2 h-5 w-5 text-gray-400" />
-              <p className="text-xs text-gray-400">Menu indisponible</p>
+              <AlertCircle className="mb-2 h-5 w-5 text-gray-500" />
+              <p className="text-xs text-gray-600">Menu indisponible</p>
+              <button
+                onClick={load}
+                className="touch-target-inline mt-2 text-xs font-medium text-blue-600 hover:text-blue-800"
+              >
+                Réessayer
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
