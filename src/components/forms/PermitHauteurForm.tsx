@@ -9,6 +9,7 @@ import Select from "@/components/ui/Select";
 import Checkbox from "@/components/ui/Checkbox";
 import Textarea from "@/components/ui/Textarea";
 import MultiStepForm from "./MultiStepForm";
+import { wireStepValidation, type RegisterValidate } from "./wireStepValidation";
 import { AlertCircle, FileText } from "lucide-react";
 
 // Schémas de validation pour chaque étape
@@ -142,6 +143,7 @@ export default function PermitHauteurForm({
   const Step1Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const {
       register,
@@ -181,6 +183,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step1Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -341,6 +344,7 @@ export default function PermitHauteurForm({
   const Step2Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit, watch, setValue } = useForm<Step2Data>({
       resolver: zodResolver(step2Schema),
@@ -370,6 +374,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step2Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -467,6 +472,7 @@ export default function PermitHauteurForm({
   const Step3Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit, watch, setValue } = useForm<Step3Data>({
       resolver: zodResolver(step3Schema),
@@ -497,6 +503,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step3Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -623,6 +630,7 @@ export default function PermitHauteurForm({
   const Step4Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit, watch } = useForm<Step4Data>({
       resolver: zodResolver(step4Schema),
@@ -661,6 +669,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step4Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -780,6 +789,7 @@ export default function PermitHauteurForm({
   const Step5Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit, watch } = useForm<Step5Data>({
       resolver: zodResolver(step5Schema),
@@ -808,6 +818,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step5Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

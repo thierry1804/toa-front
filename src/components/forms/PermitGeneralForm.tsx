@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +8,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Checkbox from "@/components/ui/Checkbox";
 import MultiStepForm from "./MultiStepForm";
+import { wireStepValidation, type RegisterValidate } from "./wireStepValidation";
 import { AlertCircle } from "lucide-react";
 
 // Schémas de validation pour chaque étape
@@ -68,6 +70,10 @@ export default function PermitGeneralForm({
   const { plansPrevention } = usePermitStore();
   const { user } = useAuthStore();
 
+  // État global pour partager les données entre les étapes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [formData, setFormData] = useState<any>({});
+
   // Filtrer les plans validés
   const plansDisponibles = plansPrevention
     .filter((p) => p.status === "valide")
@@ -77,7 +83,12 @@ export default function PermitGeneralForm({
     }));
 
   // Étape 1: Détails de l'intervention
-  const Step1Component = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Step1Component = (
+    formData: any,
+    updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
+  ) => {
     const {
       register,
       handleSubmit,
@@ -85,20 +96,21 @@ export default function PermitGeneralForm({
     } = useForm<Step1Data>({
       resolver: zodResolver(step1Schema),
       defaultValues: {
-        planPreventionId: "",
-        intituleTravaux: "",
-        localisation: "",
-        codeSite: "",
-        contractant: user?.entreprise || "",
-        nombreIntervenants: 1,
-        dateDebut: "",
-        dateFin: "",
+        planPreventionId: formData.planPreventionId || "",
+        intituleTravaux: formData.intituleTravaux || "",
+        localisation: formData.localisation || "",
+        codeSite: formData.codeSite || "",
+        contractant: formData.contractant || user?.entreprise || "",
+        nombreIntervenants: formData.nombreIntervenants || 1,
+        dateDebut: formData.dateDebut || "",
+        dateFin: formData.dateFin || "",
       },
     });
 
-    const onSubmit = (_data: Step1Data) => {
-      // Called by MultiStepForm
+    const onSubmit = (data: Step1Data) => {
+      updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -182,24 +194,31 @@ export default function PermitGeneralForm({
   };
 
   // Étape 2: Types de travaux à risques
-  const Step2Component = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Step2Component = (
+    formData: any,
+    updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
+  ) => {
     const { register, handleSubmit, watch } = useForm<Step2Data>({
       resolver: zodResolver(step2Schema),
       defaultValues: {
-        travauxChaud: false,
-        travauxHauteur: false,
-        travauxElectrique: false,
-        travauxEspaceConfine: false,
-        travauxExcavation: false,
-        travauxAutres: false,
-        autresDescription: "",
+        travauxChaud: formData.travauxChaud || false,
+        travauxHauteur: formData.travauxHauteur || false,
+        travauxElectrique: formData.travauxElectrique || false,
+        travauxEspaceConfine: formData.travauxEspaceConfine || false,
+        travauxExcavation: formData.travauxExcavation || false,
+        travauxAutres: formData.travauxAutres || false,
+        autresDescription: formData.autresDescription || "",
       },
     });
 
     const travauxAutres = watch("travauxAutres");
 
-    const onSubmit = (_data: Step2Data) => {};
-
+    const onSubmit = (data: Step2Data) => {
+      updateFormData({ ...formData, ...data });
+    };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -250,7 +269,12 @@ export default function PermitGeneralForm({
   };
 
   // Étape 3: Engagement du demandeur
-  const Step3Component = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Step3Component = (
+    formData: any,
+    updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
+  ) => {
     const {
       register,
       handleSubmit,
@@ -258,16 +282,19 @@ export default function PermitGeneralForm({
     } = useForm<Step3Data>({
       resolver: zodResolver(step3Schema),
       defaultValues: {
-        evaluationRisquesValidee: false,
-        personneCompetenteAssignee: false,
-        mesuresPreventionMisesEnPlace: false,
-        personnelInforme: false,
-        dangersControles: false,
+        evaluationRisquesValidee: formData.evaluationRisquesValidee || false,
+        personneCompetenteAssignee: formData.personneCompetenteAssignee || false,
+        mesuresPreventionMisesEnPlace:
+          formData.mesuresPreventionMisesEnPlace || false,
+        personnelInforme: formData.personnelInforme || false,
+        dangersControles: formData.dangersControles || false,
       },
     });
 
-    const onSubmit = (_data: Step3Data) => {};
-
+    const onSubmit = (data: Step3Data) => {
+      updateFormData({ ...formData, ...data });
+    };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -329,7 +356,22 @@ export default function PermitGeneralForm({
   };
 
   // Étape 4: Révision et soumission
-  const Step4Component = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Step4Component = (formData: any) => {
+    const risquesSelectionnes: { key: string; label: string }[] = [
+      { key: "travauxChaud", label: "Travaux à chaud" },
+      { key: "travauxHauteur", label: "Travaux en hauteur" },
+      { key: "travauxElectrique", label: "Travaux électriques" },
+      { key: "travauxEspaceConfine", label: "Travaux en espace confiné" },
+      { key: "travauxExcavation", label: "Travaux d'excavation" },
+    ].filter(({ key }) => formData[key]);
+    if (formData.travauxAutres) {
+      risquesSelectionnes.push({
+        key: "travauxAutres",
+        label: formData.autresDescription || "Autres",
+      });
+    }
+
     return (
       <div className="space-y-6">
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -357,23 +399,38 @@ export default function PermitGeneralForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="font-medium text-gray-700">Travaux:</p>
-              <p className="text-gray-600">Maintenance équipements télécoms</p>
+              <p className="text-gray-600">
+                {formData.intituleTravaux || "Non renseigné"}
+              </p>
             </div>
             <div>
               <p className="font-medium text-gray-700">Site:</p>
-              <p className="text-gray-600">ANT-001 - Antananarivo Centre</p>
+              <p className="text-gray-600">
+                {formData.codeSite || "Non renseigné"}
+                {formData.localisation ? ` - ${formData.localisation}` : ""}
+              </p>
             </div>
             <div>
               <p className="font-medium text-gray-700">Contractant:</p>
-              <p className="text-gray-600">TOA Madagascar</p>
+              <p className="text-gray-600">
+                {formData.contractant || "Non renseigné"}
+              </p>
             </div>
             <div>
               <p className="font-medium text-gray-700">Intervenants:</p>
-              <p className="text-gray-600">2 personne(s)</p>
+              <p className="text-gray-600">
+                {formData.nombreIntervenants
+                  ? `${formData.nombreIntervenants} personne(s)`
+                  : "Non renseigné"}
+              </p>
             </div>
             <div>
               <p className="font-medium text-gray-700">Période:</p>
-              <p className="text-gray-600">2025-01-20 au 2025-01-22</p>
+              <p className="text-gray-600">
+                {formData.dateDebut && formData.dateFin
+                  ? `${formData.dateDebut} au ${formData.dateFin}`
+                  : "Non renseigné"}
+              </p>
             </div>
           </div>
 
@@ -382,12 +439,18 @@ export default function PermitGeneralForm({
               Types de travaux à risques:
             </p>
             <div className="flex flex-wrap gap-2">
-              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
-                Travaux en hauteur
-              </span>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
-                Travaux électriques
-              </span>
+              {risquesSelectionnes.length > 0 ? (
+                risquesSelectionnes.map(({ key, label }) => (
+                  <span
+                    key={key}
+                    className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded"
+                  >
+                    {label}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm">Aucun</span>
+              )}
             </div>
           </div>
         </div>
@@ -400,26 +463,26 @@ export default function PermitGeneralForm({
       id: "details",
       title: "Détails de l'intervention",
       description: "Informations générales sur les travaux à effectuer",
-      component: <Step1Component />,
+      component: Step1Component,
       isValid: plansDisponibles.length > 0,
     },
     {
       id: "risques",
       title: "Types de travaux à risques",
       description: "Sélection des types de travaux concernés",
-      component: <Step2Component />,
+      component: Step2Component,
     },
     {
       id: "engagement",
       title: "Engagement du demandeur",
       description: "Confirmations obligatoires du demandeur",
-      component: <Step3Component />,
+      component: Step3Component,
     },
     {
       id: "revision",
       title: "Révision et soumission",
       description: "Vérification des informations et soumission",
-      component: <Step4Component />,
+      component: Step4Component,
     },
   ];
 
@@ -475,6 +538,8 @@ export default function PermitGeneralForm({
       title="Permis de Travail Général"
       description="Demande de permis de travail général"
       submitLabel="Soumettre la demande"
+      formData={formData}
+      updateFormData={setFormData}
     />
   );
 }

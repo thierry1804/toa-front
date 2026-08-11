@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { z } from "zod";
 import MultiStepForm from "./MultiStepForm";
 import Button from "@/components/ui/Button";
@@ -162,11 +162,44 @@ const preventionPlanSchema = step1Schema
   .merge(step11Schema);
 
 type PreventionPlan = z.infer<typeof preventionPlanSchema>;
+type RisqueIdentifie = PreventionPlan["risquesIdentifies"][number];
+type EquipementSecurite = PreventionPlan["equipementsSecurite"][number];
 
 interface PreventionMultiStepFormProps {
   onSubmit: (data: PreventionPlan) => void;
   onCancel?: () => void;
   initialData?: Partial<PreventionPlan>;
+}
+
+// Runs a step's zod schema against the (partial) shared form state. Extra
+// keys belonging to other steps are ignored by zod's default (non-strict)
+// object parsing, so this is safe to call with the whole formData object.
+function validateStep(
+  schema: z.ZodTypeAny,
+  data: unknown,
+  setErrors: (errors: string[] | null) => void,
+): boolean {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    setErrors(result.error.issues.map((issue) => issue.message));
+    return false;
+  }
+  setErrors(null);
+  return true;
+}
+
+function StepErrorBanner({ errors }: { errors: string[] | null }) {
+  if (!errors || errors.length === 0) return null;
+  return (
+    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 space-y-1">
+      <p className="font-medium">Champs à corriger avant de continuer :</p>
+      <ul className="list-disc list-inside">
+        {errors.map((message, i) => (
+          <li key={i}>{message}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 const categoriesRisques = [
@@ -253,19 +286,25 @@ const RisquesIdentifies = ({
         }
       });
 
-      const newRisque = {
+      const newRisque: RisqueIdentifie = {
         id: risqueId,
         categorie: categorieLabel,
         risque: risqueLabel,
-        gravite: "faible" as const,
-        probabilite: "rare" as const,
-        niveau: "faible" as const,
+        gravite: "faible",
+        probabilite: "rare",
+        niveau: "faible",
         mesures: "",
         mesuresExistentes: false,
       };
 
       updateFormData({ risquesIdentifies: [...currentRisques, newRisque] });
     }
+  };
+
+  const updateRisque = (index: number, patch: Partial<RisqueIdentifie>) => {
+    const current = formData.risquesIdentifies || [];
+    const updated = current.map((r, i) => (i === index ? { ...r, ...patch } : r));
+    updateFormData({ risquesIdentifies: updated });
   };
 
   return (
@@ -373,7 +412,6 @@ const RisquesIdentifies = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Select
-                    name={`risquesIdentifies.${index}.gravite`}
                     label="Gravité"
                     options={[
                       { value: "faible", label: "Faible" },
@@ -382,10 +420,15 @@ const RisquesIdentifies = ({
                       { value: "mortelle", label: "Mortelle" },
                     ]}
                     required
+                    value={risque.gravite}
+                    onChange={(e) =>
+                      updateRisque(index, {
+                        gravite: e.target.value as RisqueIdentifie["gravite"],
+                      })
+                    }
                   />
 
                   <Select
-                    name={`risquesIdentifies.${index}.probabilite`}
                     label="Probabilité"
                     options={[
                       { value: "rare", label: "Rare" },
@@ -394,10 +437,15 @@ const RisquesIdentifies = ({
                       { value: "tres_probable", label: "Très probable" },
                     ]}
                     required
+                    value={risque.probabilite}
+                    onChange={(e) =>
+                      updateRisque(index, {
+                        probabilite: e.target.value as RisqueIdentifie["probabilite"],
+                      })
+                    }
                   />
 
                   <Select
-                    name={`risquesIdentifies.${index}.niveau`}
                     label="Niveau de risque"
                     options={[
                       { value: "faible", label: "Faible" },
@@ -406,22 +454,32 @@ const RisquesIdentifies = ({
                       { value: "intolerable", label: "Intolérable" },
                     ]}
                     required
+                    value={risque.niveau}
+                    onChange={(e) =>
+                      updateRisque(index, {
+                        niveau: e.target.value as RisqueIdentifie["niveau"],
+                      })
+                    }
                   />
                 </div>
 
                 <Textarea
-                  name={`risquesIdentifies.${index}.mesures`}
                   label="Mesures de prévention prévues"
                   placeholder="Décrivez les mesures de prévention spécifiques pour ce risque"
                   rows={2}
                   required
+                  value={risque.mesures}
+                  onChange={(e) => updateRisque(index, { mesures: e.target.value })}
                 />
 
                 <div className="flex items-center">
                   <Checkbox
-                    name={`risquesIdentifies.${index}.mesuresExistentes`}
                     label="Des mesures de prévention sont déjà en place"
                     className="mr-2"
+                    checked={risque.mesuresExistentes}
+                    onChange={(e) =>
+                      updateRisque(index, { mesuresExistentes: e.target.checked })
+                    }
                   />
                 </div>
               </div>
@@ -455,6 +513,7 @@ export default function PreventionMultiStepForm({
     coordonneesGPS: [],
     ...initialData,
   }));
+  const [stepErrors, setStepErrors] = useState<string[] | null>(null);
 
   const updateFormData = (data: Partial<PreventionPlan>) => {
     setFormData((prev) => ({
@@ -462,6 +521,53 @@ export default function PreventionMultiStepForm({
       ...data,
     }));
   };
+
+  const updateField = (key: keyof PreventionPlan, value: unknown) => {
+    updateFormData({ [key]: value } as Partial<PreventionPlan>);
+  };
+
+  const updateHoraire = (key: "debut" | "fin" | "pause", value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      horairesTravail: {
+        ...(prev.horairesTravail || { debut: "", fin: "", pause: "" }),
+        [key]: value,
+      },
+    }));
+  };
+
+  const updateEquipement = (
+    index: number,
+    patch: Partial<EquipementSecurite>,
+  ) => {
+    const current = formData.equipementsSecurite || [];
+    const updated = current.map((eq, i) => (i === index ? { ...eq, ...patch } : eq));
+    updateFormData({ equipementsSecurite: updated });
+  };
+
+  // Small controlled-field binders so text/number/checkbox inputs actually
+  // persist into formData instead of being decorative uncontrolled elements.
+  const text = (key: keyof PreventionPlan) => ({
+    value: (formData[key] as string) ?? "",
+    onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      updateField(key, e.target.value),
+  });
+
+  const numberField = (key: keyof PreventionPlan) => ({
+    value: (formData[key] as number | undefined) ?? "",
+    onChange: (e: ChangeEvent<HTMLInputElement>) =>
+      updateField(key, e.target.value === "" ? undefined : Number(e.target.value)),
+  });
+
+  const selectField = (key: keyof PreventionPlan) => ({
+    value: (formData[key] as string) ?? "",
+    onChange: (e: ChangeEvent<HTMLSelectElement>) => updateField(key, e.target.value),
+  });
+
+  const checkboxField = (key: keyof PreventionPlan) => ({
+    checked: Boolean(formData[key]),
+    onChange: (e: ChangeEvent<HTMLInputElement>) => updateField(key, e.target.checked),
+  });
 
   // Initialiser les coordonnées GPS si elles ne sont pas définies
   useEffect(() => {
@@ -483,28 +589,21 @@ export default function PreventionMultiStepForm({
       icon: HardHat,
       component: (
         <div className="space-y-4">
+          <StepErrorBanner errors={stepErrors} />
+          <Input label="Nom de l'entreprise" required {...text("entreprisePrestataire")} />
           <Input
-            name="entreprisePrestataire"
-            label="Nom de l'entreprise"
-            required
-          />
-          <Input
-            name="siret"
             label="N° SIRET"
             required
             placeholder="14 chiffres"
+            {...text("siret")}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              name="representantPrestataire"
-              label="Représentant"
-              required
-            />
-            <Input name="fonctionPrestataire" label="Fonction" required />
+            <Input label="Représentant" required {...text("representantPrestataire")} />
+            <Input label="Fonction" required {...text("fonctionPrestataire")} />
           </div>
         </div>
       ),
-      validationSchema: step1Schema,
+      validate: () => validateStep(step1Schema, formData, setStepErrors),
     },
     // Step 2: Maître d'Ouvrage
     {
@@ -514,19 +613,20 @@ export default function PreventionMultiStepForm({
       icon: User,
       component: (
         <div className="space-y-4">
-          <Input name="maitreOuvrage" label="Maître d'ouvrage" required />
+          <StepErrorBanner errors={stepErrors} />
+          <Input label="Maître d'ouvrage" required {...text("maitreOuvrage")} />
           <Input
-            name="representantMaitreOuvrage"
             label="Représentant"
             required
+            {...text("representantMaitreOuvrage")}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input name="contactMaitreOuvrage" label="Contact" required />
-            <Input name="emailMaitreOuvrage" label="Email" type="email" />
+            <Input label="Contact" required {...text("contactMaitreOuvrage")} />
+            <Input label="Email" type="email" {...text("emailMaitreOuvrage")} />
           </div>
         </div>
       ),
-      validationSchema: step2Schema,
+      validate: () => validateStep(step2Schema, formData, setStepErrors),
     },
     // Step 3: Localisation
     {
@@ -536,14 +636,38 @@ export default function PreventionMultiStepForm({
       icon: MapPin,
       component: (
         <div className="space-y-4">
-          <Input name="nomSite" label="Nom du site" required />
-          <Input name="adresseSite" label="Adresse" required />
+          <StepErrorBanner errors={stepErrors} />
+          <Input label="Nom du site" required {...text("nomSite")} />
+          <Input label="Adresse" required {...text("adresseSite")} />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input name="codePostal" label="Code postal" required />
+            <Input label="Code postal" required {...text("codePostal")} />
             <div className="md:col-span-2">
-              <Input name="ville" label="Ville" required />
+              <Input label="Ville" required {...text("ville")} />
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Fokontany" required {...text("fokontany")} />
+            <Input label="Commune" required {...text("commune")} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="District" required {...text("district")} />
+            <Input label="Région" required {...text("region")} />
+          </div>
+          <Select
+            label="Situation géographique"
+            required
+            options={[
+              { value: "en_ville", label: "En ville" },
+              { value: "rurale", label: "Rurale" },
+              { value: "sur_montagne", label: "Sur montagne" },
+              { value: "autre", label: "Autre" },
+            ]}
+            placeholder="Sélectionnez une situation"
+            {...selectField("situationGeographique")}
+          />
+          {formData.situationGeographique === "autre" && (
+            <Input label="Précisez" {...text("situationGeographiqueAutre")} />
+          )}
           <div className="mt-4">
             <GPSCoordinatesInput
               value={formData.coordonneesGPS || []}
@@ -552,7 +676,7 @@ export default function PreventionMultiStepForm({
           </div>
         </div>
       ),
-      validationSchema: step3Schema,
+      validate: () => validateStep(step3Schema, formData, setStepErrors),
     },
     // Step 4: Description des Travaux
     {
@@ -562,36 +686,37 @@ export default function PreventionMultiStepForm({
       icon: FileText,
       component: (
         <div className="space-y-4">
+          <StepErrorBanner errors={stepErrors} />
           <Input
-            name="natureIntervention"
             label="Nature de l'intervention"
             required
+            {...text("natureIntervention")}
           />
           <Textarea
-            name="descriptionTravaux"
             label="Description détaillée des travaux"
             required
             rows={4}
+            {...text("descriptionTravaux")}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              name="nombreIntervenants"
               label="Nombre d'intervenants"
               type="number"
               min={1}
               required
+              {...numberField("nombreIntervenants")}
             />
             <Input
-              name="dureeEstimee"
               label="Durée estimée (heures)"
               type="number"
               min={1}
               required
+              {...numberField("dureeEstimee")}
             />
           </div>
         </div>
       ),
-      validationSchema: step4Schema,
+      validate: () => validateStep(step4Schema, formData, setStepErrors),
     },
     // Step 5: Planning
     {
@@ -601,41 +726,40 @@ export default function PreventionMultiStepForm({
       icon: Calendar,
       component: (
         <div className="space-y-4">
+          <StepErrorBanner errors={stepErrors} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              name="dateDebut"
-              label="Date de début"
-              type="date"
-              required
-            />
-            <Input name="dateFin" label="Date de fin" type="date" required />
+            <Input label="Date de début" type="date" required {...text("dateDebut")} />
+            <Input label="Date de fin" type="date" required {...text("dateFin")} />
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Horaires de travail</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
-                name="horairesTravail.debut"
                 label="Début"
                 type="time"
                 required
+                value={formData.horairesTravail?.debut ?? ""}
+                onChange={(e) => updateHoraire("debut", e.target.value)}
               />
               <Input
-                name="horairesTravail.fin"
                 label="Fin"
                 type="time"
                 required
+                value={formData.horairesTravail?.fin ?? ""}
+                onChange={(e) => updateHoraire("fin", e.target.value)}
               />
               <Input
-                name="horairesTravail.pause"
                 label="Pause"
                 type="time"
                 required
+                value={formData.horairesTravail?.pause ?? ""}
+                onChange={(e) => updateHoraire("pause", e.target.value)}
               />
             </div>
           </div>
         </div>
       ),
-      validationSchema: step5Schema,
+      validate: () => validateStep(step5Schema, formData, setStepErrors),
     },
     // Step 6: Risques Identifiés
     {
@@ -644,12 +768,15 @@ export default function PreventionMultiStepForm({
       description: "Identification des risques potentiels",
       icon: AlertTriangle,
       component: (
-        <RisquesIdentifies
-          formData={formData}
-          updateFormData={updateFormData}
-        />
+        <div className="space-y-4">
+          <StepErrorBanner errors={stepErrors} />
+          <RisquesIdentifies
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        </div>
       ),
-      validationSchema: step6Schema,
+      validate: () => validateStep(step6Schema, formData, setStepErrors),
     },
     // Step 7: Équipements de Sécurité
     {
@@ -659,8 +786,9 @@ export default function PreventionMultiStepForm({
       icon: Shield,
       component: (
         <div className="space-y-4">
+          <StepErrorBanner errors={stepErrors} />
           <div className="space-y-4">
-            {formData.equipementsSecurite?.map((_, index) => (
+            {formData.equipementsSecurite?.map((eq, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-4">
                 <div className="flex justify-between items-center">
                   <h5 className="font-medium">Équipement {index + 1}</h5>
@@ -684,22 +812,30 @@ export default function PreventionMultiStepForm({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    name={`equipementsSecurite.${index}.type`}
                     label="Type d'équipement"
                     required
+                    value={eq.type}
+                    onChange={(e) => updateEquipement(index, { type: e.target.value })}
                   />
                   <Input
-                    name={`equipementsSecurite.${index}.quantite`}
                     label="Quantité"
                     type="number"
                     min={1}
                     required
+                    value={eq.quantite}
+                    onChange={(e) =>
+                      updateEquipement(index, {
+                        quantite: e.target.value === "" ? 0 : Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
                 <Checkbox
-                  name={`equipementsSecurite.${index}.conforme`}
                   label="Équipement conforme aux normes"
-                  defaultChecked={true}
+                  checked={eq.conforme}
+                  onChange={(e) =>
+                    updateEquipement(index, { conforme: e.target.checked })
+                  }
                 />
               </div>
             ))}
@@ -724,7 +860,7 @@ export default function PreventionMultiStepForm({
           </div>
         </div>
       ),
-      validationSchema: step7Schema,
+      validate: () => validateStep(step7Schema, formData, setStepErrors),
     },
     // Step 8: Consignes de Sécurité
     {
@@ -734,41 +870,42 @@ export default function PreventionMultiStepForm({
       icon: AlertCircle,
       component: (
         <div className="space-y-6">
+          <StepErrorBanner errors={stepErrors} />
           <div className="space-y-4">
             <h4 className="font-medium">Consignes générales de sécurité</h4>
             <Textarea
-              name="consignesSecurite"
               label="Consignes à respecter"
               required
               rows={4}
               placeholder="Ex. : Port des EPI obligatoire, zone sécurisée, etc."
+              {...text("consignesSecurite")}
             />
           </div>
 
           <div className="space-y-4">
             <h4 className="font-medium">Consignes en cas d'urgence</h4>
             <Textarea
-              name="consignesUrgence"
               label="Procédures d'urgence"
               required
               rows={4}
               placeholder="Ex. : Numéros d'urgence, points de rassemblement, etc."
+              {...text("consignesUrgence")}
             />
           </div>
 
           <div className="space-y-4">
             <h4 className="font-medium">Contacts d'urgence</h4>
             <Textarea
-              name="contactsUrgence"
               label="Personnes à contacter en cas d'urgence"
               required
               rows={3}
               placeholder="Ex. : Responsable sécurité: 01 23 45 67 89, SAMU: 15, Pompiers: 18, etc."
+              {...text("contactsUrgence")}
             />
           </div>
         </div>
       ),
-      validationSchema: step8Schema,
+      validate: () => validateStep(step8Schema, formData, setStepErrors),
     },
     // Step 9: Formation et Compétences
     {
@@ -778,23 +915,20 @@ export default function PreventionMultiStepForm({
       icon: Users,
       component: (
         <div className="space-y-6">
+          <StepErrorBanner errors={stepErrors} />
           <div className="space-y-4">
             <Checkbox
-              name="formationSecurite"
               label="Les intervenants ont-ils reçu une formation à la sécurité spécifique à cette intervention ?"
+              {...checkboxField("formationSecurite")}
             />
 
             {formData.formationSecurite && (
               <div className="space-y-4 pl-6 border-l-2 border-gray-200">
+                <Input label="Date de la formation" type="date" {...text("dateFormation")} />
                 <Input
-                  name="dateFormation"
-                  label="Date de la formation"
-                  type="date"
-                />
-                <Input
-                  name="nomFormateur"
                   label="Nom du formateur"
                   placeholder="Nom du formateur ou de l'organisme"
+                  {...text("nomFormateur")}
                 />
               </div>
             )}
@@ -803,15 +937,15 @@ export default function PreventionMultiStepForm({
           <div className="space-y-4">
             <h4 className="font-medium">Commentaires additionnels</h4>
             <Textarea
-              name="commentaires"
               label="Remarques ou informations complémentaires"
               rows={3}
               placeholder="Ex. : Compétences particulières requises, habilitations spécifiques, etc."
+              {...text("commentaires")}
             />
           </div>
         </div>
       ),
-      validationSchema: step9Schema,
+      validate: () => validateStep(step9Schema, formData, setStepErrors),
     },
     // Step 10: Documents et Validation
     {
@@ -821,6 +955,7 @@ export default function PreventionMultiStepForm({
       icon: FileText,
       component: (
         <div className="space-y-6">
+          <StepErrorBanner errors={stepErrors} />
           <div className="space-y-4">
             <h4 className="font-medium">Documents à fournir</h4>
             <div className="space-y-2">
@@ -854,7 +989,6 @@ export default function PreventionMultiStepForm({
             <h4 className="font-medium">Validation</h4>
             <div className="p-4 border rounded-lg bg-gray-50">
               <Checkbox
-                name="accordResponsable"
                 label={
                   <span>
                     Je certifie sur l'honneur l'exactitude des informations
@@ -863,12 +997,13 @@ export default function PreventionMultiStepForm({
                   </span>
                 }
                 required
+                {...checkboxField("accordResponsable")}
               />
             </div>
           </div>
         </div>
       ),
-      validationSchema: step10Schema,
+      validate: () => validateStep(step10Schema, formData, setStepErrors),
     },
     // Step 11: Confirmation
     {
@@ -878,6 +1013,7 @@ export default function PreventionMultiStepForm({
       icon: AlertOctagon,
       component: (
         <div className="space-y-6">
+          <StepErrorBanner errors={stepErrors} />
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-medium text-blue-800">Vérification finale</h3>
             <p className="text-sm text-blue-700 mt-1">
@@ -945,7 +1081,6 @@ export default function PreventionMultiStepForm({
 
           <div className="p-4 border rounded-lg bg-amber-50">
             <Checkbox
-              name="confirmationFinale"
               label={
                 <span className="font-medium">
                   Je confirme que toutes les informations sont exactes et
@@ -954,11 +1089,12 @@ export default function PreventionMultiStepForm({
                 </span>
               }
               required
+              {...checkboxField("confirmationFinale")}
             />
           </div>
         </div>
       ),
-      validationSchema: step11Schema,
+      validate: () => validateStep(step11Schema, formData, setStepErrors),
     },
   ];
 

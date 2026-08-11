@@ -8,6 +8,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import MultiStepForm from "./MultiStepForm";
+import { wireStepValidation, type RegisterValidate } from "./wireStepValidation";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -118,6 +119,7 @@ export default function PermitElectriqueForm({
   const Step1Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { plansPrevention } = usePreventionStore();
     const plansActifs = plansPrevention.filter((p) => p.status === "valide");
@@ -149,6 +151,7 @@ export default function PermitElectriqueForm({
     const onSubmit = (data: Step1Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -266,6 +269,7 @@ export default function PermitElectriqueForm({
   const Step2Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const {
       register,
@@ -289,6 +293,7 @@ export default function PermitElectriqueForm({
     const onSubmit = (data: Step2Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -345,6 +350,7 @@ export default function PermitElectriqueForm({
   const Step3Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit } = useForm<Step3Data>({
       resolver: zodResolver(step3Schema),
@@ -369,6 +375,7 @@ export default function PermitElectriqueForm({
     const onSubmit = (data: Step3Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -465,6 +472,7 @@ export default function PermitElectriqueForm({
   const Step4Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit } = useForm<Step4Data>({
       resolver: zodResolver(step4Schema),
@@ -478,6 +486,7 @@ export default function PermitElectriqueForm({
     const onSubmit = (data: Step4Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -526,6 +535,7 @@ export default function PermitElectriqueForm({
   const Step5Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
     const { register, handleSubmit } = useForm<Step5Data>({
       resolver: zodResolver(step5Schema),
@@ -545,6 +555,7 @@ export default function PermitElectriqueForm({
     const onSubmit = (data: Step5Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     if (!consignationEnergie) {
       return (
