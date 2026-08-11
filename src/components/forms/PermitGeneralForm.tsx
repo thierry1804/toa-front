@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermitStore } from "@/store/permitStore";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from '@/store/auth.store';
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Checkbox from "@/components/ui/Checkbox";

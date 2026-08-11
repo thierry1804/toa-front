@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth.store';
 import { usePermitStore } from '@/store/permitStore';
 import { useToastStore } from '@/store/toastStore';
 import Modal, { ModalFooter } from '@/components/ui/Modal';

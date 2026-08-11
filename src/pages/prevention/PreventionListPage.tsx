@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePermitStore } from '@/store/permitStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth.store';
 import { usePermission } from '@/features/auth/usePermission';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
