@@ -10,6 +10,7 @@ import {
 } from '@/features/referentiel/hooks/useEntreprises'
 import type { Entreprise } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
@@ -196,7 +197,7 @@ export default function EntreprisesPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 text-center text-gray-500">Chargement…</div>
+            <ListPageSkeleton rows={5} bare />
           ) : filtered.length === 0 ? (
             <div className="p-6 text-center text-gray-500">Aucune entreprise trouvée</div>
           ) : (

@@ -16,6 +16,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { StatStrip } from "@/components/ui/StatStrip";
+import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 import { ShieldCheck, Plus, Edit, Trash2, Lock } from "lucide-react";
 import { formatDate } from "@/utils/date";
 
@@ -72,11 +73,7 @@ export default function RolesListPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">{t("common.loading")}</p>
-      </div>
-    );
+    return <ListPageSkeleton />;
   }
 
   return (

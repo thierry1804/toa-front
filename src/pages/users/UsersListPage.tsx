@@ -18,6 +18,7 @@ import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { StatStrip } from "@/components/ui/StatStrip";
+import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 import {
   Users,
   Plus,
@@ -111,11 +112,7 @@ export default function UsersListPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500"> {t("common.loading")} </p>
-      </div>
-    );
+    return <ListPageSkeleton />;
   }
 
   return (
