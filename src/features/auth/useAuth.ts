@@ -76,6 +76,9 @@ export function useLogout() {
     mutationFn: async () => {
       localStorage.removeItem('access_token')
       await syncQueue.clear()
+      if ('caches' in window) {
+        await caches.delete('toa-api-cache')
+      }
     },
     onSettled: () => {
       queryClient.clear()
