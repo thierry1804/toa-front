@@ -11,7 +11,7 @@ export default function NiveauRisqueBadge({ niveauRisque, showLabel = true }: Ni
     className = 'bg-red-100 text-red-800'
     label = 'Élevé'
   } else if (niveauRisque >= 8) {
-    className = 'bg-yellow-100 text-yellow-800'
+    className = 'bg-amber-200 text-amber-900'
     label = 'Modéré'
   } else {
     className = 'bg-green-100 text-green-800'

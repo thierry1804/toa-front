@@ -15,9 +15,9 @@ const STATUT_CONFIG: Record<StatutPermitTravail, StatutConfig> = {
   REJETE:     { label: 'Rejeté',      color: 'bg-red-100 text-red-700',     icon: XCircle     },
   VALIDE_HSE: { label: 'Validé HSE',  color: 'bg-green-100 text-green-700',  icon: ShieldCheck },
   REFUSE_HSE: { label: 'Refusé HSE',  color: 'bg-red-100 text-red-700',      icon: ShieldX     },
-  CLOTURE:    { label: 'Clôturé',     color: 'bg-gray-800 text-gray-100',     icon: Lock           },
-  PV_VALIDE:  { label: 'PV Validé',   color: 'bg-green-700 text-white',        icon: ClipboardCheck },
-  PV_REFUSE:  { label: 'PV Refusé',   color: 'bg-red-700 text-white',          icon: XCircle        },
+  CLOTURE:    { label: 'Clôturé',     color: 'bg-gray-100 text-gray-700',     icon: Lock           },
+  PV_VALIDE:  { label: 'PV Validé',   color: 'bg-green-100 text-green-700',   icon: ClipboardCheck },
+  PV_REFUSE:  { label: 'PV Refusé',   color: 'bg-red-100 text-red-700',       icon: XCircle        },
 }
 
 interface StatutPermitBadgeProps {
