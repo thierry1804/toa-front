@@ -106,6 +106,7 @@ export default function RisqueMatrice({ rows, onChange, disabled = false }: Risq
                         handleChange(row.localId, 'gravite', Number(e.target.value))
                       }
                       disabled={disabled}
+                      title="1 = Négligeable, 2 = Mineur, 3 = Modéré, 4 = Majeur, 5 = Catastrophique"
                       className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
                     >
                       {GRAVITE_OPTIONS.map((v) => (
@@ -122,6 +123,7 @@ export default function RisqueMatrice({ rows, onChange, disabled = false }: Risq
                         handleChange(row.localId, 'probabilite', Number(e.target.value))
                       }
                       disabled={disabled}
+                      title="1 = Rare, 2 = Peu probable, 3 = Possible, 4 = Probable, 5 = Quasi certain"
                       className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
                     >
                       {GRAVITE_OPTIONS.map((v) => (

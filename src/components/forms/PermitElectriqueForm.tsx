@@ -596,7 +596,9 @@ export default function PermitElectriqueForm({
                 <p className="text-gray-600">
                   {formData.travailSousTension
                     ? "Sous tension"
-                    : "Hors tension"}
+                    : formData.travailHorsTension
+                      ? "Hors tension"
+                      : "Non renseigné"}
                 </p>
               </div>
               <div>
