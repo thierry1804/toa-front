@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
 import { StatStrip } from '@/components/ui/StatStrip';
+import ListPageSkeleton from '@/components/ui/ListPageSkeleton';
 import {
   Clipboard,
   Plus,
@@ -72,6 +73,8 @@ export default function InterventionsListPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [siteFilter, setSiteFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     setIsLoading(true);
@@ -99,6 +102,13 @@ export default function InterventionsListPage() {
 
     return matchSearch && matchStatus && matchSite;
   });
+
+  const totalItems = filteredInterventions.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const pagedInterventions = filteredInterventions.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage,
+  );
 
   // Extraire les sites uniques pour le filtre
   const uniqueSites = Array.from(new Set(interventions.map((i: any) => i.codeSite as string)));
@@ -179,11 +189,7 @@ export default function InterventionsListPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Chargement...</p>
-      </div>
-    );
+    return <ListPageSkeleton />;
   }
 
   return (
@@ -224,20 +230,29 @@ export default function InterventionsListPage() {
               <Input
                 placeholder="Rechercher par référence, site, prestataire..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
                 className="w-full"
               />
             </div>
             <Select
               options={statusOptions}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               placeholder="Filtrer par statut"
             />
             <Select
               options={siteOptions}
               value={siteFilter}
-              onChange={(e) => setSiteFilter(e.target.value)}
+              onChange={(e) => {
+                setSiteFilter(e.target.value);
+                setPage(1);
+              }}
               placeholder="Filtrer par site"
             />
           </div>
@@ -250,7 +265,7 @@ export default function InterventionsListPage() {
           <CardTitle>Interventions actives ({filteredInterventions.length})</CardTitle>
           <CardDescription>Toutes vos interventions</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className={filteredInterventions.length === 0 ? undefined : 'p-0'}>
           {filteredInterventions.length === 0 ? (
             <div className="text-center py-12">
               <Clipboard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -265,121 +280,178 @@ export default function InterventionsListPage() {
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredInterventions.map((intervention) => {
-                const avancement = calculateAvancement(intervention);
-                const hasIncidents =
-                  intervention.incidents && intervention.incidents.length > 0;
-                const lastValidation =
-                  intervention.validationsJournalieres[
-                    intervention.validationsJournalieres.length - 1
-                  ];
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Référence</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Site</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Prestataire</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Dates</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Statut</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {pagedInterventions.map((intervention) => {
+                      const avancement = calculateAvancement(intervention);
+                      const hasIncidents =
+                        intervention.incidents && intervention.incidents.length > 0;
 
-                return (
-                  <Card key={intervention.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {intervention.reference}
-                            </h3>
+                      return (
+                        <tr key={intervention.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-4">
+                            <p className="text-sm font-medium text-gray-900">{intervention.reference}</p>
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              {intervention.zoneEnclavee && (
+                                <Badge variant="warning">
+                                  <WifiOff className="h-3 w-3 mr-1" />
+                                  Zone enclavée
+                                </Badge>
+                              )}
+                              {hasIncidents && (
+                                <Badge variant="error">
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Incidents
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-1 text-sm text-gray-900">
+                              <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                              {intervention.codeSite}
+                            </div>
+                            <p className="text-xs text-gray-500">{intervention.nomSite}</p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-1 text-sm text-gray-900">
+                              <Users className="h-3.5 w-3.5 text-gray-400" />
+                              {intervention.prestataire}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {intervention.nombreIntervenants} intervenant
+                              {intervention.nombreIntervenants > 1 ? 's' : ''}
+                            </p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <p className="text-sm text-gray-900">{formatDate(intervention.dateDebut)}</p>
+                            <p className="text-xs text-gray-500">→ {formatDate(intervention.dateFin)}</p>
+                          </td>
+                          <td className="px-4 py-4">
                             {getStatusBadge(intervention.status)}
-                            {intervention.zoneEnclavee && (
-                              <Badge variant="warning">
-                                <WifiOff className="h-3 w-3 mr-1" />
-                                Zone enclavée
-                              </Badge>
+                            {intervention.status === 'en_cours' && (
+                              <p className="mt-1 text-xs text-gray-500">{avancement}% complété</p>
                             )}
-                            {hasIncidents && (
-                              <Badge variant="error">
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                Incidents
-                              </Badge>
-                            )}
-                          </div>
+                          </td>
+                          <td className="px-4 py-4 text-right">
+                            <Link to={`/interventions/${intervention.id}`}>
+                              <button
+                                className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                title="Voir détails"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-                          <p className="text-gray-600 mb-3">{intervention.description}</p>
+              {/* Mobile cards */}
+              <div className="lg:hidden space-y-3 p-4">
+                {pagedInterventions.map((intervention) => {
+                  const avancement = calculateAvancement(intervention);
+                  const hasIncidents =
+                    intervention.incidents && intervention.incidents.length > 0;
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <MapPin className="h-4 w-4" />
-                              <div>
-                                <p className="font-medium">{intervention.codeSite}</p>
-                                <p className="text-xs text-gray-500">{intervention.nomSite}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Users className="h-4 w-4" />
-                              <div>
-                                <p className="font-medium">{intervention.prestataire}</p>
-                                <p className="text-xs text-gray-500">
-                                  {intervention.nombreIntervenants} intervenant
-                                  {intervention.nombreIntervenants > 1 ? 's' : ''}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Calendar className="h-4 w-4" />
-                              <div>
-                                <p className="font-medium">{formatDate(intervention.dateDebut)}</p>
-                                <p className="text-xs text-gray-500">
-                                  au {formatDate(intervention.dateFin)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <CheckCircle2 className="h-4 w-4" />
-                              <div>
-                                <p className="font-medium">{avancement}% complété</p>
-                                <p className="text-xs text-gray-500">
-                                  {intervention.validationsJournalieres.length} validation
-                                  {intervention.validationsJournalieres.length > 1 ? 's' : ''}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Barre de progression */}
-                          {intervention.status === 'en_cours' && (
-                            <div className="mt-3">
-                              <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                <span>Avancement</span>
-                                <span>{avancement}%</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="bg-primary-600 h-2 rounded-full transition-all"
-                                  style={{ width: `${avancement}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Dernière validation */}
-                          {lastValidation && (
-                            <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600">
-                              <span className="font-medium">Dernière validation:</span>{' '}
-                              {formatDate(lastValidation.date)} - {lastValidation.observationsJour}
-                            </div>
-                          )}
+                  return (
+                    <div key={intervention.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {intervention.reference}
+                          </p>
                         </div>
-
-                        <div className="ml-4">
-                          <Link to={`/interventions/${intervention.id}`}>
-                            <button
-                              className="p-2 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition-colors"
-                              title="Voir détails"
-                            >
-                              <Eye className="h-5 w-5" />
-                            </button>
-                          </Link>
-                        </div>
+                        <Link to={`/interventions/${intervention.id}`} className="shrink-0 ml-2">
+                          <button
+                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                            title="Voir détails"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </Link>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      <div className="mb-2 flex flex-wrap items-center gap-1">
+                        {getStatusBadge(intervention.status)}
+                        {intervention.zoneEnclavee && (
+                          <Badge variant="warning">
+                            <WifiOff className="h-3 w-3 mr-1" />
+                            Zone enclavée
+                          </Badge>
+                        )}
+                        {hasIncidents && (
+                          <Badge variant="error">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Incidents
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1.5 text-sm">
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          <span className="truncate">{intervention.nomSite}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <Users className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          <span className="truncate">{intervention.prestataire}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          <span className="text-gray-900">{formatDate(intervention.dateDebut)}</span>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-gray-900">{formatDate(intervention.dateFin)}</span>
+                        </div>
+                        {intervention.status === 'en_cours' && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                            {avancement}% complété
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+              <p className="text-sm text-gray-600">
+                Page {page} / {totalPages} ({totalItems} intervention{totalItems !== 1 ? 's' : ''})
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Précédent
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Suivant
+                </button>
+              </div>
             </div>
           )}
         </CardContent>
