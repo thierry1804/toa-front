@@ -1,9 +1,6 @@
-import { useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Modal, ModalFooter } from '@/components/ui/Modal'
-import Button from '@/components/ui/Button'
-import Textarea from '@/components/ui/Textarea'
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 import type { PlanPrevention } from '@/types/planPrevention'
 
 interface ValiderModalProps {
@@ -24,49 +21,25 @@ export default function ValiderModal({
   onValider,
 }: ValiderModalProps) {
   const { t } = useTranslation()
-  const [commentaire, setCommentaire] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [missingDocuments, setMissingDocuments] = useState<string[]>([])
-  const [signature, setSignature] = useState<string | null>(null)
-
-  const handleConfirm = async () => {
-    setError(null)
-    setMissingDocuments([])
-    try {
-      const updatedPlan = await onValider(planId, commentaire.trim() || undefined)
-      const latestDecision = updatedPlan.decisionsHse?.at(-1)
-      if (latestDecision?.signatureElectronique) {
-        setSignature(latestDecision.signatureElectronique)
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message === 'Plan non examiné par Chef de Projet') {
-          setError(t('planPrevention.validerModal.errorNotExamined'))
-          return
-        }
-        if (err.message === 'documents_manquants') {
-          const missing = (err as Error & { missingDocuments?: string[] }).missingDocuments ?? []
-          setMissingDocuments(missing)
-          return
-        }
-      }
-      setError(t('planPrevention.validerModal.errorGeneric'))
-    }
-  }
-
-  const handleClose = () => {
-    if (isValidating) return
-    setCommentaire('')
-    setError(null)
-    setMissingDocuments([])
-    setSignature(null)
-    onClose()
-  }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={t('planPrevention.validerModal.title', { reference: planReference })}>
-      <div className="space-y-4">
-        {signature ? (
+    <ConfirmActionModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('planPrevention.validerModal.title', { reference: planReference })}
+      description={t('planPrevention.validerModal.description')}
+      commentLabel={t('planPrevention.validerModal.commentaireLabel')}
+      commentPlaceholder={t('planPrevention.validerModal.commentairePlaceholder')}
+      confirmLabel={t('planPrevention.validerModal.confirm')}
+      confirmIcon={<ShieldCheck className="mr-2 h-4 w-4" />}
+      isSubmitting={isValidating}
+      onConfirm={async (commentaire) => {
+        const updatedPlan = await onValider(planId, commentaire || undefined)
+        const latestDecision = updatedPlan.decisionsHse?.at(-1)
+        if (!latestDecision?.signatureElectronique) return undefined
+
+        const signature = latestDecision.signatureElectronique
+        return (
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-green-700">
               <ShieldCheck className="h-5 w-5 shrink-0" />
@@ -81,54 +54,29 @@ export default function ValiderModal({
               </p>
             </div>
           </div>
-        ) : (
-          <>
-            <p className="text-sm text-gray-600">
-              {t('planPrevention.validerModal.description')}
-            </p>
-
-            <Textarea
-              label={t('planPrevention.validerModal.commentaireLabel')}
-              value={commentaire}
-              onChange={(e) => setCommentaire(e.target.value)}
-              rows={3}
-              placeholder={t('planPrevention.validerModal.commentairePlaceholder')}
-              disabled={isValidating}
-            />
-
-            {missingDocuments.length > 0 && (
-              <div className="rounded-lg bg-red-50 px-3 py-2">
-                <p className="text-sm font-medium text-red-700 mb-1">
-                  {t('planPrevention.validerModal.missingDocuments')}
-                </p>
+        )
+      }}
+      getErrorMessage={(err) => {
+        if (err instanceof Error) {
+          if (err.message === 'Plan non examiné par Chef de Projet') {
+            return t('planPrevention.validerModal.errorNotExamined')
+          }
+          if (err.message === 'documents_manquants') {
+            const missing = (err as Error & { missingDocuments?: string[] }).missingDocuments ?? []
+            return (
+              <>
+                <p className="font-medium mb-1">{t('planPrevention.validerModal.missingDocuments')}</p>
                 <ul className="list-disc pl-4 space-y-0.5">
-                  {missingDocuments.map((doc) => (
-                    <li key={doc} className="text-sm text-red-600">
-                      {doc}
-                    </li>
+                  {missing.map((doc) => (
+                    <li key={doc}>{doc}</li>
                   ))}
                 </ul>
-              </div>
-            )}
-
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
-          </>
-        )}
-      </div>
-
-      <ModalFooter>
-        <Button variant="secondary" onClick={handleClose} disabled={isValidating}>
-          {signature ? t('planPrevention.validerModal.close') : t('planPrevention.validerModal.cancel')}
-        </Button>
-        {!signature && (
-          <Button onClick={handleConfirm} isLoading={isValidating}>
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            {t('planPrevention.validerModal.confirm')}
-          </Button>
-        )}
-      </ModalFooter>
-    </Modal>
+              </>
+            )
+          }
+        }
+        return t('planPrevention.validerModal.errorGeneric')
+      }}
+    />
   )
 }

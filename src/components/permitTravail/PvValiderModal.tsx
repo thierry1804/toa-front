@@ -1,8 +1,5 @@
-import { useState } from 'react'
 import { ClipboardCheck } from 'lucide-react'
-import { Modal, ModalFooter } from '@/components/ui/Modal'
-import Button from '@/components/ui/Button'
-import Textarea from '@/components/ui/Textarea'
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 
 interface PvValiderModalProps {
   isOpen: boolean
@@ -21,43 +18,28 @@ export default function PvValiderModal({
   onClose,
   onValider,
 }: PvValiderModalProps) {
-  const [commentaire, setCommentaire] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [signature, setSignature] = useState<string | null>(null)
-
-  const handleConfirm = async () => {
-    setError(null)
-    try {
-      const result = await onValider(permitId, commentaire.trim() || undefined)
-      setSignature(result.signatureElectronique ?? null)
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
-      if (detail.includes('not_cloture') || detail.includes('Permis non clôturé')) {
-        setError('Le permis n\'est pas clôturé.')
-      } else if (detail.includes('pv_not_genere') || detail.includes('PV non généré')) {
-        setError('Le PV de réception n\'est pas encore généré. Attendez la fin de la génération.')
-      } else if (detail.includes('suivi_journalier_manquant')) {
-        setError('Aucun suivi journalier trouvé pour ce permis.')
-      } else if (detail.includes('evaluation_risque_manquante')) {
-        setError('Aucune évaluation des risques trouvée pour ce permis.')
-      } else {
-        setError('Erreur lors de la validation du PV de réception.')
-      }
-    }
-  }
-
-  const handleClose = () => {
-    if (isValiderPv) return
-    setCommentaire('')
-    setError(null)
-    setSignature(null)
-    onClose()
-  }
-
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Valider le PV — ${permitReference}`}>
-      <div className="space-y-4">
-        {signature !== null ? (
+    <ConfirmActionModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Valider le PV — ${permitReference}`}
+      description={
+        <>
+          Confirmer la validation du PV de réception pour le permis{' '}
+          <span className="font-semibold text-blue-700">{permitReference}</span>.
+        </>
+      }
+      commentPlaceholder="Observations de réception..."
+      confirmLabel="Valider le PV"
+      confirmVariant="success"
+      confirmIcon={<ClipboardCheck className="mr-2 h-4 w-4" />}
+      isSubmitting={isValiderPv}
+      onConfirm={async (commentaire) => {
+        const result = await onValider(permitId, commentaire || undefined)
+        const signature = result.signatureElectronique ?? null
+        if (signature === null) return undefined
+
+        return (
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-green-700">
               <ClipboardCheck className="h-5 w-5 shrink-0" />
@@ -74,42 +56,25 @@ export default function PvValiderModal({
               </div>
             )}
           </div>
-        ) : (
-          <>
-            <p className="text-sm text-gray-600">
-              Confirmer la validation du PV de réception pour le permis{' '}
-              <span className="font-semibold text-blue-700">{permitReference}</span>.
-            </p>
-            <Textarea
-              label="Commentaire"
-              value={commentaire}
-              onChange={(e) => setCommentaire(e.target.value)}
-              rows={3}
-              placeholder="Observations de réception..."
-              disabled={isValiderPv}
-            />
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
-          </>
-        )}
-      </div>
-
-      <ModalFooter>
-        <Button variant="secondary" onClick={handleClose} disabled={isValiderPv}>
-          {signature !== null ? 'Fermer' : 'Annuler'}
-        </Button>
-        {signature === null && (
-          <Button
-            variant="success"
-            onClick={() => void handleConfirm()}
-            isLoading={isValiderPv}
-          >
-            <ClipboardCheck className="mr-2 h-4 w-4" />
-            Valider le PV
-          </Button>
-        )}
-      </ModalFooter>
-    </Modal>
+        )
+      }}
+      getErrorMessage={(err) => {
+        const detail =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+        if (detail.includes('not_cloture') || detail.includes('Permis non clôturé')) {
+          return "Le permis n'est pas clôturé."
+        }
+        if (detail.includes('pv_not_genere') || detail.includes('PV non généré')) {
+          return "Le PV de réception n'est pas encore généré. Attendez la fin de la génération."
+        }
+        if (detail.includes('suivi_journalier_manquant')) {
+          return 'Aucun suivi journalier trouvé pour ce permis.'
+        }
+        if (detail.includes('evaluation_risque_manquante')) {
+          return 'Aucune évaluation des risques trouvée pour ce permis.'
+        }
+        return 'Erreur lors de la validation du PV de réception.'
+      }}
+    />
   )
 }
