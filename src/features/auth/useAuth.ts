@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
 import { useAuthStore, ROLE_PERMISSIONS, derivePermissionsFromRoles } from '@/store/auth.store'
 import { decodeJwtPayload } from '@/utils/jwt'
+import { syncQueue } from '@/offline/syncQueue'
 
 function resolvePermissions(payload: Record<string, unknown> | null): string[] {
   if (!payload) return []
@@ -74,6 +75,7 @@ export function useLogout() {
   return useMutation({
     mutationFn: async () => {
       localStorage.removeItem('access_token')
+      await syncQueue.clear()
     },
     onSettled: () => {
       queryClient.clear()
