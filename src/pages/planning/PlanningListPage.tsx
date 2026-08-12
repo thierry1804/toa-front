@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   useActivityPlannings,
@@ -7,10 +7,10 @@ import {
 import { useUiStore } from "@/store/ui.store";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useTranslation } from "react-i18next";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
@@ -19,21 +19,24 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import { StatStrip } from "@/components/ui/StatStrip";
+import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 import {
   Calendar,
   Plus,
   Edit,
   Trash2,
-  CalendarCheck,
-  Clock,
-  CheckCircle,
   FileText,
   MapPin,
-  PauseCircle,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
-import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
+import { STATUS_CONFIG, STATUS_VALUES } from "@/data/constant/planning";
 import GanttChart from "@/features/planning/components/GanttChart";
+
+const GANTT_ROW_H = 44;
+const GANTT_TIMELINE_HEADER_H = 32;
+const GANTT_MAX_ROWS = 10;
+const GANTT_CHROME_H = 120;
 
 export default function PlanningListPage() {
   const { t } = useTranslation();
@@ -45,25 +48,27 @@ export default function PlanningListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
+
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "all", label: t("planning.status.all") },
+      ...STATUS_VALUES.map((v) => ({ value: v, label: t(`planning.status.${v}`) })),
+    ],
+    [t],
+  );
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
   } | null>(null);
 
   const itemsPerPage = 10;
-  const { data: hydraData, isLoading } = useActivityPlannings(
-    page,
-    itemsPerPage,
-  );
+  // Fetch the full collection once and filter/paginate client-side — the API
+  // has no server-side search/status filter, so paginating server-side first
+  // would filter only whatever 10 rows happened to land on the current page.
+  const { data: hydraData, isLoading } = useActivityPlannings(1, 1000);
   const allPlannings = hydraData?.member ?? [];
-  const totalItems = hydraData?.totalItems ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const isBackendPaginated = allPlannings.length <= itemsPerPage;
-  const plannings = isBackendPaginated
-    ? allPlannings
-    : allPlannings.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  const filtered = (plannings ?? []).filter((p) => {
+  const filtered = allPlannings.filter((p) => {
     const q = searchQuery.toLowerCase();
     const matchSearch =
       q === "" ||
@@ -75,20 +80,29 @@ export default function PlanningListPage() {
     return matchSearch && matchStatus;
   });
 
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const plannings = filtered.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage,
+  );
+
   const stats = {
-    total: totalItems,
-    planifie: plannings?.filter((p) => p.status === "planifie").length ?? 0,
-    en_cours: plannings?.filter((p) => p.status === "en_cours").length ?? 0,
-    valide: plannings?.filter((p) => p.status === "valide").length ?? 0,
-    brouillon: plannings?.filter((p) => p.status === "brouillon").length ?? 0,
+    total: allPlannings.length,
+    planifie: allPlannings.filter((p) => p.status === "planifie").length,
+    en_cours: allPlannings.filter((p) => p.status === "en_cours").length,
+    valide: allPlannings.filter((p) => p.status === "valide").length,
+    brouillon: allPlannings.filter((p) => p.status === "brouillon").length,
   };
 
-  // Gantt height: fit all valid rows (max 10) without internal vertical scroll
-  // const validCount = plannings.filter(
-  //   (p) => p.expectedStartDate && p.expectedEndDate,
-  // ).length;
-  // const ganttH = Math.min(Math.max(validCount, 1), 15) * 44 + 32 + 44;
-  const ganttH = 516;
+  const ganttActivities = filtered.filter(
+    (p) => p.expectedStartDate && p.expectedEndDate,
+  );
+  const ganttVisibleRows = Math.min(ganttActivities.length, GANTT_MAX_ROWS);
+  const ganttHeight =
+    GANTT_CHROME_H +
+    GANTT_TIMELINE_HEADER_H +
+    ganttVisibleRows * GANTT_ROW_H;
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -104,151 +118,69 @@ export default function PlanningListPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">{t("common.loading")}</p>
-      </div>
-    );
+    return <ListPageSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {t("planning.title")}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {t("planning.description")}
-          </p>
+    <div className="space-y-4">
+      <PageHeader
+        title={t("planning.title")}
+        description={t("planning.description")}
+        actions={
+          perms?.canCreate ? (
+            <Link to="/planning/new">
+              <Button>
+                <Plus className="mr-2 h-5 w-5" />
+                {t("planning.newPlanning")}
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
+
+      <StatStrip
+        items={[
+          { label: t("planning.stats.total"), value: stats.total },
+          { label: t("planning.stats.planifie"), value: stats.planifie },
+          { label: t("planning.stats.en_cours"), value: stats.en_cours },
+          { label: t("planning.stats.valide"), value: stats.valide },
+          { label: t("planning.stats.brouillon"), value: stats.brouillon },
+        ]}
+      />
+
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Input
+            placeholder={t("planning.search")}
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+          />
+          <Select
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            placeholder={t("planning.filterStatus")}
+          />
         </div>
-        {perms?.canCreate && (
-          <Link to="/planning/new" className="self-start sm:self-auto">
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-xl px-5 py-2.5">
-              <Plus className="h-5 w-5 mr-2" />
-              {t("planning.newPlanning")}
-            </Button>
-          </Link>
-        )}
       </div>
 
-      {/* Gantt — height fits all rows, timeline scrolls internally */}
-      <div className="overflow-hidden" style={{ height: ganttH }}>
-        <GanttChart activities={plannings} />
-      </div>
+      {ganttActivities.length > 0 && (
+        <div className="overflow-hidden" style={{ height: ganttHeight }}>
+          <GanttChart activities={ganttActivities} />
+        </div>
+      )}
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {t("planning.stats.total")}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.total}
-                </p>
-              </div>
-              <Calendar className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {t("planning.stats.planifie")}
-                </p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {stats.planifie}
-                </p>
-              </div>
-              <CalendarCheck className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {t("planning.stats.en_cours")}
-                </p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.en_cours}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {t("planning.stats.valide")}
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.valide}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">
-                  {t("planning.stats.brouillon")}
-                </p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {stats.brouillon}
-                </p>
-              </div>
-              <FileText className="h-8 w-8 text-orange-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search + filter */}
       <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder={t("planning.search")}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-            />
-            <Select
-              options={statusFilterOptions}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("planning.filterStatus")}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Activity list */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-gray-900">
-            {t("planning.title")} ({filtered.length})
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-gray-900">
+            {t("planning.listTitle", { count: filtered.length })}
           </CardTitle>
-          <CardDescription>{t("planning.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
@@ -292,7 +224,7 @@ export default function PlanningListPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filtered.map((p) => {
+                    {plannings.map((p) => {
                       const config = STATUS_CONFIG[p.status];
                       return (
                         <tr key={p.id} className="hover:bg-gray-50">
@@ -338,7 +270,7 @@ export default function PlanningListPage() {
                           <td className="px-4 py-4">
                             {config ? (
                               <Badge variant={config.variant}>
-                                {config.label}
+                                {t(`planning.status.${p.status}`)}
                               </Badge>
                             ) : (
                               <Badge>{p.status}</Badge>
@@ -382,7 +314,7 @@ export default function PlanningListPage() {
 
               {/* Mobile cards */}
               <div className="lg:hidden space-y-3">
-                {filtered.map((p) => {
+                {plannings.map((p) => {
                   const config = STATUS_CONFIG[p.status];
                   return (
                     <div
@@ -449,7 +381,7 @@ export default function PlanningListPage() {
                       </div>
                       <div className="mt-3">
                         {config ? (
-                          <Badge variant={config.variant}>{config.label}</Badge>
+                          <Badge variant={config.variant}>{t(`planning.status.${p.status}`)}</Badge>
                         ) : (
                           <Badge>{p.status}</Badge>
                         )}

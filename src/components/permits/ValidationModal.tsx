@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/store/auth.store';
 import { usePermitStore } from '@/store/permitStore';
 import { useToastStore } from '@/store/toastStore';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -21,6 +22,7 @@ export default function ValidationModal({
   permisId,
   type,
 }: ValidationModalProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { validerParChefProjet, validerParHSE, refuserPermis } = usePermitStore();
   const toast = useToastStore;
@@ -39,21 +41,20 @@ export default function ValidationModal({
       if (action === 'valider') {
         if (type === 'chef') {
           validerParChefProjet(permisId, nom, commentaire);
-          toast.showSuccess('Permis validé par le Chef de Projet avec succès');
+          toast.showSuccess(t('permits.validationModal.toastSuccessChef'));
         } else {
           validerParHSE(permisId, nom, commentaire);
-          toast.showSuccess('Permis validé par HSE et référence attribuée avec succès');
+          toast.showSuccess(t('permits.validationModal.toastSuccessHse'));
         }
       } else {
         refuserPermis(permisId, commentaire);
-        toast.showError('Permis refusé');
+        toast.showError(t('permits.validationModal.toastErrorRefuse'));
       }
 
       onClose();
-      window.location.reload(); // Refresh pour voir les changements
     } catch (err) {
       console.error('Erreur lors de la validation:', err);
-      toast.showError('Une erreur est survenue lors de la validation');
+      toast.showError(t('permits.validationModal.toastErrorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -61,20 +62,20 @@ export default function ValidationModal({
 
   const title =
     type === 'chef'
-      ? 'Validation Chef de Projet'
-      : 'Validation HSE et Attribution de Référence';
+      ? t('permits.validationModal.titleChef')
+      : t('permits.validationModal.titleHse');
 
   const description =
     type === 'chef'
-      ? 'Examinez la demande et validez ou refusez le permis'
-      : 'Validation finale et attribution d\'une référence unique au permis';
+      ? t('permits.validationModal.descriptionChef')
+      : t('permits.validationModal.descriptionHse');
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} description={description} size="lg">
       <div className="space-y-6">
         {/* Informations du validateur */}
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Validé par</p>
+          <p className="text-sm text-gray-600">{t('permits.validationModal.validatedByLabel')}</p>
           <p className="font-medium text-gray-900">
             {user?.prenom} {user?.nom}
           </p>
@@ -83,20 +84,21 @@ export default function ValidationModal({
 
         {/* Commentaire */}
         <Textarea
-          label="Commentaire"
+          label={t('permits.validationModal.commentaireLabel')}
           value={commentaire}
           onChange={(e) => setCommentaire(e.target.value)}
-          placeholder="Ajoutez un commentaire (optionnel)"
+          placeholder={t('permits.validationModal.commentairePlaceholder')}
           rows={4}
+          disabled={loading}
         />
 
         {type === 'hse' && action === 'valider' && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-900 font-medium">
-              Une référence unique sera automatiquement générée lors de la validation.
+              {t('permits.validationModal.hseReferenceInfoTitle')}
             </p>
             <p className="text-xs text-blue-700 mt-1">
-              Format: ANNÉE/PTW/XXX (ex: 2025/PTW/001)
+              {t('permits.validationModal.hseReferenceInfoFormat')}
             </p>
           </div>
         )}
@@ -105,7 +107,8 @@ export default function ValidationModal({
         <div className="flex gap-4">
           <button
             onClick={() => setAction('valider')}
-            className={`flex-1 p-4 border-2 rounded-lg transition-all ${
+            disabled={loading}
+            className={`flex-1 p-4 border-2 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
               action === 'valider'
                 ? 'border-green-500 bg-green-50'
                 : 'border-gray-300 hover:border-green-400'
@@ -119,10 +122,12 @@ export default function ValidationModal({
                 <p
                   className={`font-semibold ${action === 'valider' ? 'text-green-900' : 'text-gray-700'}`}
                 >
-                  Valider
+                  {t('permits.validationModal.validerActionLabel')}
                 </p>
                 <p className="text-xs text-gray-600">
-                  {type === 'chef' ? 'Transférer à HSE' : 'Approuver le permis'}
+                  {type === 'chef'
+                    ? t('permits.validationModal.validerActionDescChef')
+                    : t('permits.validationModal.validerActionDescHse')}
                 </p>
               </div>
             </div>
@@ -130,7 +135,8 @@ export default function ValidationModal({
 
           <button
             onClick={() => setAction('refuser')}
-            className={`flex-1 p-4 border-2 rounded-lg transition-all ${
+            disabled={loading}
+            className={`flex-1 p-4 border-2 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
               action === 'refuser'
                 ? 'border-red-500 bg-red-50'
                 : 'border-gray-300 hover:border-red-400'
@@ -144,9 +150,9 @@ export default function ValidationModal({
                 <p
                   className={`font-semibold ${action === 'refuser' ? 'text-red-900' : 'text-gray-700'}`}
                 >
-                  Refuser
+                  {t('permits.validationModal.refuserActionLabel')}
                 </p>
-                <p className="text-xs text-gray-600">Rejeter la demande</p>
+                <p className="text-xs text-gray-600">{t('permits.validationModal.refuserActionDesc')}</p>
               </div>
             </div>
           </button>
@@ -155,18 +161,18 @@ export default function ValidationModal({
         {action === 'refuser' && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-900 font-medium">
-              ⚠️ Le commentaire est obligatoire pour un refus
+              {t('permits.validationModal.refusRequiredWarningTitle')}
             </p>
             <p className="text-xs text-red-700 mt-1">
-              Expliquez la raison du refus pour que le prestataire puisse corriger.
+              {t('permits.validationModal.refusRequiredWarningText')}
             </p>
           </div>
         )}
       </div>
 
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose}>
-          Annuler
+        <Button variant="ghost" onClick={onClose} disabled={loading}>
+          {t('permits.validationModal.cancelButton')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -174,7 +180,9 @@ export default function ValidationModal({
           disabled={!action || (action === 'refuser' && !commentaire.trim())}
           variant={action === 'refuser' ? 'danger' : 'primary'}
         >
-          {action === 'valider' ? 'Valider le permis' : 'Refuser le permis'}
+          {action === 'valider'
+            ? t('permits.validationModal.submitValiderLabel')
+            : t('permits.validationModal.submitRefuserLabel')}
         </Button>
       </ModalFooter>
     </Modal>

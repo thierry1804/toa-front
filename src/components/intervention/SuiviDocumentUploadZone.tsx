@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Upload, FileText, X, Loader2 } from 'lucide-react'
 import type { SuiviJournalierDocument } from '@/types/intervention'
 
@@ -18,6 +19,7 @@ export default function SuiviDocumentUploadZone({
   onDelete,
   disabled = false,
 }: SuiviDocumentUploadZoneProps) {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -51,7 +53,7 @@ export default function SuiviDocumentUploadZone({
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-gray-700">
-        Pièces justificatives (photos, rapports...)
+        {t('intervention.components.suiviDocumentUploadZone.title')}
       </p>
 
       {/* Existing documents */}
@@ -65,7 +67,7 @@ export default function SuiviDocumentUploadZone({
               {isImage(doc.mimeType) ? (
                 <div className="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-200">
                   <span className="flex h-full w-full items-center justify-center text-xs text-gray-500">
-                    IMG
+                    {t('intervention.components.suiviDocumentUploadZone.imgBadge')}
                   </span>
                 </div>
               ) : (
@@ -78,7 +80,7 @@ export default function SuiviDocumentUploadZone({
                   onClick={() => void handleDelete(doc.id)}
                   disabled={deletingId === doc.id}
                   className="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                  title="Supprimer"
+                  title={t('intervention.components.suiviDocumentUploadZone.delete')}
                 >
                   {deletingId === doc.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -129,10 +131,12 @@ export default function SuiviDocumentUploadZone({
               disabled={uploading}
               className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50"
             >
-              {uploading ? 'Envoi en cours...' : 'Choisir des fichiers'}
+              {uploading
+                ? t('intervention.components.suiviDocumentUploadZone.uploading')
+                : t('intervention.components.suiviDocumentUploadZone.chooseFiles')}
             </button>
             <p className="mt-0.5 text-xs text-gray-500">
-              ou glissez-déposez — JPEG, PNG, WebP, PDF · max 10 Mo
+              {t('intervention.components.suiviDocumentUploadZone.dropHint')}
             </p>
           </div>
         </div>

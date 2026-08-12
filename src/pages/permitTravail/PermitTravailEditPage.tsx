@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ChevronLeft, ChevronRight, Check, AlertCircle, FileText } from 'lucide-react'
+import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -393,12 +394,14 @@ export default function PermitTravailEditPage() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Corriger le permis</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Apportez les corrections demandées et resoumettez.
-        </p>
-      </div>
+      <PageHeader
+        title="Corriger le permis"
+        description="Apportez les corrections demandées et resoumettez."
+        breadcrumb={[
+          { label: 'Permis de travail', href: '/permits-travail' },
+          { label: 'Corriger' },
+        ]}
+      />
 
       {lastRefus && (
         <BandeauRefus

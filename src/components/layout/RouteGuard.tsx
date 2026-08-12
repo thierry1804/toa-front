@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/store/menu.store'
-import { Loader2 } from 'lucide-react'
+import { useUiStore } from '@/store/ui.store'
+import { AlertTriangle } from 'lucide-react'
 import type { MenuNode } from '@/types'
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
@@ -22,19 +24,38 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
   const loading = useMenuStore((s) => s.loading)
   const loaded = useMenuStore((s) => s.loaded)
   const error = useMenuStore((s) => s.error)
+  const load = useMenuStore((s) => s.load)
+  const addToast = useUiStore((s) => s.addToast)
+  const location = useLocation()
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    if (!loaded && !loading) {
+      void load()
+    }
+  }, [loaded, loading, load])
 
   const canView = useMemo(() => {
-    if (!loaded || loading) return null
+    if (!loaded) return null
     if (error) return true  // API failure — don't lock users out
     const node = flattenMenu(items).find((n) => n.route === menuRoute)
     if (!node) return false
     return node.canView ?? true
   }, [items, loading, loaded, error, menuRoute])
 
+  useEffect(() => {
+    if (canView === false) {
+      addToast({ message: t('layout.routeGuard.unauthorized'), type: 'error' })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canView, location.pathname])
+
   if (canView === null) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+      <div className="space-y-4 p-6" aria-hidden="true">
+        <div className="h-8 w-1/3 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-32 animate-pulse rounded-lg bg-gray-100" />
+        <div className="h-32 animate-pulse rounded-lg bg-gray-100" />
       </div>
     )
   }
@@ -43,5 +64,15 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
     return <Navigate to="/dashboard" replace />
   }
 
-  return <Outlet />
+  return (
+    <>
+      {error && (
+        <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          {t('layout.routeGuard.permissionsUnavailable')}
+        </div>
+      )}
+      <Outlet />
+    </>
+  )
 }

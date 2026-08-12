@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ArrowRight, Activity, MapPin, Filter } from "lucide-react";
+import { StatStrip } from "@/components/ui/StatStrip";
+import { ArrowRight, Activity, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { stats, quickLinks } from "@/data/constant/dashboard";
+import { quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
 import type { MenuNode } from "@/types";
 import ReferentielSitesMap from "@/components/referentiel/ReferentielSitesMap";
 import { useDashboardMap } from "@/features/dashboard/hooks/useDashboardMap";
+import { useDashboardKpis } from "@/features/dashboard/hooks/useDashboardKpis";
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   const out: MenuNode[] = [];
@@ -22,19 +24,23 @@ function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   return out;
 }
 
-function WelcomePage({ name }: { name: string }) {
+function SectionPanel({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-      <div className="rounded-full bg-blue-50 p-6 mb-6">
-        <Activity className="h-12 w-12 text-blue-500" />
+    <div
+      className={`overflow-hidden rounded-lg border border-gray-200 bg-white ${className}`}
+    >
+      <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+        <h2 className="text-sm font-medium text-gray-700">{title}</h2>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-3">
-        Bienvenue, {name}
-      </h1>
-      <p className="text-gray-500 max-w-md">
-        Votre espace de travail est prêt. Utilisez le menu de navigation pour
-        accéder à vos fonctionnalités.
-      </p>
+      {children}
     </div>
   );
 }
@@ -55,6 +61,18 @@ export default function DashboardPage() {
   const { filteredGeoJson, prestataires, processTypes, isLoading: mapLoading } =
     useDashboardMap(filterProvider, filterProcess);
 
+  const { data: kpis } = useDashboardKpis();
+
+  const statItems = [
+    { label: t("dashboard.kpis.plansValides"), value: kpis?.nbPlansValides ?? "—" },
+    { label: t("dashboard.kpis.permisValides"), value: kpis?.nbPermisValides ?? "—" },
+    { label: t("dashboard.kpis.permisClotures"), value: kpis?.nbPermisClotures ?? "—" },
+    {
+      label: t("dashboard.kpis.tauxCloture"),
+      value: kpis ? `${Math.round(kpis.tauxCloture * 100)}%` : "—",
+    },
+  ];
+
   const visibleQuickLinks = useMemo(() => {
     if (menuItems.length === 0) return quickLinks;
     const flat = flattenMenu(menuItems);
@@ -70,156 +88,132 @@ export default function DashboardPage() {
     ? `${user.prenom ? `${user.prenom} ` : ""}${user.nom}`
     : "";
 
-  if (!isAdmin) {
-    return <WelcomePage name={userName} />;
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-5">
       <PageHeader
         title={`${t("dashboard.greeting")}${userName ? `, ${userName}` : ""}`}
         description={t("dashboard.description")}
       />
 
-      {/* Map section */}
-      <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
-            <h2 className="text-base font-semibold text-gray-900">
-              Carte des sites
-            </h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400 shrink-0" />
-            <select
-              value={filterProvider}
-              onChange={(e) => setFilterProvider(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-            >
-              <option value="">Tous les prestataires</option>
-              {prestataires.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterProcess}
-              onChange={(e) => setFilterProcess(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-            >
-              <option value="">Tous les projets</option>
-              {processTypes.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            {(filterProvider || filterProcess) && (
-              <button
-                onClick={() => {
-                  setFilterProvider("");
-                  setFilterProcess("");
-                }}
-                className="text-xs text-blue-600 hover:underline"
+      {isAdmin && (
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+              <h2 className="text-sm font-medium text-gray-700">
+                {t("dashboard.mapTitle")}
+              </h2>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <select
+                value={filterProvider}
+                onChange={(e) => setFilterProvider(e.target.value)}
+                className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto sm:min-w-[10rem]"
+                aria-label={t("dashboard.filterProvider")}
               >
-                Réinitialiser
-              </button>
-            )}
-          </div>
-        </div>
-        {mapLoading ? (
-          <div className="flex items-center justify-center h-[500px] text-gray-400 text-sm">
-            Chargement de la carte…
-          </div>
-        ) : (
-          <ReferentielSitesMap geoJson={filteredGeoJson} height="500px" />
-        )}
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.label}
-              className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-200 hover:shadow-md"
-            >
-              <div
-                className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${s.gradient}`}
-              />
-              <div className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className={`rounded-lg ${s.bgLight} p-2.5`}>
-                    <Icon className={`h-5 w-5 ${s.iconColor}`} />
-                  </div>
-                </div>
-                <p className="mt-4 text-2xl font-bold text-gray-900">
-                  {s.value}
-                </p>
-                <p className="mt-1 text-sm text-gray-500">{s.label}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Quick access + Activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Quick access */}
-        <div className="lg:col-span-2">
-          <div className="mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t("dashboard.quickAccess")}
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {visibleQuickLinks.map((link) => {
-              const Icon = link.icon;
-              return (
+                <option value="">{t("dashboard.allProviders")}</option>
+                {prestataires.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filterProcess}
+                onChange={(e) => setFilterProcess(e.target.value)}
+                className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto sm:min-w-[10rem]"
+                aria-label={t("dashboard.filterProject")}
+              >
+                <option value="">{t("dashboard.allProjects")}</option>
+                {processTypes.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              {(filterProvider || filterProcess) && (
                 <button
-                  key={link.label}
-                  onClick={() => navigate(link.route)}
-                  className="group flex items-start gap-4 rounded-xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:shadow-md"
+                  type="button"
+                  onClick={() => {
+                    setFilterProvider("");
+                    setFilterProcess("");
+                  }}
+                  className="self-start text-xs text-blue-600 hover:text-blue-700 sm:self-center"
                 >
-                  <div className="rounded-lg bg-gray-50 p-2.5 text-gray-500 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-900">
-                        {link.label}
-                      </p>
-                      <ArrowRight className="h-4 w-4 text-gray-300 transition-colors group-hover:text-blue-500" />
-                    </div>
-                    <p className="mt-0.5 text-xs text-gray-500">{link.desc}</p>
-                  </div>
+                  {t("dashboard.resetFilters")}
                 </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Recent activity placeholder */}
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t("dashboard.recentActivity")}
-            </h2>
-          </div>
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Activity className="h-8 w-8 text-gray-200" />
-              <p className="mt-3 text-sm text-gray-400">
-                {t("dashboard.noActivity")}
-              </p>
+              )}
             </div>
           </div>
+          {mapLoading ? (
+            <div className="flex h-52 items-center justify-center text-sm text-gray-400 sm:h-72 lg:h-[420px]">
+              {t("dashboard.mapLoading")}
+            </div>
+          ) : (
+            <div className="h-52 sm:h-72 lg:h-[420px]">
+              <ReferentielSitesMap
+                geoJson={filteredGeoJson}
+                embedded
+                showSummary={false}
+              />
+            </div>
+          )}
         </div>
+      )}
+
+      {isAdmin && <StatStrip items={statItems} />}
+
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
+        <div className="lg:col-span-2">
+          <SectionPanel title={t("dashboard.quickAccess")}>
+            {visibleQuickLinks.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-gray-500">
+                {t("dashboard.noQuickAccess")}
+              </p>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {visibleQuickLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <li key={link.route}>
+                      <button
+                        type="button"
+                        onClick={() => navigate(link.route)}
+                        className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                      >
+                        <Icon
+                          className="h-4 w-4 shrink-0 text-gray-400"
+                          aria-hidden
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {t(link.labelKey)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {t(link.descKey)}
+                          </p>
+                        </div>
+                        <ArrowRight
+                          className="h-4 w-4 shrink-0 text-gray-300 transition-colors group-hover:text-blue-600"
+                          aria-hidden
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SectionPanel>
+        </div>
+
+        <SectionPanel title={t("dashboard.recentActivity")}>
+          <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+            <Activity className="h-6 w-6 text-gray-300" aria-hidden />
+            <p className="mt-2 text-sm text-gray-500">
+              {t("dashboard.noActivity")}
+            </p>
+          </div>
+        </SectionPanel>
       </div>
     </div>
   );

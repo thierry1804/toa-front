@@ -14,6 +14,7 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import { usePermission } from '@/features/auth/usePermission'
 import {
@@ -42,9 +43,9 @@ function tauxColor(taux: number): string {
 }
 
 function barFill(pct: number): string {
-  if (pct >= 76) return '#3b82f6'
-  if (pct >= 26) return '#f97316'
-  return '#ef4444'
+  if (pct >= 76) return '#2563eb'
+  if (pct >= 26) return '#ca8a04'
+  return '#dc2626'
 }
 
 // ---------- sub-components ----------
@@ -96,10 +97,13 @@ function StatCard({
   )
 }
 
+// CLOTURE/PV_VALIDE keep a distinct hue outside the DESIGN.md semantic tokens:
+// 5 statuses share only 4 tokens (neutral/primary/success), so these two need
+// a hue of their own to stay visually distinguishable from VALIDE_HSE.
 const STATUT_PIE_CONFIG: Partial<Record<StatutPermitTravail, { label: string; color: string }>> = {
-  BROUILLON:  { label: 'Brouillon',   color: '#94a3b8' },
-  SOUMIS:     { label: 'Soumis',      color: '#60a5fa' },
-  VALIDE_HSE: { label: 'Validé HSE',  color: '#4ade80' },
+  BROUILLON:  { label: 'Brouillon',   color: '#9ca3af' },
+  SOUMIS:     { label: 'Soumis',      color: '#2563eb' },
+  VALIDE_HSE: { label: 'Validé HSE',  color: '#16a34a' },
   CLOTURE:    { label: 'Clôturé',     color: '#f97316' },
   PV_VALIDE:  { label: 'PV validé',   color: '#22c55e' },
 }
@@ -259,50 +263,30 @@ export default function DashboardKpisPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.site')}
-              </label>
-              <input
-                type="text"
-                value={draft.codeSite ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.periode')}
-              </label>
-              <input
-                type="month"
-                value={draft.periode ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, periode: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.debut')}
-              </label>
-              <input
-                type="date"
-                value={draft.dateDebut ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
-                {t('dashboardKpis.filters.fin')}
-              </label>
-              <input
-                type="date"
-                value={draft.dateFin ?? ''}
-                onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label={t('dashboardKpis.filters.site')}
+              type="text"
+              value={draft.codeSite ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.periode')}
+              type="month"
+              value={draft.periode ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, periode: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.debut')}
+              type="date"
+              value={draft.dateDebut ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
+            />
+            <Input
+              label={t('dashboardKpis.filters.fin')}
+              type="date"
+              value={draft.dateFin ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
+            />
           </div>
           <div className="mt-4 flex gap-2">
             <Button onClick={applyFilters}>{t('dashboardKpis.filters.apply')}</Button>
@@ -368,7 +352,7 @@ export default function DashboardKpisPage() {
 
         {/* Évolution temporelle */}
         <Card>
-          <div className="border-b px-6 py-3">
+          <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">
               {t('dashboardKpis.charts.evolution', { nbMois: 6 })}
               {activeFilters.codeSite
@@ -392,21 +376,21 @@ export default function DashboardKpisPage() {
                   <Line
                     type="monotone"
                     dataKey="Taux incidents"
-                    stroke="#ef4444"
+                    stroke="#dc2626"
                     strokeWidth={2}
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="Avancement %"
-                    stroke="#3b82f6"
+                    stroke="#2563eb"
                     strokeWidth={2}
                     dot={false}
                   />
                   <Line
                     type="monotone"
                     dataKey="Taux clôture %"
-                    stroke="#22c55e"
+                    stroke="#16a34a"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -418,7 +402,7 @@ export default function DashboardKpisPage() {
 
         {/* Comparaison par site */}
         <Card>
-          <div className="border-b px-6 py-3">
+          <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">
               {t('dashboardKpis.charts.barSite')}
             </h3>
@@ -449,7 +433,7 @@ export default function DashboardKpisPage() {
 
       {/* Répartition statuts permis */}
       <Card>
-        <div className="border-b px-6 py-3">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">
             {t('dashboardKpis.charts.pie')}
           </h3>
@@ -499,7 +483,7 @@ export default function DashboardKpisPage() {
 
       {/* ── Tableau par site ── */}
       <Card>
-        <div className="border-b px-6 py-4">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
           <h2 className="text-sm font-semibold text-gray-900">
             {t('dashboardKpis.table.title', { nb: sites?.length ?? 0 })}
           </h2>
@@ -515,18 +499,22 @@ export default function DashboardKpisPage() {
             </div>
           ) : (
             <table className="w-full text-left text-sm">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   {columns.map(([key, label]) => (
                     <th
                       key={key}
-                      className="cursor-pointer select-none px-4 py-3 font-medium text-gray-600 hover:text-gray-900"
-                      onClick={() => toggleSort(key)}
+                      className="px-4 py-3 font-medium text-gray-600"
+                      aria-sort={sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(key)}
+                        className="inline-flex select-none items-center gap-1 hover:text-gray-900"
+                      >
                         {label}
                         <SortIcon active={sortKey === key} dir={sortDir} />
-                      </span>
+                      </button>
                     </th>
                   ))}
                 </tr>

@@ -1,101 +1,109 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { usePermitStore } from "@/store/permitStore";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from '@/store/auth.store';
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Checkbox from "@/components/ui/Checkbox";
 import Textarea from "@/components/ui/Textarea";
 import MultiStepForm from "./MultiStepForm";
+import { wireStepValidation, type RegisterValidate } from "./wireStepValidation";
 import { AlertCircle, FileText } from "lucide-react";
 
-// Schémas de validation pour chaque étape
-const step1Schema = z.object({
-  planPreventionId: z.string().min(1, "Plan de prévention requis"),
-  prestataire: z.string().min(1, "Prestataire requis"),
-  dateDebut: z.string().min(1, "Date de début requise"),
-  dateFin: z.string().min(1, "Date de fin requise"),
-  descriptionOperation: z
-    .string()
-    .min(5, "Description trop courte (min 5 caractères)"),
-  codeSite: z.string().min(1, "Code site requis"),
-  region: z.string().min(1, "Région requise"),
-  nombreIntervenants: z.number().min(1, "Minimum 1 intervenant"),
-  hauteurChute: z.enum(["<=3m", "3-8m", "8-40m", ">40m"]),
-  travailToiture: z.boolean(),
-  typePente: z
-    .enum(["plat", "legere", "forte", "tres_forte", "extreme"])
-    .optional(),
-});
+// Schémas de validation pour chaque étape (messages traduits via t())
+const makeStep1Schema = (t: TFunction) =>
+  z.object({
+    planPreventionId: z.string().min(1, t("forms.permitHauteur.validation.planPreventionRequired")),
+    prestataire: z.string().min(1, t("forms.permitHauteur.validation.prestataireRequired")),
+    dateDebut: z.string().min(1, t("forms.permitHauteur.validation.dateDebutRequired")),
+    dateFin: z.string().min(1, t("forms.permitHauteur.validation.dateFinRequired")),
+    descriptionOperation: z
+      .string()
+      .min(5, t("forms.permitHauteur.validation.descriptionTooShort")),
+    codeSite: z.string().min(1, t("forms.permitHauteur.validation.codeSiteRequired")),
+    region: z.string().min(1, t("forms.permitHauteur.validation.regionRequired")),
+    nombreIntervenants: z.number().min(1, t("forms.permitHauteur.validation.minIntervenants")),
+    hauteurChute: z.enum(["<=3m", "3-8m", "8-40m", ">40m"]),
+    travailToiture: z.boolean(),
+    typePente: z
+      .enum(["plat", "legere", "forte", "tres_forte", "extreme"])
+      .optional(),
+  });
 
-const step2Schema = z.object({
-  effondrement: z.boolean(),
-  incendie: z.boolean(),
-  deversement: z.boolean(),
-  electrisation: z.boolean(),
-  chutePersonnes: z.boolean(),
-  blessure: z.boolean(),
-  chuteObjet: z.boolean(),
-  expositionSubstances: z.boolean(),
-  ecrasement: z.boolean(),
-  mauvaiseMeteo: z.boolean(),
-  autres: z.array(z.string()).optional(),
-});
+const makeStep2Schema = () =>
+  z.object({
+    effondrement: z.boolean(),
+    incendie: z.boolean(),
+    deversement: z.boolean(),
+    electrisation: z.boolean(),
+    chutePersonnes: z.boolean(),
+    blessure: z.boolean(),
+    chuteObjet: z.boolean(),
+    expositionSubstances: z.boolean(),
+    ecrasement: z.boolean(),
+    mauvaiseMeteo: z.boolean(),
+    autres: z.array(z.string()).optional(),
+  });
 
-const step3Schema = z.object({
-  echafaudageRoulant: z.boolean(),
-  echafaudageFixe: z.boolean(),
-  filetSecurite: z.boolean(),
-  ligneVieVerticale: z.boolean(),
-  ligneVieHorizontale: z.boolean(),
-  pointAncrage: z.boolean(),
-  echelleCrinoline: z.boolean(),
-  plateformeElevatrice: z.boolean(),
-  travailCordes: z.boolean(),
-  echelle: z.boolean(),
-  escabeau: z.boolean(),
-  autres: z.array(z.string()).optional(),
-});
+const makeStep3Schema = () =>
+  z.object({
+    echafaudageRoulant: z.boolean(),
+    echafaudageFixe: z.boolean(),
+    filetSecurite: z.boolean(),
+    ligneVieVerticale: z.boolean(),
+    ligneVieHorizontale: z.boolean(),
+    pointAncrage: z.boolean(),
+    echelleCrinoline: z.boolean(),
+    plateformeElevatrice: z.boolean(),
+    travailCordes: z.boolean(),
+    echelle: z.boolean(),
+    escabeau: z.boolean(),
+    autres: z.array(z.string()).optional(),
+  });
 
-const step4Schema = z.object({
-  personnelHabilite: z.boolean(),
-  personnelApte: z.boolean(),
-  balisage: z.boolean(),
-  chaussuresSecurite: z.boolean(),
-  casque: z.boolean(),
-  gantsNitrile: z.boolean(),
-  gantsIsolants: z.boolean(),
-  gantsManutention: z.boolean(),
-  bouchonOreille: z.boolean(),
-  casqueAntiBruit: z.boolean(),
-  longeAbsorbeur: z.boolean(),
-  doubleLonge: z.boolean(),
-  ligneVieConforme: z.boolean(),
-  harnaisVerifie: z.boolean(),
-  echafaudageConforme: z.boolean(),
-  echelleConforme: z.boolean(),
-  sanglageOutils: z.boolean(),
-  travailDeux: z.boolean(),
-  mesureVent: z.boolean(),
-  autres: z.array(z.string()).optional(),
-});
+const makeStep4Schema = () =>
+  z.object({
+    personnelHabilite: z.boolean(),
+    personnelApte: z.boolean(),
+    balisage: z.boolean(),
+    chaussuresSecurite: z.boolean(),
+    casque: z.boolean(),
+    gantsNitrile: z.boolean(),
+    gantsIsolants: z.boolean(),
+    gantsManutention: z.boolean(),
+    bouchonOreille: z.boolean(),
+    casqueAntiBruit: z.boolean(),
+    longeAbsorbeur: z.boolean(),
+    doubleLonge: z.boolean(),
+    ligneVieConforme: z.boolean(),
+    harnaisVerifie: z.boolean(),
+    echafaudageConforme: z.boolean(),
+    echelleConforme: z.boolean(),
+    sanglageOutils: z.boolean(),
+    travailDeux: z.boolean(),
+    mesureVent: z.boolean(),
+    autres: z.array(z.string()).optional(),
+  });
 
-const step5Schema = z.object({
-  planSauvetageDisponible: z.boolean(),
-  numerosUrgenceDisponibles: z.boolean(),
-  secouristePresent: z.boolean(),
-  engagementDemandeur: z.boolean().refine((val) => val === true, {
-    message: "L'engagement est obligatoire pour soumettre le permis",
-  }),
-});
+const makeStep5Schema = (t: TFunction) =>
+  z.object({
+    planSauvetageDisponible: z.boolean(),
+    numerosUrgenceDisponibles: z.boolean(),
+    secouristePresent: z.boolean(),
+    engagementDemandeur: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitHauteur.validation.engagementRequired"),
+    }),
+  });
 
-type Step1Data = z.infer<typeof step1Schema>;
-type Step2Data = z.infer<typeof step2Schema>;
-type Step3Data = z.infer<typeof step3Schema>;
-type Step4Data = z.infer<typeof step4Schema>;
-type Step5Data = z.infer<typeof step5Schema>;
+type Step1Data = z.infer<ReturnType<typeof makeStep1Schema>>;
+type Step2Data = z.infer<ReturnType<typeof makeStep2Schema>>;
+type Step3Data = z.infer<ReturnType<typeof makeStep3Schema>>;
+type Step4Data = z.infer<ReturnType<typeof makeStep4Schema>>;
+type Step5Data = z.infer<ReturnType<typeof makeStep5Schema>>;
 
 interface PermitHauteurFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,6 +120,7 @@ export default function PermitHauteurForm({
 }: PermitHauteurFormProps) {
   const { plansPrevention } = usePermitStore();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
 
   // État global pour partager les données entre les étapes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -142,7 +151,10 @@ export default function PermitHauteurForm({
   const Step1Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step1Schema = useMemo(() => makeStep1Schema(t), [t]);
     const {
       register,
       handleSubmit,
@@ -181,33 +193,34 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step1Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Select
-          label="Référence du plan de prévention *"
+          label={t("forms.permitHauteur.step1.planPreventionLabel")}
           {...register("planPreventionId")}
           error={errors.planPreventionId?.message}
           options={plansDisponibles}
-          placeholder="Sélectionnez un plan de prévention"
+          placeholder={t("forms.permitHauteur.step1.planPreventionPlaceholder")}
         />
 
         <Input
-          label="Prestataires - Sous-traitants *"
+          label={t("forms.permitHauteur.step1.prestataireLabel")}
           {...register("prestataire")}
           error={errors.prestataire?.message}
-          placeholder="Nom de l'entreprise prestataire"
+          placeholder={t("forms.permitHauteur.step1.prestatairePlaceholder")}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Date de début *"
+            label={t("forms.permitHauteur.step1.dateDebutLabel")}
             type="date"
             {...register("dateDebut")}
             error={errors.dateDebut?.message}
           />
           <Input
-            label="Date de fin *"
+            label={t("forms.permitHauteur.step1.dateFinLabel")}
             type="date"
             {...register("dateFin")}
             error={errors.dateFin?.message}
@@ -215,30 +228,30 @@ export default function PermitHauteurForm({
         </div>
 
         <Textarea
-          label="Description de l'opération / travaux *"
+          label={t("forms.permitHauteur.step1.descriptionLabel")}
           {...register("descriptionOperation")}
           error={errors.descriptionOperation?.message}
-          placeholder="Décrivez en détail l'opération à effectuer en hauteur..."
+          placeholder={t("forms.permitHauteur.step1.descriptionPlaceholder")}
           rows={3}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Nom du site *"
+            label={t("forms.permitHauteur.step1.codeSiteLabel")}
             {...register("codeSite")}
             error={errors.codeSite?.message}
-            placeholder="Ex. : ANT-001"
+            placeholder={t("forms.permitHauteur.step1.codeSitePlaceholder")}
           />
           <Input
-            label="Région *"
+            label={t("forms.permitHauteur.step1.regionLabel")}
             {...register("region")}
             error={errors.region?.message}
-            placeholder="Ex. : Analamanga"
+            placeholder={t("forms.permitHauteur.step1.regionPlaceholder")}
           />
         </div>
 
         <Input
-          label="Nombre d'intervenants *"
+          label={t("forms.permitHauteur.step1.nombreIntervenantsLabel")}
           type="number"
           {...register("nombreIntervenants", { valueAsNumber: true })}
           error={errors.nombreIntervenants?.message}
@@ -247,14 +260,14 @@ export default function PermitHauteurForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Hauteur de chute potentielle *
+            {t("forms.permitHauteur.step1.hauteurChuteLabel")}
           </label>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {[
-              { value: "<=3m", label: "Hauteur ≤ 3m" },
-              { value: "3-8m", label: "3m < hauteur ≤ 8m" },
-              { value: "8-40m", label: "8m < hauteur ≤ 40m" },
-              { value: ">40m", label: "Hauteur > 40m" },
+              { value: "<=3m", label: t("forms.permitHauteur.step1.hauteur3mLabel") },
+              { value: "3-8m", label: t("forms.permitHauteur.step1.hauteur3to8mLabel") },
+              { value: "8-40m", label: t("forms.permitHauteur.step1.hauteur8to40mLabel") },
+              { value: ">40m", label: t("forms.permitHauteur.step1.hauteurSup40mLabel") },
             ].map((option) => (
               <button
                 key={option.value}
@@ -284,26 +297,26 @@ export default function PermitHauteurForm({
         </div>
 
         <Checkbox
-          label="Travail en toiture"
-          description="Intervention sur toiture ou surface inclinée"
+          label={t("forms.permitHauteur.step1.travailToitureLabel")}
+          description={t("forms.permitHauteur.step1.travailToitureDesc")}
           {...register("travailToiture")}
         />
 
         {travailToiture && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Type de pente
+              {t("forms.permitHauteur.step1.typePenteLabel")}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
               {[
-                { value: "plat", label: "Toit plat" },
-                { value: "legere", label: "Légère pente < 20°" },
-                { value: "forte", label: "Forte pente ≥ 20° et < 45°" },
+                { value: "plat", label: t("forms.permitHauteur.step1.pentePlatLabel") },
+                { value: "legere", label: t("forms.permitHauteur.step1.penteLegereLabel") },
+                { value: "forte", label: t("forms.permitHauteur.step1.penteForteLabel") },
                 {
                   value: "tres_forte",
-                  label: "Très forte pente ≥ 45° et < 60°",
+                  label: t("forms.permitHauteur.step1.penteTresForteLabel"),
                 },
-                { value: "extreme", label: "Pente extrême ≥ 60°" },
+                { value: "extreme", label: t("forms.permitHauteur.step1.penteExtremeLabel") },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -341,7 +354,10 @@ export default function PermitHauteurForm({
   const Step2Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step2Schema = useMemo(() => makeStep2Schema(), []);
     const { register, handleSubmit, watch, setValue } = useForm<Step2Data>({
       resolver: zodResolver(step2Schema),
       defaultValues: {
@@ -370,37 +386,53 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step2Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-gray-600 mb-4">
-          Identifiez tous les risques liés aux travaux en hauteur
+          {t("forms.permitHauteur.step2.intro")}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Checkbox label="Effondrement" {...register("effondrement")} />
-          <Checkbox label="Incendie" {...register("incendie")} />
           <Checkbox
-            label="Déversement accidentel"
+            label={t("forms.permitHauteur.step2.effondrementLabel")}
+            {...register("effondrement")}
+          />
+          <Checkbox
+            label={t("forms.permitHauteur.step2.incendieLabel")}
+            {...register("incendie")}
+          />
+          <Checkbox
+            label={t("forms.permitHauteur.step2.deversementLabel")}
             {...register("deversement")}
           />
           <Checkbox
-            label="Electrisation / Electrocution"
+            label={t("forms.permitHauteur.step2.electrisationLabel")}
             {...register("electrisation")}
           />
           <Checkbox
-            label="Chute de personnes"
+            label={t("forms.permitHauteur.step2.chutePersonnesLabel")}
             {...register("chutePersonnes")}
           />
-          <Checkbox label="Blessure (coupure…)" {...register("blessure")} />
-          <Checkbox label="Chute d'objet" {...register("chuteObjet")} />
           <Checkbox
-            label="Exposition aux substances dangereuses"
+            label={t("forms.permitHauteur.step2.blessureLabel")}
+            {...register("blessure")}
+          />
+          <Checkbox
+            label={t("forms.permitHauteur.step2.chuteObjetLabel")}
+            {...register("chuteObjet")}
+          />
+          <Checkbox
+            label={t("forms.permitHauteur.step2.expositionSubstancesLabel")}
             {...register("expositionSubstances")}
           />
-          <Checkbox label="Ecrasement" {...register("ecrasement")} />
           <Checkbox
-            label="Mauvaise condition météorologique"
+            label={t("forms.permitHauteur.step2.ecrasementLabel")}
+            {...register("ecrasement")}
+          />
+          <Checkbox
+            label={t("forms.permitHauteur.step2.mauvaiseMeteoLabel")}
             {...register("mauvaiseMeteo")}
           />
         </div>
@@ -408,13 +440,13 @@ export default function PermitHauteurForm({
         {/* Section Autre */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Checkbox label="Autre" {...register("autres")} />
+            <Checkbox label={t("forms.permitHauteur.step2.autreLabel")} {...register("autres")} />
           </div>
 
           <div className="ml-6">
             <Input
-              label="Précisez le risque"
-              placeholder="Décrivez le risque spécifique..."
+              label={t("forms.permitHauteur.step2.precisezRisqueLabel")}
+              placeholder={t("forms.permitHauteur.step2.precisezRisquePlaceholder")}
               onKeyDown={(e) => {
                 const input = e.target as HTMLInputElement;
                 if (e.key === "Enter" && input.value.trim()) {
@@ -467,7 +499,10 @@ export default function PermitHauteurForm({
   const Step3Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step3Schema = useMemo(() => makeStep3Schema(), []);
     const { register, handleSubmit, watch, setValue } = useForm<Step3Data>({
       resolver: zodResolver(step3Schema),
       defaultValues: {
@@ -497,66 +532,67 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step3Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-gray-600 mb-4">
-          Sélectionnez les matériels et équipements utilisés
+          {t("forms.permitHauteur.step3.intro")}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Checkbox
-            label="Échafaudage roulant"
-            description="Échafaudage mobile sur roues"
+            label={t("forms.permitHauteur.step3.echafaudageRoulantLabel")}
+            description={t("forms.permitHauteur.step3.echafaudageRoulantDesc")}
             {...register("echafaudageRoulant")}
           />
           <Checkbox
-            label="Échafaudage fixe"
-            description="Échafaudage fixe monté sur structure"
+            label={t("forms.permitHauteur.step3.echafaudageFixeLabel")}
+            description={t("forms.permitHauteur.step3.echafaudageFixeDesc")}
             {...register("echafaudageFixe")}
           />
           <Checkbox
-            label="Filet de sécurité"
-            description="Filet de protection contre les chutes"
+            label={t("forms.permitHauteur.step3.filetSecuriteLabel")}
+            description={t("forms.permitHauteur.step3.filetSecuriteDesc")}
             {...register("filetSecurite")}
           />
           <Checkbox
-            label="Ligne de vie verticale"
-            description="Ligne de vie pour déplacement vertical"
+            label={t("forms.permitHauteur.step3.ligneVieVerticaleLabel")}
+            description={t("forms.permitHauteur.step3.ligneVieVerticaleDesc")}
             {...register("ligneVieVerticale")}
           />
           <Checkbox
-            label="Ligne de vie horizontale"
-            description="Ligne de vie pour déplacement horizontal"
+            label={t("forms.permitHauteur.step3.ligneVieHorizontaleLabel")}
+            description={t("forms.permitHauteur.step3.ligneVieHorizontaleDesc")}
             {...register("ligneVieHorizontale")}
           />
           <Checkbox
-            label="Point d'ancrage"
-            description="Point d'ancrage fixe"
+            label={t("forms.permitHauteur.step3.pointAncrageLabel")}
+            description={t("forms.permitHauteur.step3.pointAncrageDesc")}
             {...register("pointAncrage")}
           />
           <Checkbox
-            label="Echelle crinoline"
+            label={t("forms.permitHauteur.step3.echelleCrinolineLabel")}
             {...register("echelleCrinoline")}
           />
           <Checkbox
-            label="Plateforme élévatrice"
-            description="PEMP (Plateforme Élévatrice Mobile de Personnel)"
+            label={t("forms.permitHauteur.step3.plateformeElevatriceLabel")}
+            description={t("forms.permitHauteur.step3.plateformeElevatriceDesc")}
             {...register("plateformeElevatrice")}
           />
           <Checkbox
-            label="Travail sur cordes"
-            description="Techniques d'accès et de positionnement sur cordes"
+            label={t("forms.permitHauteur.step3.travailCordesLabel")}
+            description={t("forms.permitHauteur.step3.travailCordesDesc")}
             {...register("travailCordes")}
           />
           <Checkbox
-            label="Échelle"
-            description="Échelle simple"
+            label={t("forms.permitHauteur.step3.echelleLabel")}
+            description={t("forms.permitHauteur.step3.echelleDesc")}
             {...register("echelle")}
           />
           <Checkbox
-            label="Escabeau"
-            description="Escabeau ou marchepied"
+            label={t("forms.permitHauteur.step3.escabeauLabel")}
+            description={t("forms.permitHauteur.step3.escabeauDesc")}
             {...register("escabeau")}
           />
         </div>
@@ -564,13 +600,13 @@ export default function PermitHauteurForm({
         {/* Section Autre */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Checkbox label="Autre" {...register("autres")} />
+            <Checkbox label={t("forms.permitHauteur.step3.autreLabel")} {...register("autres")} />
           </div>
 
           <div className="ml-6">
             <Input
-              label="Précisez l'équipement"
-              placeholder="Décrivez l'équipement spécifique..."
+              label={t("forms.permitHauteur.step3.precisezEquipementLabel")}
+              placeholder={t("forms.permitHauteur.step3.precisezEquipementPlaceholder")}
               onKeyDown={(e) => {
                 const input = e.target as HTMLInputElement;
                 if (e.key === "Enter" && input.value.trim()) {
@@ -623,7 +659,10 @@ export default function PermitHauteurForm({
   const Step4Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step4Schema = useMemo(() => makeStep4Schema(), []);
     const { register, handleSubmit, watch } = useForm<Step4Data>({
       resolver: zodResolver(step4Schema),
       defaultValues: {
@@ -661,25 +700,26 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step4Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-gray-600 mb-4">
-          Confirmez les mesures de prévention mises en place
+          {t("forms.permitHauteur.step4.intro")}
         </p>
 
         <div className="space-y-4">
           <div>
             <h4 className="font-medium text-gray-900 mb-2">
-              Formation et compétences
+              {t("forms.permitHauteur.step4.formationTitle")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Checkbox
-                label="Personnel habilité (formé et compétent)"
+                label={t("forms.permitHauteur.step4.personnelHabiliteLabel")}
                 {...register("personnelHabilite")}
               />
               <Checkbox
-                label="Personnel apte médicalement"
+                label={t("forms.permitHauteur.step4.personnelApteLabel")}
                 {...register("personnelApte")}
               />
             </div>
@@ -687,32 +727,32 @@ export default function PermitHauteurForm({
 
           <div>
             <h4 className="font-medium text-gray-900 mb-2">
-              Équipements de protection individuelle
+              {t("forms.permitHauteur.step4.epiTitle")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Checkbox
-                label="Chaussures de sécurité"
+                label={t("forms.permitHauteur.step4.chaussuresLabel")}
                 {...register("chaussuresSecurite")}
               />
-              <Checkbox label="Casque avec jugulaire" {...register("casque")} />
+              <Checkbox label={t("forms.permitHauteur.step4.casqueLabel")} {...register("casque")} />
               <Checkbox
-                label="Gants de peinture nitrile"
+                label={t("forms.permitHauteur.step4.gantsNitrileLabel")}
                 {...register("gantsNitrile")}
               />
               <Checkbox
-                label="Gants isolant électrique"
+                label={t("forms.permitHauteur.step4.gantsIsolantsLabel")}
                 {...register("gantsIsolants")}
               />
               <Checkbox
-                label="Gants de manutention"
+                label={t("forms.permitHauteur.step4.gantsManutentionLabel")}
                 {...register("gantsManutention")}
               />
               <Checkbox
-                label="Bouchon d'oreille"
+                label={t("forms.permitHauteur.step4.bouchonOreilleLabel")}
                 {...register("bouchonOreille")}
               />
               <Checkbox
-                label="Casque anti-bruit"
+                label={t("forms.permitHauteur.step4.casqueAntiBruitLabel")}
                 {...register("casqueAntiBruit")}
               />
             </div>
@@ -720,20 +760,20 @@ export default function PermitHauteurForm({
 
           <div>
             <h4 className="font-medium text-gray-900 mb-2">
-              Équipements anti-chute
+              {t("forms.permitHauteur.step4.antiChuteTitle")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Checkbox
-                label="Longe avec absorbeur"
+                label={t("forms.permitHauteur.step4.longeAbsorbeurLabel")}
                 {...register("longeAbsorbeur")}
               />
-              <Checkbox label="Double longe" {...register("doubleLonge")} />
+              <Checkbox label={t("forms.permitHauteur.step4.doubleLongeLabel")} {...register("doubleLonge")} />
               <Checkbox
-                label="Lignes de vie conforme"
+                label={t("forms.permitHauteur.step4.ligneVieConformeLabel")}
                 {...register("ligneVieConforme")}
               />
               <Checkbox
-                label="Harnais vérifié et conforme"
+                label={t("forms.permitHauteur.step4.harnaisVerifieLabel")}
                 {...register("harnaisVerifie")}
               />
             </div>
@@ -741,31 +781,31 @@ export default function PermitHauteurForm({
 
           <div>
             <h4 className="font-medium text-gray-900 mb-2">
-              Vérifications et procédures
+              {t("forms.permitHauteur.step4.verificationsTitle")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Checkbox
-                label="Balisage de la zone de travaux"
+                label={t("forms.permitHauteur.step4.balisageLabel")}
                 {...register("balisage")}
               />
               <Checkbox
-                label="Echafaudage contrôlé et conforme"
+                label={t("forms.permitHauteur.step4.echafaudageConformeLabel")}
                 {...register("echafaudageConforme")}
               />
               <Checkbox
-                label="Echelle en bon état (barreaux, montants, patins antidérapants)"
+                label={t("forms.permitHauteur.step4.echelleConformeLabel")}
                 {...register("echelleConforme")}
               />
               <Checkbox
-                label="Sanglage des outils"
+                label={t("forms.permitHauteur.step4.sanglageOutilsLabel")}
                 {...register("sanglageOutils")}
               />
               <Checkbox
-                label="Travail à 2 obligatoire"
+                label={t("forms.permitHauteur.step4.travailDeuxLabel")}
                 {...register("travailDeux")}
               />
               <Checkbox
-                label="Mesure de la vitesse du vent"
+                label={t("forms.permitHauteur.step4.mesureVentLabel")}
                 {...register("mesureVent")}
               />
             </div>
@@ -780,7 +820,10 @@ export default function PermitHauteurForm({
   const Step5Component = (
     formData: any,
     updateFormData: (data: any) => void,
+    registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step5Schema = useMemo(() => makeStep5Schema(t), [t]);
     const { register, handleSubmit, watch } = useForm<Step5Data>({
       resolver: zodResolver(step5Schema),
       defaultValues: {
@@ -808,6 +851,7 @@ export default function PermitHauteurForm({
     const onSubmit = (data: Step5Data) => {
       updateFormData({ ...formData, ...data });
     };
+    wireStepValidation(registerValidate, handleSubmit, onSubmit);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -816,11 +860,10 @@ export default function PermitHauteurForm({
             <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-blue-900">
-                Prévention en cas d'urgence
+                {t("forms.permitHauteur.step5.warningTitle")}
               </p>
               <p className="text-xs text-blue-700 mt-1">
-                Vérifiez que les mesures d'urgence sont en place avant de
-                commencer les travaux.
+                {t("forms.permitHauteur.step5.warningText")}
               </p>
             </div>
           </div>
@@ -829,113 +872,115 @@ export default function PermitHauteurForm({
         <div className="space-y-4">
           <div>
             <Checkbox
-              label={`Plan de sauvetage disponible${hauteurSuperieure20m ? " *" : ""}`}
+              label={`${t("forms.permitHauteur.step5.planSauvetageLabel")}${hauteurSuperieure20m ? " *" : ""}`}
               description={
                 hauteurSuperieure20m
-                  ? "Obligatoire pour les travaux en hauteur > 20m"
-                  : "Plan de sauvetage en cas d'urgence"
+                  ? t("forms.permitHauteur.step5.planSauvetageRequiredDesc")
+                  : t("forms.permitHauteur.step5.planSauvetageDesc")
               }
               {...register("planSauvetageDisponible")}
             />
             {hauteurSuperieure20m && !planSauvetage && (
               <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-md">
                 <p className="text-sm text-orange-800">
-                  ⚠️ <strong>Attention:</strong> Le plan de sauvetage est
-                  obligatoire pour les travaux en hauteur supérieure à 20
-                  mètres.
+                  ⚠️ <strong>{t("forms.permitHauteur.step5.attentionLabel")}</strong>{" "}
+                  {t("forms.permitHauteur.step5.planSauvetageWarningText")}
                 </p>
               </div>
             )}
           </div>
 
           <Checkbox
-            label="Numéros d'urgence disponibles"
-            description="Numéros d'urgence affichés et accessibles"
+            label={t("forms.permitHauteur.step5.numerosUrgenceLabel")}
+            description={t("forms.permitHauteur.step5.numerosUrgenceDesc")}
             {...register("numerosUrgenceDisponibles")}
           />
           <Checkbox
-            label="Secouriste présent sur site"
-            description="Personnel formé aux premiers secours présent sur site"
+            label={t("forms.permitHauteur.step5.secouristeLabel")}
+            description={t("forms.permitHauteur.step5.secouristeDesc")}
             {...register("secouristePresent")}
           />
         </div>
 
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-3">
-            Engagement du demandeur de permis
+            {t("forms.permitHauteur.step5.engagementTitle")}
           </h4>
           <Checkbox
-            label="En tant que demandeur de ce permis, je m'engage à respecter la mise en œuvre des mesures de prévention mentionnées à chaque début de travaux impliquant un travail en hauteur"
+            label={t("forms.permitHauteur.step5.engagementLabel")}
             {...register("engagementDemandeur")}
           />
         </div>
 
         <div className="space-y-4">
           <h4 className="font-medium text-gray-900">
-            Récapitulatif de votre demande
+            {t("forms.permitHauteur.step5.recapTitle")}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="font-medium text-gray-700">Plan de prévention:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.planPreventionLabel")}</p>
               <p className="text-gray-600">
                 {formData.planPreventionId
                   ? plansDisponibles.find(
                       (p) => p.value === formData.planPreventionId,
-                    )?.label || "N/A"
-                  : "Non renseigné"}
+                    )?.label || t("forms.permitHauteur.step5.na")
+                  : t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Prestataire:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.prestataireLabel")}</p>
               <p className="text-gray-600">
-                {formData.prestataire || "Non renseigné"}
+                {formData.prestataire || t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Période:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.periodeLabel")}</p>
               <p className="text-gray-600">
                 {formData.dateDebut && formData.dateFin
-                  ? `Du ${formData.dateDebut} au ${formData.dateFin}`
-                  : "Non renseigné"}
+                  ? t("forms.permitHauteur.step5.periodeValue", {
+                      debut: formData.dateDebut,
+                      fin: formData.dateFin,
+                    })
+                  : t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Site:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.siteLabel")}</p>
               <p className="text-gray-600">
                 {formData.codeSite
                   ? `${formData.codeSite} - ${formData.region}`
-                  : "Non renseigné"}
+                  : t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Opération:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.operationLabel")}</p>
               <p className="text-gray-600">
-                {formData.descriptionOperation || "Non renseigné"}
+                {formData.descriptionOperation || t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Intervenants:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.intervenantsLabel")}</p>
               <p className="text-gray-600">
                 {formData.nombreIntervenants
-                  ? `${formData.nombreIntervenants} personne(s)`
-                  : "Non renseigné"}
+                  ? `${formData.nombreIntervenants} ${t("forms.permitHauteur.step5.intervenantsSuffix")}`
+                  : t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
               <p className="font-medium text-gray-700">
-                Hauteur de chute potentielle:
+                {t("forms.permitHauteur.step5.hauteurChuteLabel")}
               </p>
               <p className="text-gray-600">
-                {formData.hauteurChute || "Non renseigné"}
+                {formData.hauteurChute || t("forms.permitHauteur.step5.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Travail en toiture:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitHauteur.step5.travailToitureLabel")}</p>
               <p className="text-gray-600">
                 {formData.travailToiture
-                  ? `Oui${formData.typePente ? ` (${formData.typePente})` : ""}`
-                  : "Non"}
+                  ? `${t("forms.permitHauteur.step5.oui")}${formData.typePente ? ` (${formData.typePente})` : ""}`
+                  : t("forms.permitHauteur.step5.non")}
               </p>
             </div>
           </div>
@@ -947,32 +992,32 @@ export default function PermitHauteurForm({
   const steps = [
     {
       id: "informations",
-      title: "Informations générales",
-      description: "Détails de l'opération et caractéristiques du site",
+      title: t("forms.permitHauteur.steps.informations.title"),
+      description: t("forms.permitHauteur.steps.informations.description"),
       component: Step1Component,
     },
     {
       id: "risques",
-      title: "Risques identifiés",
-      description: "Identification des risques liés aux travaux en hauteur",
+      title: t("forms.permitHauteur.steps.risques.title"),
+      description: t("forms.permitHauteur.steps.risques.description"),
       component: Step2Component,
     },
     {
       id: "materiels",
-      title: "Matériels et équipements",
-      description: "Équipements utilisés pour les travaux",
+      title: t("forms.permitHauteur.steps.materiels.title"),
+      description: t("forms.permitHauteur.steps.materiels.description"),
       component: Step3Component,
     },
     {
       id: "prevention",
-      title: "Mesures de prévention",
-      description: "Mesures de sécurité mises en place",
+      title: t("forms.permitHauteur.steps.prevention.title"),
+      description: t("forms.permitHauteur.steps.prevention.description"),
       component: Step4Component,
     },
     {
       id: "urgence",
-      title: "Prévention urgence",
-      description: "Mesures d'urgence et validation finale",
+      title: t("forms.permitHauteur.steps.urgence.title"),
+      description: t("forms.permitHauteur.steps.urgence.description"),
       component: Step5Component,
     },
   ];
@@ -1079,12 +1124,12 @@ export default function PermitHauteurForm({
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-blue-900">
-              Informations du Permis
+              {t("forms.permitHauteur.headerTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
               <div>
                 <span className="text-blue-700 font-medium">
-                  Numéro de permis :
+                  {t("forms.permitHauteur.permitNumberLabel")}
                 </span>
                 <span className="text-blue-900 ml-2 font-mono">
                   {permitNumber}
@@ -1092,10 +1137,10 @@ export default function PermitHauteurForm({
               </div>
               <div>
                 <span className="text-blue-700 font-medium">
-                  Plan de prévention :
+                  {t("forms.permitHauteur.planPreventionRefLabel")}
                 </span>
                 <span className="text-blue-900 ml-2">
-                  {selectedPlan ? selectedPlan.reference : "Non sélectionné"}
+                  {selectedPlan ? selectedPlan.reference : t("forms.permitHauteur.notSelected")}
                 </span>
               </div>
             </div>
@@ -1107,9 +1152,9 @@ export default function PermitHauteurForm({
         steps={steps}
         onComplete={handleComplete}
         onCancel={onCancel}
-        title="Permis de Travail en Hauteur"
-        description="Demande de permis de travail en hauteur"
-        submitLabel="Soumettre la demande"
+        title={t("forms.permitHauteur.title")}
+        description={t("forms.permitHauteur.description")}
+        submitLabel={t("forms.permitHauteur.submitLabel")}
         formData={formData}
         updateFormData={setFormData}
       />

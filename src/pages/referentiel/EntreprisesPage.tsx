@@ -10,6 +10,7 @@ import {
 } from '@/features/referentiel/hooks/useEntreprises'
 import type { Entreprise } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
@@ -196,14 +197,14 @@ export default function EntreprisesPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 text-center text-gray-500">Chargement…</div>
+            <ListPageSkeleton rows={5} bare />
           ) : filtered.length === 0 ? (
             <div className="p-6 text-center text-gray-500">Aucune entreprise trouvée</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50">
+                  <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Entreprise</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">N° Registre Commerce</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Siège Social</th>
@@ -213,7 +214,7 @@ export default function EntreprisesPage() {
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <tr key={e.id} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">{e.nom}</div>
                       </td>

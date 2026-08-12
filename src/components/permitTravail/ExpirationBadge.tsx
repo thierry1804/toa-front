@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { TypePermit } from '@/types/permitTravail'
 
 interface ExpirationBadgeProps {
@@ -7,6 +8,7 @@ interface ExpirationBadgeProps {
 }
 
 export default function ExpirationBadge({ decidedAt, typePermis }: ExpirationBadgeProps) {
+  const { t } = useTranslation()
   const now = new Date()
   const dateExpiration = new Date(new Date(decidedAt).getTime() + 30 * 24 * 60 * 60 * 1000)
   const daysLeft = Math.ceil((dateExpiration.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
@@ -15,7 +17,7 @@ export default function ExpirationBadge({ decidedAt, typePermis }: ExpirationBad
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700">
         <XCircle className="h-3.5 w-3.5" />
-        Expiré
+        {t('permitTravail.components.expirationBadge.expired')}
       </span>
     )
   }
@@ -24,7 +26,7 @@ export default function ExpirationBadge({ decidedAt, typePermis }: ExpirationBad
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium bg-orange-100 text-orange-700">
         <AlertTriangle className="h-3.5 w-3.5" />
-        Renouvellement sous {daysLeft}j
+        {t('permitTravail.components.expirationBadge.renewalSoon', { days: daysLeft })}
       </span>
     )
   }

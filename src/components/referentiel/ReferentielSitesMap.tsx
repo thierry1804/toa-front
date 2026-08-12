@@ -4,6 +4,10 @@ import type { FeatureCollection, Point } from 'geojson'
 import type { SiteGeoJsonFeature } from '@/types/referentiel'
 
 const ANTANANARIVO: [number, number] = [47.5361, -18.9137]
+const MADAGASCAR_BOUNDS = new maplibregl.LngLatBounds(
+  [43.2, -25.6],
+  [50.5, -11.9],
+)
 const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY as string | undefined
 const SOURCE_ID = 'sites-source'
 const EMPTY_GEOJSON: FeatureCollection<Point, SiteGeoJsonFeature> = {
@@ -14,6 +18,10 @@ const EMPTY_GEOJSON: FeatureCollection<Point, SiteGeoJsonFeature> = {
 interface ReferentielSitesMapProps {
   geoJson: FeatureCollection<Point, SiteGeoJsonFeature> | null | undefined
   height?: string
+  /** Hide the site-count row above the map (embedded dashboards). */
+  showSummary?: boolean
+  /** Fill parent container without extra border/radius (parent provides chrome). */
+  embedded?: boolean
 }
 
 function buildPopupHtml(props: SiteGeoJsonFeature): string {
@@ -33,9 +41,15 @@ function buildPopupHtml(props: SiteGeoJsonFeature): string {
     </div>`
 }
 
+function showMadagascarDefault(map: maplibregl.Map) {
+  map.fitBounds(MADAGASCAR_BOUNDS, { padding: 40, duration: 0 })
+}
+
 export default function ReferentielSitesMap({
   geoJson,
   height = '420px',
+  showSummary = true,
+  embedded = false,
 }: ReferentielSitesMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -146,6 +160,8 @@ export default function ReferentielSitesMap({
       map.on('mouseleave', 'unclustered-point', () => {
         map.getCanvas().style.cursor = ''
       })
+
+      showMadagascarDefault(map)
     })
 
     mapRef.current = map
@@ -170,7 +186,7 @@ export default function ReferentielSitesMap({
       source.setData(data)
 
       if (data.features.length === 0) {
-        map.flyTo({ center: ANTANANARIVO, zoom: 5 })
+        showMadagascarDefault(map)
         return
       }
 
@@ -195,7 +211,11 @@ export default function ReferentielSitesMap({
 
   const handleResetView = () => {
     const map = mapRef.current
-    if (!map || !geoJson?.features?.length) return
+    if (!map) return
+    if (!geoJson?.features?.length) {
+      showMadagascarDefault(map)
+      return
+    }
     if (geoJson.features.length === 1) {
       const coords = geoJson.features[0].geometry.coordinates as [number, number]
       map.flyTo({ center: coords, zoom: 12 })
@@ -218,30 +238,28 @@ export default function ReferentielSitesMap({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">
-          {siteCount > 0
-            ? `${siteCount} site${siteCount > 1 ? 's' : ''} affiché${siteCount > 1 ? 's' : ''}`
-            : 'Aucun site — importez un fichier KMZ'}
-        </span>
-        {siteCount > 0 && (
+    <div className={showSummary ? 'space-y-2' : 'h-full'}>
+      {showSummary && (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="text-sm text-gray-500">
+            {siteCount > 0
+              ? `${siteCount} site${siteCount > 1 ? 's' : ''} affiché${siteCount > 1 ? 's' : ''}`
+              : 'Aucun site importé — vue Madagascar'}
+          </span>
           <button
             type="button"
             onClick={handleResetView}
-            className="text-xs text-blue-600 hover:underline"
+            className="shrink-0 text-xs text-blue-600 hover:text-blue-700"
           >
-            Centrer la vue
+            {siteCount > 0 ? 'Centrer la vue' : 'Centrer sur Madagascar'}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="relative overflow-hidden rounded-lg border border-gray-200" style={{ height }}>
-        {siteCount === 0 && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-50 text-sm text-gray-400 italic pointer-events-none">
-            Aucun site importé
-          </div>
-        )}
+      <div
+        className={`relative overflow-hidden ${embedded ? 'h-full' : 'rounded-lg border border-gray-200'}`}
+        style={{ height: embedded ? undefined : height }}
+      >
         <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>

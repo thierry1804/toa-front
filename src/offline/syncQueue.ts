@@ -28,6 +28,12 @@ function getDb(): Promise<IDBPDatabase> {
   return dbPromise
 }
 
+type Listener = () => void
+const listeners = new Set<Listener>()
+function notify() {
+  listeners.forEach((listener) => listener())
+}
+
 export const syncQueue = {
   async add(item: Omit<SyncItem, 'id' | 'createdAt' | 'retries'>) {
     const db = await getDb()
@@ -37,6 +43,7 @@ export const syncQueue = {
       createdAt: Date.now(),
       retries: 0,
     })
+    notify()
   },
 
   async getAll(): Promise<SyncItem[]> {
@@ -47,6 +54,7 @@ export const syncQueue = {
   async remove(id: string) {
     const db = await getDb()
     await db.delete(STORE_NAME, id)
+    notify()
   },
 
   async incrementRetries(id: string): Promise<number> {
@@ -63,5 +71,13 @@ export const syncQueue = {
   async clear() {
     const db = await getDb()
     await db.clear(STORE_NAME)
+    notify()
+  },
+
+  // Notifies on add/remove/clear so UI can reflect the pending-item count
+  // without polling. Returns an unsubscribe function.
+  subscribe(listener: Listener): () => void {
+    listeners.add(listener)
+    return () => listeners.delete(listener)
   },
 }

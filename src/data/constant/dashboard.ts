@@ -1,69 +1,41 @@
-import { FileText, Clock, CheckCircle, Users, Calendar, Shield, Clipboard } from "lucide-react"
+import { FileText, Users, Calendar, Shield, Clipboard, type LucideIcon } from "lucide-react"
 
-export const stats = [
-  {
-    label: "Permis actifs",
-    value: "—",
-    icon: FileText,
-    gradient: "from-blue-500 to-blue-600",
-    bgLight: "bg-blue-50",
-    iconColor: "text-blue-600",
-  },
-  {
-    label: "En attente",
-    value: "—",
-    icon: Clock,
-    gradient: "from-amber-500 to-amber-600",
-    bgLight: "bg-amber-50",
-    iconColor: "text-amber-600",
-  },
-  {
-    label: "Validés ce mois",
-    value: "—",
-    icon: CheckCircle,
-    gradient: "from-emerald-500 to-emerald-600",
-    bgLight: "bg-emerald-50",
-    iconColor: "text-emerald-600",
-  },
-  {
-    label: "Intervenants",
-    value: "—",
-    icon: Users,
-    gradient: "from-violet-500 to-violet-600",
-    bgLight: "bg-violet-50",
-    iconColor: "text-violet-600",
-  },
-]
+export interface QuickLink {
+  labelKey: string
+  descKey: string
+  icon: LucideIcon
+  route: string
+}
 
-export const quickLinks = [
+export const quickLinks: QuickLink[] = [
   {
-    label: "Planification",
+    labelKey: "dashboard.quickLinks.planning",
+    descKey: "dashboard.quickLinks.planningDesc",
     icon: Calendar,
     route: "/planning",
-    desc: "Gérer le planning des activités",
   },
   {
-    label: "Permis de travail",
+    labelKey: "dashboard.quickLinks.permits",
+    descKey: "dashboard.quickLinks.permitsDesc",
     icon: FileText,
-    route: "/permits",
-    desc: "Consulter et créer des permis",
+    route: "/permits-travail",
   },
   {
-    label: "Prévention",
+    labelKey: "dashboard.quickLinks.prevention",
+    descKey: "dashboard.quickLinks.preventionDesc",
     icon: Shield,
     route: "/prevention",
-    desc: "Plans de prévention",
   },
   {
-    label: "Interventions",
+    labelKey: "dashboard.quickLinks.interventions",
+    descKey: "dashboard.quickLinks.interventionsDesc",
     icon: Clipboard,
-    route: "/permits",
-    desc: "Suivi des interventions",
+    route: "/interventions",
   },
   {
-    label: "Utilisateurs",
+    labelKey: "dashboard.quickLinks.users",
+    descKey: "dashboard.quickLinks.usersDesc",
     icon: Users,
     route: "/users",
-    desc: "Gestion des comptes",
   },
 ]

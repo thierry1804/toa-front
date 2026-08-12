@@ -22,11 +22,25 @@
     "confirmDelete": "Confirmer la suppression",
     "saveChanges": "Enregistrer les modifications",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "view": "Voir"
+  },
+  "nav": {
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "collapseSidebar": "Réduire la barre latérale",
+    "expandSidebar": "Développer la barre latérale",
+    "expandSection": "Développer la section",
+    "collapseSection": "Réduire la section",
+    "changeLanguage": "Changer la langue"
   },
   "auth": {
     "login": "Connexion",
     "logout": "Déconnexion",
+    "logoutConfirmTitle": "Actions non synchronisées",
+    "logoutConfirmMessage_one": "{{count}} action hors ligne en attente sera perdue si vous vous déconnectez maintenant. Se déconnecter quand même ?",
+    "logoutConfirmMessage_other": "{{count}} actions hors ligne en attente seront perdues si vous vous déconnectez maintenant. Se déconnecter quand même ?",
+    "logoutConfirmAction": "Se déconnecter quand même",
     "email": "Email",
     "password": "Mot de passe",
     "forgotPassword": "Mot de passe oublié ?",
@@ -42,6 +56,20 @@
     "quickAccess": "Accès rapide",
     "recentActivity": "Activité récente",
     "noActivity": "Aucune activité récente",
+    "noQuickAccess": "Aucun accès rapide disponible pour votre profil.",
+    "mapTitle": "Carte des sites",
+    "mapLoading": "Chargement de la carte…",
+    "filterProvider": "Prestataire",
+    "filterProject": "Projet",
+    "allProviders": "Tous les prestataires",
+    "allProjects": "Tous les projets",
+    "resetFilters": "Réinitialiser",
+    "kpis": {
+      "plansValides": "Plans validés",
+      "permisValides": "Permis validés",
+      "permisClotures": "Permis clôturés",
+      "tauxCloture": "Taux de clôture"
+    },
     "stats": {
       "activePermits": "Permis actifs",
       "pending": "En attente",
@@ -85,9 +113,22 @@
     },
     "empty": "Aucun utilisateur trouvé",
     "createAction": "Créer un utilisateur",
+    "listTitle": "Utilisateurs ({{count}})",
+    "listSubtitle": "{{count}} prestataires sur les entreprises partenaires",
+    "you": "Vous",
+    "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "iso": {
+      "title": "Certification ISO 14001",
+      "body": "TowerCo of Africa est certifiée ISO 14001 (management environnemental) et ISO 45001 (santé et sécurité au travail). La gestion des utilisateurs et des accès fait partie du système de maîtrise des risques HSE."
+    },
     "deleteConfirm": {
       "title": "Confirmer la suppression",
-      "message": "Supprimer l'utilisateur"
+      "message": "Supprimer l'utilisateur",
+      "irreversible": "Cette action est irréversible."
     },
     "form": {
       "editTitle": "Modifier l'utilisateur",
@@ -173,7 +214,8 @@
       "aucune_tache": "Aucune tâche",
       "title": "Sections et tâches"
     },
-    "title": "Planification des activités ",
+    "title": "Planification des activités",
+    "listTitle": "Liste des planifications ({{count}})",
     "newPlanning": "Nouvelle planification",
     "description": "Gestion du calendrier des interventions sur sites",
     "stats": {
@@ -265,7 +307,47 @@
       "en_cours": "En cours",
       "valide": "Validé",
       "annule": "Annulé",
-      "stand_by": "Stand By"
+      "stand_by": "Stand By",
+      "all": "Tous les statuts"
+    },
+    "interventionTypes": {
+      "choose": "— Choisir un type —",
+      "values": {
+        "Nouveau site": "Nouveau site",
+        "Vie de Réseau": "Vie de Réseau",
+        "Infrastructure": "Infrastructure",
+        "Opération et Mainténance": "Opération et Mainténance",
+        "Energie": "Energie"
+      }
+    },
+    "siteSelector": {
+      "typeInterventionLabel": "Type d'intervention *",
+      "codeSiteLabel": "Code site *",
+      "codeSitePlaceholder": "Ex: ANK-001",
+      "nomSiteLabel": "Nom du site *",
+      "nomSitePlaceholder": "Rempli automatiquement ou à saisir",
+      "codeSiteHeader": "Code site",
+      "nomSiteHeader": "Nom du site",
+      "statutHeader": "Statut",
+      "nomSitePlaceholderShort": "Saisir le nom",
+      "remove": "Supprimer",
+      "emptySites": "Aucun site ajouté",
+      "addCodeLabel": "Ajouter un code site",
+      "addCodePlaceholder": "Ex: ANK-001",
+      "addButton": "Ajouter",
+      "pasteLabel": "Coller des codes (séparés par « ; »)",
+      "pastePlaceholder": "ANK-001 ; AMP-002 ; ISO-003",
+      "importButton": "Importer"
+    },
+    "gantt": {
+      "title": "Diagramme de Gantt",
+      "viewDay": "Jour",
+      "viewWeek": "Semaine",
+      "viewMonth": "Mois",
+      "today": "Aujourd'hui",
+      "statutLabel": "Statut :",
+      "prestataireLabel": "Prestataire :",
+      "siteLabel": "Site :"
     }
   },
   "menus": {
@@ -346,11 +428,15 @@
         "duplicate": "Cette règle existe déjà, redirection vers l'édition",
         "created": "Règle créée",
         "updated": "Règle modifiée"
+      },
+      "deleteConfirm": {
+        "message": "Supprimer la règle d'accès « {{label}} » ?"
       }
     }
   },
   "prevention": {
-    "title": "Plans PPHSSES"
+    "title": "Plans PPHSSES",
+    "create": "Créer un plan"
   },
   "planPrevention": {
     "statut": {
@@ -508,12 +594,19 @@
   },
   "roles": {
     "title": "Gestion des rôles",
+    "super_admin": "Super Admin",
+    "admin": "Administrateur",
+    "chef_projet": "Chef de projet",
+    "hse": "HSE",
+    "prestataire": "Prestataire",
+    "dg": "Direction générale",
     "newRole": "Nouveau rôle",
     "description": "Créer et gérer les rôles de la plateforme",
     "tableDescription": "Les rôles système sont protégés et ne peuvent pas être supprimés",
     "search": "Rechercher par nom ou libellé...",
     "empty": "Aucun rôle trouvé",
     "createAction": "Créer un rôle",
+    "listTitle": "Rôles ({{count}})",
     "systemRoleProtected": "Les rôles système ne peuvent pas être supprimés",
     "stats": {
       "total": "Total",
@@ -566,7 +659,10 @@
     }
   },
   "offline": {
-    "banner": "Mode hors-ligne"
+    "banner": "Mode hors-ligne",
+    "pending_one": "{{count}} en attente",
+    "pending_other": "{{count}} en attente",
+    "queued": "Action sauvegardée hors ligne"
   },
   "errors": {
     "incorrect_credentials": "Identifiants incorrects",
@@ -604,6 +700,16 @@
     "sites": {
       "title": "Gestion de sites",
       "subtitle": "Import et gestion des sites depuis fichiers KMZ",
+      "description": "Import et gestion des sites depuis fichiers KMZ",
+      "importTitle": "Importer un fichier KMZ",
+      "historyTitle": "Historique des imports",
+      "historyCount": "{{count}} import(s) enregistré(s)",
+      "historyEmptyHint": "Importez un fichier KMZ depuis le bouton de la page.",
+      "mapTitle": "Carte des sites",
+      "listTitle": "Liste des sites",
+      "importSuccess": "{{count}} site(s) importé(s) avec succès",
+      "deleteSuccess": "Import KMZ supprimé avec succès",
+      "deleteError": "Erreur lors de la suppression",
       "importSection": "Importer un fichier KMZ",
       "historySection": "Historique des imports",
       "listSection": "Liste des sites",
@@ -641,7 +747,1377 @@
     },
     "listes": {
       "title": "Gestion de risques",
-      "subtitle": "À implémenter"
+      "subtitle": "Catégories de risque",
+      "newCategory": "Nouvelle catégorie",
+      "listTitle": "Catégories de risque",
+      "empty": "Aucune catégorie de risque",
+      "createFirst": "Créer la première catégorie",
+      "headers": {
+        "nom": "Nom",
+        "typePermis": "Type permis",
+        "createdAt": "Date création",
+        "updatedAt": "Date modification"
+      },
+      "typePermis": {
+        "electrique": "Électrique",
+        "hauteur": "Hauteur",
+        "none": "—"
+      },
+      "modal": {
+        "createTitle": "Nouvelle catégorie de risque",
+        "editTitle": "Modifier la catégorie",
+        "nomLabel": "Nom",
+        "nomPlaceholder": "Ex. : Risque électrique",
+        "typePermisLabel": "Type permis associé",
+        "typePermisNone": "— Aucun (général) —",
+        "typePermisHint": "Utilisé pour filtrer les risques lors de la création de permis"
+      },
+      "deleteModal": {
+        "title": "Supprimer la catégorie",
+        "message": "Supprimer {{name}} ? Cette action est irréversible."
+      },
+      "toast": {
+        "created": "Catégorie créée",
+        "updated": "Catégorie mise à jour",
+        "deleted": "Catégorie supprimée",
+        "createError": "Erreur lors de la création",
+        "updateError": "Erreur lors de la mise à jour",
+        "deleteError": "Erreur lors de la suppression"
+      }
+    },
+    "installations": {
+      "title": "Liste des installations et équipements",
+      "subtitle": "Référentiel des installations et matériels",
+      "new": "Nouveau",
+      "listTitle": "Installations et équipements",
+      "empty": "Aucune installation ou équipement",
+      "createFirst": "Créer le premier",
+      "modal": {
+        "createTitle": "Nouvelle installation/équipement",
+        "editTitle": "Modifier",
+        "nomPlaceholder": "Ex. : Groupe électrogène 50 kVA"
+      },
+      "deleteModal": {
+        "title": "Supprimer l'installation/équipement",
+        "message": "Supprimer {{name}} ? Cette action est irréversible."
+      },
+      "toast": {
+        "created": "Installation/équipement créé",
+        "updated": "Installation/équipement mis à jour",
+        "deleted": "Installation/équipement supprimé",
+        "createError": "Erreur lors de la création",
+        "updateError": "Erreur lors de la mise à jour",
+        "deleteError": "Erreur lors de la suppression"
+      }
+    },
+    "shared": {
+      "searchPlaceholder": "Rechercher par nom…",
+      "search": "Rechercher",
+      "clear": "Effacer",
+      "loading": "Chargement…",
+      "emptySearch": "Aucun résultat pour cette recherche",
+      "nom": "Nom",
+      "createdAt": "Date création",
+      "updatedAt": "Date modification",
+      "actions": "Actions",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "update": "Mettre à jour",
+      "create": "Créer",
+      "saving": "Enregistrement…",
+      "deleting": "Suppression…",
+      "pagination": "Page {{page}} / {{totalPages}} — {{count}} entrées",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "nomRequired": "Le nom est obligatoire",
+      "nomMaxLength": "255 caractères maximum"
+    }
+  },
+  "forms": {
+    "permitElectrique": {
+      "title": "Permis de Travail Électrique",
+      "description": "Demande de permis de travail électrique",
+      "submitLabel": "Soumettre la demande",
+      "steps": {
+        "informations": {
+          "title": "Informations générales",
+          "description": "Type de travail et niveau de tension"
+        },
+        "description": {
+          "title": "Description et risques",
+          "description": "Détails des travaux et risques identifiés"
+        },
+        "materiels": {
+          "title": "Matériels et prévention",
+          "description": "Équipements et mesures de prévention"
+        },
+        "urgence": {
+          "title": "Prévention urgence",
+          "description": "Mesures d'urgence et engagement"
+        },
+        "consignation": {
+          "title": "Consignation énergétique",
+          "description": "Informations de consignation (si applicable)"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Référence du plan de prévention *",
+        "planPreventionPlaceholder": "Sélectionnez un plan de prévention",
+        "codeSiteLabel": "Code Site *",
+        "codeSitePlaceholder": "Ex. : ANT-001",
+        "nombreIntervenantsLabel": "Nombre d'Intervenants *",
+        "dateDebutLabel": "Date de début *",
+        "dateFinLabel": "Date de fin *",
+        "typeTravailTitle": "Type de travail",
+        "travailSousTensionLabel": "Travail sous tension",
+        "travailSousTensionDesc": "Intervention sur installation sous tension",
+        "travailHorsTensionLabel": "Travail hors tension",
+        "travailHorsTensionDesc": "Intervention après mise hors tension",
+        "consignationEnergieLabel": "Consignation énergétique",
+        "consignationEnergieDesc": "Procédure de consignation",
+        "niveauTensionTitle": "Niveau de tension",
+        "basseTensionLabel": "Basse tension",
+        "basseTensionDesc": "≤ 1000V",
+        "moyenneTensionLabel": "Moyenne tension",
+        "moyenneTensionDesc": "1kV à 50kV",
+        "hauteTensionLabel": "Haute tension",
+        "hauteTensionDesc": "> 50kV",
+        "warningTitle": "Travail sous tension",
+        "warningText": "Le travail sous tension nécessite des compétences spécialisées et des équipements spécifiques. Assurez-vous que le personnel est habilité et que les mesures de sécurité sont adaptées."
+      },
+      "step2": {
+        "typeCircuitLabel": "Type de circuit/équipement *",
+        "typeCircuitPlaceholder": "Ex. : Tableau électrique principal, Câble HT, etc.",
+        "descriptionLabel": "Description du travail *",
+        "descriptionPlaceholder": "Décrivez en détail les travaux électriques à effectuer...",
+        "raisonLabel": "Raison de la non mise hors tension",
+        "raisonPlaceholder": "Justifiez pourquoi les travaux doivent être effectués sous tension...",
+        "risquesTitle": "Risques identifiés",
+        "electrisationLabel": "Électrisation",
+        "electrisationDesc": "Passage du courant dans le corps",
+        "electrocutionLabel": "Électrocution",
+        "electrocutionDesc": "Électrisation mortelle",
+        "brulureLabel": "Brûlure",
+        "brulureDesc": "Brûlure par arc électrique"
+      },
+      "step3": {
+        "materielsTitle": "Matériels de mesure et outils",
+        "multimetreLabel": "Multimètre DC",
+        "multimetreDesc": "Appareil de mesure de tension",
+        "outilsIsolantsLabel": "Outils isolants",
+        "outilsIsolantsDesc": "Outils avec isolation électrique",
+        "testTensionLabel": "Test de tension",
+        "testTensionDesc": "VAT (Vérificateur d'Absence de Tension)",
+        "toolboxLabel": "Toolbox électrique",
+        "toolboxDesc": "Boîte à outils spécialisée",
+        "formationTitle": "Formation et compétences",
+        "personnelHabiliteLabel": "Personnel habilité",
+        "personnelHabiliteDesc": "Personnel formé et habilité électrique",
+        "personnelApteLabel": "Personnel apte",
+        "personnelApteDesc": "Personnel médicalement apte",
+        "epiTitle": "Équipements de protection individuelle",
+        "chaussuresLabel": "Chaussures de sécurité",
+        "casqueLabel": "Casque de sécurité",
+        "gantsLabel": "Gants électriques",
+        "gantsDesc": "Gants isolants pour travaux électriques",
+        "tapisLabel": "Tapis isolant",
+        "tapisDesc": "Tapis de protection isolant",
+        "lunettesLabel": "Lunettes de sécurité",
+        "proceduresTitle": "Procédures de sécurité",
+        "balisageLabel": "Balisage de la zone",
+        "consignationLabel": "Consignation énergétique",
+        "consignationDesc": "Procédure de consignation effectuée"
+      },
+      "step4": {
+        "warningTitle": "Prévention urgence",
+        "warningText": "Vérifiez que les mesures d'urgence sont en place avant de commencer les travaux électriques.",
+        "secouristeLabel": "Secouriste présent",
+        "secouristeDesc": "Personnel formé aux premiers secours présent sur site",
+        "numerosUrgenceLabel": "Numéros d'urgence disponibles",
+        "numerosUrgenceDesc": "Numéros d'urgence affichés et accessibles",
+        "engagementTitle": "Engagement du demandeur",
+        "engagementLabel": "Je m'engage à respecter toutes les mesures de sécurité et procédures définies *",
+        "engagementDesc": "Engagement obligatoire du demandeur"
+      },
+      "step5": {
+        "notRequiredTitle": "Consignation non requise",
+        "notRequiredText": "Aucune consignation énergétique n'est requise pour ce type de travaux.",
+        "recapTitle": "Récapitulatif de votre demande",
+        "siteLabel": "Site:",
+        "intervenantsLabel": "Intervenants:",
+        "intervenantsSuffix": "personne(s)",
+        "typeTravailLabel": "Type de travail:",
+        "sousTension": "Sous tension",
+        "horsTension": "Hors tension",
+        "nonRenseigne": "Non renseigné",
+        "niveauTensionLabel": "Niveau de tension:",
+        "nonSpecifie": "Non spécifié",
+        "consignationInfoTitle": "Consignation énergétique",
+        "consignationInfoText": "Remplissez les informations de consignation si applicable.",
+        "motifLabel": "Motif de consignation",
+        "motifPlaceholder": "Ex. : Maintenance préventive, Réparation...",
+        "equipementLabel": "Équipement concerné",
+        "equipementPlaceholder": "Ex. : Tableau électrique principal, Disjoncteur...",
+        "dateConsignationLabel": "Date de consignation",
+        "heureConsignationLabel": "Heure de consignation",
+        "electriqueLabel": "Électrique",
+        "electriquePlaceholder": "Détails électriques...",
+        "vatLabel": "VAT vérification",
+        "vatDesc": "Vérification d'absence de tension effectuée",
+        "visaLabel": "Visa de consignation",
+        "visaPlaceholder": "Nom et signature du consignateur"
+      },
+      "validation": {
+        "planPreventionRequired": "Plan de prévention requis",
+        "codeSiteRequired": "Code site requis",
+        "minIntervenants": "Minimum 1 intervenant",
+        "dateDebutRequired": "Date de début requise",
+        "dateFinRequired": "Date de fin requise",
+        "dateFinBeforeDebut": "La date de fin doit être postérieure ou égale à la date de début",
+        "typeCircuitRequired": "Type de circuit requis",
+        "descriptionTooShort": "Description trop courte (min 5 caractères)",
+        "engagementRequired": "L'engagement du demandeur est obligatoire"
+      }
+    },
+    "gpsCoordinates": {
+      "title": "Coordonnées GPS",
+      "addPoint": "Ajouter un point",
+      "importKmz": "Importer depuis KMZ",
+      "pointNamePrefix": "Point",
+      "nameLabel": "Nom du point",
+      "latLabel": "Latitude",
+      "lngLabel": "Longitude"
+    },
+    "multiStepForm": {
+      "submitDefault": "Soumettre"
+    },
+    "permitGeneral": {
+      "title": "Permis de Travail Général",
+      "description": "Demande de permis de travail général",
+      "submitLabel": "Soumettre la demande",
+      "steps": {
+        "details": {
+          "title": "Détails de l'intervention",
+          "description": "Informations générales sur les travaux à effectuer"
+        },
+        "risques": {
+          "title": "Types de travaux à risques",
+          "description": "Sélection des types de travaux concernés"
+        },
+        "engagement": {
+          "title": "Engagement du demandeur",
+          "description": "Confirmations obligatoires du demandeur"
+        },
+        "revision": {
+          "title": "Révision et soumission",
+          "description": "Vérification des informations et soumission"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Plan de Prévention Associé *",
+        "planPreventionPlaceholder": "Sélectionner un plan de prévention validé",
+        "noPlanTitle": "Aucun plan de prévention disponible",
+        "noPlanText": "Vous devez d'abord créer et faire valider un plan de prévention avant de créer un permis de travail.",
+        "intituleLabel": "Intitulé des Travaux *",
+        "intitulePlaceholder": "Ex. : Maintenance équipements télécoms",
+        "localisationLabel": "Localisation *",
+        "localisationPlaceholder": "Ex. : Antananarivo Centre - Pylône principal",
+        "codeSiteLabel": "Code Site *",
+        "codeSitePlaceholder": "Ex. : ANT-001",
+        "contractantLabel": "Contractant *",
+        "contractantPlaceholder": "Nom de l'entreprise",
+        "nombreIntervenantsLabel": "Nombre d'Intervenants *",
+        "dateDebutLabel": "Date de Début *",
+        "dateFinLabel": "Date de Fin *"
+      },
+      "step2": {
+        "intro": "Cocher tous les types de travaux concernés par cette intervention",
+        "chaudLabel": "Travaux à chaud",
+        "chaudDesc": "Soudure, meulage, découpe thermique, etc.",
+        "hauteurLabel": "Travaux en hauteur",
+        "hauteurDesc": "Intervention à plus de 3 mètres de hauteur",
+        "electriqueLabel": "Travaux électriques",
+        "electriqueDesc": "Intervention sur installations électriques",
+        "espaceConfineLabel": "Travaux en espace confiné",
+        "espaceConfineDesc": "Intervention dans un espace restreint",
+        "excavationLabel": "Travaux d'excavation",
+        "excavationDesc": "Terrassement, forage, creusement",
+        "autresLabel": "Autres",
+        "autresDesc": "Autres types de travaux à risques",
+        "autresDescriptionLabel": "Description des autres travaux",
+        "autresDescriptionPlaceholder": "Précisez le type de travaux..."
+      },
+      "step3": {
+        "intro": "En tant que demandeur, je m'engage et je confirme que :",
+        "evaluationRisquesLabel": "L'évaluation des risques a été validée *",
+        "personneCompetenteLabel": "Une personne compétente a été assignée pour contrôler les mesures *",
+        "mesuresPreventionLabel": "Les mesures de prévention sont mises en place *",
+        "personnelInformeLabel": "Le personnel a été informé des exigences de sécurité *",
+        "dangersControlesLabel": "Les dangers seront contrôlés tout au long des travaux *"
+      },
+      "step4": {
+        "infoTitle": "Information importante",
+        "infoText": "Après soumission, votre demande sera transmise au Chef de Projet pour validation. Une fois validée par le Chef de Projet, elle sera transmise à l'équipe HSE pour validation finale et attribution d'une référence unique.",
+        "recapTitle": "Récapitulatif de votre demande",
+        "travauxLabel": "Travaux:",
+        "siteLabel": "Site:",
+        "contractantLabel": "Contractant:",
+        "intervenantsLabel": "Intervenants:",
+        "intervenantsSuffix": "personne(s)",
+        "periodeLabel": "Période:",
+        "periodeSeparator": "au",
+        "nonRenseigne": "Non renseigné",
+        "risquesTitle": "Types de travaux à risques:",
+        "aucun": "Aucun"
+      },
+      "validation": {
+        "planPreventionRequired": "Plan de prévention requis",
+        "intituleTooShort": "Intitulé trop court (min 5 caractères)",
+        "localisationRequired": "Localisation requise",
+        "codeSiteRequired": "Code site requis",
+        "contractantRequired": "Contractant requis",
+        "minIntervenants": "Minimum 1 intervenant",
+        "dateDebutRequired": "Date de début requise",
+        "dateFinRequired": "Date de fin requise",
+        "evaluationRisquesRequired": "L'évaluation des risques doit être validée",
+        "personneCompetenteRequired": "Une personne compétente doit être assignée",
+        "mesuresPreventionRequired": "Les mesures de prévention doivent être mises en place",
+        "personnelInformeRequired": "Le personnel doit être informé",
+        "dangersControlesRequired": "Les dangers doivent être contrôlés"
+      }
+    },
+    "permitHauteur": {
+      "title": "Permis de Travail en Hauteur",
+      "description": "Demande de permis de travail en hauteur",
+      "submitLabel": "Soumettre la demande",
+      "headerTitle": "Informations du Permis",
+      "permitNumberLabel": "Numéro de permis :",
+      "planPreventionRefLabel": "Plan de prévention :",
+      "notSelected": "Non sélectionné",
+      "steps": {
+        "informations": {
+          "title": "Informations générales",
+          "description": "Détails de l'opération et caractéristiques du site"
+        },
+        "risques": {
+          "title": "Risques identifiés",
+          "description": "Identification des risques liés aux travaux en hauteur"
+        },
+        "materiels": {
+          "title": "Matériels et équipements",
+          "description": "Équipements utilisés pour les travaux"
+        },
+        "prevention": {
+          "title": "Mesures de prévention",
+          "description": "Mesures de sécurité mises en place"
+        },
+        "urgence": {
+          "title": "Prévention urgence",
+          "description": "Mesures d'urgence et validation finale"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Référence du plan de prévention *",
+        "planPreventionPlaceholder": "Sélectionnez un plan de prévention",
+        "prestataireLabel": "Prestataires - Sous-traitants *",
+        "prestatairePlaceholder": "Nom de l'entreprise prestataire",
+        "dateDebutLabel": "Date de début *",
+        "dateFinLabel": "Date de fin *",
+        "descriptionLabel": "Description de l'opération / travaux *",
+        "descriptionPlaceholder": "Décrivez en détail l'opération à effectuer en hauteur...",
+        "codeSiteLabel": "Nom du site *",
+        "codeSitePlaceholder": "Ex. : ANT-001",
+        "regionLabel": "Région *",
+        "regionPlaceholder": "Ex. : Analamanga",
+        "nombreIntervenantsLabel": "Nombre d'intervenants *",
+        "hauteurChuteLabel": "Hauteur de chute potentielle *",
+        "hauteur3mLabel": "Hauteur ≤ 3m",
+        "hauteur3to8mLabel": "3m < hauteur ≤ 8m",
+        "hauteur8to40mLabel": "8m < hauteur ≤ 40m",
+        "hauteurSup40mLabel": "Hauteur > 40m",
+        "travailToitureLabel": "Travail en toiture",
+        "travailToitureDesc": "Intervention sur toiture ou surface inclinée",
+        "typePenteLabel": "Type de pente",
+        "pentePlatLabel": "Toit plat",
+        "penteLegereLabel": "Légère pente < 20°",
+        "penteForteLabel": "Forte pente ≥ 20° et < 45°",
+        "penteTresForteLabel": "Très forte pente ≥ 45° et < 60°",
+        "penteExtremeLabel": "Pente extrême ≥ 60°"
+      },
+      "step2": {
+        "intro": "Identifiez tous les risques liés aux travaux en hauteur",
+        "effondrementLabel": "Effondrement",
+        "incendieLabel": "Incendie",
+        "deversementLabel": "Déversement accidentel",
+        "electrisationLabel": "Electrisation / Electrocution",
+        "chutePersonnesLabel": "Chute de personnes",
+        "blessureLabel": "Blessure (coupure…)",
+        "chuteObjetLabel": "Chute d'objet",
+        "expositionSubstancesLabel": "Exposition aux substances dangereuses",
+        "ecrasementLabel": "Ecrasement",
+        "mauvaiseMeteoLabel": "Mauvaise condition météorologique",
+        "autreLabel": "Autre",
+        "precisezRisqueLabel": "Précisez le risque",
+        "precisezRisquePlaceholder": "Décrivez le risque spécifique..."
+      },
+      "step3": {
+        "intro": "Sélectionnez les matériels et équipements utilisés",
+        "echafaudageRoulantLabel": "Échafaudage roulant",
+        "echafaudageRoulantDesc": "Échafaudage mobile sur roues",
+        "echafaudageFixeLabel": "Échafaudage fixe",
+        "echafaudageFixeDesc": "Échafaudage fixe monté sur structure",
+        "filetSecuriteLabel": "Filet de sécurité",
+        "filetSecuriteDesc": "Filet de protection contre les chutes",
+        "ligneVieVerticaleLabel": "Ligne de vie verticale",
+        "ligneVieVerticaleDesc": "Ligne de vie pour déplacement vertical",
+        "ligneVieHorizontaleLabel": "Ligne de vie horizontale",
+        "ligneVieHorizontaleDesc": "Ligne de vie pour déplacement horizontal",
+        "pointAncrageLabel": "Point d'ancrage",
+        "pointAncrageDesc": "Point d'ancrage fixe",
+        "echelleCrinolineLabel": "Echelle crinoline",
+        "plateformeElevatriceLabel": "Plateforme élévatrice",
+        "plateformeElevatriceDesc": "PEMP (Plateforme Élévatrice Mobile de Personnel)",
+        "travailCordesLabel": "Travail sur cordes",
+        "travailCordesDesc": "Techniques d'accès et de positionnement sur cordes",
+        "echelleLabel": "Échelle",
+        "echelleDesc": "Échelle simple",
+        "escabeauLabel": "Escabeau",
+        "escabeauDesc": "Escabeau ou marchepied",
+        "autreLabel": "Autre",
+        "precisezEquipementLabel": "Précisez l'équipement",
+        "precisezEquipementPlaceholder": "Décrivez l'équipement spécifique..."
+      },
+      "step4": {
+        "intro": "Confirmez les mesures de prévention mises en place",
+        "formationTitle": "Formation et compétences",
+        "personnelHabiliteLabel": "Personnel habilité (formé et compétent)",
+        "personnelApteLabel": "Personnel apte médicalement",
+        "epiTitle": "Équipements de protection individuelle",
+        "chaussuresLabel": "Chaussures de sécurité",
+        "casqueLabel": "Casque avec jugulaire",
+        "gantsNitrileLabel": "Gants de peinture nitrile",
+        "gantsIsolantsLabel": "Gants isolant électrique",
+        "gantsManutentionLabel": "Gants de manutention",
+        "bouchonOreilleLabel": "Bouchon d'oreille",
+        "casqueAntiBruitLabel": "Casque anti-bruit",
+        "antiChuteTitle": "Équipements anti-chute",
+        "longeAbsorbeurLabel": "Longe avec absorbeur",
+        "doubleLongeLabel": "Double longe",
+        "ligneVieConformeLabel": "Lignes de vie conforme",
+        "harnaisVerifieLabel": "Harnais vérifié et conforme",
+        "verificationsTitle": "Vérifications et procédures",
+        "balisageLabel": "Balisage de la zone de travaux",
+        "echafaudageConformeLabel": "Echafaudage contrôlé et conforme",
+        "echelleConformeLabel": "Echelle en bon état (barreaux, montants, patins antidérapants)",
+        "sanglageOutilsLabel": "Sanglage des outils",
+        "travailDeuxLabel": "Travail à 2 obligatoire",
+        "mesureVentLabel": "Mesure de la vitesse du vent"
+      },
+      "step5": {
+        "warningTitle": "Prévention en cas d'urgence",
+        "warningText": "Vérifiez que les mesures d'urgence sont en place avant de commencer les travaux.",
+        "planSauvetageLabel": "Plan de sauvetage disponible",
+        "planSauvetageRequiredDesc": "Obligatoire pour les travaux en hauteur > 20m",
+        "planSauvetageDesc": "Plan de sauvetage en cas d'urgence",
+        "attentionLabel": "Attention:",
+        "planSauvetageWarningText": "Le plan de sauvetage est obligatoire pour les travaux en hauteur supérieure à 20 mètres.",
+        "numerosUrgenceLabel": "Numéros d'urgence disponibles",
+        "numerosUrgenceDesc": "Numéros d'urgence affichés et accessibles",
+        "secouristeLabel": "Secouriste présent sur site",
+        "secouristeDesc": "Personnel formé aux premiers secours présent sur site",
+        "engagementTitle": "Engagement du demandeur de permis",
+        "engagementLabel": "En tant que demandeur de ce permis, je m'engage à respecter la mise en œuvre des mesures de prévention mentionnées à chaque début de travaux impliquant un travail en hauteur",
+        "recapTitle": "Récapitulatif de votre demande",
+        "planPreventionLabel": "Plan de prévention:",
+        "prestataireLabel": "Prestataire:",
+        "periodeLabel": "Période:",
+        "periodeValue": "Du {{debut}} au {{fin}}",
+        "siteLabel": "Site:",
+        "operationLabel": "Opération:",
+        "intervenantsLabel": "Intervenants:",
+        "intervenantsSuffix": "personne(s)",
+        "hauteurChuteLabel": "Hauteur de chute potentielle:",
+        "travailToitureLabel": "Travail en toiture:",
+        "oui": "Oui",
+        "non": "Non",
+        "nonRenseigne": "Non renseigné",
+        "na": "N/A"
+      },
+      "validation": {
+        "planPreventionRequired": "Plan de prévention requis",
+        "prestataireRequired": "Prestataire requis",
+        "dateDebutRequired": "Date de début requise",
+        "dateFinRequired": "Date de fin requise",
+        "descriptionTooShort": "Description trop courte (min 5 caractères)",
+        "codeSiteRequired": "Code site requis",
+        "regionRequired": "Région requise",
+        "minIntervenants": "Minimum 1 intervenant",
+        "engagementRequired": "L'engagement est obligatoire pour soumettre le permis"
+      }
+    },
+    "preventionMultiStep": {
+      "title": "Créer un plan de prévention",
+      "description": "Remplissez le formulaire en plusieurs étapes pour créer un nouveau plan de prévention",
+      "submitLabel": "Soumettre le plan",
+      "steps": {
+        "entreprise": {
+          "title": "Entreprise Prestataire",
+          "description": "Informations sur l'entreprise réalisant les travaux"
+        },
+        "maitreOuvrage": {
+          "title": "Maître d'Ouvrage",
+          "description": "Informations sur le maître d'ouvrage"
+        },
+        "localisation": {
+          "title": "Localisation",
+          "description": "Informations sur le site d'intervention"
+        },
+        "descriptionTravaux": {
+          "title": "Description des Travaux",
+          "description": "Détails de l'intervention"
+        },
+        "planning": {
+          "title": "Planning",
+          "description": "Dates et horaires des travaux"
+        },
+        "risques": {
+          "title": "Risques Identifiés",
+          "description": "Identification des risques potentiels"
+        },
+        "equipements": {
+          "title": "Équipements de Sécurité",
+          "description": "Équipements nécessaires pour la sécurité"
+        },
+        "consignes": {
+          "title": "Consignes de Sécurité",
+          "description": "Consignes à respecter pendant les travaux"
+        },
+        "formation": {
+          "title": "Formation et Compétences",
+          "description": "Formation des intervenants"
+        },
+        "documents": {
+          "title": "Documents et Validation",
+          "description": "Pièces jointes et validation finale"
+        },
+        "confirmation": {
+          "title": "Confirmation",
+          "description": "Vérifiez les informations avant soumission"
+        }
+      },
+      "errorBanner": {
+        "title": "Champs à corriger avant de continuer :"
+      },
+      "entreprise": {
+        "nomLabel": "Nom de l'entreprise",
+        "siretLabel": "N° SIRET",
+        "siretPlaceholder": "14 chiffres",
+        "representantLabel": "Représentant",
+        "fonctionLabel": "Fonction"
+      },
+      "maitreOuvrage": {
+        "nomLabel": "Maître d'ouvrage",
+        "representantLabel": "Représentant",
+        "contactLabel": "Contact",
+        "emailLabel": "Email"
+      },
+      "localisation": {
+        "nomSiteLabel": "Nom du site",
+        "adresseLabel": "Adresse",
+        "codePostalLabel": "Code postal",
+        "villeLabel": "Ville",
+        "fokontanyLabel": "Fokontany",
+        "communeLabel": "Commune",
+        "districtLabel": "District",
+        "regionLabel": "Région",
+        "situationLabel": "Situation géographique",
+        "situationPlaceholder": "Sélectionnez une situation",
+        "situationEnVille": "En ville",
+        "situationRurale": "Rurale",
+        "situationSurMontagne": "Sur montagne",
+        "situationAutre": "Autre",
+        "situationAutrePrecisezLabel": "Précisez"
+      },
+      "descriptionTravaux": {
+        "natureLabel": "Nature de l'intervention",
+        "descriptionLabel": "Description détaillée des travaux",
+        "nombreIntervenantsLabel": "Nombre d'intervenants",
+        "dureeEstimeeLabel": "Durée estimée (heures)"
+      },
+      "planning": {
+        "dateDebutLabel": "Date de début",
+        "dateFinLabel": "Date de fin",
+        "horairesTitle": "Horaires de travail",
+        "heureDebutLabel": "Début",
+        "heureFinLabel": "Fin",
+        "heurePauseLabel": "Pause"
+      },
+      "risks": {
+        "sectionTitle": "Identification des risques",
+        "sectionDesc": "Sélectionnez les risques potentiels liés à l'intervention",
+        "categoriesTitle": "Catégories de risques",
+        "detailsTitle": "Détails des risques sélectionnés",
+        "removeButton": "Retirer",
+        "graviteLabel": "Gravité",
+        "probabiliteLabel": "Probabilité",
+        "niveauLabel": "Niveau de risque",
+        "mesuresLabel": "Mesures de prévention prévues",
+        "mesuresPlaceholder": "Décrivez les mesures de prévention spécifiques pour ce risque",
+        "mesuresExistentesLabel": "Des mesures de prévention sont déjà en place",
+        "graviteOptions": {
+          "faible": "Faible",
+          "moyenne": "Moyenne",
+          "grave": "Grave",
+          "mortelle": "Mortelle"
+        },
+        "probabiliteOptions": {
+          "rare": "Rare",
+          "peu_probable": "Peu probable",
+          "probable": "Probable",
+          "tres_probable": "Très probable"
+        },
+        "niveauOptions": {
+          "faible": "Faible",
+          "modere": "Modéré",
+          "eleve": "Élevé",
+          "intolerable": "Intolérable"
+        },
+        "environnement": "Risques liés à l'environnement",
+        "chantier": "Risques liés au chantier",
+        "travaux": "Risques liés aux travaux",
+        "autres": "Autres risques",
+        "pollution": "Pollutions (déversement)",
+        "incendie": "Incendie",
+        "voie_circulation": "Voie de circulation",
+        "zone_chargement": "Zone de chargement/déchargement",
+        "stockage": "Stockage",
+        "travaux_hauteur": "Travaux en hauteur",
+        "manutention": "Manutention manuelle",
+        "outillage": "Utilisation d'outils et d'équipements",
+        "chimique": "Produits chimiques",
+        "electrique": "Risque électrique",
+        "tronconnage": "Tronçonnage, meulage, soudage",
+        "demolition": "Démolition",
+        "travaux_enterres": "Travaux en milieu confiné ou enterré",
+        "coactivite": "Cœxistence d'activités",
+        "autres_travaux": "Autres risques liés aux travaux",
+        "meteo": "Conditions météorologiques",
+        "vandalisme": "Vandalisme, vol",
+        "autres_risques": "Autres risques non identifiés"
+      },
+      "equipements": {
+        "equipementTitle": "Équipement {{index}}",
+        "removeButton": "Supprimer",
+        "typeLabel": "Type d'équipement",
+        "quantiteLabel": "Quantité",
+        "conformeLabel": "Équipement conforme aux normes",
+        "addButton": "Ajouter un équipement"
+      },
+      "consignes": {
+        "generalesTitle": "Consignes générales de sécurité",
+        "consignesSecuriteLabel": "Consignes à respecter",
+        "consignesSecuritePlaceholder": "Ex. : Port des EPI obligatoire, zone sécurisée, etc.",
+        "urgenceTitle": "Consignes en cas d'urgence",
+        "consignesUrgenceLabel": "Procédures d'urgence",
+        "consignesUrgencePlaceholder": "Ex. : Numéros d'urgence, points de rassemblement, etc.",
+        "contactsTitle": "Contacts d'urgence",
+        "contactsUrgenceLabel": "Personnes à contacter en cas d'urgence",
+        "contactsUrgencePlaceholder": "Ex. : Responsable sécurité: 01 23 45 67 89, SAMU: 15, Pompiers: 18, etc."
+      },
+      "formation": {
+        "formationSecuriteLabel": "Les intervenants ont-ils reçu une formation à la sécurité spécifique à cette intervention ?",
+        "dateFormationLabel": "Date de la formation",
+        "nomFormateurLabel": "Nom du formateur",
+        "nomFormateurPlaceholder": "Nom du formateur ou de l'organisme",
+        "commentairesTitle": "Commentaires additionnels",
+        "commentairesLabel": "Remarques ou informations complémentaires",
+        "commentairesPlaceholder": "Ex. : Compétences particulières requises, habilitations spécifiques, etc."
+      },
+      "documents": {
+        "title": "Documents à fournir",
+        "validationTitle": "Validation",
+        "accordLabel": "Je certifie sur l'honneur l'exactitude des informations fournies et m'engage à respecter les consignes de sécurité énoncées dans ce document.",
+        "options": {
+          "attestation_assurance": "Attestation d'assurance responsabilité civile",
+          "plan_intervention": "Plan d'intervention détaillé",
+          "fiches_risques": "Fiches de poste et d'exposition aux risques",
+          "autres": "Autres documents"
+        }
+      },
+      "confirmation": {
+        "verificationTitle": "Vérification finale",
+        "verificationText": "Veuillez vérifier attentivement toutes les informations avant de soumettre le plan de prévention. Une fois validé, vous pourrez toujours le modifier ultérieurement.",
+        "recapTitle": "Récapitulatif",
+        "entrepriseTitle": "Entreprise Prestataire",
+        "interventionTitle": "Intervention",
+        "intervenantsSuffix": "intervenant(s)",
+        "periodeText": "Du {{dateDebut}} au {{dateFin}}",
+        "localisationTitle": "Localisation",
+        "risquesCountTitle": "{{count}} risque(s) identifié(s)",
+        "finalCheckboxLabel": "Je confirme que toutes les informations sont exactes et complètes. En cochant cette case, je valide définitivement ce plan de prévention."
+      },
+      "validation": {
+        "entrepriseRequired": "Entreprise requise",
+        "siretInvalid": "SIRET invalide",
+        "representantPrestataireRequired": "Représentant requis",
+        "fonctionRequired": "Fonction requise",
+        "maitreOuvrageRequired": "Maître d'ouvrage requis",
+        "representantMaitreOuvrageRequired": "Représentant requis",
+        "contactRequired": "Contact requis",
+        "emailInvalid": "Email invalide",
+        "latitudeInvalid": "Latitude invalide",
+        "longitudeInvalid": "Longitude invalide",
+        "pointNomRequired": "Nom du point requis",
+        "nomSiteRequired": "Nom du site requis",
+        "adresseRequired": "Adresse requise",
+        "codePostalInvalid": "Code postal invalide",
+        "villeRequired": "Ville requise",
+        "coordonneesGPSRequired": "Au moins une coordonnée GPS est requise",
+        "fokontanyRequired": "Fokontany requis",
+        "communeRequired": "Commune requise",
+        "districtRequired": "District requis",
+        "regionRequired": "Région requise",
+        "natureRequired": "Nature requise",
+        "descriptionTooShort": "Description trop courte (min 10 caractères)",
+        "minIntervenants": "Minimum 1 intervenant",
+        "dureeEstimeeRequired": "Durée estimée requise",
+        "dateDebutRequired": "Date de début requise",
+        "dateFinRequired": "Date de fin requise",
+        "heureDebutRequired": "Heure de début requise",
+        "heureFinRequired": "Heure de fin requise",
+        "heurePauseRequired": "Heure de pause requise",
+        "risqueDescriptionRequired": "Description du risque requise",
+        "mesuresRequired": "Mesures préventives requises",
+        "risquesMinRequired": "Au moins un risque doit être identifié",
+        "typeEquipementRequired": "Type d'équipement requis",
+        "quantiteRequired": "Quantité requise",
+        "equipementsMinRequired": "Au moins un équipement doit être spécifié",
+        "consignesSecuriteRequired": "Les consignes de sécurité sont requises",
+        "consignesUrgenceRequired": "Les consignes d'urgence sont requises",
+        "contactsUrgenceRequired": "Les contacts d'urgence sont requis",
+        "documentsMinRequired": "Au moins un document doit être fourni",
+        "accordResponsableRequired": "Vous devez accepter les conditions",
+        "confirmationRequired": "Vous devez confirmer les informations"
+      }
+    }
+  },
+  "layout": {
+    "routeGuard": {
+      "unauthorized": "Accès non autorisé à cette page",
+      "permissionsUnavailable": "Vérification des permissions indisponible — accès temporairement non restreint."
+    },
+    "sidebar": {
+      "menuUnavailable": "Menu indisponible",
+      "retry": "Réessayer"
+    }
+  },
+  "ui": {
+    "confirmActionModal": {
+      "commentLabel": "Commentaire",
+      "fieldRequired": "Ce champ est obligatoire."
+    }
+  },
+  "permits": {
+    "controleJournalierElectrique": {
+      "title": "Contrôle Journalier du Permis Électrique",
+      "dateLabel": "Date",
+      "codeSiteLabel": "Code Site",
+      "codeSitePlaceholder": "Ex. : ANA-001",
+      "intervenantsLabel": "Intervenants",
+      "intervenantPlaceholder": "Intervenant {{number}}",
+      "addIntervenantButton": "Ajouter un intervenant",
+      "confirmationMesuresLabel": "Je confirme la mise en œuvre des mesures de prévention mentionnées dans le permis",
+      "commencementTitle": "Commencement des travaux",
+      "signatureDemandeurLabel": "Signature Demandeur/Responsable contractant",
+      "signatureIntervenantLabel": "Signature Intervenant",
+      "signaturePlaceholder": "Nom et signature",
+      "clotureTitle": "Clôture journalière",
+      "cancelButton": "Annuler",
+      "submitButton": "Enregistrer le contrôle",
+      "validationFieldsAlert": "Veuillez remplir tous les champs obligatoires",
+      "validationConfirmationAlert": "Vous devez confirmer la mise en œuvre des mesures de prévention"
+    },
+    "controleJournalierHauteur": {
+      "title": "Contrôle Journalier du Permis de Travail en Hauteur",
+      "dateLabel": "Date",
+      "codeSiteLabel": "Code Site",
+      "codeSitePlaceholder": "Ex. : ANA-001",
+      "vitesseVentLabel": "Vitesse du vent (km/h) *",
+      "vitesseVentPlaceholder": "Ex. : 15",
+      "vitesseVentHint": "Limite recommandée : 50 km/h maximum pour les travaux en hauteur",
+      "intervenantsLabel": "Intervenants",
+      "intervenantPlaceholder": "Intervenant {{number}}",
+      "addIntervenantButton": "Ajouter un intervenant",
+      "confirmationMesuresLabel": "Je confirme la mise en œuvre des mesures de prévention mentionnées dans le permis",
+      "commencementTitle": "Commencement des travaux",
+      "signatureDemandeurLabel": "Signature Demandeur/Responsable contractant",
+      "signatureIntervenantLabel": "Signature Utilisateur de permis",
+      "signaturePlaceholder": "Nom et signature",
+      "clotureTitle": "Clôture journalière",
+      "cancelButton": "Annuler",
+      "submitButton": "Enregistrer le contrôle",
+      "validationFieldsAlert": "Veuillez remplir tous les champs obligatoires",
+      "validationConfirmationAlert": "Vous devez confirmer la mise en œuvre des mesures de prévention",
+      "vitesseVentZeroAlert": "La vitesse du vent doit être supérieure à 0 km/h",
+      "windExceedConfirm": "Attention : La vitesse du vent ({{vitesse}} km/h) dépasse la limite recommandée de 50 km/h pour les travaux en hauteur. Voulez-vous continuer ?"
+    },
+    "controleJournalierModal": {
+      "title": "Contrôle Journalier"
+    },
+    "validationJournaliereModal": {
+      "validation": {
+        "dateRequired": "Date requise",
+        "codeSiteRequired": "Code site requis",
+        "vitesseVentPositive": "Vitesse du vent doit être positive",
+        "demandeurSignatureDebutRequired": "Signature demandeur début requise",
+        "utilisateurSignatureDebutRequired": "Signature utilisateur début requise"
+      },
+      "toastSuccess": "Validation journalière ajoutée avec succès",
+      "toastError": "Une erreur est survenue lors de l'ajout de la validation",
+      "modalTitle": "Validation Journalière",
+      "description": "Gestion des validations journalières du permis de travail en hauteur",
+      "addButton": "Ajouter une validation journalière",
+      "formTitle": "Nouvelle validation journalière",
+      "dateLabel": "Date *",
+      "codeSiteLabel": "Code Site *",
+      "codeSitePlaceholder": "Ex. : ANT-001",
+      "vitesseVentLabel": "Vitesse du vent (km/h)",
+      "vitesseVentPlaceholder": "Ex. : 15",
+      "debutSignaturesTitle": "Signatures - Commencement des travaux",
+      "demandeurSignatureDebutLabel": "Demandeur / Responsable contractant *",
+      "utilisateurSignatureDebutLabel": "Utilisateur de permis *",
+      "signaturePlaceholder": "Nom et signature",
+      "finSignaturesTitle": "Signatures - Clôture journalière",
+      "demandeurSignatureFinLabel": "Demandeur / Responsable contractant",
+      "utilisateurSignatureFinLabel": "Utilisateur de permis",
+      "submitAddButton": "Ajouter la validation",
+      "cancelButton": "Annuler",
+      "historyTitle": "Historique des validations ({{count}})",
+      "emptyTitle": "Aucune validation journalière enregistrée",
+      "emptyText": "Ajoutez la première validation pour commencer le suivi",
+      "tableHeaderDate": "Date",
+      "tableHeaderCodeSite": "Code Site",
+      "tableHeaderVent": "Vent (km/h)",
+      "tableHeaderDemandeurDebut": "Demandeur Début",
+      "tableHeaderUtilisateurDebut": "Utilisateur Début",
+      "tableHeaderDemandeurFin": "Demandeur Fin",
+      "tableHeaderUtilisateurFin": "Utilisateur Fin",
+      "signedLabel": "Signé",
+      "closeButton": "Fermer"
+    },
+    "validationModal": {
+      "titleChef": "Validation Chef de Projet",
+      "titleHse": "Validation HSE et Attribution de Référence",
+      "descriptionChef": "Examinez la demande et validez ou refusez le permis",
+      "descriptionHse": "Validation finale et attribution d'une référence unique au permis",
+      "validatedByLabel": "Validé par",
+      "commentaireLabel": "Commentaire",
+      "commentairePlaceholder": "Ajoutez un commentaire (optionnel)",
+      "hseReferenceInfoTitle": "Une référence unique sera automatiquement générée lors de la validation.",
+      "hseReferenceInfoFormat": "Format: ANNÉE/PTW/XXX (ex: 2025/PTW/001)",
+      "validerActionLabel": "Valider",
+      "validerActionDescChef": "Transférer à HSE",
+      "validerActionDescHse": "Approuver le permis",
+      "refuserActionLabel": "Refuser",
+      "refuserActionDesc": "Rejeter la demande",
+      "refusRequiredWarningTitle": "⚠️ Le commentaire est obligatoire pour un refus",
+      "refusRequiredWarningText": "Expliquez la raison du refus pour que le prestataire puisse corriger.",
+      "cancelButton": "Annuler",
+      "submitValiderLabel": "Valider le permis",
+      "submitRefuserLabel": "Refuser le permis",
+      "toastSuccessChef": "Permis validé par le Chef de Projet avec succès",
+      "toastSuccessHse": "Permis validé par HSE et référence attribuée avec succès",
+      "toastErrorRefuse": "Permis refusé",
+      "toastErrorGeneric": "Une erreur est survenue lors de la validation"
+    }
+  },
+  "permitTravail": {
+    "statut": {
+      "BROUILLON": "Brouillon",
+      "SOUMIS": "Soumis",
+      "EN_COURS": "En cours",
+      "VALIDE": "Validé",
+      "REJETE": "Rejeté",
+      "VALIDE_HSE": "Validé HSE",
+      "REFUSE_HSE": "Refusé HSE",
+      "CLOTURE": "Clôturé",
+      "PV_VALIDE": "PV Validé",
+      "PV_REFUSE": "PV Refusé"
+    },
+    "types": {
+      "GENERAL": "Général",
+      "ELECTRIQUE": "Électrique",
+      "HAUTEUR": "Hauteur"
+    },
+    "processus": {
+      "NOUVEAU_SITE": "Nouveau site",
+      "MAINTENANCE": "Maintenance",
+      "RENOUVELLEMENT": "Renouvellement"
+    },
+    "list": {
+      "title": "Permis de travail",
+      "description": "Gérez vos demandes de permis de travail",
+      "newPermit": "Nouveau permis",
+      "hseView": "Vue HSE",
+      "empty": "Aucun permis de travail",
+      "emptyCreate": "Créez votre premier permis de travail.",
+      "emptyNoCreate": "Aucun permis disponible pour votre compte.",
+      "loadingError": "Erreur lors du chargement des permis.",
+      "downloadPv": "Télécharger le PV de réception",
+      "groupBadge": "Groupe",
+      "groupTitle": "Fait partie d'un groupe de permis",
+      "paginationPermits": "permis",
+      "headers": {
+        "reference": "Référence",
+        "type": "Type",
+        "processus": "Processus",
+        "site": "Site",
+        "statut": "Statut",
+        "submittedAt": "Date soumission",
+        "expiration": "Expiration",
+        "actions": "Actions"
+      },
+      "actions": {
+        "voir": "Voir",
+        "valider": "Valider",
+        "refuser": "Refuser",
+        "corriger": "Corriger"
+      },
+      "filters": {
+        "allStatuts": "Tous les statuts",
+        "allTypes": "Tous les types"
+      }
+    },
+    "suivi": {
+      "title": "Suivi utilisation — Permis de Travail",
+      "description": "Tableau de bord d'activité, actualisé toutes les 60 secondes",
+      "applyFilters": "Appliquer",
+      "resetFilters": "Réinitialiser",
+      "siteLabel": "Site",
+      "sitePlaceholder": "Code site…",
+      "typeLabel": "Type",
+      "statutLabel": "Statut",
+      "dateStartLabel": "Début",
+      "dateEndLabel": "Fin",
+      "stats": {
+        "actifs": "Permis actifs",
+        "consultations": "Consultations aujourd'hui",
+        "changements": "Changements de statut",
+        "expiring": "Expirant sous 7 jours"
+      },
+      "tableTitle": "Permis ({{count}})",
+      "loading": "Chargement…",
+      "empty": "Aucun permis correspondant",
+      "paginationPermits": "permis",
+      "distributionStatut": "Répartition par statut",
+      "distributionType": "Répartition par type",
+      "topSites": "Top 5 sites",
+      "expiringSection": "Expirant sous 7 jours",
+      "headers": {
+        "reference": "Référence",
+        "type": "Type",
+        "site": "Site",
+        "statut": "Statut",
+        "submittedAt": "Soumis le",
+        "expiration": "Expiration",
+        "actions": "Actions"
+      },
+      "actions": {
+        "logs": "Logs"
+      },
+      "noAccess": "Accès non autorisé",
+      "noData": "Aucune donnée",
+      "byStatut": "Par statut",
+      "byType": "Par type"
+    },
+    "components": {
+      "cloturerModal": {
+        "title": "Clôturer le permis",
+        "banner": "<strong>Action irréversible.</strong> Le permis passera en statut CLÔTURÉ et un PV de réception sera généré automatiquement.",
+        "commentPlaceholder": "Motif de clôture, remarques de réception…",
+        "accordClientLabel": "Accord client obtenu",
+        "confirmLabel": "Confirmer la clôture",
+        "errorMessage": "Erreur lors de la clôture — vérifiez les droits ou le statut du permis."
+      },
+      "refuserModal": {
+        "title": "Refuser le permis {{reference}}",
+        "banner": "Le prestataire sera notifié par email et devra corriger son dossier puis soumettre à nouveau.",
+        "commentLabel": "Motif du refus",
+        "commentRequiredMessage": "Le motif de refus est obligatoire.",
+        "commentPlaceholder": "Expliquez les raisons du refus...",
+        "confirmLabel": "Refuser",
+        "errorMessage": "Erreur lors du refus du permis."
+      },
+      "validerModal": {
+        "title": "Valider le permis {{reference}}",
+        "descriptionPrefix": "Confirmez la validation du permis de travail",
+        "commentPlaceholder": "Observations ou remarques...",
+        "confirmLabel": "Valider",
+        "errorMessage": "Erreur lors de la validation du permis.",
+        "successMessage": "Permis validé avec succès.",
+        "signatureLabel": "Signature électronique",
+        "expirationLabel": "Date d'expiration"
+      },
+      "pvRefuserModal": {
+        "title": "Refuser le PV — {{reference}}",
+        "banner": "Le prestataire sera notifié par email et devra re-clôturer le permis.",
+        "commentLabel": "Motif du refus",
+        "commentRequiredMessage": "Le motif de refus est obligatoire.",
+        "commentPlaceholder": "Expliquez les raisons du refus du PV...",
+        "confirmLabel": "Refuser le PV",
+        "errorMessage": "Erreur lors du refus du PV de réception."
+      },
+      "pvValiderModal": {
+        "title": "Valider le PV — {{reference}}",
+        "descriptionPrefix": "Confirmer la validation du PV de réception pour le permis",
+        "commentPlaceholder": "Observations de réception...",
+        "confirmLabel": "Valider le PV",
+        "successMessage": "PV de réception validé avec succès.",
+        "signatureLabel": "Signature électronique",
+        "errorNotCloture": "Le permis n'est pas clôturé.",
+        "errorPvNotGenere": "Le PV de réception n'est pas encore généré. Attendez la fin de la génération.",
+        "errorSuiviManquant": "Aucun suivi journalier trouvé pour ce permis.",
+        "errorEvaluationManquante": "Aucune évaluation des risques trouvée pour ce permis.",
+        "errorGeneric": "Erreur lors de la validation du PV de réception."
+      },
+      "pdfButton": {
+        "generating": "Génération en cours…",
+        "downloadOfficial": "Télécharger le PDF officiel",
+        "generatedOn": "Généré le {{date}}",
+        "generatedOnWithSize": "Généré le {{date}} ({{size}} Ko)",
+        "regenerate": "Regénérer",
+        "retryGeneration": "Réessayer la génération",
+        "generateOfficial": "Générer le PDF officiel"
+      },
+      "pvReceptionButton": {
+        "generating": "Génération PV…",
+        "download": "Télécharger le PV",
+        "generatedOn": "Généré le {{date}}",
+        "generatedOnWithSize": "Généré le {{date}} ({{size}} Ko)",
+        "error": "Erreur de génération",
+        "pending": "PV en attente de génération"
+      },
+      "documentUploadZone": {
+        "uploadedCheck": "Document téléversé ✓",
+        "formatsHint": "PDF, JPG/JPEG — glissez-déposez ou cliquez pour sélectionner",
+        "downloadButton": "Télécharger",
+        "uploading": "Envoi...",
+        "replaceButton": "Remplacer",
+        "chooseButton": "Choisir",
+        "footerNote": "Tous les documents sont obligatoires pour soumettre le permis. Formats acceptés : PDF, JPG/JPEG."
+      },
+      "logsDrawer": {
+        "actions": {
+          "consulte": "Consulté",
+          "documentTelecharge": "Document téléchargé",
+          "statutChange": "Changement de statut",
+          "pdfGenere": "PDF généré"
+        },
+        "titleWithRef": "Logs — {{reference}}",
+        "titleDefault": "Logs",
+        "dateLabel": "Date",
+        "csvButton": "CSV",
+        "loading": "Chargement…",
+        "emptyText": "Aucun log pour cette date",
+        "eventCount_one": "{{count}} événement",
+        "eventCount_other": "{{count}} événements",
+        "loadMore": "Charger plus ({{remaining}} restants)",
+        "csvHeader": "Date,Heure,Action,Déclenché par,Détails"
+      },
+      "engagementSection": {
+        "niveauRouge": "Rouge",
+        "niveauJaune": "Jaune",
+        "niveauVert": "Vert",
+        "niveauAriaLabel": "Niveau {{level}}",
+        "dangersPlaceholder": "Quels sont les dangers?",
+        "evaluationPreliminaireLabel": "Évaluation préliminaire des risques",
+        "moyensMaitrisePlaceholder": "Quels sont les moyens de maîtriser les dangers en sécurité?",
+        "evaluationFinaleLabel": "Évaluation finale des risques",
+        "saveButtonSaving": "Enregistrement…",
+        "saveButtonSaved": "✓ Enregistré",
+        "saveButtonError": "Erreur — réessayer",
+        "saveButtonDefault": "Enregistrer",
+        "saveErrorText": "Impossible de sauvegarder. Vérifiez votre connexion.",
+        "certifyPrefix": "Je soussigné(e)",
+        "certifySuffix": "certifie l'exactitude des informations et m'engage à respecter ces obligations HSSES.",
+        "defaultPrestataire": "le prestataire"
+      },
+      "expirationBadge": {
+        "expired": "Expiré",
+        "renewalSoon": "Renouvellement sous {{days}}j"
+      },
+      "statutBadge": {
+        "brouillon": "Brouillon",
+        "soumis": "Soumis",
+        "enCours": "En cours",
+        "valide": "Validé",
+        "rejete": "Rejeté",
+        "valideHse": "Validé HSE",
+        "refuseHse": "Refusé HSE",
+        "cloture": "Clôturé",
+        "pvValide": "PV Validé",
+        "pvRefuse": "PV Refusé"
+      }
+    }
+  },
+  "intervention": {
+    "pages": {
+      "shared": {
+        "loading": "Chargement…",
+        "backToList": "Retour à la liste",
+        "accessDenied": "Accès refusé",
+        "realise": "Réalisé",
+        "nonRealise": "Non réalisé",
+        "statut": {
+          "enPreparation": "En préparation",
+          "evaluationComplete": "Évaluation complète",
+          "enCours": "En cours",
+          "terminee": "Terminée"
+        }
+      },
+      "form": {
+        "title": "Nouvelle intervention"
+      },
+      "suivisJournaliers": {
+        "title": "Suivis journaliers",
+        "description": "Interventions avec évaluation complète, suivi quotidien de l'avancement",
+        "viewButton": "Voir les suivis",
+        "listTitle": "Interventions prêtes ({{count}})",
+        "listDescription": "Évaluation validée, saisie du suivi journalier possible",
+        "searchPlaceholder": "Rechercher par référence ou site…",
+        "emptySearch": "Aucun résultat",
+        "emptySearchHint": "Modifiez votre recherche ou effacez le filtre.",
+        "stats": {
+          "total": "Total",
+          "ready": "Prêtes pour suivi"
+        },
+        "headers": {
+          "reference": "Référence permis",
+          "site": "Site",
+          "avancement": "Avancement",
+          "actions": "Actions"
+        },
+        "empty": {
+          "title": "Aucune intervention disponible",
+          "description": "Les interventions apparaîtront ici une fois l'évaluation des risques validée."
+        }
+      },
+      "suiviJournalier": {
+        "title": "Suivi journalier",
+        "description": "Enregistrement quotidien de l'avancement de l'intervention",
+        "notFound": "Intervention introuvable",
+        "backToList": "Retour aux suivis",
+        "backToEvaluation": "Retour à l'évaluation",
+        "addToday": "Ajouter le suivi du jour",
+        "historyTitle": "Historique ({{count}})",
+        "today": "aujourd'hui",
+        "responsable": "Responsable :",
+        "edit": "Modifier",
+        "summary": {
+          "permitRef": "Référence permis",
+          "site": "Site",
+          "statut": "Statut",
+          "globalProgress": "Avancement global"
+        },
+        "empty": {
+          "title": "Aucun suivi journalier enregistré",
+          "description": "Ajoutez le suivi du jour pour commencer l'historique."
+        },
+        "form": {
+          "createTitle": "Suivi du {{date}}",
+          "editTitle": "Modifier le suivi du {{date}}",
+          "date": "Date",
+          "responsable": "Nom du responsable",
+          "responsablePlaceholder": "Nom et prénom du responsable de chantier",
+          "realisation": "Réalisation",
+          "motif": "Motif de non-réalisation",
+          "motifPlaceholder": "Ex. : intempéries, absence intervenant…",
+          "avancement": "Avancement",
+          "avancementError": "Valeur entre 0 et 100",
+          "commentaire": "Commentaire",
+          "commentairePlaceholder": "Observations, remarques…",
+          "cancel": "Annuler",
+          "save": "Enregistrer"
+        },
+        "errors": {
+          "doublon": "Suivi du {{date}} déjà renseigné.",
+          "evaluationRequise": "Évaluation des risques requise avant de saisir un suivi.",
+          "motifRequis": "Motif de non-réalisation obligatoire.",
+          "avancementInvalide": "Pourcentage d'avancement invalide (0–100)."
+        }
+      },
+      "evaluationRisque": {
+        "loading": "Chargement…",
+        "notFound": "Intervention introuvable",
+        "backToPermits": "Retour aux permis de travail",
+        "title": "Évaluation des risques",
+        "description": "Réévaluation des risques identifiés pour cette intervention",
+        "backToPermit": "Retour au permis",
+        "permitSummary": {
+          "title": "Résumé du permis de travail",
+          "reference": "Référence",
+          "type": "Type",
+          "site": "Site",
+          "period": "Période",
+          "planPrevention": "Plan de prévention",
+          "viewPlan": "Voir le plan",
+          "evaluationStatus": "Statut d'évaluation"
+        },
+        "reevaluation": {
+          "title": "Réévaluation des risques",
+          "saving": "Enregistrement…"
+        },
+        "progress": {
+          "title": "Progression de la réévaluation",
+          "count": "{{reevaluated}} / {{total}} risques réévalués",
+          "warning": "Tous les risques doivent être réévalués avant validation",
+          "validateButton": "Valider l'évaluation",
+          "validateTooltip": "Complétez la réévaluation de tous les risques",
+          "allDone": "Tous les risques ont été réévalués"
+        },
+        "complete": {
+          "title": "Évaluation complète",
+          "description": "L'évaluation des risques a été validée. Vous pouvez maintenant suivre l'avancement journalier.",
+          "viewSuivis": "Voir les suivis journaliers"
+        }
+      },
+      "detailHse": {
+        "notFound": "Intervention introuvable",
+        "headerFallbackTitle": "Intervention {{id}}",
+        "headerDescription": "Suivi HSE — site {{site}}",
+        "statutLabel": "Statut",
+        "permitReferenceLabel": "Référence permis",
+        "typeLabel": "Type",
+        "siteLabel": "Site",
+        "globalProgressLabel": "Avancement global",
+        "suivisSection": {
+          "title": "Suivis journaliers ({{count}})",
+          "empty": "Aucun suivi journalier enregistré",
+          "responsable": "Responsable :",
+          "motif": "Motif :",
+          "recordedOn": "Enregistré le {{date}}"
+        },
+        "risquesSection": {
+          "title": "Évaluation des risques ({{count}})",
+          "averageLevel": "Niveau moyen : {{value}}",
+          "headers": {
+            "description": "Description",
+            "gravite": "Gravité",
+            "probabilite": "Probabilité",
+            "niveauRisque": "Niveau de risque",
+            "reevalue": "Réévalué",
+            "mesures": "Mesures"
+          }
+        },
+        "linkedInfo": {
+          "title": "Informations liées",
+          "permit": "Permis de travail",
+          "plan": "Plan de prévention"
+        }
+      }
+    },
+    "components": {
+      "avancementBadge": {
+        "termine": "Terminé",
+        "avance": "Avancé",
+        "enCours": "En cours",
+        "faible": "Faible"
+      }
+    }
+  },
+  "interventions": {
+    "list": {
+      "title": "Interventions",
+      "description": "Suivi journalier des interventions et validations de chantier",
+      "newIntervention": "Nouvelle intervention",
+      "empty": "Aucune intervention trouvée",
+      "emptyCreate": "Créez votre première intervention.",
+      "searchPlaceholder": "Rechercher par référence, site, prestataire…",
+      "filterStatus": "Filtrer par statut",
+      "filterSite": "Filtrer par site",
+      "allStatuts": "Tous les statuts",
+      "allSites": "Tous les sites",
+      "createAction": "Créer une intervention",
+      "tableDescription": "Toutes vos interventions",
+      "activeTitle": "Interventions actives ({{count}})",
+      "zoneEnclavee": "Zone enclavée",
+      "stats": {
+        "total": "Total",
+        "enCours": "En cours",
+        "planifiees": "Planifiées",
+        "terminees": "Terminées",
+        "zonesEnclavees": "Zones enclavées"
+      },
+      "status": {
+        "planifiee": "Planifiée",
+        "en_cours": "En cours",
+        "suspendue": "Suspendue",
+        "terminee": "Terminée",
+        "annulee": "Annulée"
+      },
+      "headers": {
+        "reference": "Référence",
+        "site": "Site",
+        "prestataire": "Prestataire",
+        "dates": "Dates",
+        "statut": "Statut",
+        "actions": "Actions"
+      },
+      "actions": {
+        "voir": "Voir détails"
+      },
+      "offlineQueued": "En attente de synchronisation"
+    },
+    "suiviHse": {
+      "title": "Suivi avancements",
+      "description": "Tableau de bord HSE / Chef de Projet, actualisé toutes les 60 secondes",
+      "accessDenied": "Accès non autorisé",
+      "filters": {
+        "site": "Site",
+        "sitePlaceholder": "Code site…",
+        "statut": "Statut",
+        "dateDebut": "Début",
+        "dateFin": "Fin",
+        "apply": "Appliquer",
+        "reset": "Réinitialiser",
+        "allStatuts": "Tous les statuts"
+      },
+      "stats": {
+        "total": "Total interventions",
+        "avancementMoyen": "Avancement moyen",
+        "enCours": "En cours",
+        "terminees": "Terminées",
+        "pvValides": "PV validés ce mois",
+        "tauxCloture": "Taux de clôture",
+        "delaiCdp": "Délai moyen validation CdP"
+      },
+      "statsJournalieres": {
+        "title": "Stats journalières — {{site}} ({{date}})",
+        "actives": "Interventions actives",
+        "avancementMoyen": "Avancement moyen",
+        "suivisJour": "Suivis renseignés aujourd'hui"
+      },
+      "table": {
+        "title": "Interventions ({{count}})",
+        "loading": "Chargement…",
+        "empty": "Aucune intervention correspondante",
+        "detail": "Détail",
+        "headers": {
+          "reference": "Référence permis",
+          "site": "Site",
+          "statut": "Statut",
+          "avancement": "Avancement",
+          "dernierSuivi": "Dernier suivi",
+          "nbSuivis": "Nb suivis"
+        }
+      },
+      "relativeDays": {
+        "today": "Aujourd'hui",
+        "oneDay": "Il y a 1 jour",
+        "days": "Il y a {{count}} jours"
+      }
     }
   }
 }

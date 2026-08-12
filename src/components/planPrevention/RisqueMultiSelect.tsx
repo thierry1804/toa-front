@@ -133,13 +133,13 @@ export default function RisqueMultiSelect({ categories, value, onChange, disable
               filtered.map((cat) => (
                 <label
                   key={cat.id}
-                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selected.has(cat.nom)}
                     onChange={() => toggle(cat.nom)}
-                    className="h-3 w-3 rounded border-gray-300 text-blue-600 flex-shrink-0"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 flex-shrink-0"
                   />
                   <span className="text-xs text-gray-800">{cat.nom}</span>
                 </label>

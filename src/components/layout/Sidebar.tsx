@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useUiStore } from "@/store/ui.store";
 import { useMenuStore } from "@/store/menu.store";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Loader2,
   AlertCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -52,6 +52,7 @@ function ParentMenuItem({
   collapsed: boolean;
 }) {
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   const isChildActive = hasActiveChild(node, pathname);
   const [open, setOpen] = useState(isChildActive);
   const Icon = getIcon(node.icon);
@@ -84,7 +85,9 @@ function ParentMenuItem({
         {!collapsed && (
           <button
             onClick={() => setOpen((o) => !o)}
-            className="px-2 py-2.5"
+            aria-label={t(open ? "nav.collapseSection" : "nav.expandSection")}
+            aria-expanded={open}
+            className="touch-target flex items-center justify-center px-2"
           >
             <ChevronDown
               className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
@@ -136,28 +139,18 @@ function MenuItemLink({ node, collapsed }: { node: MenuNode; collapsed: boolean 
 }
 
 export function Sidebar() {
+  const { t } = useTranslation();
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const menuStore = useMenuStore();
   const [collapsed, setCollapsed] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      await menuStore.load();
-    } catch {
-      console.error("Failed to load menu");
-    } finally {
-      setInitialized(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const retryLoad = useCallback(() => {
+    void menuStore.load();
+  }, [menuStore]);
 
   const rootItems = menuStore.items;
+  const showMenuSkeleton = menuStore.loading && !menuStore.loaded;
 
   return (
     <>
@@ -172,18 +165,17 @@ export function Sidebar() {
           collapsed ? "w-20" : "w-64"
         } ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className="relative flex h-16 items-center justify-center border-b border-gray-200 px-4">
-          <div className={`border border-gray-200 rounded-lg ${collapsed ? "p-0.5" : "p-1"}`}>
-            <img
-              src="/images/TOA.png"
-              alt="TOA"
-              className={`${collapsed ? "h-6 w-auto" : "h-8 w-auto"}`}
-            />
-          </div>
+        <div className="relative flex h-14 items-center border-b border-gray-200 px-4">
+          <img
+            src="/images/TOA.png"
+            alt="TOA"
+            className={`${collapsed ? "mx-auto h-6 w-auto" : "h-7 w-auto"}`}
+          />
           <div className="absolute right-2 flex items-center gap-1">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 lg:hidden"
+              aria-label={t("nav.closeMenu")}
+              className="touch-target flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 lg:hidden"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -195,7 +187,9 @@ export function Sidebar() {
             </button>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 lg:block"
+              aria-label={t(collapsed ? "nav.expandSidebar" : "nav.collapseSidebar")}
+              aria-expanded={!collapsed}
+              className="touch-target hidden items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 lg:flex"
             >
               {collapsed ? (
                 <ChevronRight className="h-5 w-5" />
@@ -207,14 +201,22 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4">
-          {menuStore.loading && !initialized ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          {showMenuSkeleton ? (
+            <div className="flex flex-col gap-1" aria-hidden="true">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-9 animate-pulse rounded-lg bg-gray-100" />
+              ))}
             </div>
           ) : menuStore.error && rootItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <AlertCircle className="mb-2 h-5 w-5 text-gray-400" />
-              <p className="text-xs text-gray-400">Menu indisponible</p>
+              <AlertCircle className="mb-2 h-5 w-5 text-gray-500" />
+              <p className="text-xs text-gray-600">{t('layout.sidebar.menuUnavailable')}</p>
+              <button
+                onClick={retryLoad}
+                className="touch-target-inline mt-2 text-xs font-medium text-blue-600 hover:text-blue-800"
+              >
+                {t('layout.sidebar.retry')}
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-1">

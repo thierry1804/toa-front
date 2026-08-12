@@ -1,21 +1,24 @@
+import { useTranslation } from 'react-i18next'
+
 interface NiveauRisqueBadgeProps {
   niveauRisque: number
   showLabel?: boolean
 }
 
 export default function NiveauRisqueBadge({ niveauRisque, showLabel = true }: NiveauRisqueBadgeProps) {
+  const { t } = useTranslation()
   let className: string
   let label: string
 
   if (niveauRisque >= 15) {
     className = 'bg-red-100 text-red-800'
-    label = 'Élevé'
+    label = t('intervention.components.niveauRisqueBadge.eleve')
   } else if (niveauRisque >= 8) {
-    className = 'bg-yellow-100 text-yellow-800'
-    label = 'Modéré'
+    className = 'bg-amber-200 text-amber-900'
+    label = t('intervention.components.niveauRisqueBadge.modere')
   } else {
     className = 'bg-green-100 text-green-800'
-    label = 'Faible'
+    label = t('intervention.components.niveauRisqueBadge.faible')
   }
 
   return (

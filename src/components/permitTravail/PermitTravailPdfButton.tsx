@@ -1,4 +1,5 @@
 import { FileDown, FileCheck, AlertTriangle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { usePermission } from '@/features/auth/usePermission'
 import { usePermitTravailPdf } from '@/features/permitTravail/hooks/usePermitTravail'
 import Button from '@/components/ui/Button'
@@ -9,6 +10,7 @@ interface PermitTravailPdfButtonProps {
 }
 
 export default function PermitTravailPdfButton({ permitId, permitStatut }: PermitTravailPdfButtonProps) {
+  const { t } = useTranslation()
   const canGenerate = usePermission('permit_travail.generate_pdf')
   const canView = usePermission('permit_travail.view')
   const { pdfStatut, isPolling, pdfMeta, pollError, generatePdf, downloadPdf } =
@@ -20,7 +22,7 @@ export default function PermitTravailPdfButton({ permitId, permitStatut }: Permi
     return (
       <Button disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Génération en cours…
+        {t('permitTravail.components.pdfButton.generating')}
       </Button>
     )
   }
@@ -33,14 +35,18 @@ export default function PermitTravailPdfButton({ permitId, permitStatut }: Permi
           onClick={() => void downloadPdf()}
         >
           <FileCheck className="mr-2 h-4 w-4" />
-          Télécharger le PDF officiel
+          {t('permitTravail.components.pdfButton.downloadOfficial')}
         </Button>
         {pdfMeta?.genereAt && (
           <span className="text-xs text-gray-500">
-            Généré le {new Date(pdfMeta.genereAt).toLocaleString('fr-FR')}
             {pdfMeta.tailleFichier
-              ? ` (${Math.round(pdfMeta.tailleFichier / 1024)} Ko)`
-              : ''}
+              ? t('permitTravail.components.pdfButton.generatedOnWithSize', {
+                  date: new Date(pdfMeta.genereAt).toLocaleString('fr-FR'),
+                  size: Math.round(pdfMeta.tailleFichier / 1024),
+                })
+              : t('permitTravail.components.pdfButton.generatedOn', {
+                  date: new Date(pdfMeta.genereAt).toLocaleString('fr-FR'),
+                })}
           </span>
         )}
         {canGenerate && (
@@ -48,7 +54,7 @@ export default function PermitTravailPdfButton({ permitId, permitStatut }: Permi
             className="text-xs text-gray-400 underline hover:text-gray-600"
             onClick={() => void generatePdf()}
           >
-            Regénérer
+            {t('permitTravail.components.pdfButton.regenerate')}
           </button>
         )}
       </div>
@@ -61,7 +67,7 @@ export default function PermitTravailPdfButton({ permitId, permitStatut }: Permi
       <div className="flex flex-col items-start gap-1">
         <Button variant="danger" onClick={() => void generatePdf()}>
           <AlertTriangle className="mr-2 h-4 w-4" />
-          Réessayer la génération
+          {t('permitTravail.components.pdfButton.retryGeneration')}
         </Button>
         {pollError && <span className="text-xs text-red-500">{pollError}</span>}
       </div>
@@ -73,7 +79,7 @@ export default function PermitTravailPdfButton({ permitId, permitStatut }: Permi
   return (
     <Button onClick={() => void generatePdf()}>
       <FileDown className="mr-2 h-4 w-4" />
-      Générer le PDF officiel
+      {t('permitTravail.components.pdfButton.generateOfficial')}
     </Button>
   )
 }

@@ -1,21 +1,25 @@
 import { useState } from 'react'
 import { Eye, Download, FileDown, RefreshCw, ChevronDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { Drawer } from '@/components/ui/Drawer'
+import Input from '@/components/ui/Input'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import { usePermitTravailLogs } from '@/features/permitTravail/hooks/usePermitTravail'
 import type { PermitTravail, PermitTravailLog, ActionPermitTravailLog } from '@/types/permitTravail'
 
-const ACTION_CONFIG: Record<ActionPermitTravailLog, { label: string; color: string; icon: React.ElementType }> = {
-  CONSULTE:            { label: 'Consulté',              color: 'bg-blue-100 text-blue-700',   icon: Eye        },
-  DOCUMENT_TELECHARGE: { label: 'Document téléchargé',   color: 'bg-purple-100 text-purple-700', icon: FileDown  },
-  STATUT_CHANGE:       { label: 'Changement de statut',  color: 'bg-orange-100 text-orange-700', icon: RefreshCw },
-  PDF_GENERE:          { label: 'PDF généré',             color: 'bg-green-100 text-green-700', icon: Download   },
+const ACTION_CONFIG: Record<ActionPermitTravailLog, { labelKey: string; color: string; icon: React.ElementType }> = {
+  CONSULTE:            { labelKey: 'permitTravail.components.logsDrawer.actions.consulte',            color: 'bg-blue-100 text-blue-700',   icon: Eye        },
+  DOCUMENT_TELECHARGE: { labelKey: 'permitTravail.components.logsDrawer.actions.documentTelecharge',  color: 'bg-purple-100 text-purple-700', icon: FileDown  },
+  STATUT_CHANGE:       { labelKey: 'permitTravail.components.logsDrawer.actions.statutChange',        color: 'bg-orange-100 text-orange-700', icon: RefreshCw },
+  PDF_GENERE:          { labelKey: 'permitTravail.components.logsDrawer.actions.pdfGenere',           color: 'bg-green-100 text-green-700', icon: Download   },
 }
 
-function LogTimelineItem({ log }: { log: PermitTravailLog }) {
+function LogTimelineItem({ log, t }: { log: PermitTravailLog; t: TFunction }) {
   const cfg = ACTION_CONFIG[log.action] ?? ACTION_CONFIG.CONSULTE
   const Icon = cfg.icon
   const time = new Date(log.createdAt)
+  const label = t(cfg.labelKey)
 
   return (
     <div className="flex gap-3 pb-5">
@@ -27,7 +31,7 @@ function LogTimelineItem({ log }: { log: PermitTravailLog }) {
       </div>
       <div className="min-w-0 flex-1 pb-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium text-gray-900">{cfg.label}</span>
+          <span className="text-sm font-medium text-gray-900">{label}</span>
           <time className="shrink-0 text-xs text-gray-500">
             {time.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </time>
@@ -55,13 +59,13 @@ function LogTimelineItem({ log }: { log: PermitTravailLog }) {
   )
 }
 
-function exportCsv(logs: PermitTravailLog[], reference: string) {
-  const header = 'Date,Heure,Action,Déclenché par,Détails'
+function exportCsv(logs: PermitTravailLog[], reference: string, t: TFunction) {
+  const header = t('permitTravail.components.logsDrawer.csvHeader')
   const rows = logs.map((l) => {
     const d = new Date(l.createdAt)
     const date = d.toLocaleDateString('fr-FR')
     const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    const action = ACTION_CONFIG[l.action]?.label ?? l.action
+    const action = t(ACTION_CONFIG[l.action]?.labelKey ?? '') || l.action
     const by = l.declenchePar?.email ?? ''
     const detail = l.metadata ? JSON.stringify(l.metadata).replace(/"/g, '""') : ''
     return `"${date}","${time}","${action}","${by}","${detail}"`
@@ -85,6 +89,7 @@ interface LogsDrawerProps {
 const PAGE_SIZE = 20
 
 export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps) {
+  const { t } = useTranslation()
   const today = new Date().toISOString().slice(0, 10)
   const [date, setDate] = useState(today)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -98,7 +103,11 @@ export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps)
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title={permit ? `Logs — ${permit.reference}` : 'Logs'}
+      title={
+        permit
+          ? t('permitTravail.components.logsDrawer.titleWithRef', { reference: permit.reference })
+          : t('permitTravail.components.logsDrawer.titleDefault')
+      }
       subtitle={permit ? undefined : undefined}
       width="max-w-lg"
     >
@@ -111,38 +120,41 @@ export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps)
 
       <div className="mb-4 flex items-end gap-3">
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-700">Date</label>
-          <input
+          <Input
+            label={t('permitTravail.components.logsDrawer.dateLabel')}
             type="date"
             value={date}
             onChange={(e) => { setDate(e.target.value); setVisibleCount(PAGE_SIZE) }}
-            className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {logs.length > 0 && (
           <button
-            onClick={() => exportCsv(logs, permit?.reference ?? 'permit')}
+            onClick={() => exportCsv(logs, permit?.reference ?? 'permit', t)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <Download className="h-4 w-4" />
-            CSV
+            {t('permitTravail.components.logsDrawer.csvButton')}
           </button>
         )}
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12 text-gray-400 text-sm">Chargement…</div>
+        <div className="flex items-center justify-center py-12 text-gray-400 text-sm">
+          {t('permitTravail.components.logsDrawer.loading')}
+        </div>
       ) : logs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-gray-400">
           <Eye className="mb-2 h-8 w-8 opacity-30" />
-          <p className="text-sm">Aucun log pour cette date</p>
+          <p className="text-sm">{t('permitTravail.components.logsDrawer.emptyText')}</p>
         </div>
       ) : (
         <div>
-          <div className="mb-3 text-xs text-gray-500">{logs.length} événement{logs.length > 1 ? 's' : ''}</div>
+          <div className="mb-3 text-xs text-gray-500">
+            {t('permitTravail.components.logsDrawer.eventCount', { count: logs.length })}
+          </div>
           <div>
             {visible.map((log) => (
-              <LogTimelineItem key={log.id} log={log} />
+              <LogTimelineItem key={log.id} log={log} t={t} />
             ))}
           </div>
           {hasMore && (
@@ -151,7 +163,7 @@ export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps)
               className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
               <ChevronDown className="h-4 w-4" />
-              Charger plus ({logs.length - visibleCount} restants)
+              {t('permitTravail.components.logsDrawer.loadMore', { remaining: logs.length - visibleCount })}
             </button>
           )}
         </div>

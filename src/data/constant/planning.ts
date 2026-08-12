@@ -1,33 +1,26 @@
+// Labels are resolved at render time via t('planning.status.<value>') /
+// t('planning.interventionTypes.values.<value>') — this file only owns the
+// stable data values and their visual variant, not display strings.
 export const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: "warning" | "info" | "success" | "danger" | "default" | "secondary" }
+  { variant: "warning" | "info" | "primary" | "success" | "danger" | "default" | "secondary" }
 > = {
-  brouillon: { label: "Brouillon", variant: "warning" },
-  planifie: { label: "Planifié", variant: "info" },
-  en_cours: { label: "En cours", variant: "default" },
-  valide: { label: "Validé", variant: "success" },
-  annule: { label: "Annulé", variant: "danger" },
-  stand_by: { label: "Stand By", variant: "secondary" },
+  brouillon: { variant: "default" },
+  planifie: { variant: "info" },
+  en_cours: { variant: "primary" },
+  valide: { variant: "success" },
+  annule: { variant: "danger" },
+  stand_by: { variant: "secondary" },
 }
 
-export const statusFilterOptions = [
-  { value: "all", label: "Tous les statuts" },
-  { value: "brouillon", label: "Brouillon" },
-  { value: "planifie", label: "Planifié" },
-  { value: "en_cours", label: "En cours" },
-  { value: "valide", label: "Validé" },
-  { value: "annule", label: "Annulé" },
-  { value: "stand_by", label: "Stand By" },
-]
-
-export const statusOptions = [
-  { value: "brouillon", label: "Brouillon" },
-  { value: "planifie", label: "Planifié" },
-  { value: "en_cours", label: "En cours" },
-  { value: "valide", label: "Validé" },
-  { value: "annule", label: "Annulé" },
-  { value: "stand_by", label: "Stand By" },
-]
+export const STATUS_VALUES = [
+  "brouillon",
+  "planifie",
+  "en_cours",
+  "valide",
+  "annule",
+  "stand_by",
+] as const
 
 export const INTERVENTION_TYPES = [
   'Nouveau site',
@@ -38,8 +31,3 @@ export const INTERVENTION_TYPES = [
 ] as const
 
 export type InterventionType = typeof INTERVENTION_TYPES[number]
-
-export const interventionTypeOptions = [
-  { value: '', label: '— Choisir un type —' },
-  ...INTERVENTION_TYPES.map((t) => ({ value: t, label: t })),
-]

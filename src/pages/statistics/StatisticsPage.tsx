@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import { usePermitStore } from '@/store/permitStore';
+import { usePermitTravailSuivi, usePermitsTravail } from '@/features/permitTravail/hooks/usePermitTravail';
+import { usePlanPreventions } from '@/features/planPrevention/hooks/usePlanPrevention';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { StatStrip } from '@/components/ui/StatStrip';
+import { TYPE_PERMIT_LABELS, type StatutPermitTravail } from '@/types/permitTravail';
 import {
   FileText,
-  TrendingUp,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Clock,
@@ -13,80 +14,91 @@ import {
   MapPin,
 } from 'lucide-react';
 
-export default function StatisticsPage() {
-  const { permisGeneraux, plansPrevention } = usePermitStore();
-  // Statistiques des permis
-  const permitsStats = useMemo(() => {
-    const total = permisGeneraux.length;
-    const enAttente = permisGeneraux.filter(
-      (p) => p.status === 'en_attente_validation_chef' || p.status === 'en_attente_validation_hse'
-    ).length;
-    const valides = permisGeneraux.filter((p) => p.status === 'valide').length;
-    const refuses = permisGeneraux.filter((p) => p.status === 'refuse').length;
-    const enCours = permisGeneraux.filter((p) => p.status === 'en_cours').length;
-    const clotures = permisGeneraux.filter((p) => p.status === 'cloture').length;
+const VALIDES_STATUTS: StatutPermitTravail[] = ['VALIDE', 'VALIDE_HSE'];
+const REFUSES_STATUTS: StatutPermitTravail[] = ['REJETE', 'REFUSE_HSE', 'PV_REFUSE'];
+const ATTENTE_STATUTS: StatutPermitTravail[] = ['BROUILLON', 'SOUMIS'];
+const CLOTURE_STATUTS: StatutPermitTravail[] = ['CLOTURE', 'PV_VALIDE'];
 
-    return { total, enAttente, valides, refuses, enCours, clotures };
-  }, [permisGeneraux]);
+export default function StatisticsPage() {
+  const { data: suivi, isLoading: isLoadingSuivi } = usePermitTravailSuivi();
+  const { data: permitsData, isLoading: isLoadingPermits } = usePermitsTravail({
+    itemsPerPage: '500',
+  });
+  const { data: plans = [], isLoading: isLoadingPlans } = usePlanPreventions({
+    itemsPerPage: '500',
+  });
+
+  const permits = useMemo(() => permitsData?.member ?? [], [permitsData]);
+  const parStatut = suivi?.parStatut ?? {};
+  const parType = suivi?.parType ?? {};
+  const parSite = suivi?.parSite ?? {};
+
+  const sumStatuts = (keys: StatutPermitTravail[]) =>
+    keys.reduce((sum, k) => sum + (parStatut[k] ?? 0), 0);
+
+  // Statistiques des permis (source: /api/permits-travail/suivi, agrégé côté serveur)
+  const permitsStats = useMemo(
+    () => ({
+      total: suivi?.totalPermis ?? 0,
+      valides: sumStatuts(VALIDES_STATUTS),
+      refuses: sumStatuts(REFUSES_STATUTS),
+      enAttente: sumStatuts(ATTENTE_STATUTS),
+      enCours: parStatut.EN_COURS ?? 0,
+      clotures: sumStatuts(CLOTURE_STATUTS),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [suivi],
+  );
 
   // Statistiques des plans de prévention
   const plansStats = useMemo(() => {
-    const total = plansPrevention.length;
-    const enAttente = plansPrevention.filter(
-      (p) => p.status === 'brouillon'
+    const total = plans.length;
+    const enAttente = plans.filter(
+      (p) => p.statut === 'BROUILLON' || p.statut === 'SOUMIS' || p.statut === 'EN_ATTENTE',
     ).length;
-    const valides = plansPrevention.filter((p) => p.status === 'valide').length;
-    const refuses = 0; // No 'refuse' status in PlanPrevention type
+    const valides = plans.filter(
+      (p) => p.statut === 'VALIDE' || p.statut === 'VALIDE_HSE',
+    ).length;
+    const refuses = plans.filter(
+      (p) => p.statut === 'REJETE' || p.statut === 'REFUSE_HSE',
+    ).length;
 
     return { total, enAttente, valides, refuses };
-  }, [plansPrevention]);
+  }, [plans]);
 
   // Statistiques par site
   const siteStats = useMemo(() => {
-    const sites = new Map<string, number>();
-    permisGeneraux.forEach((p) => {
-      sites.set(p.codeSite, (sites.get(p.codeSite) || 0) + 1);
-    });
-    return Array.from(sites.entries())
+    return Object.entries(parSite)
       .map(([site, count]) => ({ site, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-  }, [permisGeneraux]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suivi]);
 
-  // Statistiques par contractant
+  // Statistiques par prestataire
   const contractantStats = useMemo(() => {
     const contractants = new Map<string, number>();
-    permisGeneraux.forEach((p) => {
-      contractants.set(p.contractant, (contractants.get(p.contractant) || 0) + 1);
+    permits.forEach((p) => {
+      const nom = p.nomPrestataire?.trim();
+      if (!nom) return;
+      contractants.set(nom, (contractants.get(nom) || 0) + 1);
     });
     return Array.from(contractants.entries())
       .map(([contractant, count]) => ({ contractant, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-  }, [permisGeneraux]);
+  }, [permits]);
 
-  // Statistiques des risques
-  const riskStats = useMemo(() => {
-    const risks = {
-      travauxChaud: 0,
-      travauxHauteur: 0,
-      travauxElectrique: 0,
-      travauxEspaceConfine: 0,
-      travauxExcavation: 0,
-      autres: 0,
-    };
-
-    permisGeneraux.forEach((p) => {
-      if (p.travauxRisques.travauxChaud) risks.travauxChaud++;
-      if (p.travauxRisques.travauxHauteur) risks.travauxHauteur++;
-      if (p.travauxRisques.travauxElectrique) risks.travauxElectrique++;
-      if (p.travauxRisques.travauxEspaceConfine) risks.travauxEspaceConfine++;
-      if (p.travauxRisques.travauxExcavation) risks.travauxExcavation++;
-      if (p.travauxRisques.autres) risks.autres++;
-    });
-
-    return risks;
-  }, [permisGeneraux]);
+  // Répartition par type de permis
+  const typeStats = useMemo(
+    () => ({
+      general: parType.GENERAL ?? 0,
+      electrique: parType.ELECTRIQUE ?? 0,
+      hauteur: parType.HAUTEUR ?? 0,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [suivi],
+  );
 
   // Taux de validation
   const validationRate = useMemo(() => {
@@ -100,6 +112,14 @@ export default function StatisticsPage() {
     return Math.round((permitsStats.refuses / permitsStats.total) * 100);
   }, [permitsStats]);
 
+  if (isLoadingSuivi || isLoadingPermits || isLoadingPlans) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-gray-500">Chargement...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -108,63 +128,14 @@ export default function StatisticsPage() {
       </div>
 
       {/* KPIs Principaux */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Permis</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{permitsStats.total}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <FileText className="h-6 w-6 text-primary-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Taux de Validation</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{validationRate}%</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">En Attente</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{permitsStats.enAttente}</p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Taux de Refus</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{refusalRate}%</p>
-              </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatStrip
+        items={[
+          { label: 'Total Permis', value: permitsStats.total },
+          { label: 'Taux de Validation', value: `${validationRate}%` },
+          { label: 'En Attente', value: permitsStats.enAttente },
+          { label: 'Taux de Refus', value: `${refusalRate}%` },
+        ]}
+      />
 
       {/* Répartition par statut */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -339,7 +310,7 @@ export default function StatisticsPage() {
         </Card>
       </div>
 
-      {/* Top 5 Sites et Contractants */}
+      {/* Top 5 Sites et Prestataires */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -376,9 +347,9 @@ export default function StatisticsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Top 5 Contractants
+              Top 5 Prestataires
             </CardTitle>
-            <CardDescription>Contractants avec le plus de permis</CardDescription>
+            <CardDescription>Prestataires avec le plus de permis</CardDescription>
           </CardHeader>
           <CardContent>
             {contractantStats.length === 0 ? (
@@ -404,67 +375,46 @@ export default function StatisticsPage() {
         </Card>
       </div>
 
-      {/* Statistiques des risques */}
+      {/* Répartition par type de permis */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Types de Travaux à Risques
+            <FileText className="h-5 w-5" />
+            Répartition par Type de Permis
           </CardTitle>
-          <CardDescription>Répartition des travaux par type de risque</CardDescription>
+          <CardDescription>Nombre de permis par type</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-orange-50 rounded-lg">
+            <div className="p-4 bg-blue-50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Travaux à chaud</span>
-                <Badge variant="warning" size="lg">
-                  {riskStats.travauxChaud}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="p-4 bg-red-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Travaux en hauteur</span>
-                <Badge variant="danger" size="lg">
-                  {riskStats.travauxHauteur}
+                <span className="text-sm font-medium text-gray-700">
+                  {TYPE_PERMIT_LABELS.GENERAL}
+                </span>
+                <Badge variant="info" size="lg">
+                  {typeStats.general}
                 </Badge>
               </div>
             </div>
 
             <div className="p-4 bg-yellow-50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Travaux électriques</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {TYPE_PERMIT_LABELS.ELECTRIQUE}
+                </span>
                 <Badge variant="warning" size="lg">
-                  {riskStats.travauxElectrique}
+                  {typeStats.electrique}
                 </Badge>
               </div>
             </div>
 
-            <div className="p-4 bg-purple-50 rounded-lg">
+            <div className="p-4 bg-orange-50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Espace confiné</span>
-                <Badge variant="primary" size="lg">
-                  {riskStats.travauxEspaceConfine}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Travaux d'excavation</span>
-                <Badge variant="info" size="lg">
-                  {riskStats.travauxExcavation}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Autres</span>
-                <Badge variant="gray" size="lg">
-                  {riskStats.autres}
+                <span className="text-sm font-medium text-gray-700">
+                  {TYPE_PERMIT_LABELS.HAUTEUR}
+                </span>
+                <Badge variant="warning" size="lg">
+                  {typeStats.hauteur}
                 </Badge>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePreventionStore } from '@/store/preventionStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth.store';
 import { usePermission } from '@/features/auth/usePermission';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -527,7 +527,7 @@ export default function PreventionDetailPage() {
                   {plan.risques.map((risque, index) => {
                     const niveau = getRisqueLevel(risque.niveauGravite || 'faible');
                     return (
-                      <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium">{risque.description}</p>

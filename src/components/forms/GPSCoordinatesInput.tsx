@@ -1,6 +1,7 @@
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface GPSCoordinate {
   id: string;
@@ -31,6 +32,7 @@ const extractCoordinatesFromKMZ = async (_file: File): Promise<GPSCoordinate[]> 
 };
 
 export default function GPSCoordinatesInput({ value = [], onChange }: GPSCoordinatesInputProps) {
+  const { t } = useTranslation();
   const [coordinates, setCoordinates] = useState<GPSCoordinate[]>(value);
 
   // Mettre à jour le parent lorsque les coordonnées changent
@@ -43,7 +45,7 @@ export default function GPSCoordinatesInput({ value = [], onChange }: GPSCoordin
       id: Date.now().toString(),
       lat: 0,
       lng: 0,
-      nom: `Point ${coordinates.length + 1}`
+      nom: `${t('forms.gpsCoordinates.pointNamePrefix')} ${coordinates.length + 1}`
     };
     setCoordinates([...coordinates, newCoord]);
   };
@@ -79,7 +81,7 @@ export default function GPSCoordinatesInput({ value = [], onChange }: GPSCoordin
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-sm font-medium">Coordonnées GPS</h4>
+        <h4 className="text-sm font-medium">{t('forms.gpsCoordinates.title')}</h4>
         <div className="flex space-x-2">
           <Button
             type="button"
@@ -87,7 +89,7 @@ export default function GPSCoordinatesInput({ value = [], onChange }: GPSCoordin
             size="sm"
             onClick={handleAddCoordinate}
           >
-            Ajouter un point
+            {t('forms.gpsCoordinates.addPoint')}
           </Button>
           <input
             type="file"
@@ -102,27 +104,27 @@ export default function GPSCoordinatesInput({ value = [], onChange }: GPSCoordin
             size="sm"
             onClick={() => document.getElementById('kmz-upload')?.click()}
           >
-            Importer depuis KMZ
+            {t('forms.gpsCoordinates.importKmz')}
           </Button>
         </div>
       </div>
-      
+
       {coordinates.map((coord) => (
         <div key={coord.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded">
           <Input
-            label="Nom du point"
+            label={t('forms.gpsCoordinates.nameLabel')}
             value={coord.nom}
             onChange={(e) => handleCoordinateChange(coord.id, 'nom', e.target.value)}
           />
           <Input
-            label="Latitude"
+            label={t('forms.gpsCoordinates.latLabel')}
             type="number"
             step="0.000001"
             value={coord.lat}
             onChange={(e) => handleCoordinateChange(coord.id, 'lat', e.target.value)}
           />
           <Input
-            label="Longitude"
+            label={t('forms.gpsCoordinates.lngLabel')}
             type="number"
             step="0.000001"
             value={coord.lng}

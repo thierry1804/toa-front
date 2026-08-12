@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { CheckCircle, XCircle, Upload, Download } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 import { DOCUMENT_TYPE_LABELS } from '@/types/permitTravail'
 import { permitTravailApi } from '@/api/permitTravailApi'
@@ -31,6 +32,7 @@ export default function PermitDocumentUploadZone({
   disabled = false,
   allowDownload = false,
 }: PermitDocumentUploadZoneProps) {
+  const { t } = useTranslation()
   const [zoneStates, setZoneStates] = useState<Record<string, ZoneState>>(
     Object.fromEntries(documentTypes.map((t) => [t, { dragging: false, uploading: false }])),
   )
@@ -115,10 +117,12 @@ export default function PermitDocumentUploadZone({
                 {label}
               </p>
               {uploaded ? (
-                <p className="text-xs text-green-600 mt-0.5">Document téléversé ✓</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  {t('permitTravail.components.documentUploadZone.uploadedCheck')}
+                </p>
               ) : (
                 <p className="text-xs text-gray-500 mt-0.5">
-                  PDF, JPG/JPEG — glissez-déposez ou cliquez pour sélectionner
+                  {t('permitTravail.components.documentUploadZone.formatsHint')}
                 </p>
               )}
             </div>
@@ -131,7 +135,7 @@ export default function PermitDocumentUploadZone({
                   className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Télécharger
+                  {t('permitTravail.components.documentUploadZone.downloadButton')}
                 </button>
               )}
               {!disabled && (
@@ -161,7 +165,11 @@ export default function PermitDocumentUploadZone({
                     ) : (
                       <Upload className="h-3.5 w-3.5" />
                     )}
-                    {state.uploading ? 'Envoi...' : uploaded ? 'Remplacer' : 'Choisir'}
+                    {state.uploading
+                      ? t('permitTravail.components.documentUploadZone.uploading')
+                      : uploaded
+                        ? t('permitTravail.components.documentUploadZone.replaceButton')
+                        : t('permitTravail.components.documentUploadZone.chooseButton')}
                   </button>
                 </>
               )}
@@ -170,7 +178,7 @@ export default function PermitDocumentUploadZone({
         )
       })}
       <p className="text-xs text-gray-400">
-        Tous les documents sont obligatoires pour soumettre le permis. Formats acceptés : PDF, JPG/JPEG.
+        {t('permitTravail.components.documentUploadZone.footerNote')}
       </p>
     </div>
   )

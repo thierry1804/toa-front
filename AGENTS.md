@@ -6,7 +6,7 @@ React 19 SPA built with Vite. Application code lives under `app/` (layouts and p
 
 - `app/layout.tsx` — root layout (wraps routes via React Router `Outlet`)
 - `app/page.tsx` — home page (`/home`)
-- `app/login/page.tsx` — sign-in screen (`/login`, default entry)
+- `src/pages/auth/LoginPage.tsx` — sign-in screen (`/login`, default entry)
 - `app/globals.css` — global styles and Tailwind
 - `public/` — static assets
 - `@/*` path alias maps to project root

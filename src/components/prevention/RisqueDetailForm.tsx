@@ -252,7 +252,7 @@ export default function RisqueDetailForm({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Section 1: Catégorisation */}
-          <div className="border-l-4 border-primary-500 pl-4">
+          <div className="border-l-4 border-gray-200 pl-4">
             <h3 className="font-semibold text-lg mb-4 text-primary-900">
               1. Catégorisation du risque
             </h3>
@@ -310,7 +310,7 @@ export default function RisqueDetailForm({
           </div>
 
           {/* Section 2: Description du risque */}
-          <div className="border-l-4 border-blue-500 pl-4">
+          <div className="border-l-4 border-gray-200 pl-4">
             <h3 className="font-semibold text-lg mb-4 text-blue-900">
               2. Description du risque
             </h3>
@@ -346,7 +346,7 @@ export default function RisqueDetailForm({
           </div>
 
           {/* Section 3: Évaluation du risque */}
-          <div className="border-l-4 border-yellow-500 pl-4">
+          <div className="border-l-4 border-gray-200 pl-4">
             <h3 className="font-semibold text-lg mb-4 text-yellow-900">
               3. Évaluation du risque
             </h3>
@@ -415,7 +415,7 @@ export default function RisqueDetailForm({
           </div>
 
           {/* Section 4: Mesures de prévention */}
-          <div className="border-l-4 border-green-500 pl-4">
+          <div className="border-l-4 border-gray-200 pl-4">
             <h3 className="font-semibold text-lg mb-4 text-green-900">
               4. Mesures de prévention
             </h3>
@@ -449,7 +449,7 @@ export default function RisqueDetailForm({
           </div>
 
           {/* Section 5: Responsabilités et suivi */}
-          <div className="border-l-4 border-purple-500 pl-4">
+          <div className="border-l-4 border-gray-200 pl-4">
             <h3 className="font-semibold text-lg mb-4 text-purple-900">
               5. Responsabilités et suivi
             </h3>

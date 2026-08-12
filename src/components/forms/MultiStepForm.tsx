@@ -1,15 +1,23 @@
-import React, { useState, type ReactNode } from 'react';
+import React, { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+
+type RegisterValidate = (fn: () => boolean | Promise<boolean>) => void;
 
 interface Step {
   id: string;
   title: string;
   description?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: ReactNode | ((formData: any, updateFormData: (data: any) => void) => ReactNode);
+  component:
+    | ReactNode
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | ((formData: any, updateFormData: (data: any) => void, registerValidate: RegisterValidate) => ReactNode);
   isValid?: boolean;
+  // Static validator for non-function (plain JSX) steps. Ignored if the step's
+  // component function calls registerValidate itself — that takes priority.
+  validate?: () => boolean | Promise<boolean>;
 }
 
 interface MultiStepFormProps {
@@ -32,18 +40,50 @@ export default function MultiStepForm({
   onComplete,
   title,
   description,
-  submitLabel = 'Soumettre',
+  submitLabel,
   loading = false,
   formData = {},
   updateFormData,
 }: MultiStepFormProps) {
+  const { t } = useTranslation();
+  const effectiveSubmitLabel = submitLabel ?? t('forms.multiStepForm.submitDefault');
   const [currentStep, setCurrentStep] = useState(0);
+  const [isValidatingStep, setIsValidatingStep] = useState(false);
 
   const currentStepData = steps[currentStep] || steps[0];
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
-  const handleNext = () => {
+  // A step's component function can call registerValidate(fn) during render to
+  // wire its own (e.g. react-hook-form) validation into the shared Next/Submit
+  // button. The step id guard prevents a stale validator from a previous step
+  // (registered on an earlier render) from being applied to a different step.
+  const validatorRef = useRef<(() => boolean | Promise<boolean>) | null>(null);
+  const validatorStepIdRef = useRef<string | null>(null);
+  const registerValidate = useCallback<RegisterValidate>(
+    (fn) => {
+      validatorRef.current = fn;
+      validatorStepIdRef.current = currentStepData.id;
+    },
+    [currentStepData.id],
+  );
+
+  const runStepValidation = async (): Promise<boolean> => {
+    const registered =
+      validatorStepIdRef.current === currentStepData.id ? validatorRef.current : null;
+    const validate = registered ?? currentStepData.validate;
+    if (!validate) return true;
+    setIsValidatingStep(true);
+    try {
+      return await validate();
+    } finally {
+      setIsValidatingStep(false);
+    }
+  };
+
+  const handleNext = async () => {
+    const ok = await runStepValidation();
+    if (!ok) return;
     if (!isLastStep) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -56,8 +96,6 @@ export default function MultiStepForm({
       setCurrentStep(currentStep - 1);
     }
   };
-
-
 
   const canProceed = currentStepData?.isValid !== false;
 
@@ -133,7 +171,7 @@ export default function MultiStepForm({
         <CardContent className="px-4 sm:px-6 pb-6 pt-0">
           <div className="space-y-4 sm:space-y-6">
             {typeof currentStepData.component === 'function'
-              ? currentStepData.component(formData, updateFormData || (() => {}))
+              ? currentStepData.component(formData, updateFormData || (() => {}), registerValidate)
               : currentStepData.component}
           </div>
         </CardContent>
@@ -149,21 +187,21 @@ export default function MultiStepForm({
           size="lg"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          <span>Précédent</span>
+          <span>{t('common.previous')}</span>
         </Button>
-        
+
         <Button
           onClick={handleNext}
-          disabled={!canProceed || loading}
-          loading={loading}
+          disabled={!canProceed || loading || isValidatingStep}
+          loading={loading || isValidatingStep}
           className="w-full sm:w-auto min-w-[120px]"
           size="lg"
         >
           {isLastStep ? (
-            <span>{submitLabel}</span>
+            <span>{effectiveSubmitLabel}</span>
           ) : (
             <>
-              <span>Suivant</span>
+              <span>{t('common.next')}</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </>
           )}

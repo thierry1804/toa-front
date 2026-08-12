@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useInterventionStore } from '@/store/interventionStore';
 import { interventionApi } from '@/api/interventionApi';
 import { permitTravailApi } from '@/api/permitTravailApi';
@@ -9,6 +10,7 @@ import type { PermitTravail } from '@/types/permitTravail';
 
 export default function InterventionForm() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { addIntervention } = useInterventionStore();
 
   const [permits, setPermits] = useState<PermitTravail[]>([]);
@@ -36,7 +38,7 @@ export default function InterventionForm() {
       addIntervention(intervention);
       navigate(`/interventions/${intervention.id}`);
     } catch (err: any) {
-      setError(err?.response?.data?.detail ?? 'Erreur lors de la création');
+      setError(err?.response?.data?.detail ?? t('intervention.components.interventionForm.createError'));
     } finally {
       setLoading(false);
     }
@@ -50,25 +52,24 @@ export default function InterventionForm() {
   return (
     <div className="max-w-xl mx-auto p-6">
       <p className="text-sm text-gray-600 mb-6">
-        Une intervention est créée à partir d'un permis de travail validé HSE.
-        Sélectionnez le permis concerné.
+        {t('intervention.components.interventionForm.intro')}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            Permis de travail (VALIDE_HSE)
+            {t('intervention.components.interventionForm.permitLabel')}
           </label>
           {permits.length === 0 ? (
             <p className="text-sm text-amber-600">
-              Aucun permis de travail validé disponible.
+              {t('intervention.components.interventionForm.noPermits')}
             </p>
           ) : (
             <Select
               options={permitOptions}
               value={selectedPermitId}
               onChange={(e) => setSelectedPermitId(e.target.value)}
-              placeholder="Sélectionner un permis"
+              placeholder={t('intervention.components.interventionForm.permitPlaceholder')}
             />
           )}
         </div>
@@ -85,13 +86,15 @@ export default function InterventionForm() {
             variant="outline"
             onClick={() => navigate('/interventions')}
           >
-            Annuler
+            {t('intervention.components.interventionForm.cancel')}
           </Button>
           <Button
             type="submit"
             disabled={!selectedPermitId || loading}
           >
-            {loading ? 'Création...' : "Créer l'intervention"}
+            {loading
+              ? t('intervention.components.interventionForm.creating')
+              : t('intervention.components.interventionForm.submit')}
           </Button>
         </div>
       </form>
