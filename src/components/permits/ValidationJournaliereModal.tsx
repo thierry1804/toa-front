@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { usePermitStore } from "@/store/permitStore";
 import { useToastStore } from "@/store/toastStore";
 import Modal from "@/components/ui/Modal";
@@ -18,25 +20,26 @@ interface ValidationJournaliereModalProps {
   validations: ValidationJournaliere[];
 }
 
-// Schéma de validation pour une nouvelle validation journalière
-const validationSchema = z.object({
-  date: z.string().min(1, "Date requise"),
-  codeSite: z.string().min(1, "Code site requis"),
-  vitesseVent: z
-    .number()
-    .min(0, "Vitesse du vent doit être positive")
-    .optional(),
-  demandeurSignatureDebut: z
-    .string()
-    .min(1, "Signature demandeur début requise"),
-  utilisateurSignatureDebut: z
-    .string()
-    .min(1, "Signature utilisateur début requise"),
-  demandeurSignatureFin: z.string().optional(),
-  utilisateurSignatureFin: z.string().optional(),
-});
+// Schéma de validation pour une nouvelle validation journalière (messages traduits via t())
+const makeValidationSchema = (t: TFunction) =>
+  z.object({
+    date: z.string().min(1, t("permits.validationJournaliereModal.validation.dateRequired")),
+    codeSite: z.string().min(1, t("permits.validationJournaliereModal.validation.codeSiteRequired")),
+    vitesseVent: z
+      .number()
+      .min(0, t("permits.validationJournaliereModal.validation.vitesseVentPositive"))
+      .optional(),
+    demandeurSignatureDebut: z
+      .string()
+      .min(1, t("permits.validationJournaliereModal.validation.demandeurSignatureDebutRequired")),
+    utilisateurSignatureDebut: z
+      .string()
+      .min(1, t("permits.validationJournaliereModal.validation.utilisateurSignatureDebutRequired")),
+    demandeurSignatureFin: z.string().optional(),
+    utilisateurSignatureFin: z.string().optional(),
+  });
 
-type ValidationFormData = z.infer<typeof validationSchema>;
+type ValidationFormData = z.infer<ReturnType<typeof makeValidationSchema>>;
 
 export default function ValidationJournaliereModal({
   isOpen,
@@ -44,9 +47,12 @@ export default function ValidationJournaliereModal({
   permisId,
   validations,
 }: ValidationJournaliereModalProps) {
+  const { t } = useTranslation();
   const { updatePermisHauteur } = usePermitStore();
   const toast = useToastStore;
   const [isAdding, setIsAdding] = useState(false);
+
+  const validationSchema = useMemo(() => makeValidationSchema(t), [t]);
 
   const {
     register,
@@ -86,14 +92,12 @@ export default function ValidationJournaliereModal({
         validationsJournalieres: updatedValidations,
       });
 
-      toast.showSuccess("Validation journalière ajoutée avec succès");
+      toast.showSuccess(t("permits.validationJournaliereModal.toastSuccess"));
       reset();
       setIsAdding(false);
     } catch (err) {
       console.error("Erreur lors de l'ajout de la validation:", err);
-      toast.showError(
-        "Une erreur est survenue lors de l'ajout de la validation",
-      );
+      toast.showError(t("permits.validationJournaliereModal.toastError"));
     }
   };
 
@@ -106,18 +110,17 @@ export default function ValidationJournaliereModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Validation Journalière"
+      title={t("permits.validationJournaliereModal.modalTitle")}
       size="xl"
     >
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Validation Journalière
+              {t("permits.validationJournaliereModal.modalTitle")}
             </h2>
             <p className="text-gray-600 mt-1">
-              Gestion des validations journalières du permis de travail en
-              hauteur
+              {t("permits.validationJournaliereModal.description")}
             </p>
           </div>
           <Button variant="outline" onClick={onClose} className="p-2">
@@ -133,7 +136,7 @@ export default function ValidationJournaliereModal({
               className="flex items-center gap-2"
             >
               <Plus className="h-5 w-5" />
-              Ajouter une validation journalière
+              {t("permits.validationJournaliereModal.addButton")}
             </Button>
           </div>
         )}
@@ -142,70 +145,70 @@ export default function ValidationJournaliereModal({
         {isAdding && (
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Nouvelle validation journalière
+              {t("permits.validationJournaliereModal.formTitle")}
             </h3>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  label="Date *"
+                  label={t("permits.validationJournaliereModal.dateLabel")}
                   type="date"
                   {...register("date")}
                   error={errors.date?.message}
                 />
                 <Input
-                  label="Code Site *"
+                  label={t("permits.validationJournaliereModal.codeSiteLabel")}
                   {...register("codeSite")}
                   error={errors.codeSite?.message}
-                  placeholder="Ex. : ANT-001"
+                  placeholder={t("permits.validationJournaliereModal.codeSitePlaceholder")}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  label="Vitesse du vent (km/h)"
+                  label={t("permits.validationJournaliereModal.vitesseVentLabel")}
                   type="number"
                   {...register("vitesseVent", { valueAsNumber: true })}
                   error={errors.vitesseVent?.message}
-                  placeholder="Ex. : 15"
+                  placeholder={t("permits.validationJournaliereModal.vitesseVentPlaceholder")}
                 />
               </div>
 
               <div className="border-t pt-4">
                 <h4 className="font-medium text-gray-900 mb-3">
-                  Signatures - Commencement des travaux
+                  {t("permits.validationJournaliereModal.debutSignaturesTitle")}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Demandeur / Responsable contractant *"
+                    label={t("permits.validationJournaliereModal.demandeurSignatureDebutLabel")}
                     {...register("demandeurSignatureDebut")}
                     error={errors.demandeurSignatureDebut?.message}
-                    placeholder="Nom et signature"
+                    placeholder={t("permits.validationJournaliereModal.signaturePlaceholder")}
                   />
                   <Input
-                    label="Utilisateur de permis *"
+                    label={t("permits.validationJournaliereModal.utilisateurSignatureDebutLabel")}
                     {...register("utilisateurSignatureDebut")}
                     error={errors.utilisateurSignatureDebut?.message}
-                    placeholder="Nom et signature"
+                    placeholder={t("permits.validationJournaliereModal.signaturePlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="border-t pt-4">
                 <h4 className="font-medium text-gray-900 mb-3">
-                  Signatures - Clôture journalière
+                  {t("permits.validationJournaliereModal.finSignaturesTitle")}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Demandeur / Responsable contractant"
+                    label={t("permits.validationJournaliereModal.demandeurSignatureFinLabel")}
                     {...register("demandeurSignatureFin")}
                     error={errors.demandeurSignatureFin?.message}
-                    placeholder="Nom et signature"
+                    placeholder={t("permits.validationJournaliereModal.signaturePlaceholder")}
                   />
                   <Input
-                    label="Utilisateur de permis"
+                    label={t("permits.validationJournaliereModal.utilisateurSignatureFinLabel")}
                     {...register("utilisateurSignatureFin")}
                     error={errors.utilisateurSignatureFin?.message}
-                    placeholder="Nom et signature"
+                    placeholder={t("permits.validationJournaliereModal.signaturePlaceholder")}
                   />
                 </div>
               </div>
@@ -213,10 +216,10 @@ export default function ValidationJournaliereModal({
               <div className="flex items-center gap-3 pt-4">
                 <Button type="submit">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  Ajouter la validation
+                  {t("permits.validationJournaliereModal.submitAddButton")}
                 </Button>
                 <Button type="button" variant="outline" onClick={handleCancel}>
-                  Annuler
+                  {t("permits.validationJournaliereModal.cancelButton")}
                 </Button>
               </div>
             </form>
@@ -226,17 +229,17 @@ export default function ValidationJournaliereModal({
         {/* Liste des validations existantes */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Historique des validations ({validations.length})
+            {t("permits.validationJournaliereModal.historyTitle", { count: validations.length })}
           </h3>
 
           {validations.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
-                Aucune validation journalière enregistrée
+                {t("permits.validationJournaliereModal.emptyTitle")}
               </p>
               <p className="text-sm text-gray-400 mt-1">
-                Ajoutez la première validation pour commencer le suivi
+                {t("permits.validationJournaliereModal.emptyText")}
               </p>
             </div>
           ) : (
@@ -245,39 +248,39 @@ export default function ValidationJournaliereModal({
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
-                      Date
+                      {t("permits.validationJournaliereModal.tableHeaderDate")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
-                      Code Site
+                      {t("permits.validationJournaliereModal.tableHeaderCodeSite")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
                       <div className="flex items-center gap-1">
                         <Wind className="h-4 w-4" />
-                        Vent (km/h)
+                        {t("permits.validationJournaliereModal.tableHeaderVent")}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Demandeur Début
+                        {t("permits.validationJournaliereModal.tableHeaderDemandeurDebut")}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Utilisateur Début
+                        {t("permits.validationJournaliereModal.tableHeaderUtilisateurDebut")}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Demandeur Fin
+                        {t("permits.validationJournaliereModal.tableHeaderDemandeurFin")}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        Utilisateur Fin
+                        {t("permits.validationJournaliereModal.tableHeaderUtilisateurFin")}
                       </div>
                     </th>
                   </tr>
@@ -305,7 +308,7 @@ export default function ValidationJournaliereModal({
                         {validation.demandeurSignatureDebut ? (
                           <span className="flex items-center gap-1 text-green-600">
                             <CheckCircle className="h-4 w-4" />
-                            Signé
+                            {t("permits.validationJournaliereModal.signedLabel")}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -315,7 +318,7 @@ export default function ValidationJournaliereModal({
                         {validation.utilisateurSignatureDebut ? (
                           <span className="flex items-center gap-1 text-green-600">
                             <CheckCircle className="h-4 w-4" />
-                            Signé
+                            {t("permits.validationJournaliereModal.signedLabel")}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -325,7 +328,7 @@ export default function ValidationJournaliereModal({
                         {validation.demandeurSignatureFin ? (
                           <span className="flex items-center gap-1 text-green-600">
                             <CheckCircle className="h-4 w-4" />
-                            Signé
+                            {t("permits.validationJournaliereModal.signedLabel")}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -335,7 +338,7 @@ export default function ValidationJournaliereModal({
                         {validation.utilisateurSignatureFin ? (
                           <span className="flex items-center gap-1 text-green-600">
                             <CheckCircle className="h-4 w-4" />
-                            Signé
+                            {t("permits.validationJournaliereModal.signedLabel")}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -352,7 +355,7 @@ export default function ValidationJournaliereModal({
         {/* Actions de fermeture */}
         <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t">
           <Button variant="outline" onClick={onClose}>
-            Fermer
+            {t("permits.validationJournaliereModal.closeButton")}
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 import type { PermitTravail } from '@/types/permitTravail'
 
@@ -19,22 +20,24 @@ export default function ValiderPermitModal({
   onClose,
   onValider,
 }: ValiderPermitModalProps) {
+  const { t } = useTranslation()
+
   return (
     <ConfirmActionModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Valider le permis ${permitReference}`}
+      title={t('permitTravail.components.validerModal.title', { reference: permitReference })}
       description={
         <>
-          Confirmez la validation du permis de travail{' '}
+          {t('permitTravail.components.validerModal.descriptionPrefix')}{' '}
           <span className="font-semibold text-blue-700">{permitReference}</span>.
         </>
       }
-      commentPlaceholder="Observations ou remarques..."
-      confirmLabel="Valider"
+      commentPlaceholder={t('permitTravail.components.validerModal.commentPlaceholder')}
+      confirmLabel={t('permitTravail.components.validerModal.confirmLabel')}
       confirmIcon={<ShieldCheck className="mr-2 h-4 w-4" />}
       isSubmitting={isValidating}
-      errorMessage="Erreur lors de la validation du permis."
+      errorMessage={t('permitTravail.components.validerModal.errorMessage')}
       onConfirm={async (commentaire) => {
         const updatedPermit = await onValider(permitId, commentaire || undefined)
         const latestDecision = updatedPermit.decisionsHse?.at(-1)
@@ -50,11 +53,13 @@ export default function ValiderPermitModal({
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-green-700">
               <ShieldCheck className="h-5 w-5 shrink-0" />
-              <span className="text-sm font-medium">Permis validé avec succès.</span>
+              <span className="text-sm font-medium">
+                {t('permitTravail.components.validerModal.successMessage')}
+              </span>
             </div>
             <div>
               <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Signature électronique
+                {t('permitTravail.components.validerModal.signatureLabel')}
               </p>
               <p className="break-all rounded-lg bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700">
                 {signature}
@@ -62,7 +67,7 @@ export default function ValiderPermitModal({
             </div>
             <div>
               <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Date d'expiration
+                {t('permitTravail.components.validerModal.expirationLabel')}
               </p>
               <p className="text-sm font-medium text-gray-800">{dateExpiration}</p>
             </div>

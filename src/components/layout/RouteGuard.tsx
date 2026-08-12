@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/store/menu.store'
 import { useUiStore } from '@/store/ui.store'
 import { AlertTriangle } from 'lucide-react'
@@ -23,11 +24,19 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
   const loading = useMenuStore((s) => s.loading)
   const loaded = useMenuStore((s) => s.loaded)
   const error = useMenuStore((s) => s.error)
+  const load = useMenuStore((s) => s.load)
   const addToast = useUiStore((s) => s.addToast)
   const location = useLocation()
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    if (!loaded && !loading) {
+      void load()
+    }
+  }, [loaded, loading, load])
 
   const canView = useMemo(() => {
-    if (!loaded || loading) return null
+    if (!loaded) return null
     if (error) return true  // API failure — don't lock users out
     const node = flattenMenu(items).find((n) => n.route === menuRoute)
     if (!node) return false
@@ -36,7 +45,7 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
 
   useEffect(() => {
     if (canView === false) {
-      addToast({ message: 'Accès non autorisé à cette page', type: 'error' })
+      addToast({ message: t('layout.routeGuard.unauthorized'), type: 'error' })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, location.pathname])
@@ -60,7 +69,7 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
       {error && (
         <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-          Vérification des permissions indisponible — accès temporairement non restreint.
+          {t('layout.routeGuard.permissionsUnavailable')}
         </div>
       )}
       <Outlet />

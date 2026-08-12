@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,7 @@ import {
   Clock,
   ListChecks,
 } from "lucide-react";
-import { statusOptions } from "@/data/constant/planning";
+import { STATUS_VALUES } from "@/data/constant/planning";
 import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
 import SiteSelectorBlock from "@/components/planning/SiteSelectorBlock";
 import type { PlanSiteRow } from "@/components/planning/SiteSelectorBlock";
@@ -48,6 +48,10 @@ export default function PlanningFormPage() {
   const { data: existing } = useActivityPlanning(id ? Number(id) : 0);
   const { mutate: createPlanning, isPending: isCreating } =
     useCreateActivityPlanning();
+  const statusOptions = useMemo(
+    () => STATUS_VALUES.map((v) => ({ value: v, label: t(`planning.status.${v}`) })),
+    [t],
+  );
   const { mutate: updatePlanning, isPending: isUpdating } =
     useUpdateActivityPlanning();
   const { data: prestataires = [] } = usePrestataires();

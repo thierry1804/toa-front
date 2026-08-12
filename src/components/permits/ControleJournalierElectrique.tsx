@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -27,6 +28,7 @@ export default function ControleJournalierElectrique({
   onSubmit,
   onCancel,
 }: ControleJournalierElectriqueProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     codeSite: "",
@@ -79,12 +81,12 @@ export default function ControleJournalierElectrique({
 
     // Validation
     if (!formData.codeSite || formData.intervenants.some((i) => !i.trim())) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      alert(t("permits.controleJournalierElectrique.validationFieldsAlert"));
       return;
     }
 
     if (!formData.confirmationMesures) {
-      alert("Vous devez confirmer la mise en œuvre des mesures de prévention");
+      alert(t("permits.controleJournalierElectrique.validationConfirmationAlert"));
       return;
     }
 
@@ -99,7 +101,7 @@ export default function ControleJournalierElectrique({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Contrôle Journalier du Permis Électrique
+          {t("permits.controleJournalierElectrique.title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -107,7 +109,7 @@ export default function ControleJournalierElectrique({
           {/* Informations générales */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{t("permits.controleJournalierElectrique.dateLabel")}</Label>
               <Input
                 id="date"
                 name="date"
@@ -118,13 +120,13 @@ export default function ControleJournalierElectrique({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="codeSite">Code Site</Label>
+              <Label htmlFor="codeSite">{t("permits.controleJournalierElectrique.codeSiteLabel")}</Label>
               <Input
                 id="codeSite"
                 name="codeSite"
                 value={formData.codeSite}
                 onChange={handleChange}
-                placeholder="Ex. : ANA-001"
+                placeholder={t("permits.controleJournalierElectrique.codeSitePlaceholder")}
                 required
               />
             </div>
@@ -134,7 +136,7 @@ export default function ControleJournalierElectrique({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Intervenants
+              {t("permits.controleJournalierElectrique.intervenantsLabel")}
             </Label>
             {formData.intervenants.map((intervenant, index) => (
               <div key={index} className="flex gap-2">
@@ -143,7 +145,7 @@ export default function ControleJournalierElectrique({
                   onChange={(e) =>
                     handleIntervenantChange(index, e.target.value)
                   }
-                  placeholder={`Intervenant ${index + 1}`}
+                  placeholder={t("permits.controleJournalierElectrique.intervenantPlaceholder", { number: index + 1 })}
                   required
                 />
                 {formData.intervenants.length > 1 && (
@@ -165,7 +167,7 @@ export default function ControleJournalierElectrique({
               onClick={addIntervenant}
             >
               <Users className="h-4 w-4 mr-2" />
-              Ajouter un intervenant
+              {t("permits.controleJournalierElectrique.addIntervenantButton")}
             </Button>
           </div>
 
@@ -182,40 +184,39 @@ export default function ControleJournalierElectrique({
               htmlFor="confirmationMesures"
               className="text-sm font-medium"
             >
-              Je confirme la mise en œuvre des mesures de prévention mentionnées
-              dans le permis
+              {t("permits.controleJournalierElectrique.confirmationMesuresLabel")}
             </Label>
           </div>
 
           {/* Section Commencement des travaux */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-4">
-              Commencement des travaux
+              {t("permits.controleJournalierElectrique.commencementTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="signatureDemandeur">
-                  Signature Demandeur/Responsable contractant
+                  {t("permits.controleJournalierElectrique.signatureDemandeurLabel")}
                 </Label>
                 <Input
                   id="signatureDemandeur"
                   name="signatureDemandeur"
                   value={formData.signatureDemandeur}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierElectrique.signaturePlaceholder")}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signatureIntervenant">
-                  Signature Intervenant
+                  {t("permits.controleJournalierElectrique.signatureIntervenantLabel")}
                 </Label>
                 <Input
                   id="signatureIntervenant"
                   name="signatureIntervenant"
                   value={formData.signatureIntervenant}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierElectrique.signaturePlaceholder")}
                   required
                 />
               </div>
@@ -224,31 +225,31 @@ export default function ControleJournalierElectrique({
 
           {/* Section Clôture journalière */}
           <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold mb-4">Clôture journalière</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("permits.controleJournalierElectrique.clotureTitle")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="signatureClotureDemandeur">
-                  Signature Demandeur/Responsable contractant
+                  {t("permits.controleJournalierElectrique.signatureDemandeurLabel")}
                 </Label>
                 <Input
                   id="signatureClotureDemandeur"
                   name="signatureClotureDemandeur"
                   value={formData.signatureClotureDemandeur}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierElectrique.signaturePlaceholder")}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signatureClotureIntervenant">
-                  Signature Intervenant
+                  {t("permits.controleJournalierElectrique.signatureIntervenantLabel")}
                 </Label>
                 <Input
                   id="signatureClotureIntervenant"
                   name="signatureClotureIntervenant"
                   value={formData.signatureClotureIntervenant}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierElectrique.signaturePlaceholder")}
                   required
                 />
               </div>
@@ -258,11 +259,11 @@ export default function ControleJournalierElectrique({
           {/* Boutons d'action */}
           <div className="flex justify-end gap-4 pt-6 border-t">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Annuler
+              {t("permits.controleJournalierElectrique.cancelButton")}
             </Button>
             <Button type="submit">
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Enregistrer le contrôle
+              {t("permits.controleJournalierElectrique.submitButton")}
             </Button>
           </div>
         </form>

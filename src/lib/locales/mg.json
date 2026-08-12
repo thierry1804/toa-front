@@ -22,7 +22,8 @@
     "confirmDelete": "Hanamafy ny famafana",
     "saveChanges": "Tehirizo ny fanovana",
     "previous": "Teo aloha",
-    "next": "Manaraka"
+    "next": "Manaraka",
+    "view": "Jereo"
   },
   "nav": {
     "openMenu": "Sokafy ny menio",
@@ -288,6 +289,7 @@
       "expectedStartDateRequired": "Ilaina ny daty fanombohana voalahatra",
       "expectedEndDateRequired": "Ilaina ny daty famaranana voalahatra",
       "endBeforeStart": "Ny daty famaranana dia tsy mety ho alohan'ny daty fanombohana",
+      "startBeforeTheoretical": "Tsy maintsy aorian'ny na mitovy amin'ny daty voalahatra teoria",
       "formErrors": "Valio ireo hadisoana amin'ny formulaire"
     },
     "toast": {
@@ -305,7 +307,47 @@
       "en_cours": "Mandroso",
       "valide": "Voamarina",
       "annule": "Nofoanana",
-      "stand_by": "Stand By"
+      "stand_by": "Stand By",
+      "all": "Ny sata rehetra"
+    },
+    "interventionTypes": {
+      "choose": "— Misafidiana karazana —",
+      "values": {
+        "Nouveau site": "Toerana vaovao",
+        "Vie de Réseau": "Fiainan'ny tambajotra",
+        "Infrastructure": "Fotodrafitrasa",
+        "Opération et Mainténance": "Fikirakirana sy fikojakojana",
+        "Energie": "Angovo"
+      }
+    },
+    "siteSelector": {
+      "typeInterventionLabel": "Karazana fitsabahana *",
+      "codeSiteLabel": "Kaody toerana *",
+      "codeSitePlaceholder": "Oh: ANK-001",
+      "nomSiteLabel": "Anaran'ny toerana *",
+      "nomSitePlaceholder": "Fenoina ho azy na soratana",
+      "codeSiteHeader": "Kaody toerana",
+      "nomSiteHeader": "Anaran'ny toerana",
+      "statutHeader": "Sata",
+      "nomSitePlaceholderShort": "Soraty ny anarana",
+      "remove": "Fafao",
+      "emptySites": "Tsy misy toerana nampidirina",
+      "addCodeLabel": "Hanampy kaody toerana",
+      "addCodePlaceholder": "Oh: ANK-001",
+      "addButton": "Hanampy",
+      "pasteLabel": "Apetaho ireo kaody (misaraka amin'ny « ; »)",
+      "pastePlaceholder": "ANK-001 ; AMP-002 ; ISO-003",
+      "importButton": "Hampiditra"
+    },
+    "gantt": {
+      "title": "Sarintanin'i Gantt",
+      "viewDay": "Andro",
+      "viewWeek": "Herinandro",
+      "viewMonth": "Volana",
+      "today": "Androany",
+      "statutLabel": "Sata :",
+      "prestataireLabel": "Mpanome serivisy :",
+      "siteLabel": "Toerana :"
     }
   },
   "menus": {
@@ -386,11 +428,15 @@
         "duplicate": "Efa misy ity lalàna ity, alefa any amin'ny fanovana",
         "created": "Lalàna noforonina",
         "updated": "Lalàna novana"
+      },
+      "deleteConfirm": {
+        "message": "Hofafana ny fitsipika fidirana « {{label}} » ?"
       }
     }
   },
   "prevention": {
-    "title": "Plan PPHSSES"
+    "title": "Plan PPHSSES",
+    "create": "Hamorona drafitra"
   },
   "planPrevention": {
     "statut": {
@@ -428,6 +474,8 @@
         "actions": "Hetsika"
       },
       "actions": {
+        "voir": "Jereo",
+        "modifier": "Hanova",
         "examiner": "Hijery",
         "valider": "Hanamafy",
         "refuser": "Hanilika"
@@ -558,6 +606,7 @@
     "search": "Hikaroka anarana na famaritana...",
     "empty": "Tsy misy anjara hita",
     "createAction": "Mamorona anjara",
+    "listTitle": "Anjara ({{count}})",
     "systemRoleProtected": "Ny anjara raki-teny dia tsy azo esorina",
     "stats": {
       "total": "Totaly",
@@ -612,7 +661,8 @@
   "offline": {
     "banner": "Mode tsy misy tambajotra",
     "pending_one": "{{count}} miandry",
-    "pending_other": "{{count}} miandry"
+    "pending_other": "{{count}} miandry",
+    "queued": "Voarakitra hors-ligne ny hetsika"
   },
   "errors": {
     "incorrect_credentials": "Diso ny mombamomba",
@@ -650,6 +700,16 @@
     "sites": {
       "title": "Fitantanana toerana",
       "subtitle": "Fampidirana sy fitantanana toerana avy amin'ny fichier KMZ",
+      "description": "Fampidirana sy fitantanana ny toerana avy amin'ny rakitra KMZ",
+      "importTitle": "Mampiditra rakitra KMZ",
+      "historyTitle": "Tantaran'ny fampidirana",
+      "historyCount": "{{count}} fampidirana voarakitra",
+      "historyEmptyHint": "Mampidira rakitra KMZ avy amin'ny bokotra eo amin'ny pejy.",
+      "mapTitle": "Sarintany toerana",
+      "listTitle": "Lisitry ny toerana",
+      "importSuccess": "{{count}} toerana voaimporta soa aman-tsara",
+      "deleteSuccess": "Fampidirana KMZ voafafa soa aman-tsara",
+      "deleteError": "Hadisoana tamin'ny famafana",
       "importSection": "Hampiditra fichier KMZ",
       "historySection": "Tantaran'ny fampidirana",
       "listSection": "Lisitry ny toerana",
@@ -686,8 +746,1378 @@
       }
     },
     "listes": {
-      "title": "Fitantanana lisitra",
-      "subtitle": "Ho ampidirina"
+      "title": "Fitantanana loza",
+      "subtitle": "Sokajin'ny loza",
+      "newCategory": "Sokajy vaovao",
+      "listTitle": "Sokajin'ny loza",
+      "empty": "Tsy misy sokajy loza",
+      "createFirst": "Hamorona ny sokajy voalohany",
+      "headers": {
+        "nom": "Anarana",
+        "typePermis": "Karazana fahazoan-dalana",
+        "createdAt": "Daty famoronana",
+        "updatedAt": "Daty fanovana"
+      },
+      "typePermis": {
+        "electrique": "Herinaratra",
+        "hauteur": "Haavo",
+        "none": "—"
+      },
+      "modal": {
+        "createTitle": "Sokajy loza vaovao",
+        "editTitle": "Hanova ny sokajy",
+        "nomLabel": "Anarana",
+        "nomPlaceholder": "Oh. : Loza herinaratra",
+        "typePermisLabel": "Karazana fahazoan-dalana mifandray",
+        "typePermisNone": "— Tsy misy (anjibeny) —",
+        "typePermisHint": "Ampiasaina hisivana ny loza amin'ny famoronana fahazoan-dalana"
+      },
+      "deleteModal": {
+        "title": "Fafana ny sokajy",
+        "message": "Hamafa {{name}} ? Tsy azo averina ity hetsika ity."
+      },
+      "toast": {
+        "created": "Sokajy noforonina",
+        "updated": "Sokajy novaina",
+        "deleted": "Sokajy voafafa",
+        "createError": "Hadisoana tamin'ny famoronana",
+        "updateError": "Hadisoana tamin'ny fanovana",
+        "deleteError": "Hadisoana tamin'ny famafana"
+      }
+    },
+    "installations": {
+      "title": "Lisitry ny fametrahana sy fitaovana",
+      "subtitle": "Referentialy fametrahana sy fitaovana",
+      "new": "Vaovao",
+      "listTitle": "Fametrahana sy fitaovana",
+      "empty": "Tsy misy fametrahana na fitaovana",
+      "createFirst": "Hamorona ny voalohany",
+      "modal": {
+        "createTitle": "Fametrahana/fitaovana vaovao",
+        "editTitle": "Hanova",
+        "nomPlaceholder": "Oh. : Groupe électrogène 50 kVA"
+      },
+      "deleteModal": {
+        "title": "Fafana ny fametrahana/fitaovana",
+        "message": "Hamafa {{name}} ? Tsy azo averina ity hetsika ity."
+      },
+      "toast": {
+        "created": "Fametrahana/fitaovana noforonina",
+        "updated": "Fametrahana/fitaovana novaina",
+        "deleted": "Fametrahana/fitaovana voafafa",
+        "createError": "Hadisoana tamin'ny famoronana",
+        "updateError": "Hadisoana tamin'ny fanovana",
+        "deleteError": "Hadisoana tamin'ny famafana"
+      }
+    },
+    "shared": {
+      "searchPlaceholder": "Karohy amin'ny anarana…",
+      "search": "Karohy",
+      "clear": "Esory",
+      "loading": "Mampiditra…",
+      "emptySearch": "Tsy misy valiny amin'ity fikarohana ity",
+      "nom": "Anarana",
+      "createdAt": "Daty famoronana",
+      "updatedAt": "Daty fanovana",
+      "actions": "Hetsika",
+      "edit": "Hanova",
+      "delete": "Fafana",
+      "cancel": "Aoka",
+      "save": "Tehirizo",
+      "update": "Hanova",
+      "create": "Hamorona",
+      "saving": "Mitahiry…",
+      "deleting": "Mamafa…",
+      "pagination": "Pejy {{page}} / {{totalPages}} — {{count}} fidirana",
+      "prev": "Teo aloha",
+      "next": "Manaraka",
+      "nomRequired": "Ny anarana dia tsy maintsy fenoina",
+      "nomMaxLength": "255 tarehintsoratra maximum"
+    }
+  },
+  "forms": {
+    "permitElectrique": {
+      "title": "Permis fiasana amin'ny herinaratra",
+      "description": "Fangatahana permis fiasana amin'ny herinaratra",
+      "submitLabel": "Alefaso ny fangatahana",
+      "steps": {
+        "informations": {
+          "title": "Mombamomba ankapobe",
+          "description": "Karazana asa sy haavon'ny herinaratra"
+        },
+        "description": {
+          "title": "Famaritana sy loza mety hitranga",
+          "description": "Antsipirihan'ny asa sy ny loza voafantina"
+        },
+        "materiels": {
+          "title": "Fitaovana sy fisorohana",
+          "description": "Fitaovana sy fepetra fisorohana"
+        },
+        "urgence": {
+          "title": "Fisorohana maika",
+          "description": "Fepetra maika sy fanekena"
+        },
+        "consignation": {
+          "title": "Fanajanonana angovo",
+          "description": "Mombamomba ny fanajanonana angovo (raha ilaina)"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Laharan'ny drafitry ny fisorohana *",
+        "planPreventionPlaceholder": "Misafidiana drafitry ny fisorohana",
+        "codeSiteLabel": "Kaody toerana *",
+        "codeSitePlaceholder": "Oh. : ANT-001",
+        "nombreIntervenantsLabel": "Isan'ny mpiasa mpanatanteraka *",
+        "dateDebutLabel": "Daty fanombohana *",
+        "dateFinLabel": "Daty famaranana *",
+        "typeTravailTitle": "Karazana asa",
+        "travailSousTensionLabel": "Asa eo ambanin'ny herinaratra",
+        "travailSousTensionDesc": "Fitsabahana amin'ny fitaovana eo ambanin'ny herinaratra",
+        "travailHorsTensionLabel": "Asa tsy misy herinaratra",
+        "travailHorsTensionDesc": "Fitsabahana aorian'ny fanajanonana ny herinaratra",
+        "consignationEnergieLabel": "Fanajanonana angovo",
+        "consignationEnergieDesc": "Fizotry ny fanajanonana",
+        "niveauTensionTitle": "Haavon'ny herinaratra",
+        "basseTensionLabel": "Herinaratra ambany",
+        "basseTensionDesc": "≤ 1000V",
+        "moyenneTensionLabel": "Herinaratra antonony",
+        "moyenneTensionDesc": "1kV ka hatramin'ny 50kV",
+        "hauteTensionLabel": "Herinaratra avo",
+        "hauteTensionDesc": "> 50kV",
+        "warningTitle": "Asa eo ambanin'ny herinaratra",
+        "warningText": "Mila fahaiza-manao manokana sy fitaovana manokana ny asa eo ambanin'ny herinaratra. Ampio azo antoka fa voaomana ny mpiasa ary mifanaraka amin'izany ny fepetra fiarovana."
+      },
+      "step2": {
+        "typeCircuitLabel": "Karazana kobia/fitaovana *",
+        "typeCircuitPlaceholder": "Oh. : Tabilao elektrika lehibe, Tariby HT, sns.",
+        "descriptionLabel": "Famaritana ny asa *",
+        "descriptionPlaceholder": "Hazavao amin'ny antsipirihany ny asa amin'ny herinaratra hatao...",
+        "raisonLabel": "Antony tsy fanajanonana ny herinaratra",
+        "raisonPlaceholder": "Hazavao ny antony tsy maintsy anaovana ny asa eo ambanin'ny herinaratra...",
+        "risquesTitle": "Loza voafantina",
+        "electrisationLabel": "Fahavoazan'ny herinaratra",
+        "electrisationDesc": "Fandalovan'ny herinaratra ao anatin'ny vatana",
+        "electrocutionLabel": "Maty azon'ny herinaratra",
+        "electrocutionDesc": "Fahavoazan'ny herinaratra mahafaty",
+        "brulureLabel": "May",
+        "brulureDesc": "May vokatry ny arc elektrika"
+      },
+      "step3": {
+        "materielsTitle": "Fitaovana famantarana sy fitaovana",
+        "multimetreLabel": "Multimètre DC",
+        "multimetreDesc": "Fitaovana famantarana ny haavon'ny herinaratra",
+        "outilsIsolantsLabel": "Fitaovana manohitra herinaratra",
+        "outilsIsolantsDesc": "Fitaovana voaaro amin'ny herinaratra",
+        "testTensionLabel": "Fitsapana ny herinaratra",
+        "testTensionDesc": "VAT (Fitaovana manamarina ny tsy fisian'ny herinaratra)",
+        "toolboxLabel": "Vata fitaovana elektrika",
+        "toolboxDesc": "Vata fitaovana manokana",
+        "formationTitle": "Fiofanana sy fahaiza-manao",
+        "personnelHabiliteLabel": "Mpiasa voaomana",
+        "personnelHabiliteDesc": "Mpiasa nofaofana sy voaomana amin'ny herinaratra",
+        "personnelApteLabel": "Mpiasa mahay",
+        "personnelApteDesc": "Mpiasa salama araka ny fitiliana ara-pahasalamana",
+        "epiTitle": "Fitaovana fiarovana manokana",
+        "chaussuresLabel": "Kiraro fiarovana",
+        "casqueLabel": "Satroka fiarovana",
+        "gantsLabel": "Ganta elektrika",
+        "gantsDesc": "Ganta manohitra herinaratra ho an'ny asa elektrika",
+        "tapisLabel": "Kidoro manohitra herinaratra",
+        "tapisDesc": "Kidoro fiarovana manohitra herinaratra",
+        "lunettesLabel": "Solomaso fiarovana",
+        "proceduresTitle": "Fizotry ny fiarovana",
+        "balisageLabel": "Famantarana ny faritra",
+        "consignationLabel": "Fanajanonana angovo",
+        "consignationDesc": "Fizotry ny fanajanonana efa vita"
+      },
+      "step4": {
+        "warningTitle": "Fisorohana maika",
+        "warningText": "Amarino fa efa voaomana ny fepetra maika alohan'ny anombohana ny asa amin'ny herinaratra.",
+        "secouristeLabel": "Mpitsabo voalohany eo an-toerana",
+        "secouristeDesc": "Mpiasa nofaofana amin'ny famonjena voalohany eo an-toerana",
+        "numerosUrgenceLabel": "Laharana antso maika azo antoka",
+        "numerosUrgenceDesc": "Laharana antso maika aseho sy azo idirana",
+        "engagementTitle": "Fanekena ataon'ny mpangataka",
+        "engagementLabel": "Manaiky hanaja ny fepetra fiarovana sy ny fizotra rehetra voafaritra aho *",
+        "engagementDesc": "Fanekena tsy maintsy ataon'ny mpangataka"
+      },
+      "step5": {
+        "notRequiredTitle": "Tsy ilaina ny fanajanonana",
+        "notRequiredText": "Tsy misy fanajanonana angovo ilaina amin'ity karazana asa ity.",
+        "recapTitle": "Famintinana ny fangatahanao",
+        "siteLabel": "Toerana:",
+        "intervenantsLabel": "Mpiasa mpanatanteraka:",
+        "intervenantsSuffix": "olona",
+        "typeTravailLabel": "Karazana asa:",
+        "sousTension": "Eo ambanin'ny herinaratra",
+        "horsTension": "Tsy misy herinaratra",
+        "nonRenseigne": "Tsy voafaritra",
+        "niveauTensionLabel": "Haavon'ny herinaratra:",
+        "nonSpecifie": "Tsy voafaritra",
+        "consignationInfoTitle": "Fanajanonana angovo",
+        "consignationInfoText": "Fenoy ny mombamomba ny fanajanonana raha ilaina.",
+        "motifLabel": "Antony fanajanonana",
+        "motifPlaceholder": "Oh. : Fikojakojana mialoha, Fanamboarana...",
+        "equipementLabel": "Fitaovana voakasika",
+        "equipementPlaceholder": "Oh. : Tabilao elektrika lehibe, Brizoà...",
+        "dateConsignationLabel": "Daty fanajanonana",
+        "heureConsignationLabel": "Ora fanajanonana",
+        "electriqueLabel": "Momba ny herinaratra",
+        "electriquePlaceholder": "Antsipirihany momba ny herinaratra...",
+        "vatLabel": "Fanamarinana VAT",
+        "vatDesc": "Fanamarinana ny tsy fisian'ny herinaratra efa vita",
+        "visaLabel": "Sonian'ny fanajanonana",
+        "visaPlaceholder": "Anarana sy sonian'ny mpanao ny fanajanonana"
+      },
+      "validation": {
+        "planPreventionRequired": "Ilaina ny drafitry ny fisorohana",
+        "codeSiteRequired": "Ilaina ny kaody toerana",
+        "minIntervenants": "1 mpiasa farafahakeliny",
+        "dateDebutRequired": "Ilaina ny daty fanombohana",
+        "dateFinRequired": "Ilaina ny daty famaranana",
+        "dateFinBeforeDebut": "Tsy maintsy aorian'ny na mitovy amin'ny daty fanombohana ny daty famaranana",
+        "typeCircuitRequired": "Ilaina ny karazana kobia",
+        "descriptionTooShort": "Fohy loatra ny famaritana (farafahakeliny 5 tarehintsoratra)",
+        "engagementRequired": "Tsy maintsy atao ny fanekena ataon'ny mpangataka"
+      }
+    },
+    "gpsCoordinates": {
+      "title": "Koordinato GPS",
+      "addPoint": "Hanampy teboka",
+      "importKmz": "Hampiditra avy amin'ny KMZ",
+      "pointNamePrefix": "Teboka",
+      "nameLabel": "Anaran'ny teboka",
+      "latLabel": "Latitude",
+      "lngLabel": "Longitude"
+    },
+    "multiStepForm": {
+      "submitDefault": "Alefaso"
+    },
+    "permitGeneral": {
+      "title": "Permis fiasana ankapobeny",
+      "description": "Fangatahana permis fiasana ankapobeny",
+      "submitLabel": "Alefaso ny fangatahana",
+      "steps": {
+        "details": {
+          "title": "Antsipirihan'ny fitsabahana",
+          "description": "Mombamomba ankapobe momba ny asa hatao"
+        },
+        "risques": {
+          "title": "Karazana asa misy loza",
+          "description": "Fisafidianana ny karazana asa voakasika"
+        },
+        "engagement": {
+          "title": "Fanekena ataon'ny mpangataka",
+          "description": "Fanamafisana tsy maintsy ataon'ny mpangataka"
+        },
+        "revision": {
+          "title": "Fandinihana sy fandefasana",
+          "description": "Fanamarinana ny mombamomba sy fandefasana"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Drafitry ny fisorohana mifandray *",
+        "planPreventionPlaceholder": "Misafidiana drafitry ny fisorohana voamarina",
+        "noPlanTitle": "Tsy misy drafitry ny fisorohana azo ampiasaina",
+        "noPlanText": "Tsy maintsy mamorona sy mampanamarina drafitry ny fisorohana aloha ianao vao mamorona permis fiasana.",
+        "intituleLabel": "Lohatenin'ny asa *",
+        "intitulePlaceholder": "Oh. : Fikojakojana fitaovana telikomonikasiona",
+        "localisationLabel": "Toerana misy *",
+        "localisationPlaceholder": "Oh. : Antananarivo Centre - Tsato-kazo lehibe",
+        "codeSiteLabel": "Kaody toerana *",
+        "codeSitePlaceholder": "Oh. : ANT-001",
+        "contractantLabel": "Mpanao fanekena *",
+        "contractantPlaceholder": "Anaran'ny orinasa",
+        "nombreIntervenantsLabel": "Isan'ny mpiasa mpanatanteraka *",
+        "dateDebutLabel": "Daty fanombohana *",
+        "dateFinLabel": "Daty famaranana *"
+      },
+      "step2": {
+        "intro": "Marino ny karazana asa rehetra voakasik'ity fitsabahana ity",
+        "chaudLabel": "Asa amin'ny hafanana",
+        "chaudDesc": "Fanatambarana, fikosoana, fandidiana amin'ny hafanana, sns.",
+        "hauteurLabel": "Asa avo",
+        "hauteurDesc": "Fitsabahana mihoatra ny 3 metatra ny haavony",
+        "electriqueLabel": "Asa elektrika",
+        "electriqueDesc": "Fitsabahana amin'ny fitaovana elektrika",
+        "espaceConfineLabel": "Asa amin'ny toerana tery",
+        "espaceConfineDesc": "Fitsabahana amin'ny toerana voafetra",
+        "excavationLabel": "Asa fihadiana",
+        "excavationDesc": "Fanalàna tany, fandavahana, fihadiana",
+        "autresLabel": "Hafa",
+        "autresDesc": "Karazana asa misy loza hafa",
+        "autresDescriptionLabel": "Famaritana ny asa hafa",
+        "autresDescriptionPlaceholder": "Hazavao ny karazana asa..."
+      },
+      "step3": {
+        "intro": "Amin'ny maha-mpangataka ahy, dia manaiky sy manamafy aho fa :",
+        "evaluationRisquesLabel": "Voamarina ny fanombanana ny loza *",
+        "personneCompetenteLabel": "Nisy olona mahay notendrena hanara-maso ny fepetra *",
+        "mesuresPreventionLabel": "Efa napetraka ny fepetra fisorohana *",
+        "personnelInformeLabel": "Efa nampahafantarina ny fepetra fiarovana takiana ny mpiasa *",
+        "dangersControlesLabel": "Ho fanarahamaso mandritra ny asa manontolo ny loza *"
+      },
+      "step4": {
+        "infoTitle": "Fampahalalana lehibe",
+        "infoText": "Rehefa alefa, dia halefa any amin'ny Tompon'andraikitra tetikasa ny fangatahanao mba hankatoavina. Rehefa voamarin'ny Tompon'andraikitra tetikasa izy io, dia halefa any amin'ny ekipa HSE mba hankatoavina farany sy hanomezana laharana manokana.",
+        "recapTitle": "Famintinana ny fangatahanao",
+        "travauxLabel": "Asa:",
+        "siteLabel": "Toerana:",
+        "contractantLabel": "Mpanao fanekena:",
+        "intervenantsLabel": "Mpiasa mpanatanteraka:",
+        "intervenantsSuffix": "olona",
+        "periodeLabel": "Fe-potoana:",
+        "periodeSeparator": "ka hatramin'ny",
+        "nonRenseigne": "Tsy voafaritra",
+        "risquesTitle": "Karazana asa misy loza:",
+        "aucun": "Tsisy"
+      },
+      "validation": {
+        "planPreventionRequired": "Ilaina ny drafitry ny fisorohana",
+        "intituleTooShort": "Fohy loatra ny lohateny (farafahakeliny 5 tarehintsoratra)",
+        "localisationRequired": "Ilaina ny toerana misy",
+        "codeSiteRequired": "Ilaina ny kaody toerana",
+        "contractantRequired": "Ilaina ny mpanao fanekena",
+        "minIntervenants": "1 mpiasa farafahakeliny",
+        "dateDebutRequired": "Ilaina ny daty fanombohana",
+        "dateFinRequired": "Ilaina ny daty famaranana",
+        "evaluationRisquesRequired": "Tsy maintsy voamarina ny fanombanana ny loza",
+        "personneCompetenteRequired": "Tsy maintsy misy olona mahay tendrena",
+        "mesuresPreventionRequired": "Tsy maintsy apetraka ny fepetra fisorohana",
+        "personnelInformeRequired": "Tsy maintsy ampahafantarina ny mpiasa",
+        "dangersControlesRequired": "Tsy maintsy fanarahamaso ny loza"
+      }
+    },
+    "permitHauteur": {
+      "title": "Permis Fiasana eny amin'ny Haavo",
+      "description": "Fangatahana permis fiasana eny amin'ny haavo",
+      "submitLabel": "Alefaso ny fangatahana",
+      "headerTitle": "Mombamomba ny Permis",
+      "permitNumberLabel": "Laharan'ny permis :",
+      "planPreventionRefLabel": "Drafitry ny fisorohana :",
+      "notSelected": "Tsy voafantina",
+      "steps": {
+        "informations": {
+          "title": "Mombamomba ankapobe",
+          "description": "Antsipirihan'ny asa sy ny mombamomba ny toerana"
+        },
+        "risques": {
+          "title": "Loza voafantina",
+          "description": "Famantarana ny loza mifandray amin'ny asa eny amin'ny haavo"
+        },
+        "materiels": {
+          "title": "Fitaovana",
+          "description": "Fitaovana ampiasaina amin'ny asa"
+        },
+        "prevention": {
+          "title": "Fepetra fisorohana",
+          "description": "Fepetra fiarovana napetraka"
+        },
+        "urgence": {
+          "title": "Fisorohana maika",
+          "description": "Fepetra maika sy fanamafisana farany"
+        }
+      },
+      "step1": {
+        "planPreventionLabel": "Laharan'ny drafitry ny fisorohana *",
+        "planPreventionPlaceholder": "Misafidiana drafitry ny fisorohana",
+        "prestataireLabel": "Mpanome tolotra - Mpifanaraka *",
+        "prestatairePlaceholder": "Anaran'ny orinasa mpanome tolotra",
+        "dateDebutLabel": "Daty fanombohana *",
+        "dateFinLabel": "Daty famaranana *",
+        "descriptionLabel": "Famaritana ny asa / hetsika *",
+        "descriptionPlaceholder": "Hazavao amin'ny antsipirihany ny asa hatao eny amin'ny haavo...",
+        "codeSiteLabel": "Anaran'ny toerana *",
+        "codeSitePlaceholder": "Oh. : ANT-001",
+        "regionLabel": "Faritra *",
+        "regionPlaceholder": "Oh. : Analamanga",
+        "nombreIntervenantsLabel": "Isan'ny mpiasa mpanatanteraka *",
+        "hauteurChuteLabel": "Haavon'ny fianjerana mety hitranga *",
+        "hauteur3mLabel": "Haavo ≤ 3m",
+        "hauteur3to8mLabel": "3m < haavo ≤ 8m",
+        "hauteur8to40mLabel": "8m < haavo ≤ 40m",
+        "hauteurSup40mLabel": "Haavo > 40m",
+        "travailToitureLabel": "Asa eny amin'ny tafo",
+        "travailToitureDesc": "Fitsabahana eny amin'ny tafo na velaran-tany mitongilana",
+        "typePenteLabel": "Karazana fitongilanana",
+        "pentePlatLabel": "Tafo fisaka",
+        "penteLegereLabel": "Fitongilanana kely < 20°",
+        "penteForteLabel": "Fitongilanana mafy ≥ 20° sy < 45°",
+        "penteTresForteLabel": "Fitongilanana mafy dia mafy ≥ 45° sy < 60°",
+        "penteExtremeLabel": "Fitongilanana tafahoatra ≥ 60°"
+      },
+      "step2": {
+        "intro": "Fantaro ny loza rehetra mifandray amin'ny asa eny amin'ny haavo",
+        "effondrementLabel": "Fianjerana rafitra",
+        "incendieLabel": "Doro afo",
+        "deversementLabel": "Fandrotsahana tampoka",
+        "electrisationLabel": "Fahavoazan'ny herinaratra / Maty azon'ny herinaratra",
+        "chutePersonnesLabel": "Fianjeran'olona",
+        "blessureLabel": "Ratra (voatapaka…)",
+        "chuteObjetLabel": "Fianjerana zavatra",
+        "expositionSubstancesLabel": "Fifandraisana amin'ny akora mampidi-doza",
+        "ecrasementLabel": "Voatorotoro",
+        "mauvaiseMeteoLabel": "Toetr'andro ratsy",
+        "autreLabel": "Hafa",
+        "precisezRisqueLabel": "Hazavao ny loza",
+        "precisezRisquePlaceholder": "Hazavao ny loza manokana..."
+      },
+      "step3": {
+        "intro": "Safidio ny fitaovana ampiasaina",
+        "echafaudageRoulantLabel": "Eskafaoda mihodina",
+        "echafaudageRoulantDesc": "Eskafaoda mihodina misy kodiarana",
+        "echafaudageFixeLabel": "Eskafaoda tsy mihodina",
+        "echafaudageFixeDesc": "Eskafaoda naorina amin'ny rafitra",
+        "filetSecuriteLabel": "Harato fiarovana",
+        "filetSecuriteDesc": "Harato miaro amin'ny fianjerana",
+        "ligneVieVerticaleLabel": "Tady fiarovana mitsangana",
+        "ligneVieVerticaleDesc": "Tady fiarovana ho an'ny fivezivezena mitsangana",
+        "ligneVieHorizontaleLabel": "Tady fiarovana mandry",
+        "ligneVieHorizontaleDesc": "Tady fiarovana ho an'ny fivezivezena mandry",
+        "pointAncrageLabel": "Toeram-pamatorana",
+        "pointAncrageDesc": "Toeram-pamatorana tsy mihetsika",
+        "echelleCrinolineLabel": "Tohatra misy harato",
+        "plateformeElevatriceLabel": "Sehatra fiakarana",
+        "plateformeElevatriceDesc": "PEMP (Sehatra fiakarana mihodina ho an'ny mpiasa)",
+        "travailCordesLabel": "Asa amin'ny tady",
+        "travailCordesDesc": "Teknika fidirana sy fametrahana amin'ny tady",
+        "echelleLabel": "Tohatra",
+        "echelleDesc": "Tohatra tsotra",
+        "escabeauLabel": "Tohatra fohy",
+        "escabeauDesc": "Tohatra fohy na dian-tongotra",
+        "autreLabel": "Hafa",
+        "precisezEquipementLabel": "Hazavao ny fitaovana",
+        "precisezEquipementPlaceholder": "Hazavao ny fitaovana manokana..."
+      },
+      "step4": {
+        "intro": "Hamarino ny fepetra fisorohana napetraka",
+        "formationTitle": "Fiofanana sy fahaiza-manao",
+        "personnelHabiliteLabel": "Mpiasa voaomana (nofaofana sy mahay)",
+        "personnelApteLabel": "Mpiasa salama araka ny fitiliana ara-pahasalamana",
+        "epiTitle": "Fitaovana fiarovana manokana",
+        "chaussuresLabel": "Kiraro fiarovana",
+        "casqueLabel": "Satroka fiarovana misy fehy vava",
+        "gantsNitrileLabel": "Ganta nitrile hosorana loko",
+        "gantsIsolantsLabel": "Ganta manohitra herinaratra",
+        "gantsManutentionLabel": "Ganta fitondrana entana",
+        "bouchonOreilleLabel": "Kaonty sofina",
+        "casqueAntiBruitLabel": "Satroka manohitra tabataba",
+        "antiChuteTitle": "Fitaovana manohitra fianjerana",
+        "longeAbsorbeurLabel": "Tady antsantsa misy mpandray tsindry",
+        "doubleLongeLabel": "Tady antsantsa roa",
+        "ligneVieConformeLabel": "Tady fiarovana mifanaraka amin'ny fenitra",
+        "harnaisVerifieLabel": "Antsantsa fiarovana voamarina sy mifanaraka amin'ny fenitra",
+        "verificationsTitle": "Fanamarinana sy fizotra",
+        "balisageLabel": "Famantarana ny faritra asa",
+        "echafaudageConformeLabel": "Eskafaoda nizahana sy mifanaraka amin'ny fenitra",
+        "echelleConformeLabel": "Tohatra tsara toetra (barran-tohatra, tsato-kazo, kirihitra tsy mahasidina)",
+        "sanglageOutilsLabel": "Fanamafisana ny fitaovana amin'ny fehy",
+        "travailDeuxLabel": "Tsy maintsy misy olona roa miasa",
+        "mesureVentLabel": "Fandrefesana ny haingan'ny rivotra"
+      },
+      "step5": {
+        "warningTitle": "Fisorohana raha misy maika",
+        "warningText": "Amarino fa efa voapetraka ny fepetra maika alohan'ny anombohana ny asa.",
+        "planSauvetageLabel": "Drafitra famonjena azo antoka",
+        "planSauvetageRequiredDesc": "Tsy maintsy misy ho an'ny asa eny amin'ny haavo mihoatra ny 20m",
+        "planSauvetageDesc": "Drafitra famonjena raha misy maika",
+        "attentionLabel": "Fitandremana:",
+        "planSauvetageWarningText": "Tsy maintsy misy ny drafitra famonjena ho an'ny asa eny amin'ny haavo mihoatra ny 20 metatra.",
+        "numerosUrgenceLabel": "Laharana antso maika azo antoka",
+        "numerosUrgenceDesc": "Laharana antso maika aseho sy azo idirana",
+        "secouristeLabel": "Mpitsabo voalohany eo an-toerana",
+        "secouristeDesc": "Mpiasa nofaofana amin'ny famonjena voalohany eo an-toerana",
+        "engagementTitle": "Fanekena ataon'ny mpangataka permis",
+        "engagementLabel": "Amin'ny maha-mpangataka ity permis ity ahy, dia manaiky hanaja ny fampiharana ny fepetra fisorohana voalaza aho isaky ny hanomboka asa mahakasika ny asa eny amin'ny haavo",
+        "recapTitle": "Famintinana ny fangatahanao",
+        "planPreventionLabel": "Drafitry ny fisorohana:",
+        "prestataireLabel": "Mpanome tolotra:",
+        "periodeLabel": "Fotoana:",
+        "periodeValue": "Manomboka ny {{debut}} ka hatramin'ny {{fin}}",
+        "siteLabel": "Toerana:",
+        "operationLabel": "Asa:",
+        "intervenantsLabel": "Mpiasa mpanatanteraka:",
+        "intervenantsSuffix": "olona",
+        "hauteurChuteLabel": "Haavon'ny fianjerana mety hitranga:",
+        "travailToitureLabel": "Asa eny amin'ny tafo:",
+        "oui": "Eny",
+        "non": "Tsia",
+        "nonRenseigne": "Tsy voafaritra",
+        "na": "N/A"
+      },
+      "validation": {
+        "planPreventionRequired": "Ilaina ny drafitry ny fisorohana",
+        "prestataireRequired": "Ilaina ny mpanome tolotra",
+        "dateDebutRequired": "Ilaina ny daty fanombohana",
+        "dateFinRequired": "Ilaina ny daty famaranana",
+        "descriptionTooShort": "Fohy loatra ny famaritana (farafahakeliny 5 tarehintsoratra)",
+        "codeSiteRequired": "Ilaina ny kaody toerana",
+        "regionRequired": "Ilaina ny faritra",
+        "minIntervenants": "1 mpiasa farafahakeliny",
+        "engagementRequired": "Tsy maintsy atao ny fanekena mba hampandehanana ny fangatahana permis"
+      }
+    },
+    "preventionMultiStep": {
+      "title": "Mamorona drafitry ny fisorohana",
+      "description": "Fenoy amin'ny dingana maromaro ity taratasy ity mba hamoronana drafitry ny fisorohana vaovao",
+      "submitLabel": "Alefaso ny drafitra",
+      "steps": {
+        "entreprise": {
+          "title": "Orinasa Mpanome Tolotra",
+          "description": "Mombamomba ny orinasa manatanteraka ny asa"
+        },
+        "maitreOuvrage": {
+          "title": "Tompon'ny Tetikasa",
+          "description": "Mombamomba ny tompon'ny tetikasa"
+        },
+        "localisation": {
+          "title": "Toerana",
+          "description": "Mombamomba ny toerana hanaovana ny fitsabahana"
+        },
+        "descriptionTravaux": {
+          "title": "Famaritana ny Asa",
+          "description": "Antsipirihan'ny fitsabahana"
+        },
+        "planning": {
+          "title": "Fandaharam-potoana",
+          "description": "Daty sy ora fanaovana ny asa"
+        },
+        "risques": {
+          "title": "Loza Voafantina",
+          "description": "Famantarana ny loza mety hitranga"
+        },
+        "equipements": {
+          "title": "Fitaovana Fiarovana",
+          "description": "Fitaovana ilaina ho an'ny fiarovana"
+        },
+        "consignes": {
+          "title": "Toromarika Fiarovana",
+          "description": "Toromarika tsy maintsy hajaina mandritra ny asa"
+        },
+        "formation": {
+          "title": "Fiofanana sy Fahaiza-manao",
+          "description": "Fiofanan'ny mpiasa mpanatanteraka"
+        },
+        "documents": {
+          "title": "Antontan-taratasy sy Fanamafisana",
+          "description": "Antontan-taratasy sy fanamafisana farany"
+        },
+        "confirmation": {
+          "title": "Fanamafisana",
+          "description": "Amarino ny mombamomba alohan'ny fandefasana"
+        }
+      },
+      "errorBanner": {
+        "title": "Saha tsy maintsy hitsiana alohan'ny handroso :"
+      },
+      "entreprise": {
+        "nomLabel": "Anaran'ny orinasa",
+        "siretLabel": "Laharana SIRET",
+        "siretPlaceholder": "Isa 14",
+        "representantLabel": "Solontena",
+        "fonctionLabel": "Andraikitra"
+      },
+      "maitreOuvrage": {
+        "nomLabel": "Tompon'ny tetikasa",
+        "representantLabel": "Solontena",
+        "contactLabel": "Fifandraisana",
+        "emailLabel": "Mailaka"
+      },
+      "localisation": {
+        "nomSiteLabel": "Anaran'ny toerana",
+        "adresseLabel": "Adiresy",
+        "codePostalLabel": "Kaody postaly",
+        "villeLabel": "Tanàna",
+        "fokontanyLabel": "Fokontany",
+        "communeLabel": "Kaominina",
+        "districtLabel": "Distrika",
+        "regionLabel": "Faritra",
+        "situationLabel": "Toerana ara-jeografika",
+        "situationPlaceholder": "Misafidiana toerana",
+        "situationEnVille": "An-tanàna",
+        "situationRurale": "Ambanivohitra",
+        "situationSurMontagne": "An-tendrombohitra",
+        "situationAutre": "Hafa",
+        "situationAutrePrecisezLabel": "Hazavao"
+      },
+      "descriptionTravaux": {
+        "natureLabel": "Karazana fitsabahana",
+        "descriptionLabel": "Famaritana antsipirihany ny asa",
+        "nombreIntervenantsLabel": "Isan'ny mpiasa mpanatanteraka",
+        "dureeEstimeeLabel": "Faharetana tombanana (ora)"
+      },
+      "planning": {
+        "dateDebutLabel": "Daty fanombohana",
+        "dateFinLabel": "Daty famaranana",
+        "horairesTitle": "Ora fiasana",
+        "heureDebutLabel": "Fanombohana",
+        "heureFinLabel": "Famaranana",
+        "heurePauseLabel": "Fialan-tsasatra"
+      },
+      "risks": {
+        "sectionTitle": "Famantarana ny loza",
+        "sectionDesc": "Safidio ny loza mety hitranga mifandray amin'ny fitsabahana",
+        "categoriesTitle": "Sokajin-doza",
+        "detailsTitle": "Antsipirihan'ny loza voafantina",
+        "removeButton": "Esory",
+        "graviteLabel": "Halehiben'ny voka-dratsy",
+        "probabiliteLabel": "Mety hitrangany",
+        "niveauLabel": "Haavon'ny loza",
+        "mesuresLabel": "Fepetra fisorohana kasaina",
+        "mesuresPlaceholder": "Hazavao ny fepetra fisorohana manokana ho an'ity loza ity",
+        "mesuresExistentesLabel": "Efa misy fepetra fisorohana napetraka",
+        "graviteOptions": {
+          "faible": "Kely",
+          "moyenne": "Antonony",
+          "grave": "Mafy",
+          "mortelle": "Mahafaty"
+        },
+        "probabiliteOptions": {
+          "rare": "Vitsy",
+          "peu_probable": "Saika tsy mitranga",
+          "probable": "Mety hitranga",
+          "tres_probable": "Mety hitranga tokoa"
+        },
+        "niveauOptions": {
+          "faible": "Kely",
+          "modere": "Antonony",
+          "eleve": "Avo",
+          "intolerable": "Tsy azo ekena"
+        },
+        "environnement": "Loza mifandray amin'ny tontolo iainana",
+        "chantier": "Loza mifandray amin'ny toby fanorenana",
+        "travaux": "Loza mifandray amin'ny asa",
+        "autres": "Loza hafa",
+        "pollution": "Fandotoana (fandrotsahana zavatra)",
+        "incendie": "Doro afo",
+        "voie_circulation": "Lalana fivezivezena",
+        "zone_chargement": "Faritra fampidirana/fanalana entana",
+        "stockage": "Fitehirizana",
+        "travaux_hauteur": "Asa avo",
+        "manutention": "Fitondrana entana amin'ny tanana",
+        "outillage": "Fampiasana fitaovana",
+        "chimique": "Akora simika",
+        "electrique": "Loza amin'ny herinaratra",
+        "tronconnage": "Fandidiana, fanjairana, fanetsehana (soudure)",
+        "demolition": "Fandravana",
+        "travaux_enterres": "Asa amin'ny toerana tery na ambanin'ny tany",
+        "coactivite": "Fisian'ny asa maro miaraka",
+        "autres_travaux": "Loza hafa mifandray amin'ny asa",
+        "meteo": "Toetr'andro",
+        "vandalisme": "Fanimbana, halatra",
+        "autres_risques": "Loza hafa tsy voafantina"
+      },
+      "equipements": {
+        "equipementTitle": "Fitaovana {{index}}",
+        "removeButton": "Fafao",
+        "typeLabel": "Karazana fitaovana",
+        "quantiteLabel": "Habetsahana",
+        "conformeLabel": "Fitaovana mifanaraka amin'ny fenitra",
+        "addButton": "Hampiditra fitaovana"
+      },
+      "consignes": {
+        "generalesTitle": "Toromarika ankapobe momba ny fiarovana",
+        "consignesSecuriteLabel": "Toromarika tsy maintsy hajaina",
+        "consignesSecuritePlaceholder": "Oh. : Fanaovana EPI tsy maintsy atao, faritra voaaro, sns.",
+        "urgenceTitle": "Toromarika raha misy maika",
+        "consignesUrgenceLabel": "Fizotry ny fandraisana andraikitra maika",
+        "consignesUrgencePlaceholder": "Oh. : Laharana antso maika, toerana fivoriana, sns.",
+        "contactsTitle": "Fifandraisana maika",
+        "contactsUrgenceLabel": "Olona ifandraisana raha misy maika",
+        "contactsUrgencePlaceholder": "Oh. : Tompon'andraikitra fiarovana: 01 23 45 67 89, SAMU: 15, Sapeur-pompier: 18, sns."
+      },
+      "formation": {
+        "formationSecuriteLabel": "Efa nahazo fiofanana momba ny fiarovana manokana ho an'ity fitsabahana ity ve ny mpiasa mpanatanteraka?",
+        "dateFormationLabel": "Daty nanaovana ny fiofanana",
+        "nomFormateurLabel": "Anaran'ny mpampiofana",
+        "nomFormateurPlaceholder": "Anaran'ny mpampiofana na ny fikambanana",
+        "commentairesTitle": "Fanamarihana fanampiny",
+        "commentairesLabel": "Fanamarihana na mombamomba fanampiny",
+        "commentairesPlaceholder": "Oh. : Fahaiza-manao manokana ilaina, fahazoan-dalana manokana, sns."
+      },
+      "documents": {
+        "title": "Antontan-taratasy ilaina",
+        "validationTitle": "Fanamafisana",
+        "accordLabel": "Manamafy amin'ny fahamarinako aho fa marina ny mombamomba nomena ary manaiky hanaja ny toromarika fiarovana voalaza ao amin'ity antontan-taratasy ity.",
+        "options": {
+          "attestation_assurance": "Taratasy fanamarinana fiantohana ny andraikitra sivily",
+          "plan_intervention": "Drafitry ny fitsabahana antsipirihany",
+          "fiches_risques": "Taratasy momba ny toeran'asa sy ny fiatrehana loza",
+          "autres": "Antontan-taratasy hafa"
+        }
+      },
+      "confirmation": {
+        "verificationTitle": "Fanamarinana farany",
+        "verificationText": "Amarino tsara ny mombamomba rehetra alohan'ny handefasana ny drafitry ny fisorohana. Rehefa voamarina izy io, dia mbola azonao hovaina ihany aoriana.",
+        "recapTitle": "Famintinana",
+        "entrepriseTitle": "Orinasa Mpanome Tolotra",
+        "interventionTitle": "Fitsabahana",
+        "intervenantsSuffix": "mpiasa mpanatanteraka",
+        "periodeText": "Manomboka ny {{dateDebut}} ka hatramin'ny {{dateFin}}",
+        "localisationTitle": "Toerana",
+        "risquesCountTitle": "Loza {{count}} voafantina",
+        "finalCheckboxLabel": "Manamafy aho fa marina sy feno ny mombamomba rehetra. Amin'ny fanamarihana ity kizioka ity, dia hanamafy tanteraka ity drafitry ny fisorohana ity aho."
+      },
+      "validation": {
+        "entrepriseRequired": "Ilaina ny orinasa",
+        "siretInvalid": "Diso ny laharana SIRET",
+        "representantPrestataireRequired": "Ilaina ny solontena",
+        "fonctionRequired": "Ilaina ny andraikitra",
+        "maitreOuvrageRequired": "Ilaina ny tompon'ny tetikasa",
+        "representantMaitreOuvrageRequired": "Ilaina ny solontena",
+        "contactRequired": "Ilaina ny fifandraisana",
+        "emailInvalid": "Diso ny mailaka",
+        "latitudeInvalid": "Diso ny latitude",
+        "longitudeInvalid": "Diso ny longitude",
+        "pointNomRequired": "Ilaina ny anaran'ny teboka",
+        "nomSiteRequired": "Ilaina ny anaran'ny toerana",
+        "adresseRequired": "Ilaina ny adiresy",
+        "codePostalInvalid": "Diso ny kaody postaly",
+        "villeRequired": "Ilaina ny tanàna",
+        "coordonneesGPSRequired": "Ilaina farafahakeliny teboka GPS iray",
+        "fokontanyRequired": "Ilaina ny fokontany",
+        "communeRequired": "Ilaina ny kaominina",
+        "districtRequired": "Ilaina ny distrika",
+        "regionRequired": "Ilaina ny faritra",
+        "natureRequired": "Ilaina ny karazana",
+        "descriptionTooShort": "Fohy loatra ny famaritana (farafahakeliny 10 tarehintsoratra)",
+        "minIntervenants": "1 mpiasa farafahakeliny",
+        "dureeEstimeeRequired": "Ilaina ny faharetana tombanana",
+        "dateDebutRequired": "Ilaina ny daty fanombohana",
+        "dateFinRequired": "Ilaina ny daty famaranana",
+        "heureDebutRequired": "Ilaina ny ora fanombohana",
+        "heureFinRequired": "Ilaina ny ora famaranana",
+        "heurePauseRequired": "Ilaina ny ora fialan-tsasatra",
+        "risqueDescriptionRequired": "Ilaina ny famaritana ny loza",
+        "mesuresRequired": "Ilaina ny fepetra fisorohana",
+        "risquesMinRequired": "Tsy maintsy misy loza iray farafahakeliny voafantina",
+        "typeEquipementRequired": "Ilaina ny karazana fitaovana",
+        "quantiteRequired": "Ilaina ny habetsahana",
+        "equipementsMinRequired": "Tsy maintsy misy fitaovana iray farafahakeliny voafaritra",
+        "consignesSecuriteRequired": "Ilaina ny toromarika fiarovana",
+        "consignesUrgenceRequired": "Ilaina ny toromarika maika",
+        "contactsUrgenceRequired": "Ilaina ny fifandraisana maika",
+        "documentsMinRequired": "Tsy maintsy misy antontan-taratasy iray farafahakeliny omena",
+        "accordResponsableRequired": "Tsy maintsy manaiky ny fepetra ianao",
+        "confirmationRequired": "Tsy maintsy manamafy ny mombamomba ianao"
+      }
+    }
+  },
+  "layout": {
+    "routeGuard": {
+      "unauthorized": "Tsy manan-jo hiditra amin'ity pejy ity",
+      "permissionsUnavailable": "Tsy azo atao ny fanamarinana ny alalana — fidirana tsy voafetra vonjimaika."
+    },
+    "sidebar": {
+      "menuUnavailable": "Tsy azo ampiasaina ny menio",
+      "retry": "Andramo indray"
+    }
+  },
+  "ui": {
+    "confirmActionModal": {
+      "commentLabel": "Fanamarihana",
+      "fieldRequired": "Ilaina hofenoina ity saha ity."
+    }
+  },
+  "permits": {
+    "controleJournalierElectrique": {
+      "title": "Fanaraha-maso isan'andro amin'ny Permis Herinaratra",
+      "dateLabel": "Daty",
+      "codeSiteLabel": "Kaody toerana",
+      "codeSitePlaceholder": "Oh. : ANA-001",
+      "intervenantsLabel": "Mpiasa mpanatanteraka",
+      "intervenantPlaceholder": "Mpiasa mpanatanteraka faha-{{number}}",
+      "addIntervenantButton": "Ampio mpiasa mpanatanteraka",
+      "confirmationMesuresLabel": "Manamafy aho fa efa nampiharina ny fepetra fisorohana voatondro ao amin'ny permis",
+      "commencementTitle": "Fanombohan'ny asa",
+      "signatureDemandeurLabel": "Sonian'ny Mpangataka/Tompon'andraikitry ny fanekena",
+      "signatureIntervenantLabel": "Sonian'ny mpiasa mpanatanteraka",
+      "signaturePlaceholder": "Anarana sy sonia",
+      "clotureTitle": "Fanakatonana isan'andro",
+      "cancelButton": "Ajanony",
+      "submitButton": "Tehirizo ny fanaraha-maso",
+      "validationFieldsAlert": "Fenoy ny saha ilaina rehetra azafady",
+      "validationConfirmationAlert": "Tsy maintsy manamafy ny fampiharana ny fepetra fisorohana ianao"
+    },
+    "controleJournalierHauteur": {
+      "title": "Fanaraha-maso isan'andro amin'ny Permis Asa Avo",
+      "dateLabel": "Daty",
+      "codeSiteLabel": "Kaody toerana",
+      "codeSitePlaceholder": "Oh. : ANA-001",
+      "vitesseVentLabel": "Hafainganan'ny rivotra (km/h) *",
+      "vitesseVentPlaceholder": "Oh. : 15",
+      "vitesseVentHint": "Fetra soso-kevitra : 50 km/h farafahabetsany ho an'ny asa avo",
+      "intervenantsLabel": "Mpiasa mpanatanteraka",
+      "intervenantPlaceholder": "Mpiasa mpanatanteraka faha-{{number}}",
+      "addIntervenantButton": "Ampio mpiasa mpanatanteraka",
+      "confirmationMesuresLabel": "Manamafy aho fa efa nampiharina ny fepetra fisorohana voatondro ao amin'ny permis",
+      "commencementTitle": "Fanombohan'ny asa",
+      "signatureDemandeurLabel": "Sonian'ny Mpangataka/Tompon'andraikitry ny fanekena",
+      "signatureIntervenantLabel": "Sonian'ny Mpampiasa ny permis",
+      "signaturePlaceholder": "Anarana sy sonia",
+      "clotureTitle": "Fanakatonana isan'andro",
+      "cancelButton": "Ajanony",
+      "submitButton": "Tehirizo ny fanaraha-maso",
+      "validationFieldsAlert": "Fenoy ny saha ilaina rehetra azafady",
+      "validationConfirmationAlert": "Tsy maintsy manamafy ny fampiharana ny fepetra fisorohana ianao",
+      "vitesseVentZeroAlert": "Tsy maintsy mihoatra ny 0 km/h ny hafainganan'ny rivotra",
+      "windExceedConfirm": "Fitandremana : Ny hafainganan'ny rivotra ({{vitesse}} km/h) dia mihoatra ny fetra soso-kevitra 50 km/h ho an'ny asa avo. Tianao hotohizana ve?"
+    },
+    "controleJournalierModal": {
+      "title": "Fanaraha-maso isan'andro"
+    },
+    "validationJournaliereModal": {
+      "validation": {
+        "dateRequired": "Ilaina ny daty",
+        "codeSiteRequired": "Ilaina ny kaody toerana",
+        "vitesseVentPositive": "Tsy maintsy tsy latsaka amin'ny aotra ny hafainganan'ny rivotra",
+        "demandeurSignatureDebutRequired": "Ilaina ny sonian'ny mpangataka amin'ny fanombohana",
+        "utilisateurSignatureDebutRequired": "Ilaina ny sonian'ny mpampiasa amin'ny fanombohana"
+      },
+      "toastSuccess": "Voatahiry soa aman-tsara ny fanamarinana isan'andro",
+      "toastError": "Nisy hadisoana tamin'ny fanampiana ny fanamarinana",
+      "modalTitle": "Fanamarinana isan'andro",
+      "description": "Fitantanana ny fanamarinana isan'andro amin'ny permis asa avo",
+      "addButton": "Ampio fanamarinana isan'andro",
+      "formTitle": "Fanamarinana isan'andro vaovao",
+      "dateLabel": "Daty *",
+      "codeSiteLabel": "Kaody toerana *",
+      "codeSitePlaceholder": "Oh. : ANT-001",
+      "vitesseVentLabel": "Hafainganan'ny rivotra (km/h)",
+      "vitesseVentPlaceholder": "Oh. : 15",
+      "debutSignaturesTitle": "Sonia - Fanombohan'ny asa",
+      "demandeurSignatureDebutLabel": "Mpangataka / Tompon'andraikitry ny fanekena *",
+      "utilisateurSignatureDebutLabel": "Mpampiasa ny permis *",
+      "signaturePlaceholder": "Anarana sy sonia",
+      "finSignaturesTitle": "Sonia - Fanakatonana isan'andro",
+      "demandeurSignatureFinLabel": "Mpangataka / Tompon'andraikitry ny fanekena",
+      "utilisateurSignatureFinLabel": "Mpampiasa ny permis",
+      "submitAddButton": "Ampio ny fanamarinana",
+      "cancelButton": "Ajanony",
+      "historyTitle": "Tantaran'ny fanamarinana ({{count}})",
+      "emptyTitle": "Tsy misy fanamarinana isan'andro voarakitra",
+      "emptyText": "Ampio ny fanamarinana voalohany hanombohana ny fanaraha-maso",
+      "tableHeaderDate": "Daty",
+      "tableHeaderCodeSite": "Kaody toerana",
+      "tableHeaderVent": "Rivotra (km/h)",
+      "tableHeaderDemandeurDebut": "Mpangataka Fanombohana",
+      "tableHeaderUtilisateurDebut": "Mpampiasa Fanombohana",
+      "tableHeaderDemandeurFin": "Mpangataka Famaranana",
+      "tableHeaderUtilisateurFin": "Mpampiasa Famaranana",
+      "signedLabel": "Voasonia",
+      "closeButton": "Hidiana"
+    },
+    "validationModal": {
+      "titleChef": "Fanamarinan'ny Tompon'andraikitra tetikasa",
+      "titleHse": "Fanamarinana HSE sy fanomezana laharana",
+      "descriptionChef": "Jereo ny fangatahana ary hanamafy na hanilika ny permis",
+      "descriptionHse": "Fanamarinana farany sy fanomezana laharana tokana ho an'ny permis",
+      "validatedByLabel": "Nomarinin'i",
+      "commentaireLabel": "Fanamarihana",
+      "commentairePlaceholder": "Ampio fanamarihana (tsy voatery)",
+      "hseReferenceInfoTitle": "Hisy laharana tokana haforonina ho azy rehefa vita ny fanamarinana.",
+      "hseReferenceInfoFormat": "Endrika: TAONA/PTW/XXX (oh: 2025/PTW/001)",
+      "validerActionLabel": "Hanamafy",
+      "validerActionDescChef": "Hampitaina any amin'ny HSE",
+      "validerActionDescHse": "Hankatoavina ny permis",
+      "refuserActionLabel": "Hanilika",
+      "refuserActionDesc": "Handà ny fangatahana",
+      "refusRequiredWarningTitle": "⚠️ Ilaina ny fanamarihana raha handà",
+      "refusRequiredWarningText": "Hazavao ny antony nandavana mba hahafahan'ny mpiasa mpanome tolotra manitsy.",
+      "cancelButton": "Ajanony",
+      "submitValiderLabel": "Hanamafy ny permis",
+      "submitRefuserLabel": "Hanilika ny permis",
+      "toastSuccessChef": "Voamarin'ny Tompon'andraikitra tetikasa soa aman-tsara ny permis",
+      "toastSuccessHse": "Voamarin'ny HSE ny permis ary voatokana ny laharana",
+      "toastErrorRefuse": "Nolavina ny permis",
+      "toastErrorGeneric": "Nisy hadisoana tamin'ny fanamarinana"
+    }
+  },
+  "permitTravail": {
+    "statut": {
+      "BROUILLON": "Drafitra",
+      "SOUMIS": "Natolotra",
+      "EN_COURS": "Mandeha",
+      "VALIDE": "Voamarina",
+      "REJETE": "Nolanihanina",
+      "VALIDE_HSE": "Voamarina HSE",
+      "REFUSE_HSE": "Nolanihanina HSE",
+      "CLOTURE": "Voakatona",
+      "PV_VALIDE": "PV voamarina",
+      "PV_REFUSE": "PV nolavina"
+    },
+    "types": {
+      "GENERAL": "Ankapobeny",
+      "ELECTRIQUE": "Herinaratra",
+      "HAUTEUR": "Haavony"
+    },
+    "processus": {
+      "NOUVEAU_SITE": "Toerana vaovao",
+      "MAINTENANCE": "Fikojakojana",
+      "RENOUVELLEMENT": "Fanavaozana"
+    },
+    "list": {
+      "title": "Permis asa",
+      "description": "Tantano ny fangatahana permis asanao",
+      "newPermit": "Permis vaovao",
+      "hseView": "Fijery HSE",
+      "empty": "Tsy misy permis asa",
+      "emptyCreate": "Hamorona ny permis asa voalohany.",
+      "emptyNoCreate": "Tsy misy permis azo jerena ho an'ny kaontinao.",
+      "loadingError": "Hadisoana tamin'ny fampidirana ny permis.",
+      "downloadPv": "Hisintona ny PV fandraisana",
+      "groupBadge": "Vondrona",
+      "groupTitle": "Anisan'ny vondrona permis iray",
+      "paginationPermits": "permis",
+      "headers": {
+        "reference": "Laharana",
+        "type": "Karazana",
+        "processus": "Dingana",
+        "site": "Toerana",
+        "statut": "Sata",
+        "submittedAt": "Daty fandefasana",
+        "expiration": "Fahataperana",
+        "actions": "Hetsika"
+      },
+      "actions": {
+        "voir": "Jereo",
+        "valider": "Hanamafy",
+        "refuser": "Hanilika",
+        "corriger": "Hanitsy"
+      },
+      "filters": {
+        "allStatuts": "Sata rehetra",
+        "allTypes": "Karazana rehetra"
+      }
+    },
+    "suivi": {
+      "title": "Fanaraha-maso ny fampiasana — Permis asa",
+      "description": "Tabilao hetsika, havaozina isaky ny 60 segondra",
+      "applyFilters": "Ampiharo",
+      "resetFilters": "Averina",
+      "siteLabel": "Toerana",
+      "sitePlaceholder": "Kaody toerana…",
+      "typeLabel": "Karazana",
+      "statutLabel": "Sata",
+      "dateStartLabel": "Fanombohana",
+      "dateEndLabel": "Farany",
+      "stats": {
+        "actifs": "Permis mavitrika",
+        "consultations": "Fijerena androany",
+        "changements": "Fiovan'ny sata",
+        "expiring": "Ho lany ao anatin'ny 7 andro"
+      },
+      "tableTitle": "Permis ({{count}})",
+      "loading": "Ampiasaina…",
+      "empty": "Tsy misy permis mifanaraka",
+      "paginationPermits": "permis",
+      "distributionStatut": "Fizarana araka ny sata",
+      "distributionType": "Fizarana araka ny karazana",
+      "topSites": "Toerana 5 ambony indrindra",
+      "expiringSection": "Ho lany ao anatin'ny 7 andro",
+      "headers": {
+        "reference": "Laharana",
+        "type": "Karazana",
+        "site": "Toerana",
+        "statut": "Sata",
+        "submittedAt": "Natolotra tamin'ny",
+        "expiration": "Fahataperana",
+        "actions": "Hetsika"
+      },
+      "actions": {
+        "logs": "Tantara"
+      },
+      "noAccess": "Tsy mahazo alalana",
+      "noData": "Tsy misy angona",
+      "byStatut": "Araka ny sata",
+      "byType": "Araka ny karazana"
+    },
+    "components": {
+      "cloturerModal": {
+        "title": "Hanakatona ny permis",
+        "banner": "<strong>Hetsika tsy azo soloana.</strong> Ho lasa amin'ny sata VOAKATONA ny permis ary hisy PV fandraisana haforonina ho azy.",
+        "commentPlaceholder": "Antony fanakatonana, fanamarihana amin'ny fandraisana…",
+        "accordClientLabel": "Nahazoana ny faneken'ny mpanjifa",
+        "confirmLabel": "Hanamafy ny fanakatonana",
+        "errorMessage": "Nisy hadisoana tamin'ny fanakatonana — hamarino ny zo na ny satan'ny permis."
+      },
+      "refuserModal": {
+        "title": "Hanilika ny permis {{reference}}",
+        "banner": "Ho avoitran'ny mailaka ny mpanome tolotra ary tsy maintsy manitsy ny dosieny alohan'ny handefasany azy indray.",
+        "commentLabel": "Antony ny fandavana",
+        "commentRequiredMessage": "Ilaina ny antony ny fandavana.",
+        "commentPlaceholder": "Hazavao ny antony ny fandavana...",
+        "confirmLabel": "Hanilika",
+        "errorMessage": "Nisy hadisoana tamin'ny fandavana ny permis."
+      },
+      "validerModal": {
+        "title": "Hanamafy ny permis {{reference}}",
+        "descriptionPrefix": "Hamarino ny fanamarinana ny permis fiasana",
+        "commentPlaceholder": "Fanamarihana na fanehoan-kevitra...",
+        "confirmLabel": "Hanamafy",
+        "errorMessage": "Nisy hadisoana tamin'ny fanamarinana ny permis.",
+        "successMessage": "Voamarina soa aman-tsara ny permis.",
+        "signatureLabel": "Sonia elektronika",
+        "expirationLabel": "Daty fahataperana"
+      },
+      "pvRefuserModal": {
+        "title": "Hanilika ny PV — {{reference}}",
+        "banner": "Ho avoitran'ny mailaka ny mpanome tolotra ary tsy maintsy hanakatona indray ny permis.",
+        "commentLabel": "Antony ny fandavana",
+        "commentRequiredMessage": "Ilaina ny antony ny fandavana.",
+        "commentPlaceholder": "Hazavao ny antony fandavana ny PV...",
+        "confirmLabel": "Hanilika ny PV",
+        "errorMessage": "Nisy hadisoana tamin'ny fandavana ny PV fandraisana."
+      },
+      "pvValiderModal": {
+        "title": "Hanamafy ny PV — {{reference}}",
+        "descriptionPrefix": "Hamarina ny fanamarinana ny PV fandraisana ho an'ny permis",
+        "commentPlaceholder": "Fanamarihana amin'ny fandraisana...",
+        "confirmLabel": "Hanamafy ny PV",
+        "successMessage": "Voamarina soa aman-tsara ny PV fandraisana.",
+        "signatureLabel": "Sonia elektronika",
+        "errorNotCloture": "Tsy mbola voakatona ny permis.",
+        "errorPvNotGenere": "Tsy mbola voaforona ny PV fandraisana. Andraso ny fahavitan'ny famoronana.",
+        "errorSuiviManquant": "Tsy misy fanaraha-maso isan'andro hita ho an'ity permis ity.",
+        "errorEvaluationManquante": "Tsy misy fanombanana loza hita ho an'ity permis ity.",
+        "errorGeneric": "Nisy hadisoana tamin'ny fanamarinana ny PV fandraisana."
+      },
+      "pdfButton": {
+        "generating": "Eo am-pamoronana…",
+        "downloadOfficial": "Hisintona ny PDF ofisialy",
+        "generatedOn": "Noforonina tamin'ny {{date}}",
+        "generatedOnWithSize": "Noforonina tamin'ny {{date}} ({{size}} Ko)",
+        "regenerate": "Avereno atao",
+        "retryGeneration": "Andramo indray ny famoronana",
+        "generateOfficial": "Hamorona ny PDF ofisialy"
+      },
+      "pvReceptionButton": {
+        "generating": "Famoronana PV…",
+        "download": "Hisintona ny PV",
+        "generatedOn": "Noforonina tamin'ny {{date}}",
+        "generatedOnWithSize": "Noforonina tamin'ny {{date}} ({{size}} Ko)",
+        "error": "Hadisoana tamin'ny famoronana",
+        "pending": "PV miandry famoronana"
+      },
+      "documentUploadZone": {
+        "uploadedCheck": "Antontan-taratasy nalefa ✓",
+        "formatsHint": "PDF, JPG/JPEG — tarihina eto na tsindrio mba hisafidianana",
+        "downloadButton": "Hisintona",
+        "uploading": "Alefa...",
+        "replaceButton": "Soloina",
+        "chooseButton": "Safidio",
+        "footerNote": "Ilaina daholo ny antontan-taratasy rehetra alohan'ny fandefasana ny permis. Endrika ekena : PDF, JPG/JPEG."
+      },
+      "logsDrawer": {
+        "actions": {
+          "consulte": "Nojerena",
+          "documentTelecharge": "Antontan-taratasy nasintona",
+          "statutChange": "Fiovan'ny sata",
+          "pdfGenere": "PDF noforonina"
+        },
+        "titleWithRef": "Tantara — {{reference}}",
+        "titleDefault": "Tantara",
+        "dateLabel": "Daty",
+        "csvButton": "CSV",
+        "loading": "Ampiasaina…",
+        "emptyText": "Tsy misy tantara amin'ity daty ity",
+        "eventCount_one": "zava-nitranga {{count}}",
+        "eventCount_other": "zava-nitranga {{count}}",
+        "loadMore": "Ampidino bebe kokoa ({{remaining}} sisa)",
+        "csvHeader": "Daty,Ora,Hetsika,Nataon'i,Antsipiriany"
+      },
+      "engagementSection": {
+        "niveauRouge": "Mena",
+        "niveauJaune": "Mavo",
+        "niveauVert": "Maitso",
+        "niveauAriaLabel": "Ambaratonga {{level}}",
+        "dangersPlaceholder": "Inona avy ny loza mety hitranga?",
+        "evaluationPreliminaireLabel": "Fanombanana voalohany ny loza",
+        "moyensMaitrisePlaceholder": "Inona avy ny fomba hifehezana ny loza amin'ny fomba azo antoka?",
+        "evaluationFinaleLabel": "Fanombanana farany ny loza",
+        "saveButtonSaving": "Tehirizina…",
+        "saveButtonSaved": "✓ Voarakitra",
+        "saveButtonError": "Hadisoana — andramo indray",
+        "saveButtonDefault": "Tehirizo",
+        "saveErrorText": "Tsy voarakitra. Hamarino ny fifandraisanao aterineto.",
+        "certifyPrefix": "Izaho, mpanao sonia etsy ambany,",
+        "certifySuffix": "manamarina ny fahamarinan'ny fampahalalana ary manaiky hanaja ireo adidy HSSES ireo.",
+        "defaultPrestataire": "ilay mpanome tolotra"
+      },
+      "expirationBadge": {
+        "expired": "Lany daty",
+        "renewalSoon": "Fanavaozana ao anatin'ny {{days}} andro"
+      },
+      "statutBadge": {
+        "brouillon": "Drafitra",
+        "soumis": "Natolotra",
+        "enCours": "Eo am-pandehanana",
+        "valide": "Voamarina",
+        "rejete": "Nolanihanina",
+        "valideHse": "Voamarina HSE",
+        "refuseHse": "Nolanihanina HSE",
+        "cloture": "Voakatona",
+        "pvValide": "PV Voamarina",
+        "pvRefuse": "PV Nolanihanina"
+      }
+    }
+  },
+  "intervention": {
+    "pages": {
+      "shared": {
+        "loading": "Mampiditra…",
+        "backToList": "Miverina any amin'ny lisitra",
+        "accessDenied": "Tsy nahazo alalana",
+        "realise": "Vita",
+        "nonRealise": "Tsy vita",
+        "statut": {
+          "enPreparation": "Mbola amboarina",
+          "evaluationComplete": "Fanombanana vita",
+          "enCours": "Mandeha",
+          "terminee": "Vita tanteraka"
+        }
+      },
+      "form": {
+        "title": "Fandraisana anjara vaovao"
+      },
+      "suivisJournaliers": {
+        "title": "Fanaraha-maso isan'andro",
+        "description": "Fandraisana anjara misy fanombanana vita, fanaraha-maso isan'andro ny fandrosoana",
+        "viewButton": "Jereo ny fanaraha-maso",
+        "listTitle": "Fandraisana anjara vonona ({{count}})",
+        "listDescription": "Fanombanana voamarina, afaka miditra ny fanaraha-maso isan'andro",
+        "searchPlaceholder": "Karohy amin'ny laharana na toerana…",
+        "emptySearch": "Tsy misy valiny",
+        "emptySearchHint": "Ovay ny fikarohana na esory ny sivana.",
+        "stats": {
+          "total": "Totaly",
+          "ready": "Vonona ho fanaraha-maso"
+        },
+        "headers": {
+          "reference": "Laharana fahazoan-dalana",
+          "site": "Toerana",
+          "avancement": "Fandrosoana",
+          "actions": "Hetsika"
+        },
+        "empty": {
+          "title": "Tsy misy fandraisana anjara azo jerena",
+          "description": "Hiseho eto ny fandraisana anjara rehefa voamarina ny fanombanana ny loza."
+        }
+      },
+      "suiviJournalier": {
+        "title": "Fanaraha-maso isan'andro",
+        "description": "Firaketana isan'andro ny fandrosoan'ny fandraisana anjara",
+        "notFound": "Tsy hita ny fandraisana anjara",
+        "backToList": "Miverina any amin'ny fanaraha-maso",
+        "backToEvaluation": "Miverina any amin'ny fanombanana",
+        "addToday": "Ampidiro ny fanaraha-maso anio",
+        "historyTitle": "Tantara ({{count}})",
+        "today": "androany",
+        "responsable": "Tompon'andraikitra :",
+        "edit": "Hanova",
+        "summary": {
+          "permitRef": "Laharana fahazoan-dalana",
+          "site": "Toerana",
+          "statut": "Sata",
+          "globalProgress": "Fandrosoana ankapobeny"
+        },
+        "empty": {
+          "title": "Tsy misy fanaraha-maso isan'andro voarakitra",
+          "description": "Ampidiro ny fanaraha-maso anio hanombohana ny tantara."
+        },
+        "form": {
+          "createTitle": "Fanaraha-maso ny {{date}}",
+          "editTitle": "Hanova ny fanaraha-maso ny {{date}}",
+          "date": "Daty",
+          "responsable": "Anaran'ny tompon'andraikitra",
+          "responsablePlaceholder": "Anarana sy fanampin'anaran'ny tompon'andraikitra",
+          "realisation": "Fahavitana",
+          "motif": "Antony tsy vita",
+          "motifPlaceholder": "Ohatra : toetr'andro, tsy tonga ny mpiasa…",
+          "avancement": "Fandrosoana",
+          "avancementError": "Ny sanda dia eo anelanelan'ny 0 sy 100",
+          "commentaire": "Commentaire",
+          "commentairePlaceholder": "Fanamarihana, remarques…",
+          "cancel": "Aoka",
+          "save": "Tehirizo"
+        },
+        "errors": {
+          "doublon": "Fanaraha-maso ny {{date}} efa voarakitra.",
+          "evaluationRequise": "Fanombanana loza ilaina alohan'ny fidirana amin'ny fanaraha-maso.",
+          "motifRequis": "Antony tsy vita tsy maintsy fenoina.",
+          "avancementInvalide": "Isan-jato fandrosoana tsy mety (0–100)."
+        }
+      },
+      "evaluationRisque": {
+        "loading": "Mampiditra…",
+        "notFound": "Tsy hita ny fandraisana anjara",
+        "backToPermits": "Miverina any amin'ny fahazoan-dalana asa",
+        "title": "Fanombanana ny loza",
+        "description": "Fanombanana indray ny loza hita ho an'ity fandraisana anjara ity",
+        "backToPermit": "Miverina any amin'ny fahazoan-dalana",
+        "permitSummary": {
+          "title": "Famintinana ny fahazoan-dalana asa",
+          "reference": "Laharana",
+          "type": "Karazana",
+          "site": "Toerana",
+          "period": "Fotoana",
+          "planPrevention": "Drafitra fisorohana",
+          "viewPlan": "Jereo ny drafitra",
+          "evaluationStatus": "Satan'ny fanombanana"
+        },
+        "reevaluation": {
+          "title": "Fanombanana indray ny loza",
+          "saving": "Mitahiry…"
+        },
+        "progress": {
+          "title": "Fandrosoan'ny fanombanana indray",
+          "count": "{{reevaluated}} / {{total}} loza voamboarina indray",
+          "warning": "Ny loza rehetra dia tsy maintsy voamboarina indray alohan'ny fanamarinana",
+          "validateButton": "Hamarino ny fanombanana",
+          "validateTooltip": "Fenoy ny fanombanana indray ny loza rehetra",
+          "allDone": "Voamboarina indray ny loza rehetra"
+        },
+        "complete": {
+          "title": "Fanombanana vita",
+          "description": "Voamarina ny fanombanana ny loza. Afaka manara-maso ny fandrosoana isan'andro ianao izao.",
+          "viewSuivis": "Jereo ny fanaraha-maso isan'andro"
+        }
+      },
+      "detailHse": {
+        "notFound": "Tsy hita ny fandraisana anjara",
+        "headerFallbackTitle": "Fandraisana anjara {{id}}",
+        "headerDescription": "Fanaraha-maso HSE — toerana {{site}}",
+        "statutLabel": "Sata",
+        "permitReferenceLabel": "Laharana fahazoan-dalana",
+        "typeLabel": "Karazana",
+        "siteLabel": "Toerana",
+        "globalProgressLabel": "Fandrosoana ankapobeny",
+        "suivisSection": {
+          "title": "Fanaraha-maso isan'andro ({{count}})",
+          "empty": "Tsy misy fanaraha-maso isan'andro voarakitra",
+          "responsable": "Tompon'andraikitra :",
+          "motif": "Antony :",
+          "recordedOn": "Voarakitra tamin'ny {{date}}"
+        },
+        "risquesSection": {
+          "title": "Fanombanana ny loza ({{count}})",
+          "averageLevel": "Haavon'ny salan'isa : {{value}}",
+          "headers": {
+            "description": "Famariparitana",
+            "gravite": "Halehibe",
+            "probabilite": "Metisy",
+            "niveauRisque": "Haavon'ny loza",
+            "reevalue": "Voamboarina indray",
+            "mesures": "Fepetra"
+          }
+        },
+        "linkedInfo": {
+          "title": "Fampahalalana mifandray",
+          "permit": "Fahazoan-dalana asa",
+          "plan": "Drafitra fisorohana"
+        }
+      }
+    },
+    "components": {
+      "avancementBadge": {
+        "termine": "Vita tanteraka",
+        "avance": "Mandroso",
+        "enCours": "Mandeha",
+        "faible": "Ambany"
+      }
+    }
+  },
+  "interventions": {
+    "list": {
+      "title": "Fandraisana anjara",
+      "description": "Fanaraha-maso isan'andro ny fandraisana anjara sy fanamarinana ny asa",
+      "newIntervention": "Fandraisana anjara vaovao",
+      "empty": "Tsy misy fandraisana anjara hita",
+      "emptyCreate": "Hamorona ny fandraisana anjara voalohany.",
+      "searchPlaceholder": "Karohy amin'ny laharana, toerana, mpanome tolotra…",
+      "filterStatus": "Sivanina araka ny sata",
+      "filterSite": "Sivanina araka ny toerana",
+      "allStatuts": "Sata rehetra",
+      "allSites": "Toerana rehetra",
+      "createAction": "Hamorona fandraisana anjara",
+      "tableDescription": "Ny fandraisana anjara rehetra",
+      "activeTitle": "Fandraisana anjara mavitrika ({{count}})",
+      "zoneEnclavee": "Faritra voafefy",
+      "stats": {
+        "total": "Totaly",
+        "enCours": "Mandeha",
+        "planifiees": "Voarindra",
+        "terminees": "Vita",
+        "zonesEnclavees": "Faritra voafefy"
+      },
+      "status": {
+        "planifiee": "Voarindra",
+        "en_cours": "Mandeha",
+        "suspendue": "Naato",
+        "terminee": "Vita",
+        "annulee": "Nofoanana"
+      },
+      "headers": {
+        "reference": "Laharana",
+        "site": "Toerana",
+        "prestataire": "Mpanome tolotra",
+        "dates": "Daty",
+        "statut": "Sata",
+        "actions": "Hetsika"
+      },
+      "actions": {
+        "voir": "Jereo ny antsipiriany"
+      },
+      "offlineQueued": "Miandry fifandraisana"
+    },
+    "suiviHse": {
+      "title": "Fanaraha-maso ny fandrosoana",
+      "description": "Tabilao HSE / Tompon'ny tetikasa, havaozina isaky ny 60 segondra",
+      "accessDenied": "Tsy nahazo alalana",
+      "filters": {
+        "site": "Toerana",
+        "sitePlaceholder": "Kaody toerana…",
+        "statut": "Sata",
+        "dateDebut": "Fotoana fanombohana",
+        "dateFin": "Fotoana fiafarana",
+        "apply": "Ampiharo",
+        "reset": "Avereno",
+        "allStatuts": "Sata rehetra"
+      },
+      "stats": {
+        "total": "Fandraisana anjara totaly",
+        "avancementMoyen": "Fandrosoana salan'isa",
+        "enCours": "Mandeha",
+        "terminees": "Vita",
+        "pvValides": "PV voamarina amin'ity volana ity",
+        "tauxCloture": "Tahan'ny famaranana",
+        "delaiCdp": "Faharetan'ny fanamarinana CdP"
+      },
+      "statsJournalieres": {
+        "title": "Statistika isan'andro — {{site}} ({{date}})",
+        "actives": "Fandraisana anjara mavitrika",
+        "avancementMoyen": "Fandrosoana salan'isa",
+        "suivisJour": "Fanaraha-maso voarakitra androany"
+      },
+      "table": {
+        "title": "Fandraisana anjara ({{count}})",
+        "loading": "Mampiditra…",
+        "empty": "Tsy misy fandraisana anjara mifanaraka",
+        "detail": "Antsipiriany",
+        "headers": {
+          "reference": "Laharana fahazoan-dalana",
+          "site": "Toerana",
+          "statut": "Sata",
+          "avancement": "Fandrosoana",
+          "dernierSuivi": "Fanaraha-maso farany",
+          "nbSuivis": "Isan'ny fanaraha-maso"
+        }
+      },
+      "relativeDays": {
+        "today": "Androany",
+        "oneDay": "1 andro lasa izay",
+        "days": "{{count}} andro lasa izay"
+      }
     }
   }
 }

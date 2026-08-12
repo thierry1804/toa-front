@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -37,6 +38,7 @@ export default function DailyValidationModal({
   permisAssocie,
   onControlePermis,
 }: DailyValidationModalProps) {
+  const { t } = useTranslation();
   const [showControlePermis, setShowControlePermis] = useState(false);
   const [formData, setFormData] = useState<
     Partial<ValidationInterventionJournaliere>
@@ -152,18 +154,20 @@ export default function DailyValidationModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Validation journalière"
+      title={t("intervention.components.dailyValidationModal.title")}
       size="xl"
     >
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-primary-50 p-4 rounded-lg">
           <h3 className="font-semibold text-primary-900">
-            Intervention: {interventionRef}
+            {t("intervention.components.dailyValidationModal.headerIntervention", { ref: interventionRef })}
           </h3>
-          <p className="text-sm text-primary-700">Site: {codeSite}</p>
           <p className="text-sm text-primary-700">
-            Date:{" "}
+            {t("intervention.components.dailyValidationModal.headerSite", { site: codeSite })}
+          </p>
+          <p className="text-sm text-primary-700">
+            {t("intervention.components.dailyValidationModal.headerDate")}{" "}
             {formData.date &&
               new Date(formData.date).toLocaleDateString("fr-FR")}
           </p>
@@ -172,12 +176,12 @@ export default function DailyValidationModal({
         {/* Horaires et Personnel */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Horaires et Personnel</CardTitle>
+            <CardTitle className="text-lg">{t("intervention.components.dailyValidationModal.scheduleSection.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Heure de début *"
+                label={t("intervention.components.dailyValidationModal.scheduleSection.heureDebutLabel")}
                 type="time"
                 value={formData.heureDebut}
                 onChange={(e) =>
@@ -186,7 +190,7 @@ export default function DailyValidationModal({
                 required
               />
               <Input
-                label="Heure de fin"
+                label={t("intervention.components.dailyValidationModal.scheduleSection.heureFinLabel")}
                 type="time"
                 value={formData.heureFin}
                 onChange={(e) =>
@@ -197,20 +201,21 @@ export default function DailyValidationModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Personnel présent * ({formData.nombrePersonnes || 0} personne
-                {(formData.nombrePersonnes || 0) > 1 ? "s" : ""})
+                {t("intervention.components.dailyValidationModal.scheduleSection.personnelLabel", {
+                  count: formData.nombrePersonnes || 0,
+                })}
               </label>
               <div className="flex gap-2 mb-2">
                 <Input
                   value={nouveauPersonnel}
                   onChange={(e) => setNouveauPersonnel(e.target.value)}
-                  placeholder="Nom du personnel"
+                  placeholder={t("intervention.components.dailyValidationModal.scheduleSection.personnelPlaceholder")}
                   onKeyPress={(e) =>
                     e.key === "Enter" && (e.preventDefault(), addPersonnel())
                   }
                 />
                 <Button type="button" onClick={addPersonnel} variant="outline">
-                  Ajouter
+                  {t("intervention.components.dailyValidationModal.scheduleSection.add")}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -237,20 +242,20 @@ export default function DailyValidationModal({
         {/* Conditions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Conditions de travail</CardTitle>
+            <CardTitle className="text-lg">{t("intervention.components.dailyValidationModal.conditionsSection.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <Input
-                label="Conditions météo"
+                label={t("intervention.components.dailyValidationModal.conditionsSection.meteoLabel")}
                 value={formData.conditionsMeteo}
                 onChange={(e) =>
                   setFormData({ ...formData, conditionsMeteo: e.target.value })
                 }
-                placeholder="Ex. : Ensoleillé"
+                placeholder={t("intervention.components.dailyValidationModal.conditionsSection.meteoPlaceholder")}
               />
               <Input
-                label="Température (°C)"
+                label={t("intervention.components.dailyValidationModal.conditionsSection.temperatureLabel")}
                 type="number"
                 value={formData.temperatureC || ""}
                 onChange={(e) =>
@@ -262,7 +267,7 @@ export default function DailyValidationModal({
                 placeholder="28"
               />
               <Input
-                label="Vitesse du vent (km/h)"
+                label={t("intervention.components.dailyValidationModal.conditionsSection.ventLabel")}
                 type="number"
                 value={formData.vitesseVentKmh || ""}
                 onChange={(e) =>
@@ -290,12 +295,12 @@ export default function DailyValidationModal({
               ) : (
                 <AlertCircle className="h-5 w-5 text-orange-600" />
               )}
-              Vérifications de sécurité
+              {t("intervention.components.dailyValidationModal.safetyChecksSection.title")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Checkbox
-              label="EPI vérifiés et conformes"
+              label={t("intervention.components.dailyValidationModal.safetyChecksSection.epiLabel")}
               checked={formData.verificationsSecurite?.epiVerifies || false}
               onChange={(e) =>
                 setFormData({
@@ -308,7 +313,7 @@ export default function DailyValidationModal({
               }
             />
             <Checkbox
-              label="Outillage vérifié et en bon état"
+              label={t("intervention.components.dailyValidationModal.safetyChecksSection.outillageLabel")}
               checked={
                 formData.verificationsSecurite?.outillageVerifie || false
               }
@@ -323,7 +328,7 @@ export default function DailyValidationModal({
               }
             />
             <Checkbox
-              label="Zone de travail sécurisée et balisée"
+              label={t("intervention.components.dailyValidationModal.safetyChecksSection.zoneLabel")}
               checked={formData.verificationsSecurite?.zoneSecurisee || false}
               onChange={(e) =>
                 setFormData({
@@ -336,7 +341,7 @@ export default function DailyValidationModal({
               }
             />
             <Checkbox
-              label="Consignes de sécurité rappelées à l'équipe"
+              label={t("intervention.components.dailyValidationModal.safetyChecksSection.consignesLabel")}
               checked={
                 formData.verificationsSecurite?.consignesRappelees || false
               }
@@ -351,7 +356,7 @@ export default function DailyValidationModal({
               }
             />
             <Checkbox
-              label="Plan de sauvetage revu et compris"
+              label={t("intervention.components.dailyValidationModal.safetyChecksSection.sauvetageLabel")}
               checked={
                 formData.verificationsSecurite?.planSauvetageRevu || false
               }
@@ -374,10 +379,9 @@ export default function DailyValidationModal({
             <Checkbox
               label={
                 <div>
-                  <span className="font-medium">Take 5 effectué ce jour</span>
+                  <span className="font-medium">{t("intervention.components.dailyValidationModal.take5Section.label")}</span>
                   <p className="text-sm text-gray-600">
-                    Une évaluation de sécurité Take 5 a été réalisée avant de
-                    commencer les travaux
+                    {t("intervention.components.dailyValidationModal.take5Section.description")}
                   </p>
                 </div>
               }
@@ -392,23 +396,25 @@ export default function DailyValidationModal({
         {/* Activités réalisées */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Activités du jour</CardTitle>
+            <CardTitle className="text-lg">{t("intervention.components.dailyValidationModal.activitySection.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              label="Activités réalisées *"
+              label={t("intervention.components.dailyValidationModal.activitySection.activitesLabel")}
               value={formData.activitesRealisees}
               onChange={(e) =>
                 setFormData({ ...formData, activitesRealisees: e.target.value })
               }
-              placeholder="Décrire en détail les activités réalisées aujourd'hui..."
+              placeholder={t("intervention.components.dailyValidationModal.activitySection.activitesPlaceholder")}
               rows={4}
               required
             />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Avancement global * ({formData.avancementPourcentage || 0}%)
+                {t("intervention.components.dailyValidationModal.activitySection.avancementLabel", {
+                  pct: formData.avancementPourcentage || 0,
+                })}
               </label>
               <input
                 type="range"
@@ -440,7 +446,7 @@ export default function DailyValidationModal({
             <Checkbox
               label={
                 <span className="font-medium text-red-700">
-                  Incidents ou situations dangereuses à signaler
+                  {t("intervention.components.dailyValidationModal.incidentsSection.checkboxLabel")}
                 </span>
               }
               checked={formData.incidents || false}
@@ -451,12 +457,12 @@ export default function DailyValidationModal({
 
             {formData.incidents && (
               <Textarea
-                label="Détails des incidents"
+                label={t("intervention.components.dailyValidationModal.incidentsSection.detailsLabel")}
                 value={formData.incidentsDetails}
                 onChange={(e) =>
                   setFormData({ ...formData, incidentsDetails: e.target.value })
                 }
-                placeholder="Décrire les incidents ou situations dangereuses..."
+                placeholder={t("intervention.components.dailyValidationModal.incidentsSection.detailsPlaceholder")}
                 rows={3}
                 className="border-red-300"
               />
@@ -468,12 +474,12 @@ export default function DailyValidationModal({
         <Card>
           <CardContent className="p-4">
             <Textarea
-              label="Observations du jour *"
+              label={t("intervention.components.dailyValidationModal.observationsLabel")}
               value={formData.observationsJour}
               onChange={(e) =>
                 setFormData({ ...formData, observationsJour: e.target.value })
               }
-              placeholder="Remarques générales, points d'attention, améliorations suggérées..."
+              placeholder={t("intervention.components.dailyValidationModal.observationsPlaceholder")}
               rows={3}
               required
             />
@@ -485,17 +491,17 @@ export default function DailyValidationModal({
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Photos et documents
+              {t("intervention.components.dailyValidationModal.photosSection.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
               <p className="text-sm text-gray-600 mb-2">
-                Fonctionnalité d'upload de photos à venir
+                {t("intervention.components.dailyValidationModal.photosSection.comingSoon")}
               </p>
               <p className="text-xs text-gray-500">
-                Photos de l'avancement, schémas, documents de référence
+                {t("intervention.components.dailyValidationModal.photosSection.hint")}
               </p>
             </div>
           </CardContent>
@@ -507,17 +513,14 @@ export default function DailyValidationModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
                 <FileText className="h-5 w-5" />
-                Contrôle Journalier du Permis
+                {t("intervention.components.dailyValidationModal.permitControlSection.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-blue-700 mb-4">
-                Un permis{" "}
                 {permisAssocie.type === "travaux_electrique"
-                  ? "électrique"
-                  : "de travail en hauteur"}{" "}
-                est associé à cette intervention. Voulez-vous effectuer le
-                contrôle journalier ?
+                  ? t("intervention.components.dailyValidationModal.permitControlSection.introElectrique")
+                  : t("intervention.components.dailyValidationModal.permitControlSection.introHauteur")}
               </p>
               <Button
                 variant="outline"
@@ -525,7 +528,7 @@ export default function DailyValidationModal({
                 className="border-blue-300 text-blue-700 hover:bg-blue-100"
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Effectuer le contrôle journalier
+                {t("intervention.components.dailyValidationModal.permitControlSection.button")}
               </Button>
             </CardContent>
           </Card>
@@ -537,10 +540,9 @@ export default function DailyValidationModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
                 <FileText className="h-5 w-5" />
-                Contrôle Journalier du Permis{" "}
                 {permisAssocie.type === "travaux_electrique"
-                  ? "Électrique"
-                  : "de Travail en Hauteur"}
+                  ? t("intervention.components.dailyValidationModal.permitControlSection.titleElectrique")
+                  : t("intervention.components.dailyValidationModal.permitControlSection.titleHauteur")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -602,11 +604,10 @@ export default function DailyValidationModal({
               label={
                 <div>
                   <span className="font-medium text-green-900">
-                    Je certifie l'exactitude des informations fournies
+                    {t("intervention.components.dailyValidationModal.finalValidationSection.label")}
                   </span>
                   <p className="text-sm text-green-700">
-                    En cochant cette case, je confirme que toutes les
-                    informations sont exactes et complètes
+                    {t("intervention.components.dailyValidationModal.finalValidationSection.description")}
                   </p>
                 </div>
               }
@@ -621,17 +622,17 @@ export default function DailyValidationModal({
         {/* Actions */}
         <div className="flex items-center justify-between gap-4 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onClose}>
-            Annuler
+            {t("intervention.components.dailyValidationModal.cancel")}
           </Button>
           <div className="flex-1" />
           {!isFormValid() && (
             <p className="text-sm text-orange-600">
-              Veuillez remplir tous les champs obligatoires
+              {t("intervention.components.dailyValidationModal.incompleteWarning")}
             </p>
           )}
           <Button onClick={handleSubmit} disabled={!isFormValid()}>
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            Valider la journée
+            {t("intervention.components.dailyValidationModal.submit")}
           </Button>
         </div>
       </div>

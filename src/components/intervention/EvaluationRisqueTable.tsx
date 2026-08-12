@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle, XCircle } from 'lucide-react'
 import NiveauRisqueBadge from './NiveauRisqueBadge'
 import type { EvaluationRisque, EvaluationRisqueInput } from '@/types/intervention'
@@ -28,6 +29,7 @@ export default function EvaluationRisqueTable({
   disabled = false,
   onUpdate,
 }: EvaluationRisqueTableProps) {
+  const { t } = useTranslation()
   const [localState, setLocalState] = useState<Record<string, RowState>>(() => {
     const init: Record<string, RowState> = {}
     for (const r of risques) {
@@ -66,7 +68,7 @@ export default function EvaluationRisqueTable({
   if (risques.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 px-6 py-10 text-center text-sm text-gray-400 italic">
-        Aucun risque importé depuis le plan de prévention.
+        {t('intervention.components.evaluationRisqueTable.empty')}
       </div>
     )
   }
@@ -76,12 +78,24 @@ export default function EvaluationRisqueTable({
       <table className="min-w-full divide-y divide-gray-200 text-sm">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-3 py-3 text-left font-medium text-gray-700 w-1/4">Description du risque</th>
-            <th className="px-3 py-3 text-center font-medium text-gray-700 w-24">Gravité</th>
-            <th className="px-3 py-3 text-center font-medium text-gray-700 w-28">Probabilité</th>
-            <th className="px-3 py-3 text-center font-medium text-gray-700 w-32">Niveau risque</th>
-            <th className="px-3 py-3 text-left font-medium text-gray-700">Mesures confirmées</th>
-            <th className="px-3 py-3 text-center font-medium text-gray-700 w-24">Réévalué</th>
+            <th className="px-3 py-3 text-left font-medium text-gray-700 w-1/4">
+              {t('intervention.components.evaluationRisqueTable.headers.description')}
+            </th>
+            <th className="px-3 py-3 text-center font-medium text-gray-700 w-24">
+              {t('intervention.components.evaluationRisqueTable.headers.gravite')}
+            </th>
+            <th className="px-3 py-3 text-center font-medium text-gray-700 w-28">
+              {t('intervention.components.evaluationRisqueTable.headers.probabilite')}
+            </th>
+            <th className="px-3 py-3 text-center font-medium text-gray-700 w-32">
+              {t('intervention.components.evaluationRisqueTable.headers.niveauRisque')}
+            </th>
+            <th className="px-3 py-3 text-left font-medium text-gray-700">
+              {t('intervention.components.evaluationRisqueTable.headers.mesuresConfirmees')}
+            </th>
+            <th className="px-3 py-3 text-center font-medium text-gray-700 w-24">
+              {t('intervention.components.evaluationRisqueTable.headers.reevalue')}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
@@ -138,7 +152,7 @@ export default function EvaluationRisqueTable({
                     value={row.mesuresConfirmees}
                     disabled={disabled}
                     rows={2}
-                    placeholder="Mesures confirmées sur site..."
+                    placeholder={t('intervention.components.evaluationRisqueTable.mesuresPlaceholder')}
                     onChange={(e) => handleChange(risque.id, 'mesuresConfirmees', e.target.value)}
                     onBlur={() => void handleBlur(risque)}
                     className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 resize-none"
@@ -149,12 +163,12 @@ export default function EvaluationRisqueTable({
                   {risque.estReevalue ? (
                     <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
                       <CheckCircle className="h-4 w-4" />
-                      Oui
+                      {t('intervention.components.evaluationRisqueTable.oui')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-red-500 text-xs font-medium">
                       <XCircle className="h-4 w-4" />
-                      Non
+                      {t('intervention.components.evaluationRisqueTable.non')}
                     </span>
                   )}
                 </td>
@@ -167,15 +181,15 @@ export default function EvaluationRisqueTable({
       <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded-full bg-green-400" />
-          &lt;8 Faible
+          {t('intervention.components.evaluationRisqueTable.legend.faible')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded-full bg-yellow-400" />
-          8–14 Modéré
+          {t('intervention.components.evaluationRisqueTable.legend.modere')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded-full bg-red-400" />
-          ≥15 Élevé
+          {t('intervention.components.evaluationRisqueTable.legend.eleve')}
         </span>
       </div>
     </div>

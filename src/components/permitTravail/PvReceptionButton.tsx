@@ -1,4 +1,5 @@
 import { FileDown, FileCheck, AlertTriangle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { usePvReceptionPdf } from '@/features/permitTravail/hooks/usePermitTravail'
 import Button from '@/components/ui/Button'
 
@@ -7,6 +8,7 @@ interface PvReceptionButtonProps {
 }
 
 export default function PvReceptionButton({ permitId }: PvReceptionButtonProps) {
+  const { t } = useTranslation()
   const { pvStatut, isPolling, pvMeta, pollError, downloadPv } =
     usePvReceptionPdf(permitId, { enabled: true })
 
@@ -14,7 +16,7 @@ export default function PvReceptionButton({ permitId }: PvReceptionButtonProps) 
     return (
       <Button disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Génération PV…
+        {t('permitTravail.components.pvReceptionButton.generating')}
       </Button>
     )
   }
@@ -27,14 +29,18 @@ export default function PvReceptionButton({ permitId }: PvReceptionButtonProps) 
           onClick={() => void downloadPv()}
         >
           <FileCheck className="mr-2 h-4 w-4" />
-          Télécharger le PV
+          {t('permitTravail.components.pvReceptionButton.download')}
         </Button>
         {pvMeta?.genereAt && (
           <span className="text-xs text-gray-500">
-            Généré le {new Date(pvMeta.genereAt).toLocaleString('fr-FR')}
             {pvMeta.tailleFichier
-              ? ` (${Math.round(pvMeta.tailleFichier / 1024)} Ko)`
-              : ''}
+              ? t('permitTravail.components.pvReceptionButton.generatedOnWithSize', {
+                  date: new Date(pvMeta.genereAt).toLocaleString('fr-FR'),
+                  size: Math.round(pvMeta.tailleFichier / 1024),
+                })
+              : t('permitTravail.components.pvReceptionButton.generatedOn', {
+                  date: new Date(pvMeta.genereAt).toLocaleString('fr-FR'),
+                })}
           </span>
         )}
       </div>
@@ -46,7 +52,7 @@ export default function PvReceptionButton({ permitId }: PvReceptionButtonProps) 
       <div className="flex flex-col items-start gap-1">
         <Button variant="danger" disabled>
           <AlertTriangle className="mr-2 h-4 w-4" />
-          Erreur de génération
+          {t('permitTravail.components.pvReceptionButton.error')}
         </Button>
         {pollError && <span className="text-xs text-red-500">{pollError}</span>}
       </div>
@@ -57,7 +63,7 @@ export default function PvReceptionButton({ permitId }: PvReceptionButtonProps) 
   return (
     <Button disabled>
       <FileDown className="mr-2 h-4 w-4" />
-      PV en attente de génération
+      {t('permitTravail.components.pvReceptionButton.pending')}
     </Button>
   )
 }

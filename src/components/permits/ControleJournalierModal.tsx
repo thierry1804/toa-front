@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Modal from '@/components/ui/Modal';
 import ControleJournalierElectrique from './ControleJournalierElectrique';
 import ControleJournalierHauteur from './ControleJournalierHauteur';
@@ -18,6 +19,7 @@ export default function ControleJournalierModal({
   permisType,
   permisId,
 }: ControleJournalierModalProps) {
+  const { t } = useTranslation();
   const handleElectriqueSubmit = (data: any) => {
     const controleData: ControleJournalierPermis = {
       id: `CONT-${Date.now()}`,
@@ -54,7 +56,7 @@ export default function ControleJournalierModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" title="Contrôle Journalier">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" title={t('permits.controleJournalierModal.title')}>
       <div className="max-h-[90vh] overflow-y-auto">
         {permisType === 'travaux_electrique' ? (
           <ControleJournalierElectrique

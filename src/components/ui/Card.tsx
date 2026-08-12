@@ -45,4 +45,14 @@ const CardFooter = forwardRef<HTMLDivElement, CardProps>(({ className, ...props 
 ));
 CardFooter.displayName = 'CardFooter';
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+/** Section header inside a Card (list title, toolbar). Subtle gray divider, not default black border. */
+const CardSectionHeader = forwardRef<HTMLDivElement, CardProps>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('border-b border-gray-200 bg-gray-50 px-4 py-3', className)}
+    {...props}
+  />
+));
+CardSectionHeader.displayName = 'CardSectionHeader';
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardSectionHeader };

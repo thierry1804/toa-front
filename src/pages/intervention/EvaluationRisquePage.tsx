@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   ShieldCheck,
@@ -12,6 +13,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import EvaluationRisqueTable from '@/components/intervention/EvaluationRisqueTable'
+import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { useInterventionDetail, useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermitTravailDetail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
@@ -29,6 +31,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 export default function EvaluationRisquePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const canValider = usePermission('intervention.valider_evaluation')
   const canViewSuivis = usePermission('suivi_journalier.view')
 
@@ -50,22 +53,17 @@ export default function EvaluationRisquePage() {
   const isLoading = loadingIntervention || loadingPermit
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24 text-gray-400">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Chargement de l'évaluation…
-      </div>
-    )
+    return <ListPageSkeleton withStatStrip={false} />
   }
 
   if (errorIntervention || !intervention) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-500">
         <AlertTriangle className="h-12 w-12 text-gray-300" />
-        <p>Évaluation introuvable.</p>
+        <p>{t('intervention.pages.evaluationRisque.notFound')}</p>
         <Button variant="outline" onClick={() => navigate('/permits-travail')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour aux permis
+          {t('intervention.pages.evaluationRisque.backToPermits')}
         </Button>
       </div>
     )
@@ -96,13 +94,8 @@ export default function EvaluationRisquePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={
-          <span className="flex items-center gap-3">
-            <ClipboardList className="h-5 w-5 text-gray-400" />
-            Évaluation des risques
-          </span>
-        }
-        description="Réévaluez chaque risque identifié avant de démarrer l'intervention"
+        title={t('intervention.pages.evaluationRisque.title')}
+        description={t('intervention.pages.evaluationRisque.description')}
         actions={
           <Button
             variant="outline"
@@ -115,7 +108,7 @@ export default function EvaluationRisquePage() {
             }
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour au permis
+            {t('intervention.pages.evaluationRisque.backToPermit')}
           </Button>
         }
       />
@@ -125,13 +118,13 @@ export default function EvaluationRisquePage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold text-gray-800">
-              Permis de travail associé
+              {t('intervention.pages.evaluationRisque.permitSummary.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="space-y-3">
               <InfoRow
-                label="Référence permis"
+                label={t('intervention.pages.evaluationRisque.permitSummary.reference')}
                 value={
                   <Link
                     to={`/permits-travail/${permit.id}`}
@@ -141,10 +134,10 @@ export default function EvaluationRisquePage() {
                   </Link>
                 }
               />
-              <InfoRow label="Type" value={permit.typePermis} />
-              <InfoRow label="Site" value={permit.codeSite} />
+              <InfoRow label={t('intervention.pages.evaluationRisque.permitSummary.type')} value={permit.typePermis} />
+              <InfoRow label={t('intervention.pages.evaluationRisque.permitSummary.site')} value={permit.codeSite} />
               <InfoRow
-                label="Période"
+                label={t('intervention.pages.evaluationRisque.permitSummary.period')}
                 value={
                   <span>
                     {new Date(permit.dateDebutPrevue).toLocaleDateString('fr-FR')}
@@ -155,29 +148,29 @@ export default function EvaluationRisquePage() {
               />
               {permit.planPreventionId && (
                 <InfoRow
-                  label="Plan de prévention"
+                  label={t('intervention.pages.evaluationRisque.permitSummary.planPrevention')}
                   value={
                     <Link
                       to={`/prevention/${permit.planPreventionId}`}
                       className="text-blue-600 hover:underline text-sm"
                     >
-                      Voir le plan lié
+                      {t('intervention.pages.evaluationRisque.permitSummary.viewPlan')}
                     </Link>
                   }
                 />
               )}
               <InfoRow
-                label="Statut évaluation"
+                label={t('intervention.pages.evaluationRisque.permitSummary.evaluationStatus')}
                 value={
                   isComplete ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      Évaluation complète
+                      {t('intervention.pages.shared.statut.evaluationComplete')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-medium text-yellow-700">
                       <AlertTriangle className="h-3.5 w-3.5" />
-                      En préparation
+                      {t('intervention.pages.shared.statut.enPreparation')}
                     </span>
                   )
                 }
@@ -192,11 +185,11 @@ export default function EvaluationRisquePage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold text-gray-800">
             <ClipboardList className="inline mr-2 h-4 w-4 text-gray-400" />
-            Réévaluation des risques
+            {t('intervention.pages.evaluationRisque.reevaluation.title')}
             {isUpdatingRisque && (
               <span className="ml-3 inline-flex items-center gap-1 text-xs font-normal text-gray-400">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Enregistrement…
+                {t('intervention.pages.evaluationRisque.reevaluation.saving')}
               </span>
             )}
           </CardTitle>
@@ -218,10 +211,13 @@ export default function EvaluationRisquePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-gray-700">
-                  Progression de la réévaluation
+                  {t('intervention.pages.evaluationRisque.progress.title')}
                 </span>
                 <span className="font-semibold text-gray-900">
-                  {reevaluesCount} / {totalRisques} risques réévalués
+                  {t('intervention.pages.evaluationRisque.progress.count', {
+                    reevaluated: reevaluesCount,
+                    total: totalRisques,
+                  })}
                 </span>
               </div>
 
@@ -236,8 +232,7 @@ export default function EvaluationRisquePage() {
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
-                    Certains risques (surlignés en rouge) n'ont pas encore été réévalués.
-                    Modifiez les champs de chaque ligne pour confirmer la réévaluation.
+                    {t('intervention.pages.evaluationRisque.progress.warning')}
                   </span>
                 </div>
               )}
@@ -254,11 +249,11 @@ export default function EvaluationRisquePage() {
                       ) : (
                         <ShieldCheck className="mr-2 h-4 w-4" />
                       )}
-                      Valider l'évaluation
+                      {t('intervention.pages.evaluationRisque.progress.validateButton')}
                     </Button>
                     {!allReevalues && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-56 rounded-lg bg-gray-800 px-3 py-2 text-center text-xs text-white shadow-lg">
-                        Réévaluez tous les risques avant de valider
+                        {t('intervention.pages.evaluationRisque.progress.validateTooltip')}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                       </div>
                     )}
@@ -267,7 +262,7 @@ export default function EvaluationRisquePage() {
                   {allReevalues && (
                     <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
                       <CheckCircle2 className="h-4 w-4" />
-                      Tous les risques sont réévalués
+                      {t('intervention.pages.evaluationRisque.progress.allDone')}
                     </span>
                   )}
                 </div>
@@ -284,16 +279,16 @@ export default function EvaluationRisquePage() {
               <div className="flex items-center gap-3 text-green-700">
                 <CheckCircle2 className="h-6 w-6 shrink-0" />
                 <div>
-                  <p className="font-semibold">Évaluation complète</p>
+                  <p className="font-semibold">{t('intervention.pages.evaluationRisque.complete.title')}</p>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    Tous les risques ont été réévalués et l'évaluation a été validée.
+                    {t('intervention.pages.evaluationRisque.complete.description')}
                   </p>
                 </div>
               </div>
               {canViewSuivis && (
                 <Button onClick={() => navigate(`/interventions/${id}/suivis`)}>
                   <ClipboardList className="mr-2 h-4 w-4" />
-                  Suivis journaliers
+                  {t('intervention.pages.evaluationRisque.complete.viewSuivis')}
                 </Button>
               )}
             </div>

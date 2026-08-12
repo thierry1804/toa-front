@@ -1,4 +1,5 @@
 import { ClipboardCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 
 interface PvValiderModalProps {
@@ -18,19 +19,21 @@ export default function PvValiderModal({
   onClose,
   onValider,
 }: PvValiderModalProps) {
+  const { t } = useTranslation()
+
   return (
     <ConfirmActionModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Valider le PV — ${permitReference}`}
+      title={t('permitTravail.components.pvValiderModal.title', { reference: permitReference })}
       description={
         <>
-          Confirmer la validation du PV de réception pour le permis{' '}
+          {t('permitTravail.components.pvValiderModal.descriptionPrefix')}{' '}
           <span className="font-semibold text-blue-700">{permitReference}</span>.
         </>
       }
-      commentPlaceholder="Observations de réception..."
-      confirmLabel="Valider le PV"
+      commentPlaceholder={t('permitTravail.components.pvValiderModal.commentPlaceholder')}
+      confirmLabel={t('permitTravail.components.pvValiderModal.confirmLabel')}
       confirmVariant="success"
       confirmIcon={<ClipboardCheck className="mr-2 h-4 w-4" />}
       isSubmitting={isValiderPv}
@@ -43,12 +46,14 @@ export default function PvValiderModal({
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-green-700">
               <ClipboardCheck className="h-5 w-5 shrink-0" />
-              <span className="text-sm font-medium">PV de réception validé avec succès.</span>
+              <span className="text-sm font-medium">
+                {t('permitTravail.components.pvValiderModal.successMessage')}
+              </span>
             </div>
             {signature && (
               <div>
                 <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Signature électronique
+                  {t('permitTravail.components.pvValiderModal.signatureLabel')}
                 </p>
                 <p className="break-all rounded-lg bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700">
                   {signature}
@@ -62,18 +67,18 @@ export default function PvValiderModal({
         const detail =
           (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
         if (detail.includes('not_cloture') || detail.includes('Permis non clôturé')) {
-          return "Le permis n'est pas clôturé."
+          return t('permitTravail.components.pvValiderModal.errorNotCloture')
         }
         if (detail.includes('pv_not_genere') || detail.includes('PV non généré')) {
-          return "Le PV de réception n'est pas encore généré. Attendez la fin de la génération."
+          return t('permitTravail.components.pvValiderModal.errorPvNotGenere')
         }
         if (detail.includes('suivi_journalier_manquant')) {
-          return 'Aucun suivi journalier trouvé pour ce permis.'
+          return t('permitTravail.components.pvValiderModal.errorSuiviManquant')
         }
         if (detail.includes('evaluation_risque_manquante')) {
-          return 'Aucune évaluation des risques trouvée pour ce permis.'
+          return t('permitTravail.components.pvValiderModal.errorEvaluationManquante')
         }
-        return 'Erreur lors de la validation du PV de réception.'
+        return t('permitTravail.components.pvValiderModal.errorGeneric')
       }}
     />
   )

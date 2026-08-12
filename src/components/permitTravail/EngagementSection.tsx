@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useAuthStore } from '@/store/auth.store'
 import type { StatutPermitTravail } from '@/types/permitTravail'
 
@@ -20,7 +22,9 @@ interface EngagementSectionProps {
   onSaveEvaluation?: () => Promise<void>
 }
 
-const NIVEAU_OPTIONS: {
+const getNiveauOptions = (
+  t: TFunction,
+): {
   value: NiveauRisque
   label: string
   letter: string
@@ -28,10 +32,10 @@ const NIVEAU_OPTIONS: {
   ring: string
   filled: string
   filledText: string
-}[] = [
-  { value: 'rouge', label: 'Rouge', letter: 'R', bg: 'bg-white', ring: 'border-red-400',    filled: 'bg-red-400 border-red-400',    filledText: 'text-white' },
-  { value: 'jaune', label: 'Jaune', letter: 'J', bg: 'bg-white', ring: 'border-yellow-400', filled: 'bg-yellow-400 border-yellow-400', filledText: 'text-gray-900' },
-  { value: 'vert',  label: 'Vert',  letter: 'V', bg: 'bg-white', ring: 'border-green-500',  filled: 'bg-green-500 border-green-500', filledText: 'text-white' },
+}[] => [
+  { value: 'rouge', label: t('permitTravail.components.engagementSection.niveauRouge'), letter: 'R', bg: 'bg-white', ring: 'border-red-400',    filled: 'bg-red-400 border-red-400',    filledText: 'text-white' },
+  { value: 'jaune', label: t('permitTravail.components.engagementSection.niveauJaune'), letter: 'J', bg: 'bg-white', ring: 'border-yellow-400', filled: 'bg-yellow-400 border-yellow-400', filledText: 'text-gray-900' },
+  { value: 'vert',  label: t('permitTravail.components.engagementSection.niveauVert'),  letter: 'V', bg: 'bg-white', ring: 'border-green-500',  filled: 'bg-green-500 border-green-500', filledText: 'text-white' },
 ]
 
 interface NiveauPickerProps {
@@ -42,18 +46,20 @@ interface NiveauPickerProps {
 }
 
 function NiveauPicker({ label, value, onChange, disabled }: NiveauPickerProps) {
+  const { t } = useTranslation()
+  const niveauOptions = getNiveauOptions(t)
   return (
     <div className="flex items-center gap-3 py-2">
       <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
         {label}
       </span>
       <div className="flex items-center gap-2">
-        {NIVEAU_OPTIONS.map((opt) => (
+        {niveauOptions.map((opt) => (
           <button
             key={opt.value}
             type="button"
             disabled={disabled}
-            aria-label={`Niveau ${opt.label}`}
+            aria-label={t('permitTravail.components.engagementSection.niveauAriaLabel', { level: opt.label })}
             aria-pressed={value === opt.value}
             onClick={() => !disabled && onChange(opt.value)}
             className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
@@ -76,6 +82,7 @@ export default function EngagementSection({
   onEvaluationChange,
   onSaveEvaluation,
 }: EngagementSectionProps) {
+  const { t } = useTranslation()
   const readonly = statut !== undefined && statut !== 'BROUILLON'
   const authUser = useAuthStore((s) => s.user)
 
@@ -115,14 +122,14 @@ export default function EngagementSection({
             value={evaluation.dangers}
             onChange={(e) => onEvaluationChange({ ...evaluation, dangers: e.target.value })}
             disabled={readonly}
-            placeholder="Quels sont les dangers?"
+            placeholder={t('permitTravail.components.engagementSection.dangersPlaceholder')}
             rows={2}
             className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
           />
         </div>
 
         <NiveauPicker
-          label="Évaluation préliminaire des risques"
+          label={t('permitTravail.components.engagementSection.evaluationPreliminaireLabel')}
           value={evaluation.evaluationPreliminaire}
           onChange={(v) => onEvaluationChange({ ...evaluation, evaluationPreliminaire: v })}
           disabled={readonly}
@@ -134,14 +141,14 @@ export default function EngagementSection({
             value={evaluation.moyensMaitrise}
             onChange={(e) => onEvaluationChange({ ...evaluation, moyensMaitrise: e.target.value })}
             disabled={readonly}
-            placeholder="Quels sont les moyens de maîtriser les dangers en sécurité?"
+            placeholder={t('permitTravail.components.engagementSection.moyensMaitrisePlaceholder')}
             rows={2}
             className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
           />
         </div>
 
         <NiveauPicker
-          label="Évaluation finale des risques"
+          label={t('permitTravail.components.engagementSection.evaluationFinaleLabel')}
           value={evaluation.evaluationFinale}
           onChange={(v) => onEvaluationChange({ ...evaluation, evaluationFinale: v })}
           disabled={readonly}
@@ -162,10 +169,18 @@ export default function EngagementSection({
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
               }`}
             >
-              {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : saveError ? 'Erreur — réessayer' : 'Enregistrer'}
+              {saving
+                ? t('permitTravail.components.engagementSection.saveButtonSaving')
+                : saved
+                  ? t('permitTravail.components.engagementSection.saveButtonSaved')
+                  : saveError
+                    ? t('permitTravail.components.engagementSection.saveButtonError')
+                    : t('permitTravail.components.engagementSection.saveButtonDefault')}
             </button>
             {saveError && (
-              <p className="text-xs text-red-600">Impossible de sauvegarder. Vérifiez votre connexion.</p>
+              <p className="text-xs text-red-600">
+                {t('permitTravail.components.engagementSection.saveErrorText')}
+              </p>
             )}
           </div>
         )}
@@ -195,9 +210,11 @@ export default function EngagementSection({
             readonly ? 'cursor-not-allowed text-gray-500' : 'cursor-pointer text-gray-800'
           }`}
         >
-          Je soussigné(e){' '}
-          <span className="font-semibold">{nomRepresentant || 'le prestataire'}</span>{' '}
-          certifie l'exactitude des informations et m'engage à respecter ces obligations HSSES.
+          {t('permitTravail.components.engagementSection.certifyPrefix')}{' '}
+          <span className="font-semibold">
+            {nomRepresentant || t('permitTravail.components.engagementSection.defaultPrestataire')}
+          </span>{' '}
+          {t('permitTravail.components.engagementSection.certifySuffix')}
         </label>
       </div>
 

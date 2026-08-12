@@ -48,6 +48,7 @@ export function TopBar() {
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const currentLang = i18n.language?.startsWith("mg") ? "mg" : "fr";
 
   const handleLogoutClick = () => {
     if (pendingSyncCount > 0) {
@@ -103,9 +104,9 @@ export function TopBar() {
               aria-label={t("nav.changeLanguage")}
               className="touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:border sm:border-gray-200 sm:bg-gray-50 sm:gap-2 sm:px-3"
             >
-              {i18n.language === "mg" ? <FlagMG /> : <FlagFR />}
+              {currentLang === "mg" ? <FlagMG /> : <FlagFR />}
               <span className="hidden text-sm font-medium uppercase text-gray-900 sm:inline">
-                {i18n.language}
+                {currentLang}
               </span>
               <ChevronDown
                 className={`hidden h-4 w-4 text-gray-500 transition-transform sm:block ${langOpen ? "rotate-180" : ""}`}

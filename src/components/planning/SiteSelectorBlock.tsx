@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Trash2, Plus, Clipboard, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import { referentielApi } from '@/api/referentielApi'
-import { interventionTypeOptions } from '@/data/constant/planning'
+import { INTERVENTION_TYPES } from '@/data/constant/planning'
 import type { PlanSite } from '@/types'
 
 interface PlanSiteRow extends PlanSite {
@@ -38,12 +39,24 @@ export default function SiteSelectorBlock({
   errors,
   disabled = false,
 }: SiteSelectorBlockProps) {
+  const { t } = useTranslation()
   const isNewSite = typeIntervention === 'Nouveau site'
   const isMulti = typeIntervention !== '' && !isNewSite
 
   const [addCode, setAddCode] = useState('')
   const [pasteText, setPasteText] = useState('')
   const [resolving, setResolving] = useState(false)
+
+  const interventionTypeOptions = useMemo(
+    () => [
+      { value: '', label: t('planning.interventionTypes.choose') },
+      ...INTERVENTION_TYPES.map((type) => ({
+        value: type,
+        label: t(`planning.interventionTypes.values.${type}`),
+      })),
+    ],
+    [t],
+  )
 
   const lookupCode = async (code: string): Promise<PlanSiteRow> => {
     try {
@@ -111,7 +124,7 @@ export default function SiteSelectorBlock({
   return (
     <div className="space-y-4">
       <Select
-        label="Type d'intervention *"
+        label={t('planning.siteSelector.typeInterventionLabel')}
         options={interventionTypeOptions}
         value={typeIntervention}
         onChange={(e) => onTypeChange(e.target.value)}
@@ -122,7 +135,7 @@ export default function SiteSelectorBlock({
       {isNewSite && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SiteCodeAutocomplete
-            label="Code site *"
+            label={t('planning.siteSelector.codeSiteLabel')}
             value={siteCode}
             onChange={onSiteCodeChange}
             onSelect={(site) => {
@@ -131,16 +144,16 @@ export default function SiteSelectorBlock({
             }}
             onBlur={handleSingleCodeBlur}
             error={errors.siteCode}
-            placeholder="Ex: ANK-001"
+            placeholder={t('planning.siteSelector.codeSitePlaceholder')}
             required
             disabled={disabled}
           />
           <Input
-            label="Nom du site *"
+            label={t('planning.siteSelector.nomSiteLabel')}
             value={siteName}
             onChange={(e) => onSiteNameChange(e.target.value)}
             error={errors.siteName}
-            placeholder="Rempli automatiquement ou à saisir"
+            placeholder={t('planning.siteSelector.nomSitePlaceholder')}
             required
             disabled={disabled}
           />
@@ -154,9 +167,9 @@ export default function SiteSelectorBlock({
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 text-left">
                   <tr>
-                    <th className="px-4 py-2 font-medium text-gray-600">Code site</th>
-                    <th className="px-4 py-2 font-medium text-gray-600">Nom du site</th>
-                    <th className="px-4 py-2 text-center font-medium text-gray-600 w-16">Statut</th>
+                    <th className="px-4 py-2 font-medium text-gray-600">{t('planning.siteSelector.codeSiteHeader')}</th>
+                    <th className="px-4 py-2 font-medium text-gray-600">{t('planning.siteSelector.nomSiteHeader')}</th>
+                    <th className="px-4 py-2 text-center font-medium text-gray-600 w-16">{t('planning.siteSelector.statutHeader')}</th>
                     <th className="w-10" />
                   </tr>
                 </thead>
@@ -169,7 +182,7 @@ export default function SiteSelectorBlock({
                           <input
                             className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                             value={site.nomSite}
-                            placeholder="Saisir le nom"
+                            placeholder={t('planning.siteSelector.nomSitePlaceholderShort')}
                             onChange={(e) => handleUpdateNomSite(idx, e.target.value)}
                             disabled={disabled}
                           />
@@ -194,7 +207,7 @@ export default function SiteSelectorBlock({
                           onClick={() => handleRemoveSite(idx)}
                           disabled={disabled}
                           className="text-red-400 hover:text-red-600 disabled:opacity-40"
-                          title="Supprimer"
+                          title={t('planning.siteSelector.remove')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -206,7 +219,7 @@ export default function SiteSelectorBlock({
             </div>
           ) : (
             <p className="rounded-lg border border-dashed border-gray-200 py-4 text-center text-sm text-gray-400 italic">
-              Aucun site ajouté
+              {t('planning.siteSelector.emptySites')}
             </p>
           )}
 
@@ -217,7 +230,7 @@ export default function SiteSelectorBlock({
           <div className="flex items-end gap-2">
             <div className="flex-1">
               <SiteCodeAutocomplete
-                label="Ajouter un code site"
+                label={t('planning.siteSelector.addCodeLabel')}
                 value={addCode}
                 onChange={setAddCode}
                 onSelect={(site) => {
@@ -226,7 +239,7 @@ export default function SiteSelectorBlock({
                   }
                   setAddCode('')
                 }}
-                placeholder="Ex: ANK-001"
+                placeholder={t('planning.siteSelector.addCodePlaceholder')}
                 disabled={disabled || resolving}
               />
             </div>
@@ -241,13 +254,13 @@ export default function SiteSelectorBlock({
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              Ajouter
+              {t('planning.siteSelector.addButton')}
             </button>
           </div>
 
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">
-              Coller des codes (séparés par «&nbsp;;&nbsp;»)
+              {t('planning.siteSelector.pasteLabel')}
             </label>
             <div className="flex gap-2">
               <textarea
@@ -255,7 +268,7 @@ export default function SiteSelectorBlock({
                 rows={2}
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
-                placeholder="ANK-001 ; AMP-002 ; ISO-003"
+                placeholder={t('planning.siteSelector.pastePlaceholder')}
                 disabled={disabled || resolving}
               />
               <button
@@ -269,7 +282,7 @@ export default function SiteSelectorBlock({
                 ) : (
                   <Clipboard className="h-4 w-4" />
                 )}
-                Importer
+                {t('planning.siteSelector.importButton')}
               </button>
             </div>
           </div>

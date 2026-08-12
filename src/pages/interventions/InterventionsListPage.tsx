@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useInterventionStore } from '@/store/interventionStore';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { interventionApi } from '@/api/interventionApi';
@@ -66,6 +67,7 @@ function mapIntervention(raw: any) {
 }
 
 export default function InterventionsListPage() {
+  const { t } = useTranslation();
   const { interventions, setInterventions } = useInterventionStore();
   const perms = usePermissions('/interventions');
 
@@ -116,27 +118,27 @@ export default function InterventionsListPage() {
   const getStatusBadge = (status: InterventionStatus) => {
     const statusConfig = {
       planifiee: {
-        label: 'Planifiée',
+        label: t('interventions.list.status.planifiee'),
         variant: 'secondary' as const,
         icon: Calendar,
       },
       en_cours: {
-        label: 'En cours',
+        label: t('interventions.list.status.en_cours'),
         variant: 'primary' as const,
         icon: Clock,
       },
       suspendue: {
-        label: 'Suspendue',
+        label: t('interventions.list.status.suspendue'),
         variant: 'warning' as const,
         icon: AlertTriangle,
       },
       terminee: {
-        label: 'Terminée',
+        label: t('interventions.list.status.terminee'),
         variant: 'success' as const,
         icon: CheckCircle2,
       },
       annulee: {
-        label: 'Annulée',
+        label: t('interventions.list.status.annulee'),
         variant: 'error' as const,
         icon: AlertTriangle,
       },
@@ -158,19 +160,25 @@ export default function InterventionsListPage() {
     );
   };
 
-  const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'planifiee', label: 'Planifiée' },
-    { value: 'en_cours', label: 'En cours' },
-    { value: 'suspendue', label: 'Suspendue' },
-    { value: 'terminee', label: 'Terminée' },
-    { value: 'annulee', label: 'Annulée' },
-  ];
+  const statusOptions = useMemo(
+    () => [
+      { value: 'all', label: t('interventions.list.allStatuts') },
+      { value: 'planifiee', label: t('interventions.list.status.planifiee') },
+      { value: 'en_cours', label: t('interventions.list.status.en_cours') },
+      { value: 'suspendue', label: t('interventions.list.status.suspendue') },
+      { value: 'terminee', label: t('interventions.list.status.terminee') },
+      { value: 'annulee', label: t('interventions.list.status.annulee') },
+    ],
+    [t],
+  );
 
-  const siteOptions = [
-    { value: 'all', label: 'Tous les sites' },
-    ...uniqueSites.map((site) => ({ value: site, label: site })),
-  ];
+  const siteOptions = useMemo(
+    () => [
+      { value: 'all', label: t('interventions.list.allSites') },
+      ...uniqueSites.map((site) => ({ value: site, label: site })),
+    ],
+    [t, uniqueSites],
+  );
 
   // Calculer les statistiques
   const stats = {
@@ -196,16 +204,16 @@ export default function InterventionsListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Interventions</h2>
+          <h2 className="text-3xl font-bold text-gray-900">{t('interventions.list.title')}</h2>
           <p className="mt-1 text-gray-600">
-            Suivi journalier des interventions et validations de chantier
+            {t('interventions.list.description')}
           </p>
         </div>
         {perms?.canCreate && (
           <Link to="/interventions/new">
             <Button>
               <Plus className="h-5 w-5 mr-2" />
-              Nouvelle intervention
+              {t('interventions.list.newIntervention')}
             </Button>
           </Link>
         )}
@@ -214,11 +222,11 @@ export default function InterventionsListPage() {
       {/* Statistiques */}
       <StatStrip
         items={[
-          { label: 'Total', value: stats.total },
-          { label: 'En cours', value: stats.enCours },
-          { label: 'Planifiées', value: stats.planifiees },
-          { label: 'Terminées', value: stats.terminees },
-          { label: 'Zones enclavées', value: stats.zonesEnclavees },
+          { label: t('interventions.list.stats.total'), value: stats.total },
+          { label: t('interventions.list.stats.enCours'), value: stats.enCours },
+          { label: t('interventions.list.stats.planifiees'), value: stats.planifiees },
+          { label: t('interventions.list.stats.terminees'), value: stats.terminees },
+          { label: t('interventions.list.stats.zonesEnclavees'), value: stats.zonesEnclavees },
         ]}
       />
 
@@ -228,7 +236,7 @@ export default function InterventionsListPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Input
-                placeholder="Rechercher par référence, site, prestataire..."
+                placeholder={t('interventions.list.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -244,7 +252,7 @@ export default function InterventionsListPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              placeholder="Filtrer par statut"
+              placeholder={t('interventions.list.filterStatus')}
             />
             <Select
               options={siteOptions}
@@ -253,7 +261,7 @@ export default function InterventionsListPage() {
                 setSiteFilter(e.target.value);
                 setPage(1);
               }}
-              placeholder="Filtrer par site"
+              placeholder={t('interventions.list.filterSite')}
             />
           </div>
         </CardContent>
@@ -262,19 +270,19 @@ export default function InterventionsListPage() {
       {/* Liste des interventions */}
       <Card>
         <CardHeader>
-          <CardTitle>Interventions actives ({filteredInterventions.length})</CardTitle>
-          <CardDescription>Toutes vos interventions</CardDescription>
+          <CardTitle>{t('interventions.list.activeTitle', { count: filteredInterventions.length })}</CardTitle>
+          <CardDescription>{t('interventions.list.tableDescription')}</CardDescription>
         </CardHeader>
         <CardContent className={filteredInterventions.length === 0 ? undefined : 'p-0'}>
           {filteredInterventions.length === 0 ? (
             <div className="text-center py-12">
               <Clipboard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Aucune intervention trouvée</p>
+              <p className="text-gray-500">{t('interventions.list.empty')}</p>
               {perms?.canCreate && (
                 <Link to="/interventions/new">
                   <Button className="mt-4" variant="outline">
                     <Plus className="h-5 w-5 mr-2" />
-                    Créer une intervention
+                    {t('interventions.list.createAction')}
                   </Button>
                 </Link>
               )}
@@ -286,12 +294,12 @@ export default function InterventionsListPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Référence</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Site</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Prestataire</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Dates</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Statut</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('interventions.list.headers.reference')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('interventions.list.headers.site')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('interventions.list.headers.prestataire')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('interventions.list.headers.dates')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{t('interventions.list.headers.statut')}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">{t('interventions.list.headers.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -308,7 +316,7 @@ export default function InterventionsListPage() {
                               {intervention.zoneEnclavee && (
                                 <Badge variant="warning">
                                   <WifiOff className="h-3 w-3 mr-1" />
-                                  Zone enclavée
+                                  {t('interventions.list.zoneEnclavee')}
                                 </Badge>
                               )}
                               {hasIncidents && (
@@ -350,7 +358,7 @@ export default function InterventionsListPage() {
                             <Link to={`/interventions/${intervention.id}`}>
                               <button
                                 className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Voir détails"
+                                title={t('interventions.list.actions.voir')}
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -381,7 +389,7 @@ export default function InterventionsListPage() {
                         <Link to={`/interventions/${intervention.id}`} className="shrink-0 ml-2">
                           <button
                             className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
-                            title="Voir détails"
+                            title={t('interventions.list.actions.voir')}
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -392,7 +400,7 @@ export default function InterventionsListPage() {
                         {intervention.zoneEnclavee && (
                           <Badge variant="warning">
                             <WifiOff className="h-3 w-3 mr-1" />
-                            Zone enclavée
+                            {t('interventions.list.zoneEnclavee')}
                           </Badge>
                         )}
                         {hasIncidents && (
@@ -442,14 +450,14 @@ export default function InterventionsListPage() {
                   disabled={page <= 1}
                   className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Précédent
+                  {t('common.previous')}
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Suivant
+                  {t('common.next')}
                 </button>
               </div>
             </div>

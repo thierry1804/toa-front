@@ -1,4 +1,5 @@
 import { AlertTriangle, ShieldX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 
 interface RefuserPermitModalProps {
@@ -18,30 +19,29 @@ export default function RefuserPermitModal({
   onClose,
   onRefuser,
 }: RefuserPermitModalProps) {
+  const { t } = useTranslation()
+
   return (
     <ConfirmActionModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Refuser le permis ${permitReference}`}
+      title={t('permitTravail.components.refuserModal.title', { reference: permitReference })}
       banner={
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-amber-700">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p className="text-sm">
-            Le prestataire sera notifié par email et devra corriger son dossier puis soumettre à
-            nouveau.
-          </p>
+          <p className="text-sm">{t('permitTravail.components.refuserModal.banner')}</p>
         </div>
       }
-      commentLabel="Motif du refus"
+      commentLabel={t('permitTravail.components.refuserModal.commentLabel')}
       commentRequired
-      commentRequiredMessage="Le motif de refus est obligatoire."
-      commentPlaceholder="Expliquez les raisons du refus..."
-      confirmLabel="Refuser"
+      commentRequiredMessage={t('permitTravail.components.refuserModal.commentRequiredMessage')}
+      commentPlaceholder={t('permitTravail.components.refuserModal.commentPlaceholder')}
+      confirmLabel={t('permitTravail.components.refuserModal.confirmLabel')}
       confirmVariant="danger"
       confirmIcon={<ShieldX className="mr-2 h-4 w-4" />}
       isSubmitting={isRefusing}
       onConfirm={(commentaire) => onRefuser(permitId, commentaire)}
-      errorMessage="Erreur lors du refus du permis."
+      errorMessage={t('permitTravail.components.refuserModal.errorMessage')}
     />
   )
 }

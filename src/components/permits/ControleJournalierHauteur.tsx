@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -28,6 +29,7 @@ export default function ControleJournalierHauteur({
   onSubmit,
   onCancel,
 }: ControleJournalierHauteurProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     codeSite: "",
@@ -86,24 +88,24 @@ export default function ControleJournalierHauteur({
 
     // Validation
     if (!formData.codeSite || formData.intervenants.some((i) => !i.trim())) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      alert(t("permits.controleJournalierHauteur.validationFieldsAlert"));
       return;
     }
 
     if (!formData.confirmationMesures) {
-      alert("Vous devez confirmer la mise en œuvre des mesures de prévention");
+      alert(t("permits.controleJournalierHauteur.validationConfirmationAlert"));
       return;
     }
 
     if (formData.vitesseVent <= 0) {
-      alert("La vitesse du vent doit être supérieure à 0 km/h");
+      alert(t("permits.controleJournalierHauteur.vitesseVentZeroAlert"));
       return;
     }
 
     // Vérification des limites de vent pour travaux en hauteur
     if (formData.vitesseVent > 50) {
       const confirm = window.confirm(
-        `Attention : La vitesse du vent (${formData.vitesseVent} km/h) dépasse la limite recommandée de 50 km/h pour les travaux en hauteur. Voulez-vous continuer ?`,
+        t("permits.controleJournalierHauteur.windExceedConfirm", { vitesse: formData.vitesseVent }),
       );
       if (!confirm) return;
     }
@@ -119,7 +121,7 @@ export default function ControleJournalierHauteur({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Contrôle Journalier du Permis de Travail en Hauteur
+          {t("permits.controleJournalierHauteur.title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -127,7 +129,7 @@ export default function ControleJournalierHauteur({
           {/* Informations générales */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{t("permits.controleJournalierHauteur.dateLabel")}</Label>
               <Input
                 id="date"
                 name="date"
@@ -138,13 +140,13 @@ export default function ControleJournalierHauteur({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="codeSite">Code Site</Label>
+              <Label htmlFor="codeSite">{t("permits.controleJournalierHauteur.codeSiteLabel")}</Label>
               <Input
                 id="codeSite"
                 name="codeSite"
                 value={formData.codeSite}
                 onChange={handleChange}
-                placeholder="Ex. : ANA-001"
+                placeholder={t("permits.controleJournalierHauteur.codeSitePlaceholder")}
                 required
               />
             </div>
@@ -154,7 +156,7 @@ export default function ControleJournalierHauteur({
           <div className="space-y-2">
             <Label htmlFor="vitesseVent" className="flex items-center gap-2">
               <Wind className="h-4 w-4" />
-              Vitesse du vent (km/h) *
+              {t("permits.controleJournalierHauteur.vitesseVentLabel")}
             </Label>
             <Input
               id="vitesseVent"
@@ -164,11 +166,11 @@ export default function ControleJournalierHauteur({
               max="100"
               value={formData.vitesseVent}
               onChange={handleChange}
-              placeholder="Ex. : 15"
+              placeholder={t("permits.controleJournalierHauteur.vitesseVentPlaceholder")}
               required
             />
             <p className="text-xs text-gray-500">
-              Limite recommandée : 50 km/h maximum pour les travaux en hauteur
+              {t("permits.controleJournalierHauteur.vitesseVentHint")}
             </p>
           </div>
 
@@ -176,7 +178,7 @@ export default function ControleJournalierHauteur({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Intervenants
+              {t("permits.controleJournalierHauteur.intervenantsLabel")}
             </Label>
             {formData.intervenants.map((intervenant, index) => (
               <div key={index} className="flex gap-2">
@@ -185,7 +187,7 @@ export default function ControleJournalierHauteur({
                   onChange={(e) =>
                     handleIntervenantChange(index, e.target.value)
                   }
-                  placeholder={`Intervenant ${index + 1}`}
+                  placeholder={t("permits.controleJournalierHauteur.intervenantPlaceholder", { number: index + 1 })}
                   required
                 />
                 {formData.intervenants.length > 1 && (
@@ -207,7 +209,7 @@ export default function ControleJournalierHauteur({
               onClick={addIntervenant}
             >
               <Users className="h-4 w-4 mr-2" />
-              Ajouter un intervenant
+              {t("permits.controleJournalierHauteur.addIntervenantButton")}
             </Button>
           </div>
 
@@ -224,40 +226,39 @@ export default function ControleJournalierHauteur({
               htmlFor="confirmationMesures"
               className="text-sm font-medium"
             >
-              Je confirme la mise en œuvre des mesures de prévention mentionnées
-              dans le permis
+              {t("permits.controleJournalierHauteur.confirmationMesuresLabel")}
             </Label>
           </div>
 
           {/* Section Commencement des travaux */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold mb-4">
-              Commencement des travaux
+              {t("permits.controleJournalierHauteur.commencementTitle")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="signatureDemandeur">
-                  Signature Demandeur/Responsable contractant
+                  {t("permits.controleJournalierHauteur.signatureDemandeurLabel")}
                 </Label>
                 <Input
                   id="signatureDemandeur"
                   name="signatureDemandeur"
                   value={formData.signatureDemandeur}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierHauteur.signaturePlaceholder")}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signatureIntervenant">
-                  Signature Utilisateur de permis
+                  {t("permits.controleJournalierHauteur.signatureIntervenantLabel")}
                 </Label>
                 <Input
                   id="signatureIntervenant"
                   name="signatureIntervenant"
                   value={formData.signatureIntervenant}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierHauteur.signaturePlaceholder")}
                   required
                 />
               </div>
@@ -266,31 +267,31 @@ export default function ControleJournalierHauteur({
 
           {/* Section Clôture journalière */}
           <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold mb-4">Clôture journalière</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("permits.controleJournalierHauteur.clotureTitle")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="signatureClotureDemandeur">
-                  Signature Demandeur/Responsable contractant
+                  {t("permits.controleJournalierHauteur.signatureDemandeurLabel")}
                 </Label>
                 <Input
                   id="signatureClotureDemandeur"
                   name="signatureClotureDemandeur"
                   value={formData.signatureClotureDemandeur}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierHauteur.signaturePlaceholder")}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signatureClotureIntervenant">
-                  Signature Utilisateur de permis
+                  {t("permits.controleJournalierHauteur.signatureIntervenantLabel")}
                 </Label>
                 <Input
                   id="signatureClotureIntervenant"
                   name="signatureClotureIntervenant"
                   value={formData.signatureClotureIntervenant}
                   onChange={handleChange}
-                  placeholder="Nom et signature"
+                  placeholder={t("permits.controleJournalierHauteur.signaturePlaceholder")}
                   required
                 />
               </div>
@@ -300,11 +301,11 @@ export default function ControleJournalierHauteur({
           {/* Boutons d'action */}
           <div className="flex justify-end gap-4 pt-6 border-t">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Annuler
+              {t("permits.controleJournalierHauteur.cancelButton")}
             </Button>
             <Button type="submit">
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Enregistrer le contrôle
+              {t("permits.controleJournalierHauteur.submitButton")}
             </Button>
           </div>
         </form>

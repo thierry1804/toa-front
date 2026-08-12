@@ -144,24 +144,13 @@ export function Sidebar() {
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const menuStore = useMenuStore();
   const [collapsed, setCollapsed] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      await menuStore.load();
-    } catch {
-      console.error("Failed to load menu");
-    } finally {
-      setInitialized(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const retryLoad = useCallback(() => {
+    void menuStore.load();
+  }, [menuStore]);
 
   const rootItems = menuStore.items;
+  const showMenuSkeleton = menuStore.loading && !menuStore.loaded;
 
   return (
     <>
@@ -212,7 +201,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4">
-          {menuStore.loading && !initialized ? (
+          {showMenuSkeleton ? (
             <div className="flex flex-col gap-1" aria-hidden="true">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="h-9 animate-pulse rounded-lg bg-gray-100" />
@@ -221,12 +210,12 @@ export function Sidebar() {
           ) : menuStore.error && rootItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertCircle className="mb-2 h-5 w-5 text-gray-500" />
-              <p className="text-xs text-gray-600">Menu indisponible</p>
+              <p className="text-xs text-gray-600">{t('layout.sidebar.menuUnavailable')}</p>
               <button
-                onClick={load}
+                onClick={retryLoad}
                 className="touch-target-inline mt-2 text-xs font-medium text-blue-600 hover:text-blue-800"
               >
-                Réessayer
+                {t('layout.sidebar.retry')}
               </button>
             </div>
           ) : (

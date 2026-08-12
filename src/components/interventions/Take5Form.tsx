@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -36,6 +37,7 @@ export default function Take5Form({
   onCancel,
   initialData,
 }: Take5FormProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<{
     responsableNom: string;
     equipe: string[];
@@ -101,17 +103,18 @@ export default function Take5Form({
     responsable: "",
   });
 
-  const dangersCommuns = [
-    "Travail en hauteur",
-    "Risque électrique",
-    "Chute d'objets",
-    "Risque chimique",
-    "Manutention manuelle",
-    "Conditions météo",
-    "Circulation véhicules",
-    "Espaces confinés",
-    "Machines en mouvement",
-    "Surfaces glissantes",
+  // Valeurs stockées inchangées (français) — seul le libellé affiché est traduit
+  const dangersCommuns: { value: string; labelKey: string }[] = [
+    { value: "Travail en hauteur", labelKey: "dangers.travailHauteur" },
+    { value: "Risque électrique", labelKey: "dangers.risqueElectrique" },
+    { value: "Chute d'objets", labelKey: "dangers.chuteObjets" },
+    { value: "Risque chimique", labelKey: "dangers.risqueChimique" },
+    { value: "Manutention manuelle", labelKey: "dangers.manutentionManuelle" },
+    { value: "Conditions météo", labelKey: "dangers.conditionsMeteo" },
+    { value: "Circulation véhicules", labelKey: "dangers.circulationVehicules" },
+    { value: "Espaces confinés", labelKey: "dangers.espacesConfines" },
+    { value: "Machines en mouvement", labelKey: "dangers.machinesMouvement" },
+    { value: "Surfaces glissantes", labelKey: "dangers.surfacesGlissantes" },
   ];
 
   const addMembre = () => {
@@ -277,11 +280,10 @@ export default function Take5Form({
             </div>
             <div>
               <CardTitle className="text-2xl">
-                Take 5 - Évaluation de Sécurité
+                {t("intervention.components.take5Form.header.title")}
               </CardTitle>
               <CardDescription>
-                Pause de 5 minutes pour identifier et contrôler les risques
-                avant de commencer
+                {t("intervention.components.take5Form.header.subtitle")}
               </CardDescription>
             </div>
           </div>
@@ -291,56 +293,56 @@ export default function Take5Form({
       {/* Informations de base */}
       <Card>
         <CardHeader>
-          <CardTitle>Informations générales</CardTitle>
+          <CardTitle>{t("intervention.components.take5Form.generalInfo.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Responsable *"
+              label={t("intervention.components.take5Form.generalInfo.responsableLabel")}
               value={formData.responsableNom}
               onChange={(e) =>
                 setFormData({ ...formData, responsableNom: e.target.value })
               }
-              placeholder="Nom du responsable"
+              placeholder={t("intervention.components.take5Form.generalInfo.responsablePlaceholder")}
               required
             />
             <Input
-              label="Localisation *"
+              label={t("intervention.components.take5Form.generalInfo.localisationLabel")}
               value={formData.localisation}
               onChange={(e) =>
                 setFormData({ ...formData, localisation: e.target.value })
               }
-              placeholder="Zone précise d'intervention"
+              placeholder={t("intervention.components.take5Form.generalInfo.localisationPlaceholder")}
               required
             />
           </div>
 
           <Textarea
-            label="Description de la tâche *"
+            label={t("intervention.components.take5Form.generalInfo.tacheLabel")}
             value={formData.tacheDescription}
             onChange={(e) =>
               setFormData({ ...formData, tacheDescription: e.target.value })
             }
-            placeholder="Décrire la tâche à réaliser..."
+            placeholder={t("intervention.components.take5Form.generalInfo.tachePlaceholder")}
             rows={3}
             required
           />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Équipe présente * (au moins 1 membre)
+              {t("intervention.components.take5Form.generalInfo.equipeLabel")}
             </label>
             <div className="flex gap-2 mb-2">
               <Input
                 value={nouveauMembre}
                 onChange={(e) => setNouveauMembre(e.target.value)}
-                placeholder="Nom du membre de l'équipe"
+                placeholder={t("intervention.components.take5Form.generalInfo.membrePlaceholder")}
                 onKeyPress={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addMembre())
                 }
               />
               <Button type="button" onClick={addMembre} variant="outline">
-                Ajouter
+                {t("intervention.components.take5Form.add")}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -372,16 +374,16 @@ export default function Take5Form({
               <span className="text-red-700 font-bold text-lg">1</span>
             </div>
             <div>
-              <CardTitle>ARRÊTER</CardTitle>
+              <CardTitle>{t("intervention.components.take5Form.step1.title")}</CardTitle>
               <CardDescription>
-                Prenez le temps de faire une pause avant de commencer
+                {t("intervention.components.take5Form.step1.description")}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <Checkbox
-            label="J'ai pris le temps de m'arrêter et de réfléchir avant de commencer"
+            label={t("intervention.components.take5Form.step1.checkboxLabel")}
             checked={formData.etape1_arreter.complete}
             onChange={(e) =>
               setFormData({
@@ -394,7 +396,7 @@ export default function Take5Form({
             }
           />
           <Textarea
-            label="Observations"
+            label={t("intervention.components.take5Form.step1.observationsLabel")}
             value={formData.etape1_arreter.observations}
             onChange={(e) =>
               setFormData({
@@ -405,7 +407,7 @@ export default function Take5Form({
                 },
               })
             }
-            placeholder="Notes sur la préparation..."
+            placeholder={t("intervention.components.take5Form.step1.observationsPlaceholder")}
             rows={2}
           />
         </CardContent>
@@ -419,9 +421,9 @@ export default function Take5Form({
               <Eye className="h-5 w-5 text-orange-700" />
             </div>
             <div>
-              <CardTitle>OBSERVER</CardTitle>
+              <CardTitle>{t("intervention.components.take5Form.step2.title")}</CardTitle>
               <CardDescription>
-                Identifiez tous les dangers potentiels
+                {t("intervention.components.take5Form.step2.description")}
               </CardDescription>
             </div>
           </div>
@@ -429,29 +431,29 @@ export default function Take5Form({
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Dangers identifiés (sélectionnez tous ceux qui s'appliquent)
+              {t("intervention.components.take5Form.step2.dangersLabel")}
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {dangersCommuns.map((danger) => (
                 <div
-                  key={danger}
+                  key={danger.value}
                   className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    formData.etape2_observer.dangersIdentifies.includes(danger)
+                    formData.etape2_observer.dangersIdentifies.includes(danger.value)
                       ? "bg-orange-50 border-orange-500 text-orange-900"
                       : "bg-white border-gray-300 hover:border-orange-300"
                   }`}
-                  onClick={() => toggleDanger(danger)}
+                  onClick={() => toggleDanger(danger.value)}
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={formData.etape2_observer.dangersIdentifies.includes(
-                        danger,
+                        danger.value,
                       )}
-                      onChange={() => toggleDanger(danger)}
+                      onChange={() => toggleDanger(danger.value)}
                       className="rounded border-gray-300"
                     />
-                    <span className="text-sm">{danger}</span>
+                    <span className="text-sm">{t(`intervention.components.take5Form.${danger.labelKey}`)}</span>
                   </div>
                 </div>
               ))}
@@ -459,7 +461,7 @@ export default function Take5Form({
           </div>
 
           <Textarea
-            label="Autres dangers identifiés"
+            label={t("intervention.components.take5Form.step2.autresDangersLabel")}
             value={formData.etape2_observer.autresDangers}
             onChange={(e) =>
               setFormData({
@@ -470,12 +472,12 @@ export default function Take5Form({
                 },
               })
             }
-            placeholder="Décrivez d'autres dangers spécifiques..."
+            placeholder={t("intervention.components.take5Form.step2.autresDangersPlaceholder")}
             rows={2}
           />
 
           <Checkbox
-            label="J'ai observé et identifié tous les dangers potentiels"
+            label={t("intervention.components.take5Form.step2.checkboxLabel")}
             checked={formData.etape2_observer.complete}
             onChange={(e) =>
               setFormData({
@@ -498,9 +500,9 @@ export default function Take5Form({
               <Search className="h-5 w-5 text-yellow-700" />
             </div>
             <div>
-              <CardTitle>ANALYSER</CardTitle>
+              <CardTitle>{t("intervention.components.take5Form.step3.title")}</CardTitle>
               <CardDescription>
-                Évaluez les risques associés à chaque danger
+                {t("intervention.components.take5Form.step3.description")}
               </CardDescription>
             </div>
           </div>
@@ -508,23 +510,23 @@ export default function Take5Form({
         <CardContent className="space-y-4">
           <div className="bg-yellow-50 p-4 rounded-lg space-y-3">
             <h4 className="font-medium text-gray-900">
-              Ajouter une évaluation de risque
+              {t("intervention.components.take5Form.step3.addRisqueTitle")}
             </h4>
             <Input
-              label="Danger"
+              label={t("intervention.components.take5Form.step3.dangerLabel")}
               value={nouveauRisque.danger}
               onChange={(e) =>
                 setNouveauRisque({ ...nouveauRisque, danger: e.target.value })
               }
-              placeholder="Ex. : Chute de hauteur depuis le pylône"
+              placeholder={t("intervention.components.take5Form.step3.dangerPlaceholder")}
             />
             <div className="grid grid-cols-3 gap-3">
               <Select
-                label="Probabilité"
+                label={t("intervention.components.take5Form.step3.probabiliteLabel")}
                 options={[
-                  { value: "faible", label: "Faible" },
-                  { value: "moyenne", label: "Moyenne" },
-                  { value: "elevee", label: "Élevée" },
+                  { value: "faible", label: t("intervention.components.take5Form.probabiliteOptions.faible") },
+                  { value: "moyenne", label: t("intervention.components.take5Form.probabiliteOptions.moyenne") },
+                  { value: "elevee", label: t("intervention.components.take5Form.probabiliteOptions.elevee") },
                 ]}
                 value={nouveauRisque.probabilite}
                 onChange={(e) =>
@@ -538,12 +540,12 @@ export default function Take5Form({
                 }
               />
               <Select
-                label="Gravité"
+                label={t("intervention.components.take5Form.step3.graviteLabel")}
                 options={[
-                  { value: "mineure", label: "Mineure" },
-                  { value: "moderee", label: "Modérée" },
-                  { value: "grave", label: "Grave" },
-                  { value: "critique", label: "Critique" },
+                  { value: "mineure", label: t("intervention.components.take5Form.graviteOptions.mineure") },
+                  { value: "moderee", label: t("intervention.components.take5Form.graviteOptions.moderee") },
+                  { value: "grave", label: t("intervention.components.take5Form.graviteOptions.grave") },
+                  { value: "critique", label: t("intervention.components.take5Form.graviteOptions.critique") },
                 ]}
                 value={nouveauRisque.gravite}
                 onChange={(e) =>
@@ -558,12 +560,12 @@ export default function Take5Form({
                 }
               />
               <Select
-                label="Niveau de risque"
+                label={t("intervention.components.take5Form.step3.niveauRisqueLabel")}
                 options={[
-                  { value: "faible", label: "Faible" },
-                  { value: "moyen", label: "Moyen" },
-                  { value: "eleve", label: "Élevé" },
-                  { value: "critique", label: "Critique" },
+                  { value: "faible", label: t("intervention.components.take5Form.niveauRisqueOptions.faible") },
+                  { value: "moyen", label: t("intervention.components.take5Form.niveauRisqueOptions.moyen") },
+                  { value: "eleve", label: t("intervention.components.take5Form.niveauRisqueOptions.eleve") },
+                  { value: "critique", label: t("intervention.components.take5Form.niveauRisqueOptions.critique") },
                 ]}
                 value={nouveauRisque.niveauRisque}
                 onChange={(e) =>
@@ -584,7 +586,7 @@ export default function Take5Form({
               variant="outline"
               className="w-full"
             >
-              Ajouter le risque
+              {t("intervention.components.take5Form.step3.addRisqueButton")}
             </Button>
           </div>
 
@@ -599,15 +601,15 @@ export default function Take5Form({
                     <p className="font-medium text-gray-900">{risque.danger}</p>
                     <div className="flex gap-2 mt-2 text-xs">
                       <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                        Probabilité: {risque.probabilite}
+                        {t("intervention.components.take5Form.step3.probabiliteBadge", { value: risque.probabilite })}
                       </span>
                       <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                        Gravité: {risque.gravite}
+                        {t("intervention.components.take5Form.step3.graviteBadge", { value: risque.gravite })}
                       </span>
                       <span
                         className={`px-2 py-1 rounded font-medium ${getNiveauRisqueColor(risque.niveauRisque)}`}
                       >
-                        Niveau: {risque.niveauRisque}
+                        {t("intervention.components.take5Form.step3.niveauBadge", { value: risque.niveauRisque })}
                       </span>
                     </div>
                   </div>
@@ -624,7 +626,7 @@ export default function Take5Form({
           </div>
 
           <Checkbox
-            label="J'ai analysé et évalué tous les risques identifiés"
+            label={t("intervention.components.take5Form.step3.checkboxLabel")}
             checked={formData.etape3_analyser.complete}
             onChange={(e) =>
               setFormData({
@@ -647,9 +649,9 @@ export default function Take5Form({
               <Shield className="h-5 w-5 text-blue-700" />
             </div>
             <div>
-              <CardTitle>CONTRÔLER</CardTitle>
+              <CardTitle>{t("intervention.components.take5Form.step4.title")}</CardTitle>
               <CardDescription>
-                Mettez en place les mesures de contrôle nécessaires
+                {t("intervention.components.take5Form.step4.description")}
               </CardDescription>
             </div>
           </div>
@@ -657,24 +659,24 @@ export default function Take5Form({
         <CardContent className="space-y-4">
           <div className="bg-blue-50 p-4 rounded-lg space-y-3">
             <h4 className="font-medium text-gray-900">
-              Ajouter une mesure de contrôle
+              {t("intervention.components.take5Form.step4.addMesureTitle")}
             </h4>
             <Select
-              label="Type de mesure"
+              label={t("intervention.components.take5Form.step4.typeLabel")}
               options={[
-                { value: "elimination", label: "Élimination" },
-                { value: "substitution", label: "Substitution" },
+                { value: "elimination", label: t("intervention.components.take5Form.typeOptions.elimination") },
+                { value: "substitution", label: t("intervention.components.take5Form.typeOptions.substitution") },
                 {
                   value: "controle_ingenierie",
-                  label: "Contrôle d'ingénierie",
+                  label: t("intervention.components.take5Form.typeOptions.controleIngenierie"),
                 },
                 {
                   value: "controle_administratif",
-                  label: "Contrôle administratif",
+                  label: t("intervention.components.take5Form.typeOptions.controleAdministratif"),
                 },
                 {
                   value: "epi",
-                  label: "Équipement de Protection Individuelle (EPI)",
+                  label: t("intervention.components.take5Form.typeOptions.epi"),
                 },
               ]}
               value={nouvelleMesure.type}
@@ -691,7 +693,7 @@ export default function Take5Form({
               }
             />
             <Textarea
-              label="Description de la mesure"
+              label={t("intervention.components.take5Form.step4.descriptionLabel")}
               value={nouvelleMesure.description}
               onChange={(e) =>
                 setNouvelleMesure({
@@ -699,12 +701,12 @@ export default function Take5Form({
                   description: e.target.value,
                 })
               }
-              placeholder="Ex. : Port du harnais complet avec double longe"
+              placeholder={t("intervention.components.take5Form.step4.descriptionPlaceholder")}
               rows={2}
             />
             <div className="grid grid-cols-2 gap-3">
               <Input
-                label="Responsable"
+                label={t("intervention.components.take5Form.step4.responsableLabel")}
                 value={nouvelleMesure.responsable}
                 onChange={(e) =>
                   setNouvelleMesure({
@@ -712,11 +714,11 @@ export default function Take5Form({
                     responsable: e.target.value,
                   })
                 }
-                placeholder="Nom du responsable"
+                placeholder={t("intervention.components.take5Form.step4.responsablePlaceholder")}
               />
               <div className="flex items-end">
                 <Checkbox
-                  label="Mesure mise en place"
+                  label={t("intervention.components.take5Form.step4.miseEnPlaceLabel")}
                   checked={nouvelleMesure.miseEnPlace}
                   onChange={(e) =>
                     setNouvelleMesure({
@@ -733,7 +735,7 @@ export default function Take5Form({
               variant="outline"
               className="w-full"
             >
-              Ajouter la mesure
+              {t("intervention.components.take5Form.step4.addMesureButton")}
             </Button>
           </div>
 
@@ -755,7 +757,7 @@ export default function Take5Form({
                     </div>
                     <p className="text-gray-900">{mesure.description}</p>
                     <p className="text-sm text-gray-600 mt-1">
-                      Responsable: {mesure.responsable}
+                      {t("intervention.components.take5Form.step4.responsableBadge", { value: mesure.responsable })}
                     </p>
                   </div>
                   <button
@@ -771,7 +773,7 @@ export default function Take5Form({
           </div>
 
           <Checkbox
-            label="Toutes les mesures de contrôle nécessaires ont été identifiées et mises en place"
+            label={t("intervention.components.take5Form.step4.checkboxLabel")}
             checked={formData.etape4_controler.complete}
             onChange={(e) =>
               setFormData({
@@ -794,9 +796,9 @@ export default function Take5Form({
               <Play className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <CardTitle>PROCÉDER</CardTitle>
+              <CardTitle>{t("intervention.components.take5Form.step5.title")}</CardTitle>
               <CardDescription>
-                Vérification finale avant de commencer le travail
+                {t("intervention.components.take5Form.step5.description")}
               </CardDescription>
             </div>
           </div>
@@ -806,8 +808,7 @@ export default function Take5Form({
             <Checkbox
               label={
                 <span className="font-medium">
-                  Je confirme que toutes les mesures de sécurité sont en place
-                  et que je peux procéder en toute sécurité
+                  {t("intervention.components.take5Form.step5.securiteConfirmeeLabel")}
                 </span>
               }
               checked={formData.etape5_proceder.securiteConfirmee}
@@ -824,7 +825,7 @@ export default function Take5Form({
             <Checkbox
               label={
                 <span className="font-medium">
-                  J'autorise l'équipe à procéder avec les travaux
+                  {t("intervention.components.take5Form.step5.autorisationLabel")}
                 </span>
               }
               checked={formData.etape5_proceder.autorisationProceder}
@@ -841,7 +842,7 @@ export default function Take5Form({
           </div>
 
           <Checkbox
-            label="Étape de vérification finale complétée"
+            label={t("intervention.components.take5Form.step5.checkboxLabel")}
             checked={formData.etape5_proceder.complete}
             onChange={(e) =>
               setFormData({
@@ -860,7 +861,7 @@ export default function Take5Form({
       <div className="flex items-center justify-between gap-4 pt-4 border-t">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
-            Annuler
+            {t("intervention.components.take5Form.cancel")}
           </Button>
         )}
         <div className="flex-1" />
@@ -868,17 +869,17 @@ export default function Take5Form({
           {isFormValid() ? (
             <span className="text-green-600 flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4" />
-              Prêt à soumettre
+              {t("intervention.components.take5Form.readyToSubmit")}
             </span>
           ) : (
             <span className="text-orange-600 flex items-center gap-1">
               <AlertTriangle className="h-4 w-4" />
-              Veuillez compléter toutes les étapes
+              {t("intervention.components.take5Form.incompleteWarning")}
             </span>
           )}
         </div>
         <Button type="submit" disabled={!isFormValid()}>
-          Valider le Take 5
+          {t("intervention.components.take5Form.submit")}
         </Button>
       </div>
     </form>

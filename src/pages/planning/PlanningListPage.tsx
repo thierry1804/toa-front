@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   useActivityPlannings,
@@ -30,7 +30,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
-import { STATUS_CONFIG, statusFilterOptions } from "@/data/constant/planning";
+import { STATUS_CONFIG, STATUS_VALUES } from "@/data/constant/planning";
 import GanttChart from "@/features/planning/components/GanttChart";
 
 const GANTT_ROW_H = 44;
@@ -48,6 +48,14 @@ export default function PlanningListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
+
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "all", label: t("planning.status.all") },
+      ...STATUS_VALUES.map((v) => ({ value: v, label: t(`planning.status.${v}`) })),
+    ],
+    [t],
+  );
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
@@ -262,7 +270,7 @@ export default function PlanningListPage() {
                           <td className="px-4 py-4">
                             {config ? (
                               <Badge variant={config.variant}>
-                                {config.label}
+                                {t(`planning.status.${p.status}`)}
                               </Badge>
                             ) : (
                               <Badge>{p.status}</Badge>
@@ -373,7 +381,7 @@ export default function PlanningListPage() {
                       </div>
                       <div className="mt-3">
                         {config ? (
-                          <Badge variant={config.variant}>{config.label}</Badge>
+                          <Badge variant={config.variant}>{t(`planning.status.${p.status}`)}</Badge>
                         ) : (
                           <Badge>{p.status}</Badge>
                         )}

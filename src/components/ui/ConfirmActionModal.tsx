@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal, ModalFooter } from './Modal'
 import Button, { type ButtonProps } from './Button'
 import Textarea from './Textarea'
@@ -39,23 +40,28 @@ export default function ConfirmActionModal({
   title,
   description,
   banner,
-  commentLabel = 'Commentaire',
+  commentLabel,
   commentPlaceholder,
   commentRequired = false,
-  commentRequiredMessage = 'Ce champ est obligatoire.',
+  commentRequiredMessage,
   extraContent,
   confirmLabel,
   confirmVariant = 'primary',
   confirmIcon,
   isSubmitting,
   onConfirm,
-  errorMessage = 'Une erreur est survenue.',
+  errorMessage,
   getErrorMessage,
 }: ConfirmActionModalProps) {
+  const { t } = useTranslation()
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState<string | null>(null)
   const [error, setError] = useState<ReactNode | null>(null)
   const [successContent, setSuccessContent] = useState<ReactNode | null>(null)
+
+  const effectiveCommentLabel = commentLabel ?? t('ui.confirmActionModal.commentLabel')
+  const effectiveCommentRequiredMessage = commentRequiredMessage ?? t('ui.confirmActionModal.fieldRequired')
+  const effectiveErrorMessage = errorMessage ?? t('common.error')
 
   const handleClose = () => {
     if (isSubmitting) return
@@ -70,7 +76,7 @@ export default function ConfirmActionModal({
     setCommentError(null)
     setError(null)
     if (commentRequired && !comment.trim()) {
-      setCommentError(commentRequiredMessage)
+      setCommentError(effectiveCommentRequiredMessage)
       return
     }
     try {
@@ -81,7 +87,7 @@ export default function ConfirmActionModal({
         handleClose()
       }
     } catch (err) {
-      setError(getErrorMessage ? getErrorMessage(err) : errorMessage)
+      setError(getErrorMessage ? getErrorMessage(err) : effectiveErrorMessage)
     }
   }
 
@@ -97,7 +103,7 @@ export default function ConfirmActionModal({
             {banner}
             {description && <p className="text-sm text-gray-600">{description}</p>}
             <Textarea
-              label={commentLabel}
+              label={effectiveCommentLabel}
               required={commentRequired}
               value={comment}
               onChange={(e) => {
@@ -119,7 +125,7 @@ export default function ConfirmActionModal({
 
       <ModalFooter>
         <Button variant="secondary" onClick={handleClose} disabled={isSubmitting}>
-          {showSuccess ? 'Fermer' : 'Annuler'}
+          {showSuccess ? t('common.close') : t('common.cancel')}
         </Button>
         {!showSuccess && (
           <Button

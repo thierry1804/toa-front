@@ -1,27 +1,27 @@
-import { Shield } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { useTranslation } from 'react-i18next'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardSectionHeader } from '@/components/ui/Card'
 import MenuMatrix from '@/components/menus/MenuMatrix'
 import { useRoleManagement } from '@/features/roles/hooks/useRoleManagement'
 
 export default function RolesManagementPage() {
+  const { t } = useTranslation()
   const { menuItems, roles, entries, toggling, toggle, isLoading } = useRoleManagement()
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Gestion des rôles</h2>
-        <p className="mt-1 text-gray-600">Gérez les accès aux menus par rôle</p>
-      </div>
+      <PageHeader
+        title={t('roles.title')}
+        description={t('roles.management.description')}
+      />
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900">
-            <Shield className="h-5 w-5 text-blue-600" />
-            Matrice des permissions
-          </CardTitle>
-        </CardHeader>
-        {/* CardContent has no overflow — scroll is contained inside MenuMatrix */}
-        <CardContent>
+        <CardSectionHeader>
+          <h2 className="text-sm font-semibold text-gray-900">
+            {t('roles.management.permissionsMatrix')}
+          </h2>
+        </CardSectionHeader>
+        <CardContent className="p-4">
           <MenuMatrix
             menuItems={menuItems}
             roles={roles}

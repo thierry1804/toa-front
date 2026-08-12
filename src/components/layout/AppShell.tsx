@@ -2,9 +2,11 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { useRefreshPermissions } from '@/features/auth/useAuth'
+import { useLoadMenu } from '@/features/menus/hooks/useLoadMenu'
 import { useSyncOnReconnect } from '@/hooks/useSyncOnReconnect'
 
 export function AppShell() {
+  useLoadMenu()
   useRefreshPermissions()
   useSyncOnReconnect()
 

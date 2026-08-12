@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
@@ -39,11 +40,13 @@ export default function MultiStepForm({
   onComplete,
   title,
   description,
-  submitLabel = 'Soumettre',
+  submitLabel,
   loading = false,
   formData = {},
   updateFormData,
 }: MultiStepFormProps) {
+  const { t } = useTranslation();
+  const effectiveSubmitLabel = submitLabel ?? t('forms.multiStepForm.submitDefault');
   const [currentStep, setCurrentStep] = useState(0);
   const [isValidatingStep, setIsValidatingStep] = useState(false);
 
@@ -184,9 +187,9 @@ export default function MultiStepForm({
           size="lg"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          <span>Précédent</span>
+          <span>{t('common.previous')}</span>
         </Button>
-        
+
         <Button
           onClick={handleNext}
           disabled={!canProceed || loading || isValidatingStep}
@@ -195,10 +198,10 @@ export default function MultiStepForm({
           size="lg"
         >
           {isLastStep ? (
-            <span>{submitLabel}</span>
+            <span>{effectiveSubmitLabel}</span>
           ) : (
             <>
-              <span>Suivant</span>
+              <span>{t('common.next')}</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </>
           )}

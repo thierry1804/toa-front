@@ -352,7 +352,7 @@ export default function DashboardKpisPage() {
 
         {/* Évolution temporelle */}
         <Card>
-          <div className="border-b px-6 py-3">
+          <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">
               {t('dashboardKpis.charts.evolution', { nbMois: 6 })}
               {activeFilters.codeSite
@@ -402,7 +402,7 @@ export default function DashboardKpisPage() {
 
         {/* Comparaison par site */}
         <Card>
-          <div className="border-b px-6 py-3">
+          <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">
               {t('dashboardKpis.charts.barSite')}
             </h3>
@@ -433,7 +433,7 @@ export default function DashboardKpisPage() {
 
       {/* Répartition statuts permis */}
       <Card>
-        <div className="border-b px-6 py-3">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
           <h3 className="text-sm font-semibold text-gray-900">
             {t('dashboardKpis.charts.pie')}
           </h3>
@@ -483,7 +483,7 @@ export default function DashboardKpisPage() {
 
       {/* ── Tableau par site ── */}
       <Card>
-        <div className="border-b px-6 py-4">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
           <h2 className="text-sm font-semibold text-gray-900">
             {t('dashboardKpis.table.title', { nb: sites?.length ?? 0 })}
           </h2>
@@ -499,7 +499,7 @@ export default function DashboardKpisPage() {
             </div>
           ) : (
             <table className="w-full text-left text-sm">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   {columns.map(([key, label]) => (
                     <th

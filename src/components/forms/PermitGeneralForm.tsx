@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { usePermitStore } from "@/store/permitStore";
 import { useAuthStore } from '@/store/auth.store';
 import Input from "@/components/ui/Input";
@@ -11,49 +13,52 @@ import MultiStepForm from "./MultiStepForm";
 import { wireStepValidation, type RegisterValidate } from "./wireStepValidation";
 import { AlertCircle } from "lucide-react";
 
-// Schémas de validation pour chaque étape
-const step1Schema = z.object({
-  planPreventionId: z.string().min(1, "Plan de prévention requis"),
-  intituleTravaux: z.string().min(5, "Intitulé trop court (min 5 caractères)"),
-  localisation: z.string().min(1, "Localisation requise"),
-  codeSite: z.string().min(1, "Code site requis"),
-  contractant: z.string().min(1, "Contractant requis"),
-  nombreIntervenants: z.number().min(1, "Minimum 1 intervenant"),
-  dateDebut: z.string().min(1, "Date de début requise"),
-  dateFin: z.string().min(1, "Date de fin requise"),
-});
+// Schémas de validation pour chaque étape (messages traduits via t())
+const makeStep1Schema = (t: TFunction) =>
+  z.object({
+    planPreventionId: z.string().min(1, t("forms.permitGeneral.validation.planPreventionRequired")),
+    intituleTravaux: z.string().min(5, t("forms.permitGeneral.validation.intituleTooShort")),
+    localisation: z.string().min(1, t("forms.permitGeneral.validation.localisationRequired")),
+    codeSite: z.string().min(1, t("forms.permitGeneral.validation.codeSiteRequired")),
+    contractant: z.string().min(1, t("forms.permitGeneral.validation.contractantRequired")),
+    nombreIntervenants: z.number().min(1, t("forms.permitGeneral.validation.minIntervenants")),
+    dateDebut: z.string().min(1, t("forms.permitGeneral.validation.dateDebutRequired")),
+    dateFin: z.string().min(1, t("forms.permitGeneral.validation.dateFinRequired")),
+  });
 
-const step2Schema = z.object({
-  travauxChaud: z.boolean(),
-  travauxHauteur: z.boolean(),
-  travauxElectrique: z.boolean(),
-  travauxEspaceConfine: z.boolean(),
-  travauxExcavation: z.boolean(),
-  travauxAutres: z.boolean(),
-  autresDescription: z.string().optional(),
-});
+const makeStep2Schema = () =>
+  z.object({
+    travauxChaud: z.boolean(),
+    travauxHauteur: z.boolean(),
+    travauxElectrique: z.boolean(),
+    travauxEspaceConfine: z.boolean(),
+    travauxExcavation: z.boolean(),
+    travauxAutres: z.boolean(),
+    autresDescription: z.string().optional(),
+  });
 
-const step3Schema = z.object({
-  evaluationRisquesValidee: z.boolean().refine((val) => val === true, {
-    message: "L'évaluation des risques doit être validée",
-  }),
-  personneCompetenteAssignee: z.boolean().refine((val) => val === true, {
-    message: "Une personne compétente doit être assignée",
-  }),
-  mesuresPreventionMisesEnPlace: z.boolean().refine((val) => val === true, {
-    message: "Les mesures de prévention doivent être mises en place",
-  }),
-  personnelInforme: z.boolean().refine((val) => val === true, {
-    message: "Le personnel doit être informé",
-  }),
-  dangersControles: z.boolean().refine((val) => val === true, {
-    message: "Les dangers doivent être contrôlés",
-  }),
-});
+const makeStep3Schema = (t: TFunction) =>
+  z.object({
+    evaluationRisquesValidee: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitGeneral.validation.evaluationRisquesRequired"),
+    }),
+    personneCompetenteAssignee: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitGeneral.validation.personneCompetenteRequired"),
+    }),
+    mesuresPreventionMisesEnPlace: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitGeneral.validation.mesuresPreventionRequired"),
+    }),
+    personnelInforme: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitGeneral.validation.personnelInformeRequired"),
+    }),
+    dangersControles: z.boolean().refine((val) => val === true, {
+      message: t("forms.permitGeneral.validation.dangersControlesRequired"),
+    }),
+  });
 
-type Step1Data = z.infer<typeof step1Schema>;
-type Step2Data = z.infer<typeof step2Schema>;
-type Step3Data = z.infer<typeof step3Schema>;
+type Step1Data = z.infer<ReturnType<typeof makeStep1Schema>>;
+type Step2Data = z.infer<ReturnType<typeof makeStep2Schema>>;
+type Step3Data = z.infer<ReturnType<typeof makeStep3Schema>>;
 
 interface PermitGeneralFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +74,7 @@ export default function PermitGeneralForm({
 }: PermitGeneralFormProps) {
   const { plansPrevention } = usePermitStore();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
 
   // État global pour partager les données entre les étapes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,6 +95,8 @@ export default function PermitGeneralForm({
     updateFormData: (data: any) => void,
     registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step1Schema = useMemo(() => makeStep1Schema(t), [t]);
     const {
       register,
       handleSubmit,
@@ -115,11 +123,11 @@ export default function PermitGeneralForm({
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Select
-          label="Plan de Prévention Associé *"
+          label={t("forms.permitGeneral.step1.planPreventionLabel")}
           {...register("planPreventionId")}
           error={errors.planPreventionId?.message}
           options={plansDisponibles}
-          placeholder="Sélectionner un plan de prévention validé"
+          placeholder={t("forms.permitGeneral.step1.planPreventionPlaceholder")}
         />
 
         {plansDisponibles.length === 0 && (
@@ -127,47 +135,46 @@ export default function PermitGeneralForm({
             <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-yellow-900">
-                Aucun plan de prévention disponible
+                {t("forms.permitGeneral.step1.noPlanTitle")}
               </p>
               <p className="text-xs text-yellow-700 mt-1">
-                Vous devez d'abord créer et faire valider un plan de prévention
-                avant de créer un permis de travail.
+                {t("forms.permitGeneral.step1.noPlanText")}
               </p>
             </div>
           </div>
         )}
 
         <Input
-          label="Intitulé des Travaux *"
+          label={t("forms.permitGeneral.step1.intituleLabel")}
           {...register("intituleTravaux")}
           error={errors.intituleTravaux?.message}
-          placeholder="Ex. : Maintenance équipements télécoms"
+          placeholder={t("forms.permitGeneral.step1.intitulePlaceholder")}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Localisation *"
+            label={t("forms.permitGeneral.step1.localisationLabel")}
             {...register("localisation")}
             error={errors.localisation?.message}
-            placeholder="Ex. : Antananarivo Centre - Pylône principal"
+            placeholder={t("forms.permitGeneral.step1.localisationPlaceholder")}
           />
           <Input
-            label="Code Site *"
+            label={t("forms.permitGeneral.step1.codeSiteLabel")}
             {...register("codeSite")}
             error={errors.codeSite?.message}
-            placeholder="Ex. : ANT-001"
+            placeholder={t("forms.permitGeneral.step1.codeSitePlaceholder")}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Contractant *"
+            label={t("forms.permitGeneral.step1.contractantLabel")}
             {...register("contractant")}
             error={errors.contractant?.message}
-            placeholder="Nom de l'entreprise"
+            placeholder={t("forms.permitGeneral.step1.contractantPlaceholder")}
           />
           <Input
-            label="Nombre d'Intervenants *"
+            label={t("forms.permitGeneral.step1.nombreIntervenantsLabel")}
             type="number"
             {...register("nombreIntervenants", { valueAsNumber: true })}
             error={errors.nombreIntervenants?.message}
@@ -177,13 +184,13 @@ export default function PermitGeneralForm({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Date de Début *"
+            label={t("forms.permitGeneral.step1.dateDebutLabel")}
             type="date"
             {...register("dateDebut")}
             error={errors.dateDebut?.message}
           />
           <Input
-            label="Date de Fin *"
+            label={t("forms.permitGeneral.step1.dateFinLabel")}
             type="date"
             {...register("dateFin")}
             error={errors.dateFin?.message}
@@ -200,6 +207,8 @@ export default function PermitGeneralForm({
     updateFormData: (data: any) => void,
     registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step2Schema = useMemo(() => makeStep2Schema(), []);
     const { register, handleSubmit, watch } = useForm<Step2Data>({
       resolver: zodResolver(step2Schema),
       defaultValues: {
@@ -223,45 +232,45 @@ export default function PermitGeneralForm({
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-gray-600 mb-4">
-          Cocher tous les types de travaux concernés par cette intervention
+          {t("forms.permitGeneral.step2.intro")}
         </p>
 
         <Checkbox
-          label="Travaux à chaud"
-          description="Soudure, meulage, découpe thermique, etc."
+          label={t("forms.permitGeneral.step2.chaudLabel")}
+          description={t("forms.permitGeneral.step2.chaudDesc")}
           {...register("travauxChaud")}
         />
         <Checkbox
-          label="Travaux en hauteur"
-          description="Intervention à plus de 3 mètres de hauteur"
+          label={t("forms.permitGeneral.step2.hauteurLabel")}
+          description={t("forms.permitGeneral.step2.hauteurDesc")}
           {...register("travauxHauteur")}
         />
         <Checkbox
-          label="Travaux électriques"
-          description="Intervention sur installations électriques"
+          label={t("forms.permitGeneral.step2.electriqueLabel")}
+          description={t("forms.permitGeneral.step2.electriqueDesc")}
           {...register("travauxElectrique")}
         />
         <Checkbox
-          label="Travaux en espace confiné"
-          description="Intervention dans un espace restreint"
+          label={t("forms.permitGeneral.step2.espaceConfineLabel")}
+          description={t("forms.permitGeneral.step2.espaceConfineDesc")}
           {...register("travauxEspaceConfine")}
         />
         <Checkbox
-          label="Travaux d'excavation"
-          description="Terrassement, forage, creusement"
+          label={t("forms.permitGeneral.step2.excavationLabel")}
+          description={t("forms.permitGeneral.step2.excavationDesc")}
           {...register("travauxExcavation")}
         />
         <Checkbox
-          label="Autres"
-          description="Autres types de travaux à risques"
+          label={t("forms.permitGeneral.step2.autresLabel")}
+          description={t("forms.permitGeneral.step2.autresDesc")}
           {...register("travauxAutres")}
         />
 
         {travauxAutres && (
           <Input
-            label="Description des autres travaux"
+            label={t("forms.permitGeneral.step2.autresDescriptionLabel")}
             {...register("autresDescription")}
-            placeholder="Précisez le type de travaux..."
+            placeholder={t("forms.permitGeneral.step2.autresDescriptionPlaceholder")}
           />
         )}
       </form>
@@ -275,6 +284,8 @@ export default function PermitGeneralForm({
     updateFormData: (data: any) => void,
     registerValidate: RegisterValidate,
   ) => {
+    const { t } = useTranslation();
+    const step3Schema = useMemo(() => makeStep3Schema(t), [t]);
     const {
       register,
       handleSubmit,
@@ -299,11 +310,11 @@ export default function PermitGeneralForm({
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-gray-600 mb-4">
-          En tant que demandeur, je m'engage et je confirme que :
+          {t("forms.permitGeneral.step3.intro")}
         </p>
 
         <Checkbox
-          label="L'évaluation des risques a été validée *"
+          label={t("forms.permitGeneral.step3.evaluationRisquesLabel")}
           {...register("evaluationRisquesValidee")}
         />
         {errors.evaluationRisquesValidee && (
@@ -313,7 +324,7 @@ export default function PermitGeneralForm({
         )}
 
         <Checkbox
-          label="Une personne compétente a été assignée pour contrôler les mesures *"
+          label={t("forms.permitGeneral.step3.personneCompetenteLabel")}
           {...register("personneCompetenteAssignee")}
         />
         {errors.personneCompetenteAssignee && (
@@ -323,7 +334,7 @@ export default function PermitGeneralForm({
         )}
 
         <Checkbox
-          label="Les mesures de prévention sont mises en place *"
+          label={t("forms.permitGeneral.step3.mesuresPreventionLabel")}
           {...register("mesuresPreventionMisesEnPlace")}
         />
         {errors.mesuresPreventionMisesEnPlace && (
@@ -333,7 +344,7 @@ export default function PermitGeneralForm({
         )}
 
         <Checkbox
-          label="Le personnel a été informé des exigences de sécurité *"
+          label={t("forms.permitGeneral.step3.personnelInformeLabel")}
           {...register("personnelInforme")}
         />
         {errors.personnelInforme && (
@@ -343,7 +354,7 @@ export default function PermitGeneralForm({
         )}
 
         <Checkbox
-          label="Les dangers seront contrôlés tout au long des travaux *"
+          label={t("forms.permitGeneral.step3.dangersControlesLabel")}
           {...register("dangersControles")}
         />
         {errors.dangersControles && (
@@ -358,17 +369,18 @@ export default function PermitGeneralForm({
   // Étape 4: Révision et soumission
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step4Component = (formData: any) => {
+    const { t } = useTranslation();
     const risquesSelectionnes: { key: string; label: string }[] = [
-      { key: "travauxChaud", label: "Travaux à chaud" },
-      { key: "travauxHauteur", label: "Travaux en hauteur" },
-      { key: "travauxElectrique", label: "Travaux électriques" },
-      { key: "travauxEspaceConfine", label: "Travaux en espace confiné" },
-      { key: "travauxExcavation", label: "Travaux d'excavation" },
+      { key: "travauxChaud", label: t("forms.permitGeneral.step2.chaudLabel") },
+      { key: "travauxHauteur", label: t("forms.permitGeneral.step2.hauteurLabel") },
+      { key: "travauxElectrique", label: t("forms.permitGeneral.step2.electriqueLabel") },
+      { key: "travauxEspaceConfine", label: t("forms.permitGeneral.step2.espaceConfineLabel") },
+      { key: "travauxExcavation", label: t("forms.permitGeneral.step2.excavationLabel") },
     ].filter(({ key }) => formData[key]);
     if (formData.travauxAutres) {
       risquesSelectionnes.push({
         key: "travauxAutres",
-        label: formData.autresDescription || "Autres",
+        label: formData.autresDescription || t("forms.permitGeneral.step2.autresLabel"),
       });
     }
 
@@ -379,13 +391,10 @@ export default function PermitGeneralForm({
             <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-blue-900">
-                Information importante
+                {t("forms.permitGeneral.step4.infoTitle")}
               </p>
               <p className="text-xs text-blue-700 mt-1">
-                Après soumission, votre demande sera transmise au Chef de Projet
-                pour validation. Une fois validée par le Chef de Projet, elle
-                sera transmise à l'équipe HSE pour validation finale et
-                attribution d'une référence unique.
+                {t("forms.permitGeneral.step4.infoText")}
               </p>
             </div>
           </div>
@@ -393,50 +402,50 @@ export default function PermitGeneralForm({
 
         <div className="space-y-4">
           <h4 className="font-medium text-gray-900">
-            Récapitulatif de votre demande
+            {t("forms.permitGeneral.step4.recapTitle")}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="font-medium text-gray-700">Travaux:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitGeneral.step4.travauxLabel")}</p>
               <p className="text-gray-600">
-                {formData.intituleTravaux || "Non renseigné"}
+                {formData.intituleTravaux || t("forms.permitGeneral.step4.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Site:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitGeneral.step4.siteLabel")}</p>
               <p className="text-gray-600">
-                {formData.codeSite || "Non renseigné"}
+                {formData.codeSite || t("forms.permitGeneral.step4.nonRenseigne")}
                 {formData.localisation ? ` - ${formData.localisation}` : ""}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Contractant:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitGeneral.step4.contractantLabel")}</p>
               <p className="text-gray-600">
-                {formData.contractant || "Non renseigné"}
+                {formData.contractant || t("forms.permitGeneral.step4.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Intervenants:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitGeneral.step4.intervenantsLabel")}</p>
               <p className="text-gray-600">
                 {formData.nombreIntervenants
-                  ? `${formData.nombreIntervenants} personne(s)`
-                  : "Non renseigné"}
+                  ? `${formData.nombreIntervenants} ${t("forms.permitGeneral.step4.intervenantsSuffix")}`
+                  : t("forms.permitGeneral.step4.nonRenseigne")}
               </p>
             </div>
             <div>
-              <p className="font-medium text-gray-700">Période:</p>
+              <p className="font-medium text-gray-700">{t("forms.permitGeneral.step4.periodeLabel")}</p>
               <p className="text-gray-600">
                 {formData.dateDebut && formData.dateFin
-                  ? `${formData.dateDebut} au ${formData.dateFin}`
-                  : "Non renseigné"}
+                  ? `${formData.dateDebut} ${t("forms.permitGeneral.step4.periodeSeparator")} ${formData.dateFin}`
+                  : t("forms.permitGeneral.step4.nonRenseigne")}
               </p>
             </div>
           </div>
 
           <div>
             <p className="font-medium text-gray-700 mb-2">
-              Types de travaux à risques:
+              {t("forms.permitGeneral.step4.risquesTitle")}
             </p>
             <div className="flex flex-wrap gap-2">
               {risquesSelectionnes.length > 0 ? (
@@ -449,7 +458,7 @@ export default function PermitGeneralForm({
                   </span>
                 ))
               ) : (
-                <span className="text-gray-500 text-sm">Aucun</span>
+                <span className="text-gray-500 text-sm">{t("forms.permitGeneral.step4.aucun")}</span>
               )}
             </div>
           </div>
@@ -461,27 +470,27 @@ export default function PermitGeneralForm({
   const steps = [
     {
       id: "details",
-      title: "Détails de l'intervention",
-      description: "Informations générales sur les travaux à effectuer",
+      title: t("forms.permitGeneral.steps.details.title"),
+      description: t("forms.permitGeneral.steps.details.description"),
       component: Step1Component,
       isValid: plansDisponibles.length > 0,
     },
     {
       id: "risques",
-      title: "Types de travaux à risques",
-      description: "Sélection des types de travaux concernés",
+      title: t("forms.permitGeneral.steps.risques.title"),
+      description: t("forms.permitGeneral.steps.risques.description"),
       component: Step2Component,
     },
     {
       id: "engagement",
-      title: "Engagement du demandeur",
-      description: "Confirmations obligatoires du demandeur",
+      title: t("forms.permitGeneral.steps.engagement.title"),
+      description: t("forms.permitGeneral.steps.engagement.description"),
       component: Step3Component,
     },
     {
       id: "revision",
-      title: "Révision et soumission",
-      description: "Vérification des informations et soumission",
+      title: t("forms.permitGeneral.steps.revision.title"),
+      description: t("forms.permitGeneral.steps.revision.description"),
       component: Step4Component,
     },
   ];
@@ -535,9 +544,9 @@ export default function PermitGeneralForm({
       steps={steps}
       onComplete={handleComplete}
       onCancel={onCancel}
-      title="Permis de Travail Général"
-      description="Demande de permis de travail général"
-      submitLabel="Soumettre la demande"
+      title={t("forms.permitGeneral.title")}
+      description={t("forms.permitGeneral.description")}
+      submitLabel={t("forms.permitGeneral.submitLabel")}
       formData={formData}
       updateFormData={setFormData}
     />

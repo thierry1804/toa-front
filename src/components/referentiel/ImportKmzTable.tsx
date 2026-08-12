@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Trash2, FileArchive } from 'lucide-react'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
@@ -17,10 +18,11 @@ export default function ImportKmzTable({
   isDeleting,
   onDelete,
 }: ImportKmzTableProps) {
+  const { t, i18n } = useTranslation()
   const [deleteTarget, setDeleteTarget] = useState<ImportKmzSite | null>(null)
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('fr-FR', {
+    new Date(iso).toLocaleDateString(i18n.language === 'mg' ? 'mg-MG' : 'fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -30,14 +32,16 @@ export default function ImportKmzTable({
 
   if (isLoading) {
     return (
-      <div className="py-8 text-center text-sm text-gray-400">Chargement...</div>
+      <div className="py-8 text-center text-sm text-gray-500">
+        {t('referentiel.shared.loading')}
+      </div>
     )
   }
 
   if (imports.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-gray-400 italic">
-        Aucun import KMZ. Utilisez le bouton ci-dessus pour importer un fichier.
+      <div className="py-8 text-center text-sm text-gray-500">
+        {t('referentiel.sites.table.empty')}
       </div>
     )
   }
@@ -48,10 +52,18 @@ export default function ImportKmzTable({
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Fichier</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Date d'import</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-600">Nb. sites</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">
+                {t('referentiel.sites.table.fichier')}
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">
+                {t('referentiel.sites.table.date')}
+              </th>
+              <th className="px-4 py-3 text-center font-medium text-gray-600">
+                {t('referentiel.sites.table.nbSites')}
+              </th>
+              <th className="px-4 py-3 text-right font-medium text-gray-600">
+                {t('referentiel.sites.table.actions')}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
@@ -59,7 +71,7 @@ export default function ImportKmzTable({
               <tr key={imp.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <FileArchive className="h-4 w-4 flex-shrink-0 text-blue-400" />
+                    <FileArchive className="h-4 w-4 shrink-0 text-gray-400" />
                     <span className="font-medium text-gray-900">
                       {imp.originalFilename ?? imp.nomFichier}
                     </span>
@@ -74,8 +86,8 @@ export default function ImportKmzTable({
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => setDeleteTarget(imp)}
-                    className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                    title="Supprimer cet import"
+                    className="rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                    title={t('referentiel.sites.delete.confirm')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -89,18 +101,16 @@ export default function ImportKmzTable({
       <Modal
         isOpen={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
-        title="Supprimer l'import KMZ"
+        title={t('referentiel.sites.delete.title')}
       >
-        <p className="text-sm text-gray-600">
-          Supprimer cet import supprimera également tous les sites liés dans les{' '}
-          <strong>Plans de Prévention</strong>. Cette action est irréversible.
-        </p>
+        <p className="text-sm text-gray-600">{t('referentiel.sites.delete.message')}</p>
         <p className="mt-2 text-sm font-medium text-gray-800">
-          Fichier : {deleteTarget?.originalFilename ?? deleteTarget?.nomFichier}
+          {t('referentiel.sites.table.fichier')} :{' '}
+          {deleteTarget?.originalFilename ?? deleteTarget?.nomFichier}
         </p>
         <ModalFooter>
           <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-            Annuler
+            {t('referentiel.sites.delete.cancel')}
           </Button>
           <Button
             variant="danger"
@@ -113,7 +123,7 @@ export default function ImportKmzTable({
               }
             }}
           >
-            Supprimer
+            {t('referentiel.sites.delete.confirm')}
           </Button>
         </ModalFooter>
       </Modal>

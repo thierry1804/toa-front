@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Activity, Clock, BarChart2, AlertTriangle, ChevronUp, ChevronDown, ChevronsUpDown,
 } from 'lucide-react'
@@ -12,29 +13,14 @@ import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import LogsDrawer from '@/components/permitTravail/LogsDrawer'
 import { usePermitTravailSuivi, usePermitTravailStatsJournalieres, usePermitsTravail } from '@/features/permitTravail/hooks/usePermitTravail'
+import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravailLabels'
 import { usePermission } from '@/features/auth/usePermission'
 import type { PermitTravail, StatutPermitTravail, TypePermit, PermitTravailSuiviFilters } from '@/types/permitTravail'
-import { TYPE_PERMIT_LABELS } from '@/types/permitTravail'
 
 const ITEMS_PER_PAGE = 10
 
-const STATUT_OPTIONS = [
-  { value: '', label: 'Tous les statuts' },
-  { value: 'BROUILLON',  label: 'Brouillon' },
-  { value: 'SOUMIS',     label: 'Soumis' },
-  { value: 'EN_COURS',   label: 'En cours' },
-  { value: 'VALIDE',     label: 'Validé' },
-  { value: 'VALIDE_HSE', label: 'Validé HSE' },
-  { value: 'REJETE',     label: 'Rejeté' },
-  { value: 'REFUSE_HSE', label: 'Refusé HSE' },
-]
-
-const TYPE_OPTIONS = [
-  { value: '', label: 'Tous les types' },
-  { value: 'GENERAL',    label: 'Général' },
-  { value: 'ELECTRIQUE', label: 'Électrique' },
-  { value: 'HAUTEUR',    label: 'Hauteur' },
-]
+const STATUT_FILTER_VALUES = ['', 'BROUILLON', 'SOUMIS', 'EN_COURS', 'VALIDE', 'VALIDE_HSE', 'REJETE', 'REFUSE_HSE'] as const
+const TYPE_FILTER_VALUES = ['', 'GENERAL', 'ELECTRIQUE', 'HAUTEUR'] as const
 
 type SortKey = 'reference' | 'typePermis' | 'codeSite' | 'statut' | 'soumisAt'
 type SortDir = 'asc' | 'desc'
@@ -83,9 +69,34 @@ function BarGroup({ label, value, max }: { label: string; value: number; max: nu
 }
 
 export default function PermitTravailSuiviPage() {
+  const { t, i18n } = useTranslation()
+  const { typeLabel, statutLabel } = usePermitTravailLabels()
+  const locale = i18n.language === 'mg' ? 'mg-MG' : 'fr-FR'
   const canSuivi = usePermission('permit_travail.suivi')
   const canLogs  = usePermission('permit_travail.logs')
   const navigate = useNavigate()
+
+  const statutOptions = useMemo(
+    () =>
+      STATUT_FILTER_VALUES.map((value) => ({
+        value,
+        label: value
+          ? statutLabel(value)
+          : t('permitTravail.list.filters.allStatuts'),
+      })),
+    [t, statutLabel],
+  )
+
+  const typeOptions = useMemo(
+    () =>
+      TYPE_FILTER_VALUES.map((value) => ({
+        value,
+        label: value
+          ? typeLabel(value as TypePermit)
+          : t('permitTravail.list.filters.allTypes'),
+      })),
+    [t, typeLabel],
+  )
 
   const [searchParams, setSearchParams] = useSearchParams()
   const [draft, setDraft] = useState<PermitTravailSuiviFilters>({
@@ -174,7 +185,7 @@ export default function PermitTravailSuiviPage() {
   if (!canSuivi) {
     return (
       <div className="flex h-64 items-center justify-center text-gray-400">
-        Accès non autorisé
+        {t('permitTravail.suivi.noAccess')}
       </div>
     )
   }
@@ -190,8 +201,8 @@ export default function PermitTravailSuiviPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Suivi utilisation — Permis de Travail"
-        description="Tableau de bord d'activité, actualisé toutes les 60 secondes"
+        title={t('permitTravail.suivi.title')}
+        description={t('permitTravail.suivi.description')}
       />
 
       {/* Filters */}
@@ -199,40 +210,40 @@ export default function PermitTravailSuiviPage() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <Input
-              label="Site"
+              label={t('permitTravail.suivi.siteLabel')}
               type="text"
               value={draft.codeSite ?? ''}
               onChange={(e) => setDraft((d) => ({ ...d, codeSite: e.target.value }))}
-              placeholder="Code site…"
+              placeholder={t('permitTravail.suivi.sitePlaceholder')}
             />
             <Select
-              label="Type"
+              label={t('permitTravail.suivi.typeLabel')}
               value={draft.typePermis ?? ''}
-              options={TYPE_OPTIONS}
+              options={typeOptions}
               onChange={(e) => setDraft((d) => ({ ...d, typePermis: e.target.value as TypePermit | '' }))}
             />
             <Select
-              label="Statut"
+              label={t('permitTravail.suivi.statutLabel')}
               value={draft.statut ?? ''}
-              options={STATUT_OPTIONS}
+              options={statutOptions}
               onChange={(e) => setDraft((d) => ({ ...d, statut: e.target.value as StatutPermitTravail | '' }))}
             />
             <Input
-              label="Début"
+              label={t('permitTravail.suivi.dateStartLabel')}
               type="date"
               value={draft.dateDebut ?? ''}
               onChange={(e) => setDraft((d) => ({ ...d, dateDebut: e.target.value }))}
             />
             <Input
-              label="Fin"
+              label={t('permitTravail.suivi.dateEndLabel')}
               type="date"
               value={draft.dateFin ?? ''}
               onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
             />
           </div>
           <div className="mt-4 flex gap-2">
-            <Button onClick={applyFilters}>Appliquer</Button>
-            <Button variant="outline" onClick={resetFilters}>Réinitialiser</Button>
+            <Button onClick={applyFilters}>{t('permitTravail.suivi.applyFilters')}</Button>
+            <Button variant="outline" onClick={resetFilters}>{t('permitTravail.suivi.resetFilters')}</Button>
           </div>
         </CardContent>
       </Card>
@@ -240,25 +251,25 @@ export default function PermitTravailSuiviPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Permis actifs"
+          label={t('permitTravail.suivi.stats.actifs')}
           value={stats?.permisActifs}
           icon={Activity}
           color="bg-blue-100 text-blue-700"
         />
         <StatCard
-          label="Consultations aujourd'hui"
+          label={t('permitTravail.suivi.stats.consultations')}
           value={stats?.nbConsultations}
           icon={Clock}
           color="bg-purple-100 text-purple-700"
         />
         <StatCard
-          label="Changements de statut"
+          label={t('permitTravail.suivi.stats.changements')}
           value={stats?.nbChangementsStatut}
           icon={BarChart2}
           color="bg-orange-100 text-orange-700"
         />
         <StatCard
-          label="Expirant sous 7 jours"
+          label={t('permitTravail.suivi.stats.expiring')}
           value={suiviData?.expirantSous7j?.length}
           icon={AlertTriangle}
           color="bg-red-100 text-red-700"
@@ -267,26 +278,26 @@ export default function PermitTravailSuiviPage() {
 
       {/* Permits table */}
       <Card>
-        <div className="border-b px-6 py-4">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
           <h2 className="text-sm font-semibold text-gray-900">
-            Permis ({totalItems})
+            {t('permitTravail.suivi.tableTitle', { count: totalItems })}
           </h2>
         </div>
         <div className="overflow-x-auto">
           {loadingPermits ? (
-            <div className="flex items-center justify-center py-12 text-sm text-gray-400">Chargement…</div>
+            <div className="flex items-center justify-center py-12 text-sm text-gray-400">{t('permitTravail.suivi.loading')}</div>
           ) : sorted.length === 0 ? (
-            <div className="py-12 text-center text-sm text-gray-400">Aucun permis correspondant</div>
+            <div className="py-12 text-center text-sm text-gray-400">{t('permitTravail.suivi.empty')}</div>
           ) : (
             <table className="w-full text-left text-sm">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   {(
                     [
-                      ['reference', 'Référence'],
-                      ['typePermis', 'Type'],
-                      ['codeSite',   'Site'],
-                      ['statut',     'Statut'],
+                      ['reference', t('permitTravail.suivi.headers.reference')],
+                      ['typePermis', t('permitTravail.suivi.headers.type')],
+                      ['codeSite', t('permitTravail.suivi.headers.site')],
+                      ['statut', t('permitTravail.suivi.headers.statut')],
                     ] as [SortKey, string][]
                   ).map(([key, label]) => (
                     <th
@@ -300,13 +311,13 @@ export default function PermitTravailSuiviPage() {
                       </span>
                     </th>
                   ))}
-                  <th className="px-4 py-3 font-medium text-gray-600">Expiration</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">{t('permitTravail.suivi.headers.expiration')}</th>
                   <th
                     className="cursor-pointer select-none px-4 py-3 font-medium text-gray-600 hover:text-gray-900"
                     onClick={() => toggleSort('soumisAt')}
                   >
                     <span className="inline-flex items-center gap-1">
-                      Soumis le
+                      {t('permitTravail.suivi.headers.submittedAt')}
                       <SortIcon active={sortKey === 'soumisAt'} dir={sortDir} />
                     </span>
                   </th>
@@ -326,7 +337,7 @@ export default function PermitTravailSuiviPage() {
                         {permit.reference}
                       </td>
                       <td className="px-4 py-3 text-gray-800">
-                        {TYPE_PERMIT_LABELS[permit.typePermis]}
+                        {typeLabel(permit.typePermis)}
                       </td>
                       <td className="px-4 py-3 text-gray-600">{permit.codeSite}</td>
                       <td className="px-4 py-3">
@@ -341,7 +352,7 @@ export default function PermitTravailSuiviPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">
                         {permit.soumisAt
-                          ? new Date(permit.soumisAt).toLocaleDateString('fr-FR')
+                          ? new Date(permit.soumisAt).toLocaleDateString(locale)
                           : <span className="text-gray-400">—</span>}
                       </td>
                       {canLogs && (
@@ -351,7 +362,7 @@ export default function PermitTravailSuiviPage() {
                             variant="outline"
                             onClick={() => setDrawerPermit(permit)}
                           >
-                            Logs
+                            {t('permitTravail.suivi.actions.logs')}
                           </Button>
                         </td>
                       )}
@@ -365,7 +376,8 @@ export default function PermitTravailSuiviPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
             <p className="text-sm text-gray-600">
-              Page {page} / {totalPages} ({totalItems} permis)
+              Page {page} / {totalPages} ({totalItems}{' '}
+              {t('permitTravail.suivi.paginationPermits')})
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -373,14 +385,14 @@ export default function PermitTravailSuiviPage() {
                 disabled={page <= 1}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Précédent
+                {t('common.previous')}
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Suivant
+                {t('common.next')}
               </button>
             </div>
           </div>
@@ -392,16 +404,16 @@ export default function PermitTravailSuiviPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {/* Par statut */}
           <Card>
-            <div className="border-b px-6 py-3">
-              <h3 className="text-sm font-semibold text-gray-900">Par statut</h3>
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+              <h3 className="text-sm font-semibold text-gray-900">{t('permitTravail.suivi.byStatut')}</h3>
             </div>
             <CardContent className="space-y-3 pt-4">
               {parStatutEntries.length === 0 ? (
-                <p className="text-xs text-gray-400">Aucune donnée</p>
+                <p className="text-xs text-gray-400">{t('permitTravail.suivi.noData')}</p>
               ) : parStatutEntries.map(([statut, count]) => (
                 <BarGroup
                   key={statut}
-                  label={STATUT_OPTIONS.find((o) => o.value === statut)?.label ?? statut}
+                  label={statutLabel(statut)}
                   value={count}
                   max={maxStatut}
                 />
@@ -411,15 +423,15 @@ export default function PermitTravailSuiviPage() {
 
           {/* Par type */}
           <Card>
-            <div className="border-b px-6 py-3">
-              <h3 className="text-sm font-semibold text-gray-900">Par type</h3>
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+              <h3 className="text-sm font-semibold text-gray-900">{t('permitTravail.suivi.byType')}</h3>
             </div>
             <CardContent className="space-y-3 pt-4">
               {parTypeEntries.length === 0 ? (
-                <p className="text-xs text-gray-400">Aucune donnée</p>
+                <p className="text-xs text-gray-400">{t('permitTravail.suivi.noData')}</p>
               ) : parTypeEntries.map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{TYPE_PERMIT_LABELS[type]}</span>
+                  <span className="text-gray-600">{typeLabel(type)}</span>
                   <span className="font-semibold text-gray-900">{count}</span>
                 </div>
               ))}
@@ -428,12 +440,12 @@ export default function PermitTravailSuiviPage() {
 
           {/* Par site (top 5) */}
           <Card>
-            <div className="border-b px-6 py-3">
-              <h3 className="text-sm font-semibold text-gray-900">Top 5 sites</h3>
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+              <h3 className="text-sm font-semibold text-gray-900">{t('permitTravail.suivi.topSites')}</h3>
             </div>
             <CardContent className="space-y-3 pt-4">
               {parSiteEntries.length === 0 ? (
-                <p className="text-xs text-gray-400">Aucune donnée</p>
+                <p className="text-xs text-gray-400">{t('permitTravail.suivi.noData')}</p>
               ) : parSiteEntries.map(([site, count]) => (
                 <BarGroup key={site} label={site} value={count} max={maxSite} />
               ))}

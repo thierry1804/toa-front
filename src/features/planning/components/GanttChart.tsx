@@ -16,19 +16,9 @@ const STATUS_COLORS: Record<ActivityPlanningStatus, string> = {
   stand_by:  'bg-purple-400',
 }
 
-const STATUS_LABELS: Record<ActivityPlanningStatus, string> = {
-  brouillon: 'Brouillon',
-  planifie:  'Planifié',
-  en_cours:  'En cours',
-  valide:    'Validé',
-  annule:    'Annulé',
-  stand_by:  'Stand By',
-}
-
 type ViewMode = 'day' | 'week' | 'month'
 
 const PX_PER_DAY: Record<ViewMode, number> = { day: 52, week: 26, month: 10 }
-const VIEW_LABELS: Record<ViewMode, string>  = { day: 'Jour', week: 'Semaine', month: 'Mois' }
 
 const ROW_H         = 44   // px — h-11
 const HEADER_H      = 32   // px — h-8
@@ -92,6 +82,13 @@ export default function GanttChart({ activities }: Props) {
   const [tooltip,    setTooltip]    = useState<ActivityPlanning | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const [viewMode,   setViewMode]   = useState<ViewMode>('week')
+  const { t } = useTranslation()
+
+  const VIEW_LABELS: Record<ViewMode, string> = {
+    day: t('planning.gantt.viewDay'),
+    week: t('planning.gantt.viewWeek'),
+    month: t('planning.gantt.viewMonth'),
+  }
 
   const rightRef    = useRef<HTMLDivElement>(null)
   const leftBodyRef = useRef<HTMLDivElement>(null)
@@ -189,8 +186,6 @@ export default function GanttChart({ activities }: Props) {
     }
   }
 
-  const { t } = useTranslation();
-
   // ── render ──
   return (
     <Card className="w-full max-w-full h-full flex flex-col overflow-hidden">
@@ -199,7 +194,7 @@ export default function GanttChart({ activities }: Props) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-gray-900">
             <BarChart2 className="h-5 w-5 text-blue-600" />
-            Diagramme de Gantt
+            {t('planning.gantt.title')}
           </CardTitle>
 
           <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
@@ -344,15 +339,15 @@ export default function GanttChart({ activities }: Props) {
 
         {/* ── Legend ── */}
         <div className="flex flex-wrap gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 border-t border-gray-100 bg-gray-50">
-          {(Object.entries(STATUS_LABELS) as [ActivityPlanningStatus, string][]).map(([s, label]) => (
+          {(Object.keys(STATUS_COLORS) as ActivityPlanningStatus[]).map((s) => (
             <div key={s} className="flex items-center gap-1.5">
               <span className={`inline-block w-3 h-3 rounded-sm shrink-0 ${STATUS_COLORS[s]}`} />
-              <span className="text-xs text-gray-600 whitespace-nowrap">{label}</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">{t(`planning.status.${s}`)}</span>
             </div>
           ))}
           <div className="flex items-center gap-1.5">
             <span className="inline-block w-px h-3 bg-red-500 shrink-0" />
-            <span className="text-xs text-gray-600 whitespace-nowrap">Aujourd'hui</span>
+            <span className="text-xs text-gray-600 whitespace-nowrap">{t('planning.gantt.today')}</span>
           </div>
         </div>
       </CardContent>
@@ -365,9 +360,9 @@ export default function GanttChart({ activities }: Props) {
         >
           <p className="font-semibold mb-1">{tooltip.process}</p>
           <p>{formatDate(tooltip.expectedStartDate)} → {formatDate(tooltip.expectedEndDate)}</p>
-          <p className="mt-1 text-gray-300">Statut : {STATUS_LABELS[tooltip.status]}</p>
-          <p className="text-gray-300">Prestataire : {tooltip.provider}</p>
-          {tooltip.siteName && <p className="text-gray-300">Site : {tooltip.siteName}</p>}
+          <p className="mt-1 text-gray-300">{t('planning.gantt.statutLabel')} {t(`planning.status.${tooltip.status}`)}</p>
+          <p className="text-gray-300">{t('planning.gantt.prestataireLabel')} {tooltip.provider}</p>
+          {tooltip.siteName && <p className="text-gray-300">{t('planning.gantt.siteLabel')} {tooltip.siteName}</p>}
         </div>
       )}
     </Card>

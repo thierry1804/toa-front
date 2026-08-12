@@ -204,7 +204,7 @@ export default function EntreprisesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50">
+                  <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Entreprise</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">N° Registre Commerce</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Siège Social</th>
@@ -214,7 +214,7 @@ export default function EntreprisesPage() {
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <tr key={e.id} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">{e.nom}</div>
                       </td>
