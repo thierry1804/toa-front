@@ -44,6 +44,7 @@ function defaultRow(tacheId: string): RisqueRow {
     localId: tacheId,
     tachePlanifieeId: tacheId,
     description: '',
+    categorieIds: [],
     gravite: 1,
     probabilite: 1,
     mesuresPreventives: '',
@@ -72,6 +73,19 @@ export default function AnalyseRisquesPlanning({
       )
     } else {
       onChange([...rows, { ...defaultRow(tacheId), [field]: value }])
+    }
+  }
+
+  const handleRisqueChange = (tacheId: string, categorieIds: string[], description: string) => {
+    const existing = rows.find((r) => r.tachePlanifieeId === tacheId)
+    if (existing) {
+      onChange(
+        rows.map((r) =>
+          r.tachePlanifieeId === tacheId ? { ...r, categorieIds, description } : r,
+        ),
+      )
+    } else {
+      onChange([...rows, { ...defaultRow(tacheId), categorieIds, description }])
     }
   }
 
@@ -141,8 +155,8 @@ export default function AnalyseRisquesPlanning({
                       <td className="px-2 py-1.5 align-top">
                         <RisqueMultiSelect
                           categories={categories}
-                          value={row.description}
-                          onChange={(v) => handleChange(tache.id, 'description', v)}
+                          categorieIds={row.categorieIds ?? []}
+                          onChange={(ids, description) => handleRisqueChange(tache.id, ids, description)}
                           disabled={disabled}
                         />
                       </td>

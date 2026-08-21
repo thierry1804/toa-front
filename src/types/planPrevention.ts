@@ -73,6 +73,7 @@ export interface RisquePreventionInput {
   probabilite: number
   mesuresPreventives: string
   risqueResiduel?: number | null
+  categoriesRisque?: string[]
 }
 
 export interface RisquePrevention {
@@ -84,6 +85,7 @@ export interface RisquePrevention {
   niveauRisque: number
   mesuresPreventives: string
   risqueResiduel?: number | null
+  categoriesRisque?: string[]
 }
 
 export interface DocumentPrevention {
@@ -166,6 +168,7 @@ export interface PlanPrevention {
   installations?: InstallationRow[]
   equipements?: EquipementRow[]
   typeIntervention?: string | null
+  process?: string | null
   planificationSites?: { codeSite: string; nomSite: string }[]
   planificationSections?: import('@/types').SectionPlanifieeItem[]
 }
@@ -179,6 +182,7 @@ export interface RisqueRow {
   localId: string
   tachePlanifieeId?: string | null
   description: string
+  categorieIds?: string[]
   gravite: number
   probabilite: number
   mesuresPreventives: string

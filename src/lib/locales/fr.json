@@ -467,6 +467,7 @@
       "headers": {
         "reference": "Référence",
         "codeSite": "Code site",
+        "processus": "Processus",
         "activite": "Activité",
         "statut": "Statut",
         "chefProjet": "Chef de Projet",

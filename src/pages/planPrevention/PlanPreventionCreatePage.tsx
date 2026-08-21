@@ -32,6 +32,14 @@ import type {
 } from "@/types/planPrevention";
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from "@/types/planPrevention";
 
+function iriToId(iri: string): string {
+  return iri.split("/").pop() ?? iri;
+}
+
+function categorieIdsToIris(ids: string[]): string[] {
+  return ids.map((id) => `/api/referentiel/categories-risque/${id}`);
+}
+
 // ─── Zod schema for step 0 ────────────────────────────────────────────────────
 const step0Schema = z
   .object({
@@ -245,6 +253,7 @@ export default function PlanPreventionCreatePage({
           localId: r.id,
           tachePlanifieeId: r.tachePlanifieeId ?? null,
           description: r.description,
+          categorieIds: (r.categoriesRisque ?? []).map(iriToId),
           gravite: r.gravite,
           probabilite: r.probabilite,
           mesuresPreventives: r.mesuresPreventives,
@@ -302,6 +311,7 @@ export default function PlanPreventionCreatePage({
           const payload = {
             tachePlanifieeId: row.tachePlanifieeId ?? null,
             description: row.description,
+            categoriesRisque: categorieIdsToIris(row.categorieIds ?? []),
             gravite: row.gravite,
             probabilite: row.probabilite,
             mesuresPreventives: row.mesuresPreventives,
@@ -320,6 +330,7 @@ export default function PlanPreventionCreatePage({
           await addRisque(activePlan.id, {
             tachePlanifieeId: row.tachePlanifieeId ?? null,
             description: row.description,
+            categoriesRisque: categorieIdsToIris(row.categorieIds ?? []),
             gravite: row.gravite,
             probabilite: row.probabilite,
             mesuresPreventives: row.mesuresPreventives,
@@ -334,6 +345,7 @@ export default function PlanPreventionCreatePage({
             id: r.localId,
             tachePlanifieeId: r.tachePlanifieeId ?? null,
             description: r.description,
+            categoriesRisque: categorieIdsToIris(r.categorieIds ?? []),
             gravite: r.gravite,
             probabilite: r.probabilite,
             niveauRisque: r.gravite * r.probabilite,
@@ -637,8 +649,19 @@ export default function PlanPreventionCreatePage({
               {...register("activitePlanifiee")}
               error={errors.activitePlanifiee?.message}
               placeholder="Ex. : Maintenance préventive équipements télécoms"
-              disabled={!canEdit}
+              disabled={!canEdit || (isPrestataire && !!selectedPlanifId)}
             />
+
+            {activePlanif?.process && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                  Processus
+                </p>
+                <p className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  {activePlanif.process}
+                </p>
+              </div>
+            )}
 
             {activePlan?.referenceActivite && (
               <div>
@@ -886,6 +909,7 @@ export default function PlanPreventionCreatePage({
                       localId: r.id,
                       tachePlanifieeId: r.tachePlanifieeId ?? null,
                       description: r.description,
+                      categorieIds: (r.categoriesRisque ?? []).map(iriToId),
                       gravite: r.gravite,
                       probabilite: r.probabilite,
                       mesuresPreventives: r.mesuresPreventives,

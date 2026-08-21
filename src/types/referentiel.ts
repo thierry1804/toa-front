@@ -45,6 +45,7 @@ export interface CategorieRisque {
   id: string
   nom: string
   typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
+  parentId?: string | null
   createdAt: string
   updatedAt: string | null
 }

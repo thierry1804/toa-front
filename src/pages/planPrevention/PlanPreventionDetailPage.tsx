@@ -176,6 +176,7 @@ export default function PlanPreventionDetailPage() {
     localId: r.id,
     tachePlanifieeId: r.tachePlanifieeId ?? null,
     description: r.description,
+    categorieIds: (r.categoriesRisque ?? []).map((iri) => iri.split("/").pop() ?? iri),
     gravite: r.gravite,
     probabilite: r.probabilite,
     mesuresPreventives: r.mesuresPreventives,

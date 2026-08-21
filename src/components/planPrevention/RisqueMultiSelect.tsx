@@ -4,21 +4,28 @@ import type { CategorieRisque } from '@/types/referentiel'
 
 interface Props {
   categories: CategorieRisque[]
-  value: string
-  onChange: (v: string) => void
+  categorieIds: string[]
+  onChange: (categorieIds: string[], description: string) => void
   disabled?: boolean
 }
 
-function parseValue(value: string): string[] {
-  return value ? value.split(', ').filter(Boolean) : []
+function buildDescription(byId: Map<string, CategorieRisque>, ids: string[]): string {
+  return ids
+    .map((id) => byId.get(id)?.nom)
+    .filter((nom): nom is string => Boolean(nom))
+    .join(', ')
 }
 
-export default function RisqueMultiSelect({ categories, value, onChange, disabled = false }: Props) {
+export default function RisqueMultiSelect({ categories, categorieIds, onChange, disabled = false }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const selected = new Set(parseValue(value))
+  const byId = new Map(categories.map((c) => [c.id, c]))
+  const roots = categories.filter((c) => !c.parentId)
+  const childrenOf = (rootId: string) => categories.filter((c) => c.parentId === rootId)
+
+  const selected = new Set(categorieIds)
 
   useEffect(() => {
     if (!open) return
@@ -32,36 +39,48 @@ export default function RisqueMultiSelect({ categories, value, onChange, disable
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const toggle = (nom: string) => {
-    const next = new Set(selected)
-    if (next.has(nom)) next.delete(nom)
-    else next.add(nom)
-    onChange([...next].join(', '))
+  const emit = (nextIds: Set<string>) => {
+    const ids = [...nextIds]
+    onChange(ids, buildDescription(byId, ids))
   }
 
-  const remove = (nom: string, e: React.MouseEvent) => {
+  const toggle = (id: string) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    emit(next)
+  }
+
+  const remove = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const next = new Set(selected)
-    next.delete(nom)
-    onChange([...next].join(', '))
+    next.delete(id)
+    emit(next)
   }
 
-  const filtered = categories.filter((c) =>
-    c.nom.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filteredRoots = roots.filter((c) => {
+    if (search === '') return true
+    const q = search.toLowerCase()
+    if (c.nom.toLowerCase().includes(q)) return true
+    return childrenOf(c.id).some((child) => child.nom.toLowerCase().includes(q))
+  })
+
+  const selectedItems = categorieIds
+    .map((id) => byId.get(id))
+    .filter((c): c is CategorieRisque => Boolean(c))
 
   if (disabled) {
     return (
       <div className="flex flex-wrap gap-1 min-h-[28px]">
-        {selected.size === 0 ? (
+        {selectedItems.length === 0 ? (
           <span className="text-gray-400 text-xs italic">—</span>
         ) : (
-          [...selected].map((nom) => (
+          selectedItems.map((c) => (
             <span
-              key={nom}
+              key={c.id}
               className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs px-2 py-0.5"
             >
-              {nom}
+              {c.nom}
             </span>
           ))
         )}
@@ -79,18 +98,18 @@ export default function RisqueMultiSelect({ categories, value, onChange, disable
         }}
         className="min-h-[32px] w-full rounded border border-gray-300 px-1.5 py-1 text-xs cursor-pointer flex flex-wrap items-center gap-1 hover:border-gray-400 bg-white"
       >
-        {selected.size === 0 ? (
+        {selectedItems.length === 0 ? (
           <span className="text-gray-400 flex-1">Sélectionner…</span>
         ) : (
-          [...selected].map((nom) => (
+          selectedItems.map((c) => (
             <span
-              key={nom}
+              key={c.id}
               className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5"
             >
-              {nom}
+              {c.nom}
               <button
                 type="button"
-                onClick={(e) => remove(nom, e)}
+                onClick={(e) => remove(c.id, e)}
                 className="hover:text-red-500 ml-0.5"
               >
                 <X className="h-2.5 w-2.5" />
@@ -105,7 +124,7 @@ export default function RisqueMultiSelect({ categories, value, onChange, disable
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 w-56 rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute left-0 top-full mt-1 z-50 w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
           {/* Search input */}
           <div className="p-2 border-b border-gray-100">
             <div className="relative">
@@ -122,28 +141,51 @@ export default function RisqueMultiSelect({ categories, value, onChange, disable
           </div>
 
           {/* Options list */}
-          <div className="max-h-48 overflow-y-auto py-1">
-            {categories.length === 0 ? (
+          <div className="max-h-64 overflow-y-auto py-1">
+            {roots.length === 0 ? (
               <p className="px-3 py-2 text-xs text-gray-400 italic">
                 Aucune catégorie dans le référentiel
               </p>
-            ) : filtered.length === 0 ? (
+            ) : filteredRoots.length === 0 ? (
               <p className="px-3 py-2 text-xs text-gray-400 italic">Aucun résultat</p>
             ) : (
-              filtered.map((cat) => (
-                <label
-                  key={cat.id}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(cat.nom)}
-                    onChange={() => toggle(cat.nom)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 flex-shrink-0"
-                  />
-                  <span className="text-xs text-gray-800">{cat.nom}</span>
-                </label>
-              ))
+              filteredRoots.map((root) => {
+                const children = childrenOf(root.id)
+                const hasCheckedChild = children.some((child) => selected.has(child.id))
+                const expanded = selected.has(root.id) || hasCheckedChild
+
+                return (
+                  <div key={root.id}>
+                    <label className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(root.id)}
+                        onChange={() => toggle(root.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 flex-shrink-0"
+                      />
+                      <span className="text-xs font-medium text-gray-800">{root.nom}</span>
+                    </label>
+                    {expanded && children.length > 0 && (
+                      <div className="pb-1">
+                        {children.map((child) => (
+                          <label
+                            key={child.id}
+                            className="flex items-center gap-2 pl-8 pr-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected.has(child.id)}
+                              onChange={() => toggle(child.id)}
+                              className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 flex-shrink-0"
+                            />
+                            <span className="text-xs text-gray-600">{child.nom}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
             )}
           </div>
         </div>

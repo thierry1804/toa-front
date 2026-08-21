@@ -102,6 +102,9 @@ function PlanRow({
         <span className="font-mono text-sm font-medium text-blue-700">{plan.reference}</span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-800">{plan.codeSite}</td>
+      <td className="px-4 py-3 text-sm text-gray-600">
+        {plan.process ?? <span className="text-gray-400 italic">—</span>}
+      </td>
       <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{plan.activitePlanifiee}</td>
       <td className="px-4 py-3">
         <StatutBadge statut={plan.statut} />
@@ -201,6 +204,7 @@ export default function PlanPreventionListPage() {
   const headers = [
     t('planPrevention.list.headers.reference'),
     t('planPrevention.list.headers.codeSite'),
+    t('planPrevention.list.headers.processus'),
     t('planPrevention.list.headers.activite'),
     t('planPrevention.list.headers.statut'),
     t('planPrevention.list.headers.chefProjet'),

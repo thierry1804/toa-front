@@ -20,6 +20,7 @@ export default function InstallationsTable({
 }: InstallationsTableProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [customValue, setCustomValue] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const { data } = useQuery({
@@ -41,6 +42,13 @@ export default function InstallationsTable({
   const addItem = (nom: string) => {
     onChange([...value, { description: nom, conditionsUtilisation: '' }])
     setSearch('')
+  }
+
+  const addCustomItem = () => {
+    const trimmed = customValue.trim()
+    if (!trimmed || existingNames.has(trimmed)) return
+    onChange([...value, { description: trimmed, conditionsUtilisation: '' }])
+    setCustomValue('')
   }
 
   const handleRemove = (index: number) => onChange(value.filter((_, i) => i !== index))
@@ -185,6 +193,29 @@ export default function InstallationsTable({
                     </button>
                   ))
                 )}
+              </div>
+              <div className="border-t border-gray-100 p-2">
+                <p className="mb-1 px-1 text-xs text-gray-500">
+                  Absente de la liste ? Ajoutez-la librement :
+                </p>
+                <div className="flex items-start gap-1.5">
+                  <textarea
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    placeholder="Nom de l'installation / outillage"
+                    rows={1}
+                    className="w-full resize-y rounded border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomItem}
+                    disabled={!customValue.trim()}
+                    className="flex-shrink-0 rounded bg-blue-600 px-2.5 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    title="Ajouter"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
