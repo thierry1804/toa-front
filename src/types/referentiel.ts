@@ -46,6 +46,7 @@ export interface CategorieRisque {
   nom: string
   typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
   parentId?: string | null
+  parentNom?: string | null
   createdAt: string
   updatedAt: string | null
 }
@@ -53,6 +54,7 @@ export interface CategorieRisque {
 export interface CategorieRisqueInput {
   nom: string
   typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
+  parent?: string | null
 }
 
 export interface InstallationEquipement {

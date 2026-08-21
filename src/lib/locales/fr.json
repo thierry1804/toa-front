@@ -755,10 +755,12 @@
       "createFirst": "Créer la première catégorie",
       "headers": {
         "nom": "Nom",
+        "parent": "Catégorie parente",
         "typePermis": "Type permis",
         "createdAt": "Date création",
         "updatedAt": "Date modification"
       },
+      "rootCategory": "— Catégorie racine —",
       "typePermis": {
         "electrique": "Électrique",
         "hauteur": "Hauteur",
@@ -769,6 +771,9 @@
         "editTitle": "Modifier la catégorie",
         "nomLabel": "Nom",
         "nomPlaceholder": "Ex. : Risque électrique",
+        "parentLabel": "Catégorie parente",
+        "parentNone": "— Aucune (catégorie racine) —",
+        "parentHint": "Laisser vide pour créer une catégorie racine ; sinon, choisissez la catégorie sous laquelle cette sous-catégorie doit apparaître",
         "typePermisLabel": "Type permis associé",
         "typePermisNone": "— Aucun (général) —",
         "typePermisHint": "Utilisé pour filtrer les risques lors de la création de permis"

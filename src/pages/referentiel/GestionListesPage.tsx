@@ -5,6 +5,7 @@ import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useUiStore } from '@/store/ui.store'
 import {
   useCategoriesRisque,
+  useCategoriesRisqueAll,
   useCreateCategorieRisque,
   useUpdateCategorieRisque,
   useDeleteCategorieRisque,
@@ -33,6 +34,7 @@ export default function GestionListesPage() {
   const [nomInput, setNomInput] = useState('')
   const [nomError, setNomError] = useState('')
   const [typePermisInput, setTypePermisInput] = useState<'ELECTRIQUE' | 'HAUTEUR' | ''>('')
+  const [parentIdInput, setParentIdInput] = useState('')
 
   const [deleteTarget, setDeleteTarget] = useState<CategorieRisque | null>(null)
 
@@ -40,6 +42,11 @@ export default function GestionListesPage() {
   const categories = data?.member ?? []
   const totalItems = data?.totalItems ?? 0
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
+
+  const { data: allCategoriesData } = useCategoriesRisqueAll()
+  const parentOptions = (allCategoriesData?.member ?? []).filter(
+    (c) => !c.parentId && c.id !== editTarget?.id,
+  )
 
   const { mutate: create, isPending: creating } = useCreateCategorieRisque()
   const { mutate: update, isPending: updating } = useUpdateCategorieRisque()
@@ -52,6 +59,7 @@ export default function GestionListesPage() {
     setNomInput('')
     setNomError('')
     setTypePermisInput('')
+    setParentIdInput('')
     setModalOpen(true)
   }
 
@@ -60,6 +68,7 @@ export default function GestionListesPage() {
     setNomInput(cat.nom)
     setNomError('')
     setTypePermisInput((cat.typePermis as 'ELECTRIQUE' | 'HAUTEUR' | '') ?? '')
+    setParentIdInput(cat.parentId ?? '')
     setModalOpen(true)
   }
 
@@ -69,6 +78,7 @@ export default function GestionListesPage() {
     setNomInput('')
     setNomError('')
     setTypePermisInput('')
+    setParentIdInput('')
   }
 
   const handleSave = () => {
@@ -82,7 +92,11 @@ export default function GestionListesPage() {
       return
     }
 
-    const payload = { nom: trimmed, typePermis: typePermisInput || null }
+    const payload = {
+      nom: trimmed,
+      typePermis: typePermisInput || null,
+      parent: parentIdInput ? `/api/referentiel/categories-risque/${parentIdInput}` : null,
+    }
 
     if (editTarget) {
       update(
@@ -210,6 +224,9 @@ export default function GestionListesPage() {
                         {t('referentiel.listes.headers.nom')}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                        {t('referentiel.listes.headers.parent')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         {t('referentiel.listes.headers.typePermis')}
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
@@ -229,10 +246,19 @@ export default function GestionListesPage() {
                     {categories.map((cat) => (
                       <tr key={cat.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-2 ${cat.parentId ? 'pl-5' : ''}`}>
                             <Tag className="h-4 w-4 shrink-0 text-gray-400" />
                             <span className="text-sm font-medium text-gray-900">{cat.nom}</span>
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {cat.parentNom ? (
+                            <span className="text-sm text-gray-600">{cat.parentNom}</span>
+                          ) : (
+                            <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                              {t('referentiel.listes.rootCategory')}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {cat.typePermis ? (
@@ -344,6 +370,24 @@ export default function GestionListesPage() {
               className="shadow-none"
             />
             {nomError && <p className="mt-1 text-xs text-red-600">{nomError}</p>}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              {t('referentiel.listes.modal.parentLabel')}
+            </label>
+            <select
+              value={parentIdInput}
+              onChange={(e) => setParentIdInput(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">{t('referentiel.listes.modal.parentNone')}</option>
+              {parentOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nom}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">{t('referentiel.listes.modal.parentHint')}</p>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">

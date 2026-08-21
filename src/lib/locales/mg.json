@@ -755,10 +755,12 @@
       "createFirst": "Hamorona ny sokajy voalohany",
       "headers": {
         "nom": "Anarana",
+        "parent": "Sokajy ray aman-dreny",
         "typePermis": "Karazana fahazoan-dalana",
         "createdAt": "Daty famoronana",
         "updatedAt": "Daty fanovana"
       },
+      "rootCategory": "— Sokajy fototra —",
       "typePermis": {
         "electrique": "Herinaratra",
         "hauteur": "Haavo",
@@ -769,6 +771,9 @@
         "editTitle": "Hanova ny sokajy",
         "nomLabel": "Anarana",
         "nomPlaceholder": "Oh. : Loza herinaratra",
+        "parentLabel": "Sokajy ray aman-dreny",
+        "parentNone": "— Tsy misy (sokajy fototra) —",
+        "parentHint": "Avelao foana raha sokajy fototra ; raha tsy izany, safidio ny sokajy hisehoan'ity sokajy zana-tsokajy ity",
         "typePermisLabel": "Karazana fahazoan-dalana mifandray",
         "typePermisNone": "— Tsy misy (anjibeny) —",
         "typePermisHint": "Ampiasaina hisivana ny loza amin'ny famoronana fahazoan-dalana"
