@@ -1,19 +1,23 @@
 export function formatDate(date: string | Date): string {
+  const d = new Date(date)
+  if (Number.isNaN(d.getTime())) return '—'
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
-  }).format(new Date(date))
+  }).format(d)
 }
 
 export function formatDateTime(date: string | Date): string {
+  const d = new Date(date)
+  if (Number.isNaN(d.getTime())) return '—'
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(date))
+  }).format(d)
 }
 
 export function isExpired(date: string | Date): boolean {
