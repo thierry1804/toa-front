@@ -3,7 +3,9 @@ import type { MenuAccess, MenuAccessCreate, MenuAccessUpdate, HydraCollection } 
 
 export const menuAccessesApi = {
   list: () =>
-    api.get<HydraCollection<MenuAccess>>('/api/menu-accesses').then((r) => r.data),
+    api
+      .get<HydraCollection<MenuAccess>>('/api/menu-accesses', { params: { pagination: false } })
+      .then((r) => r.data),
 
   getById: (id: number) =>
     api.get<MenuAccess>(`/api/menu-accesses/${id}`).then((r) => r.data),

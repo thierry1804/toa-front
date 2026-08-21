@@ -34,6 +34,7 @@ import EvaluationRisquePage from "@/pages/intervention/EvaluationRisquePage";
 import SuiviJournalierPage from "@/pages/intervention/SuiviJournalierPage";
 import SuivisJournaliersPage from "@/pages/intervention/SuivisJournaliersPage";
 import InterventionsListPage from "@/pages/interventions/InterventionsListPage";
+import InterventionFormPage from "@/pages/interventions/InterventionFormPage";
 import InterventionSuiviHsePage from "@/pages/interventions/InterventionSuiviHsePage";
 import InterventionDetailHsePage from "@/pages/interventions/InterventionDetailHsePage";
 import StatisticsPage from "@/pages/statistics/StatisticsPage";
@@ -129,7 +130,7 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/interventions" />}>
               <Route path="/interventions" element={<InterventionsListPage />} />
-              <Route path="/interventions/new" element={<Navigate to="/permits-travail" replace />} />
+              <Route path="/interventions/new" element={<InterventionFormPage />} />
               <Route path="/interventions/suivis" element={<SuivisJournaliersPage />} />
               <Route path="/interventions/suivi-hse" element={<InterventionSuiviHsePage />} />
               <Route path="/interventions/:id/suivi-hse" element={<InterventionDetailHsePage />} />
