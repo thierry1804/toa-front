@@ -102,7 +102,7 @@ export default function SiteCodeAutocomplete({
         <input
           id={inputId}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
           onKeyDown={handleKeyDown}
           onFocus={() => { if (suggestions.length > 0 && value.trim().length >= 1) setOpen(true) }}
           onBlur={onBlur}

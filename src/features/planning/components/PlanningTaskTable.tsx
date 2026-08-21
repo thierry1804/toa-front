@@ -59,18 +59,18 @@ export default function PlanningTaskTable({ value, onChange, readonly = false }:
                     <span className="text-gray-900">{row.tache || '—'}</span>
                   ) : (
                     <div>
-                      <input
-                        type="text"
+                      <textarea
                         value={row.tache}
                         onChange={(e) => handleChange(row.localId, 'tache', e.target.value)}
                         placeholder={t('planning.sections.col_tache')}
-                        className={`w-full rounded border px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                        rows={2}
+                        className={`w-full resize-y rounded border px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                           !row.tache.trim() ? 'border-red-300' : 'border-gray-300'
                         }`}
                       />
                       {!row.tache.trim() && (
                         <p className="mt-0.5 text-xs text-red-500">
-                          {t('planning.sections.col_tache')} requis
+                          {t('planning.sections.tache_requise')}
                         </p>
                       )}
                     </div>
@@ -80,12 +80,12 @@ export default function PlanningTaskTable({ value, onChange, readonly = false }:
                   {readonly ? (
                     <span className="text-gray-700">{row.materiel || '—'}</span>
                   ) : (
-                    <input
-                      type="text"
+                    <textarea
                       value={row.materiel}
                       onChange={(e) => handleChange(row.localId, 'materiel', e.target.value)}
                       placeholder={t('planning.sections.col_materiel')}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      rows={2}
+                      className="w-full resize-y rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </td>
@@ -93,12 +93,12 @@ export default function PlanningTaskTable({ value, onChange, readonly = false }:
                   {readonly ? (
                     <span className="text-gray-700">{row.qui || '—'}</span>
                   ) : (
-                    <input
-                      type="text"
+                    <textarea
                       value={row.qui}
                       onChange={(e) => handleChange(row.localId, 'qui', e.target.value)}
                       placeholder={t('planning.sections.col_qui')}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      rows={2}
+                      className="w-full resize-y rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </td>
