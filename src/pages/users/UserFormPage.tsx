@@ -124,6 +124,29 @@ export default function UserFormPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [existingSignatureUrl, setExistingSignatureUrl] = useState<string | null>(null);
+
+  // The download endpoint requires the Authorization header, which a plain
+  // <img src="..."> can't send — fetch it as an authenticated blob instead.
+  useEffect(() => {
+    if (!existingUser?.id || !existingUser.signaturePath) {
+      setExistingSignatureUrl(null);
+      return;
+    }
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    usersApi.getSignatureBlob(existingUser.id).then((blob) => {
+      if (cancelled) return;
+      objectUrl = URL.createObjectURL(blob);
+      setExistingSignatureUrl(objectUrl);
+    }).catch(() => {
+      if (!cancelled) setExistingSignatureUrl(null);
+    });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [existingUser?.id, existingUser?.signaturePath]);
 
   useEffect(() => {
     if (existingUser) {
@@ -483,14 +506,13 @@ export default function UserFormPage() {
                         </span>
                       </div>
 
-                      {isEditMode && existingUser?.signaturePath && !signaturePreview && (
+                      {isEditMode && existingSignatureUrl && !signaturePreview && (
                         <div className="mb-3">
                           <p className="text-xs text-blue-700 mb-1">{t("users.form.signatureActuelle")}</p>
                           <img
-                            src={usersApi.signatureDownloadUrl(existingUser.id)}
+                            src={existingSignatureUrl}
                             alt="signature actuelle"
                             className="h-16 border border-blue-200 rounded bg-white object-contain"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                           />
                         </div>
                       )}

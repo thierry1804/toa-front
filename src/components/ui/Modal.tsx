@@ -44,8 +44,19 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     }
   }, [isOpen])
 
+  // Keep the latest onClose in a ref so the focus-trap effect below never
+  // needs it as a dependency — callers that pass an inline onClose (a new
+  // function identity on every render) must not re-trigger the trap.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
   // Focus trap: move focus into the modal on open, cycle Tab within it,
   // close on Escape, and restore focus to the trigger element on close.
+  // Depends only on `isOpen` so it runs once per open/close, not on every
+  // parent re-render (which would steal focus back to the first focusable
+  // element — the close button — while the user is typing).
   useEffect(() => {
     if (!isOpen) return
 
@@ -59,7 +70,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab') return
@@ -82,7 +93,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
       document.removeEventListener('keydown', handleKeyDown)
       previouslyFocused.current?.focus()
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   if (!isOpen) return null
 

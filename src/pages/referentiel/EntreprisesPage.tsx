@@ -1,18 +1,23 @@
-import { useState } from 'react'
-import { Building2, Plus, Edit, Trash2, Search } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Building2, Plus, Edit, Trash2, Search, ShieldCheck } from 'lucide-react'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useUiStore } from '@/store/ui.store'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useEntreprises,
   useCreateEntreprise,
   useUpdateEntreprise,
   useDeleteEntreprise,
 } from '@/features/referentiel/hooks/useEntreprises'
+import { useUsers } from '@/features/users/hooks/useUsers'
+import { usersApi } from '@/api/usersApi'
+import { USERS_KEY } from '@/data/constant/query'
 import type { Entreprise } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Checkbox from '@/components/ui/Checkbox'
 import Modal from '@/components/ui/Modal'
 
 interface FormState {
@@ -32,6 +37,7 @@ const emptyForm = (): FormState => ({
 export default function EntreprisesPage() {
   const addToast = useUiStore((s) => s.addToast)
   const perms = usePermissions('/referentiel/entreprises')
+  const queryClient = useQueryClient()
 
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -43,12 +49,64 @@ export default function EntreprisesPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<Entreprise | null>(null)
 
+  // Équipe HSE : quels utilisateurs ROLE_HSE sont rattachés à cette entreprise.
+  // La relation User → Entreprise est mono-valuée (un seul rattachement par
+  // utilisateur) : rattacher un HSE ici le détache automatiquement de toute
+  // autre entreprise à laquelle il appartenait.
+  const [selectedHseIds, setSelectedHseIds] = useState<Set<number>>(new Set())
+  const [initialHseIds, setInitialHseIds] = useState<Set<number>>(new Set())
+  const [savingTeam, setSavingTeam] = useState(false)
+
   const { data: entreprises = [], isLoading } = useEntreprises()
   const { mutate: create, isPending: creating } = useCreateEntreprise()
   const { mutate: update, isPending: updating } = useUpdateEntreprise()
   const { mutate: remove, isPending: deleting } = useDeleteEntreprise()
+  const { data: usersData } = useUsers(1, 1000)
 
-  const isSaving = creating || updating
+  const hseUsers = useMemo(
+    () => (usersData?.member ?? []).filter((u) => u.roles.includes('ROLE_HSE')),
+    [usersData],
+  )
+
+  // Un HSE déjà affecté à une autre entreprise n'apparaît pas dans la liste :
+  // seuls les HSE libres et ceux déjà dans l'équipe courante sont proposés.
+  const selectableHseUsers = useMemo(
+    () => hseUsers.filter((u) => !u.entreprise || u.entreprise.id === editTarget?.id),
+    [hseUsers, editTarget],
+  )
+
+  const isSaving = creating || updating || savingTeam
+
+  const toggleHseUser = (id: number) => {
+    setSelectedHseIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const applyHseTeamChanges = async (entrepriseIri: string) => {
+    const toAdd = [...selectedHseIds].filter((id) => !initialHseIds.has(id))
+    const toRemove = [...initialHseIds].filter((id) => !selectedHseIds.has(id))
+    if (toAdd.length === 0 && toRemove.length === 0) return
+
+    setSavingTeam(true)
+    const results = await Promise.allSettled([
+      ...toAdd.map((id) => usersApi.patch(id, { entreprise: entrepriseIri })),
+      ...toRemove.map((id) => usersApi.patch(id, { entreprise: null })),
+    ])
+    setSavingTeam(false)
+
+    const failures = results.filter((r) => r.status === 'rejected').length
+    if (failures > 0) {
+      addToast({
+        message: `Équipe HSE : ${failures} mise${failures > 1 ? 's' : ''} à jour ont échoué`,
+        type: 'error',
+      })
+    }
+    void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+  }
 
   const filtered = search
     ? entreprises.filter((e) =>
@@ -66,6 +124,8 @@ export default function EntreprisesPage() {
     setEditTarget(null)
     setForm(emptyForm())
     setNomError('')
+    setSelectedHseIds(new Set())
+    setInitialHseIds(new Set())
     setModalOpen(true)
   }
 
@@ -78,6 +138,11 @@ export default function EntreprisesPage() {
       qualiteRepresentant: item.qualiteRepresentant ?? '',
     })
     setNomError('')
+    const currentTeam = new Set(
+      hseUsers.filter((u) => u.entreprise?.id === item.id).map((u) => u.id),
+    )
+    setSelectedHseIds(currentTeam)
+    setInitialHseIds(currentTeam)
     setModalOpen(true)
   }
 
@@ -86,6 +151,8 @@ export default function EntreprisesPage() {
     setEditTarget(null)
     setForm(emptyForm())
     setNomError('')
+    setSelectedHseIds(new Set())
+    setInitialHseIds(new Set())
   }
 
   const handleSave = () => {
@@ -110,8 +177,9 @@ export default function EntreprisesPage() {
       update(
         { id: editTarget.id, data: payload },
         {
-          onSuccess: () => {
+          onSuccess: async (updated) => {
             addToast({ message: 'Entreprise mise à jour', type: 'success' })
+            await applyHseTeamChanges(updated['@id'])
             closeModal()
           },
           onError: () => addToast({ message: 'Erreur lors de la mise à jour', type: 'error' }),
@@ -119,8 +187,9 @@ export default function EntreprisesPage() {
       )
     } else {
       create(payload, {
-        onSuccess: () => {
+        onSuccess: async (created) => {
           addToast({ message: 'Entreprise créée', type: 'success' })
+          await applyHseTeamChanges(created['@id'])
           closeModal()
         },
         onError: () => addToast({ message: 'Erreur lors de la création', type: 'error' }),
@@ -296,6 +365,33 @@ export default function EntreprisesPage() {
               placeholder="Ex. : Directeur Général"
               maxLength={100}
             />
+          </div>
+
+          <div>
+            <label className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700">
+              <ShieldCheck className="h-4 w-4 text-blue-600" />
+              Équipe HSE
+            </label>
+            <p className="mb-2 text-xs text-gray-500">
+              Utilisateurs au profil HSE rattachés à cette entreprise. Un HSE ne peut être rattaché qu'à une seule entreprise à la fois.
+            </p>
+            {selectableHseUsers.length === 0 ? (
+              <p className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-400">
+                Aucun utilisateur HSE disponible (tous déjà affectés à une autre entreprise).
+              </p>
+            ) : (
+              <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-gray-200 p-2">
+                {selectableHseUsers.map((u) => (
+                  <Checkbox
+                    key={u.id}
+                    label={`${u.firstname} ${u.name}`}
+                    description={u.email}
+                    checked={selectedHseIds.has(u.id)}
+                    onChange={() => toggleHseUser(u.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

@@ -28,4 +28,12 @@ export const usersApi = {
   },
 
   signatureDownloadUrl: (id: number) => `/api/users/${id}/signature/download`,
+
+  // Plain <img src="..."> can't send the Authorization header the API
+  // requires, so the signature must be fetched as an authenticated blob
+  // and turned into an object URL by the caller.
+  getSignatureBlob: (id: number) =>
+    api
+      .get(`/api/users/${id}/signature/download`, { responseType: 'blob' })
+      .then((r) => r.data as Blob),
 }
