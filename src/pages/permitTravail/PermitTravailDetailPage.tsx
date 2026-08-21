@@ -20,7 +20,7 @@ import { usePermission } from '@/features/auth/usePermission'
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
-  DOCUMENT_TYPES_BY_PERMIT,
+  getRequiredDocumentTypes,
 } from '@/types/permitTravail'
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -89,7 +89,7 @@ export default function PermitTravailDetailPage() {
     )
   }
 
-  const docTypes = DOCUMENT_TYPES_BY_PERMIT[permit.typePermis]
+  const docTypes = getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus)
   const companionPermit = permit.permitsGroupe?.[0]
   const latestDecision = permit.decisionsHse?.at(-1)
 

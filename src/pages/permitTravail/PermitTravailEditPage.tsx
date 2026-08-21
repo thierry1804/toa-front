@@ -23,7 +23,7 @@ import type { DecisionHsePermitTravail, TypeDocumentPermitTravail, DocumentPermi
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
-  DOCUMENT_TYPES_BY_PERMIT,
+  getRequiredDocumentTypes,
 } from '@/types/permitTravail'
 import type { DecisionHsePlanPrevention, VersionPlanPrevention } from '@/types/planPrevention'
 
@@ -180,7 +180,7 @@ export default function PermitTravailEditPage() {
     return null
   }
 
-  const docTypes = DOCUMENT_TYPES_BY_PERMIT[permit.typePermis]
+  const docTypes = getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus)
 
   const handleDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
     if (!permit) return

@@ -33,7 +33,7 @@ import type {
   DocumentPermitTravail,
 } from '@/types/permitTravail'
 import type { PlanBySiteResult, RisqueRow } from '@/types/planPrevention'
-import { TYPE_PERMIT_LABELS, DOCUMENT_TYPES_BY_PERMIT } from '@/types/permitTravail'
+import { TYPE_PERMIT_LABELS, getRequiredDocumentTypes } from '@/types/permitTravail'
 
 // ─── Step 2 schema ────────────────────────────────────────────────────────────
 const step2Schema = z
@@ -143,9 +143,11 @@ export default function PermitTravailCreatePage() {
 
   // ── Derived ───────────────────────────────────────────────────────────────────
   const isNouveauSite = selectedPlan?.typeIntervention === 'NOUVEAU_SITE'
+  const generalPermitId = selectedPlan?.permitGeneralId ?? null
+  const generalRequisAvant = isNouveauSite && !generalPermitId
 
   const typePermisOptions: TypePermit[] = isNouveauSite
-    ? ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
+    ? (generalPermitId ? ['ELECTRIQUE', 'HAUTEUR'] : ['GENERAL'])
     : ['ELECTRIQUE', 'HAUTEUR']
 
   const matchingCatNames = useMemo(
@@ -273,7 +275,9 @@ export default function PermitTravailCreatePage() {
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId)
-    setTypePermis('ELECTRIQUE')
+    const plan = suggestedPlans.find((p) => p.id === planId)
+    const nouveauSite = plan?.typeIntervention === 'NOUVEAU_SITE'
+    setTypePermis(nouveauSite && !plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
   }
 
   // ── Step 2 → 3: create permit ────────────────────────────────────────────────
@@ -307,9 +311,13 @@ export default function PermitTravailCreatePage() {
     step === 0 ? !!(codeSiteSearched && selectedPlanId) : step < 3
 
   const isPending = isCreating || isSubmitting
-  const mainDocTypes = permit ? DOCUMENT_TYPES_BY_PERMIT[permit.typePermis] : []
+  const mainDocTypes = permit
+    ? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.process, permit.typePermis, permit.processus)
+    : []
   const companionPermit = permit?.permitsGroupe?.[0]
-  const companionDocTypes = companionPermit ? DOCUMENT_TYPES_BY_PERMIT[companionPermit.typePermis] : []
+  const companionDocTypes = companionPermit
+    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.process, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE')
+    : []
 
   // ── Render steps ──────────────────────────────────────────────────────────────
   const renderStep = () => {
@@ -410,11 +418,20 @@ export default function PermitTravailCreatePage() {
                     </option>
                   ))}
                 </select>
-                {isNouveauSite && typePermis !== 'GENERAL' && (
+                {generalRequisAvant && (
                   <div className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
                     <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-800">
-                      Plan Nouveau site — un permis Général sera automatiquement créé en complément.
+                      Plan Nouveau site — le permis Général doit être demandé en premier. Le permis
+                      Électrique ou Hauteur pourra être demandé sur ce même plan une fois le Général créé.
+                    </p>
+                  </div>
+                )}
+                {isNouveauSite && generalPermitId && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
+                    <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-800">
+                      Permis Général déjà demandé sur ce plan — complétez avec le permis Électrique ou Hauteur.
                     </p>
                   </div>
                 )}
@@ -440,11 +457,19 @@ export default function PermitTravailCreatePage() {
             </div>
 
             {/* Type de permis */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-gray-600">Type sélectionné :</span>
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">
                 {TYPE_PERMIT_LABELS[typePermis]}
               </span>
+              {selectedPlan?.process && (
+                <>
+                  <span className="text-sm text-gray-600 ml-2">Processus :</span>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5">
+                    {selectedPlan.process}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Site concerné */}
@@ -506,6 +531,29 @@ export default function PermitTravailCreatePage() {
                       <span className="font-medium">{inst.description}</span>
                       {inst.conditionsUtilisation && (
                         <span className="text-gray-500">— {inst.conditionsUtilisation}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Matériels, équipements et outillages */}
+            {(selectedPlan?.equipements ?? []).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Wrench className="h-4 w-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Matériels, équipements et outillages
+                  </h3>
+                </div>
+                <ul className="space-y-1">
+                  {selectedPlan!.equipements.map((eq, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <span className="font-medium">{eq.description}</span>
+                      {eq.conditionsUtilisation && (
+                        <span className="text-gray-500">— {eq.conditionsUtilisation}</span>
                       )}
                     </li>
                   ))}

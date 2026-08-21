@@ -196,12 +196,15 @@ export interface PlanBySiteResult {
   dateDebut: string
   dateFin: string
   typeIntervention: string | null
+  process?: string | null
+  permitGeneralId?: string | null
   planificationSites: { codeSite: string; nomSite: string }[]
   planificationSections: import('@/types').SectionPlanifieeItem[]
   risques: RisquePrevention[]
   codeSite: string
   localite: string
   installations: InstallationRow[]
+  equipements: EquipementRow[]
 }
 
 export interface PlansBySiteResponse {

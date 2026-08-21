@@ -42,32 +42,78 @@ export interface PermitTravailSuiviFilters {
 }
 
 export type TypeDocumentPermitTravail =
-  | 'ATTESTATION_ENTREPRISE'
-  | 'LISTE_INTERVENANTS'
-  | 'PLAN_PREVENTION_REF'
-  | 'HABILITATION_ELECTRIQUE'
-  | 'CONSIGNATION_FICHE'
-  | 'ATTESTATION_BASSE_TENSION'
-  | 'CERTIFICAT_TRAVAIL_HAUTEUR'
-  | 'EPI_FICHE'
-  | 'PLAN_SAUVETAGE'
-
-export const DOCUMENT_TYPES_BY_PERMIT: Record<TypePermit, TypeDocumentPermitTravail[]> = {
-  GENERAL:    ['ATTESTATION_ENTREPRISE', 'LISTE_INTERVENANTS', 'PLAN_PREVENTION_REF'],
-  ELECTRIQUE: ['HABILITATION_ELECTRIQUE', 'CONSIGNATION_FICHE', 'ATTESTATION_BASSE_TENSION'],
-  HAUTEUR:    ['CERTIFICAT_TRAVAIL_HAUTEUR', 'EPI_FICHE', 'PLAN_SAUVETAGE'],
-}
+  | 'TROUSSE_SECOURS'
+  | 'PV_SENSIBILISATION_HSE'
+  | 'PHOTO_EPI_BASE'
+  | 'PV_KICKOFF_AUTORITES'
+  | 'PV_ENVIRONNEMENT'
+  | 'PHOTO_AVANCEMENT_CHANTIER'
+  | 'PLAN_SAUVETAGE_HAUTEUR'
+  | 'KIT_SAUVETAGE_HAUTEUR'
+  | 'HARNAIS_SECURITE'
+  | 'PIECE_IDENTITE_HABILITE'
+  | 'MESURE_VITESSE_VENT'
+  | 'PHOTO_EPI_SPECIFIQUE'
+  | 'PHOTO_EQUIPEMENTS_ISOLANTS'
 
 export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
-  ATTESTATION_ENTREPRISE:    "Attestation entreprise",
-  LISTE_INTERVENANTS:        "Liste des intervenants",
-  PLAN_PREVENTION_REF:       "Plan de prévention (référence)",
-  HABILITATION_ELECTRIQUE:   "Habilitation électrique",
-  CONSIGNATION_FICHE:        "Fiche de consignation",
-  ATTESTATION_BASSE_TENSION: "Attestation basse tension",
-  CERTIFICAT_TRAVAIL_HAUTEUR: "Certificat travail en hauteur",
-  EPI_FICHE:                 "Fiche EPI",
-  PLAN_SAUVETAGE:            "Plan de sauvetage",
+  TROUSSE_SECOURS:            "Trousse de secours",
+  PV_SENSIBILISATION_HSE:     "PV de sensibilisation HSE",
+  PHOTO_EPI_BASE:              "Photo des intervenants en EPI de base",
+  PV_KICKOFF_AUTORITES:        "PV kick-off signé par les autorités locales",
+  PV_ENVIRONNEMENT:            "PV Environnement",
+  PHOTO_AVANCEMENT_CHANTIER:   "Photo d'avancement du chantier",
+  PLAN_SAUVETAGE_HAUTEUR:      "Plan de sauvetage en hauteur",
+  KIT_SAUVETAGE_HAUTEUR:       "Kit de sauvetage en hauteur",
+  HARNAIS_SECURITE:            "Harnais de sécurité complet",
+  PIECE_IDENTITE_HABILITE:     "Pièce d'identité de la personne habilitée",
+  MESURE_VITESSE_VENT:         "Mesure de la vitesse du vent",
+  PHOTO_EPI_SPECIFIQUE:        "Photo des intervenants en EPI spécifique",
+  PHOTO_EQUIPEMENTS_ISOLANTS:  "Photo des équipements isolants",
+}
+
+/**
+ * Matrice des documents obligatoires par permis, croisant le processus du
+ * plan de prévention (Nouveau site vs les 4 autres processus regroupés) et
+ * le fait qu'il s'agisse d'une première demande ou d'un renouvellement.
+ * Doit rester synchronisée avec PermitDocumentRequirementResolver côté API.
+ */
+const DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', Record<TypePermit, [TypeDocumentPermitTravail[], TypeDocumentPermitTravail[]]>> = {
+  NOUVEAU_SITE: {
+    GENERAL: [
+      ['TROUSSE_SECOURS', 'PV_SENSIBILISATION_HSE', 'PHOTO_EPI_BASE', 'PV_KICKOFF_AUTORITES', 'PV_ENVIRONNEMENT'],
+      ['PHOTO_AVANCEMENT_CHANTIER', 'PHOTO_EPI_BASE'],
+    ],
+    HAUTEUR: [
+      ['PLAN_SAUVETAGE_HAUTEUR', 'KIT_SAUVETAGE_HAUTEUR', 'HARNAIS_SECURITE', 'PIECE_IDENTITE_HABILITE', 'TROUSSE_SECOURS', 'MESURE_VITESSE_VENT'],
+      ['PHOTO_AVANCEMENT_CHANTIER', 'PHOTO_EPI_SPECIFIQUE'],
+    ],
+    ELECTRIQUE: [[], []],
+  },
+  AUTRES: {
+    GENERAL: [
+      ['TROUSSE_SECOURS', 'PHOTO_EPI_BASE', 'PV_SENSIBILISATION_HSE'],
+      ['PHOTO_AVANCEMENT_CHANTIER', 'PHOTO_EPI_BASE'],
+    ],
+    HAUTEUR: [
+      ['PLAN_SAUVETAGE_HAUTEUR', 'KIT_SAUVETAGE_HAUTEUR', 'HARNAIS_SECURITE', 'PIECE_IDENTITE_HABILITE', 'TROUSSE_SECOURS', 'MESURE_VITESSE_VENT'],
+      [],
+    ],
+    ELECTRIQUE: [
+      ['PIECE_IDENTITE_HABILITE', 'PHOTO_EQUIPEMENTS_ISOLANTS', 'TROUSSE_SECOURS'],
+      ['PHOTO_AVANCEMENT_CHANTIER', 'PHOTO_EPI_SPECIFIQUE'],
+    ],
+  },
+}
+
+export function getRequiredDocumentTypes(
+  planProcess: string | null | undefined,
+  typePermis: TypePermit,
+  processus: ProcessusPermit,
+): TypeDocumentPermitTravail[] {
+  const bucket = planProcess === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
+  const index = processus === 'RENOUVELLEMENT' ? 1 : 0
+  return DOCUMENT_MATRIX[bucket][typePermis][index]
 }
 
 export const PROCESSUS_LABELS: Record<ProcessusPermit, string> = {
@@ -183,6 +229,7 @@ export interface PermitTravail {
   processus: ProcessusPermit
   typePermis: TypePermit
   planPreventionId?: string | null
+  planProcess?: string | null
   interventionId?: string | null
   codeSite: string
   descriptionTravaux: string

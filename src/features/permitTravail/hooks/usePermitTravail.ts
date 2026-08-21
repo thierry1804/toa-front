@@ -327,6 +327,15 @@ export function usePermitTravail() {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
     },
     onError: (error) => { if (isOfflineQueued(error)) return
+      const detail =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('general_required_first')) {
+        addToast({
+          message: 'Le permis Général doit être demandé en premier pour ce site.',
+          type: 'error',
+        })
+        return
+      }
       addToast({ message: 'Erreur lors de la création du permis', type: 'error' })
     },
   })
