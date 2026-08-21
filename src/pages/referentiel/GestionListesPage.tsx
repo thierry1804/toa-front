@@ -4,7 +4,6 @@ import { Plus, Edit, Trash2, Search, Tag } from 'lucide-react'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useUiStore } from '@/store/ui.store'
 import {
-  useCategoriesRisque,
   useCategoriesRisqueAll,
   useCreateCategorieRisque,
   useUpdateCategorieRisque,
@@ -18,14 +17,37 @@ import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import { formatDate } from '@/utils/date'
 
-const PAGE_SIZE = 20
+/**
+ * Orders categories as a tree (each root category immediately followed by
+ * its sub-categories, alphabetically within each level) instead of the flat
+ * alphabetical order returned by the API — a flat sort interleaves
+ * sub-categories from different root categories, which is unreadable.
+ */
+function toTreeOrder(categories: CategorieRisque[]): CategorieRisque[] {
+  const collator = (a: CategorieRisque, b: CategorieRisque) => a.nom.localeCompare(b.nom)
+  const roots = categories.filter((c) => !c.parentId).sort(collator)
+  const childrenByParent = new Map<string, CategorieRisque[]>()
+  for (const c of categories) {
+    if (!c.parentId) continue
+    const list = childrenByParent.get(c.parentId) ?? []
+    list.push(c)
+    childrenByParent.set(c.parentId, list)
+  }
+  for (const list of childrenByParent.values()) list.sort(collator)
+
+  const ordered: CategorieRisque[] = []
+  for (const root of roots) {
+    ordered.push(root)
+    ordered.push(...(childrenByParent.get(root.id) ?? []))
+  }
+  return ordered
+}
 
 export default function GestionListesPage() {
   const { t } = useTranslation()
   const addToast = useUiStore((s) => s.addToast)
   const perms = usePermissions('/referentiel/listes')
 
-  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
 
@@ -38,15 +60,20 @@ export default function GestionListesPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<CategorieRisque | null>(null)
 
-  const { data, isLoading } = useCategoriesRisque(page, search)
-  const categories = data?.member ?? []
-  const totalItems = data?.totalItems ?? 0
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE))
+  const { data: allCategoriesData, isLoading } = useCategoriesRisqueAll()
+  const allCategories = allCategoriesData?.member ?? []
 
-  const { data: allCategoriesData } = useCategoriesRisqueAll()
-  const parentOptions = (allCategoriesData?.member ?? []).filter(
-    (c) => !c.parentId && c.id !== editTarget?.id,
-  )
+  const orderedCategories = toTreeOrder(allCategories)
+  const categories = search
+    ? orderedCategories.filter(
+        (c) =>
+          c.nom.toLowerCase().includes(search.toLowerCase()) ||
+          (c.parentNom ?? '').toLowerCase().includes(search.toLowerCase()),
+      )
+    : orderedCategories
+  const totalItems = categories.length
+
+  const parentOptions = allCategories.filter((c) => !c.parentId && c.id !== editTarget?.id)
 
   const { mutate: create, isPending: creating } = useCreateCategorieRisque()
   const { mutate: update, isPending: updating } = useUpdateCategorieRisque()
@@ -130,7 +157,6 @@ export default function GestionListesPage() {
       onSuccess: () => {
         addToast({ message: t('referentiel.listes.toast.deleted'), type: 'success' })
         setDeleteTarget(null)
-        if (page > 1 && categories.length === 1) setPage(page - 1)
       },
       onError: () => {
         addToast({ message: t('referentiel.listes.toast.deleteError'), type: 'error' })
@@ -140,7 +166,6 @@ export default function GestionListesPage() {
   }
 
   const handleSearch = () => {
-    setPage(1)
     setSearch(searchInput)
   }
 
@@ -151,7 +176,6 @@ export default function GestionListesPage() {
   const handleSearchClear = () => {
     setSearchInput('')
     setSearch('')
-    setPage(1)
   }
 
   return (
@@ -215,7 +239,6 @@ export default function GestionListesPage() {
               )}
             </div>
           ) : (
-            <>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -312,31 +335,6 @@ export default function GestionListesPage() {
                   </tbody>
                 </table>
               </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-                  <p className="text-sm text-gray-600">
-                    {t('referentiel.shared.pagination', {
-                      page,
-                      totalPages,
-                      count: totalItems,
-                    })}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setPage(page - 1)} disabled={page <= 1}>
-                      {t('referentiel.shared.prev')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setPage(page + 1)}
-                      disabled={page >= totalPages}
-                    >
-                      {t('referentiel.shared.next')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
           )}
         </CardContent>
       </Card>
