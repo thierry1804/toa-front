@@ -90,6 +90,18 @@
     }
   },
   "users": {
+    "entreprise": {
+      "fields": {
+        "nom": "Orinasa",
+        "nomPlaceholder": "Ohatra: eTech Consulting",
+        "numeroRegistreCommerce": "Laharana Registre du Commerce",
+        "numeroRegistreCommercePlaceholder": "Ohatra: 2024 B 01234",
+        "siegeSocial": "Foibem-piasan'ny orinasa",
+        "siegeSocialPlaceholder": "Ohatra: Lot II M 85 Antananarivo",
+        "qualiteRepresentant": "Maha-izy ny Solontena",
+        "qualiteRepresentantPlaceholder": "Ohatra: Direktera Jeneraly"
+      }
+    },
     "title": "Mpampiasa",
     "newUser": "Mpampiasa vaovao",
     "description": "Fitantanana ny mpampiasa sy ny fidirana amin'ny sehatra",
@@ -666,6 +678,7 @@
     "queued": "Voarakitra hors-ligne ny hetsika"
   },
   "errors": {
+    "entreprise_nom_deja_existant": "Efa misy orinasa mitondra io anarana io",
     "incorrect_credentials": "Diso ny mombamomba",
     "too_many_login_attempts": "Be loatra ny andrana fidirana. Andramo indray any aoriana.",
     "email_required": "Ilaina ny mailaka",

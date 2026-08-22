@@ -17,7 +17,9 @@ export interface EntrepriseUpdate {
 
 export const entrepriseApi = {
   list: () =>
-    api.get<HydraCollection<Entreprise>>('/api/entreprises').then((r) => r.data),
+    api
+      .get<HydraCollection<Entreprise>>('/api/entreprises', { params: { pagination: false } })
+      .then((r) => r.data),
 
   getById: (id: string) =>
     api.get<Entreprise>(`/api/entreprises/${id}`).then((r) => r.data),

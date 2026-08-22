@@ -90,6 +90,18 @@
     }
   },
   "users": {
+    "entreprise": {
+      "fields": {
+        "nom": "Entreprise",
+        "nomPlaceholder": "Ex. : eTech Consulting",
+        "numeroRegistreCommerce": "N° Registre du Commerce",
+        "numeroRegistreCommercePlaceholder": "Ex. : 2024 B 01234",
+        "siegeSocial": "Siège Social",
+        "siegeSocialPlaceholder": "Ex. : Lot II M 85 Antananarivo",
+        "qualiteRepresentant": "Qualité du Représentant",
+        "qualiteRepresentantPlaceholder": "Ex. : Directeur Général"
+      }
+    },
     "title": "Utilisateurs",
     "newUser": "Nouvel utilisateur",
     "description": "Gestion des utilisateurs et des accès à la plateforme",
@@ -666,6 +678,7 @@
     "queued": "Action sauvegardée hors ligne"
   },
   "errors": {
+    "entreprise_nom_deja_existant": "Ce nom d'entreprise est déjà utilisé",
     "incorrect_credentials": "Identifiants incorrects",
     "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
     "email_required": "L'email est obligatoire",
