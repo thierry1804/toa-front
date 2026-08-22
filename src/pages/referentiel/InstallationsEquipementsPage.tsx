@@ -153,7 +153,7 @@ export default function InstallationsEquipementsPage() {
       />
 
       <Card>
-        <CardSectionHeader className="space-y-3">
+        <CardSectionHeader className="space-y-2 py-2">
           <h2 className="text-sm font-semibold text-gray-900">
             {t('referentiel.installations.listTitle')}
             <span className="ml-1 font-normal text-gray-500">({totalItems})</span>

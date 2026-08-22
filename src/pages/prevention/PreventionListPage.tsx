@@ -8,6 +8,7 @@ import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { listFiltersContainerClass } from '@/components/ui/ListTable';
 import Select from '@/components/ui/Select';
 import { Shield, Plus, Eye, Edit, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
@@ -104,8 +105,8 @@ export default function PreventionListPage() {
 
       {/* Filtres */}
       <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className={listFiltersContainerClass}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="md:col-span-2">
               <Input
                 placeholder="Rechercher par référence, entreprise, site..."

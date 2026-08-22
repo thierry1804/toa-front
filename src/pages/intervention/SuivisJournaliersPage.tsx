@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
@@ -76,7 +76,7 @@ export default function SuivisJournaliersPage() {
       />
 
       <Card>
-        <CardHeader className="space-y-3 pb-4">
+        <CardHeader className="space-y-2 p-4 pb-2">
           <div>
             <CardTitle>
               {t('intervention.pages.suivisJournaliers.listTitle', { count: filtered.length })}
@@ -146,14 +146,12 @@ export default function SuivisJournaliersPage() {
                             <AvancementCell interventionId={intervention.id} />
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
+                            <TableIconButton
+                              title={t('intervention.pages.suivisJournaliers.viewButton')}
                               onClick={() => navigate(`/interventions/${intervention.id}/suivis`)}
                             >
-                              {t('intervention.pages.suivisJournaliers.viewButton')}
-                              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                            </Button>
+                              <ArrowRight className="h-4 w-4" />
+                            </TableIconButton>
                           </td>
                         </tr>
                       )
@@ -181,14 +179,12 @@ export default function SuivisJournaliersPage() {
                           <AvancementCell interventionId={intervention.id} />
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="shrink-0"
+                      <TableIconButton
+                        title={t('intervention.pages.suivisJournaliers.viewButton')}
                         onClick={() => navigate(`/interventions/${intervention.id}/suivis`)}
                       >
-                        {t('intervention.pages.suivisJournaliers.viewButton')}
-                      </Button>
+                        <ArrowRight className="h-4 w-4" />
+                      </TableIconButton>
                     </div>
                   )
                 })}

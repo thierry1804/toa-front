@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardSectionHeader } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
+import { listFiltersContainerClass } from '@/components/ui/ListTable'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { StatStrip } from '@/components/ui/StatStrip'
 import { usePermission } from '@/features/auth/usePermission'
@@ -174,9 +176,9 @@ export default function InterventionSuiviHsePage() {
       />
 
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-            <div className="grid flex-1 grid-cols-2 gap-3 lg:grid-cols-4">
+        <CardContent className={listFiltersContainerClass}>
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
+            <div className="grid flex-1 grid-cols-2 gap-2 lg:grid-cols-4">
               <Input
                 label={t('interventions.suiviHse.filters.site')}
                 type="text"
@@ -340,14 +342,13 @@ export default function InterventionSuiviHsePage() {
                     <td className="px-4 py-3 text-center font-semibold text-gray-700">
                       {item.nbSuivis}
                     </td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="outline"
+                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                      <TableIconButton
+                        title={t('interventions.suiviHse.table.detail')}
                         onClick={() => navigate(`/interventions/${item.id}/suivi-hse`)}
                       >
-                        {t('interventions.suiviHse.table.detail')}
-                      </Button>
+                        <Eye className="h-4 w-4" />
+                      </TableIconButton>
                     </td>
                   </tr>
                 ))}

@@ -7,6 +7,7 @@ import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useUiStore } from '@/store/ui.store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { Shield, Plus, Edit, Trash2, Check, X } from 'lucide-react'
@@ -108,12 +109,19 @@ export default function MenuAccessesListPage() {
                           <td className="px-4 py-3 text-center">{a.canDelete ? <Check className="h-4 w-4 text-green-600 inline" /> : <X className="h-4 w-4 text-red-400 inline" />}</td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-600 hover:text-blue-600 rounded" title={t('common.edit')}>
+                              <TableIconButton
+                                title={t('common.edit')}
+                                onClick={() => navigate(`/menu-accesses/${a.id}/edit`)}
+                              >
                                 <Edit className="h-4 w-4" />
-                              </button>
-                              <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-600 hover:text-red-600 rounded" title={t('common.delete')}>
+                              </TableIconButton>
+                              <TableIconButton
+                                title={t('common.delete')}
+                                variant="danger"
+                                onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })}
+                              >
                                 <Trash2 className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             </div>
                           </td>
                         </tr>
@@ -135,12 +143,19 @@ export default function MenuAccessesListPage() {
                           <Badge>{ROLE_LABELS[a.role] ?? a.role}</Badge>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
-                          <button onClick={() => navigate(`/menu-accesses/${a.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50" title={t('common.edit')}>
+                          <TableIconButton
+                            title={t('common.edit')}
+                            onClick={() => navigate(`/menu-accesses/${a.id}/edit`)}
+                          >
                             <Edit className="h-4 w-4" />
-                          </button>
-                          <button onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })} className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50" title={t('common.delete')}>
+                          </TableIconButton>
+                          <TableIconButton
+                            title={t('common.delete')}
+                            variant="danger"
+                            onClick={() => setDeleteTarget({ id: a.id, label: `${m?.name ?? a.menu} - ${ROLE_LABELS[a.role] ?? a.role}` })}
+                          >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </TableIconButton>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">

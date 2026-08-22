@@ -6,6 +6,7 @@ import { useMenus, useDeleteMenu } from '@/features/menus/hooks/useMenus'
 import { useUiStore } from '@/store/ui.store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import Modal from '@/components/ui/Modal'
 import type { Menu as MenuType } from '@/types'
 import {
@@ -88,20 +89,19 @@ export default function MenusListPage() {
           <span className="hidden sm:inline text-xs text-gray-400 shrink-0 truncate max-w-[120px]">{menuItem.route ?? '—'}</span>
           <span className="hidden sm:inline text-xs text-gray-400 shrink-0">pos:{menuItem.position}</span>
           <div className="flex items-center gap-1 shrink-0 ml-auto">
-            <button
-              onClick={() => navigate(`/menus/${menuItem.id}/edit`)}
-              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+            <TableIconButton
               title={t('common.edit')}
+              onClick={() => navigate(`/menus/${menuItem.id}/edit`)}
             >
               <Edit className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => setDeleteTarget({ id: menuItem.id, label: menuItem.name })}
-              className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
+            </TableIconButton>
+            <TableIconButton
               title={t('common.delete')}
+              variant="danger"
+              onClick={() => setDeleteTarget({ id: menuItem.id, label: menuItem.name })}
             >
               <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            </TableIconButton>
           </div>
         </div>
         {hasChildren && isExpanded && (

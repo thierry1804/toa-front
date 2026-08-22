@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardSectionHeader } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
@@ -15,7 +16,7 @@ import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { Plus, Edit, Trash2, Lock } from 'lucide-react'
 import { formatDate } from '@/utils/date'
 
-export default function RolesListPage() {
+function RolesListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const addToast = useUiStore((s) => s.addToast)
@@ -98,7 +99,7 @@ export default function RolesListPage() {
       />
 
       <Card>
-        <CardSectionHeader className="space-y-3">
+        <CardSectionHeader className="space-y-2 py-2">
           <div>
             <h2 className="text-sm font-semibold text-gray-900">
               {t('roles.listTitle', { count: filtered.length })}
@@ -182,31 +183,28 @@ export default function RolesListPage() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             {perms?.canEdit && (
-                              <button
-                                type="button"
-                                onClick={() => navigate(`/roles/${role.id}/edit`)}
-                                className="rounded p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                              <TableIconButton
                                 title={t('common.edit')}
+                                onClick={() => navigate(`/roles/${role.id}/edit`)}
                               >
                                 <Edit className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                             {perms?.canDelete && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDeleteTarget({ id: role.id, label: role.label })
-                                }
-                                disabled={role.isSystem}
-                                className="rounded p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30 enabled:text-gray-500 enabled:hover:bg-red-50 enabled:hover:text-red-600"
+                              <TableIconButton
                                 title={
                                   role.isSystem
                                     ? t('roles.systemRoleProtected')
                                     : t('common.delete')
                                 }
+                                variant="danger"
+                                disabled={role.isSystem}
+                                onClick={() =>
+                                  setDeleteTarget({ id: role.id, label: role.label })
+                                }
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                           </div>
                         </td>
@@ -243,31 +241,28 @@ export default function RolesListPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                       {perms?.canEdit && (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/roles/${role.id}/edit`)}
-                          className="rounded p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                        <TableIconButton
                           title={t('common.edit')}
+                          onClick={() => navigate(`/roles/${role.id}/edit`)}
                         >
                           <Edit className="h-4 w-4" />
-                        </button>
+                        </TableIconButton>
                       )}
                       {perms?.canDelete && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDeleteTarget({ id: role.id, label: role.label })
-                          }
-                          disabled={role.isSystem}
-                          className="rounded p-1.5 disabled:cursor-not-allowed disabled:opacity-30 enabled:text-gray-500 enabled:hover:bg-red-50 enabled:hover:text-red-600"
+                        <TableIconButton
                           title={
                             role.isSystem
                               ? t('roles.systemRoleProtected')
                               : t('common.delete')
                           }
+                          variant="danger"
+                          disabled={role.isSystem}
+                          onClick={() =>
+                            setDeleteTarget({ id: role.id, label: role.label })
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </TableIconButton>
                       )}
                     </div>
                   </div>
@@ -301,3 +296,5 @@ export default function RolesListPage() {
     </div>
   )
 }
+
+export default RolesListPage

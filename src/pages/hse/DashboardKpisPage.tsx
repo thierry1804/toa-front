@@ -16,6 +16,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
+import { listFiltersContainerClass } from '@/components/ui/ListTable'
 import { usePermission } from '@/features/auth/usePermission'
 import {
   useDashboardKpis,
@@ -261,8 +262,8 @@ export default function DashboardKpisPage() {
 
       {/* ── Filtres ── */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent className={listFiltersContainerClass}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <Input
               label={t('dashboardKpis.filters.site')}
               type="text"
@@ -288,7 +289,7 @@ export default function DashboardKpisPage() {
               onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
             />
           </div>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-2 flex gap-2">
             <Button onClick={applyFilters}>{t('dashboardKpis.filters.apply')}</Button>
             <Button variant="outline" onClick={resetFilters}>{t('dashboardKpis.filters.reset')}</Button>
           </div>

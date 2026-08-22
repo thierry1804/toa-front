@@ -12,6 +12,7 @@ import Button from '@/components/ui/Button'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import LogsDrawer from '@/components/permitTravail/LogsDrawer'
+import { listFiltersContainerClass } from '@/components/ui/ListTable'
 import { usePermitTravailSuivi, usePermitTravailStatsJournalieres, usePermitsTravail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravailLabels'
 import { usePermission } from '@/features/auth/usePermission'
@@ -207,8 +208,8 @@ export default function PermitTravailSuiviPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <CardContent className={listFiltersContainerClass}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
             <Input
               label={t('permitTravail.suivi.siteLabel')}
               type="text"
@@ -241,7 +242,7 @@ export default function PermitTravailSuiviPage() {
               onChange={(e) => setDraft((d) => ({ ...d, dateFin: e.target.value }))}
             />
           </div>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-2 flex gap-2">
             <Button onClick={applyFilters}>{t('permitTravail.suivi.applyFilters')}</Button>
             <Button variant="outline" onClick={resetFilters}>{t('permitTravail.suivi.resetFilters')}</Button>
           </div>

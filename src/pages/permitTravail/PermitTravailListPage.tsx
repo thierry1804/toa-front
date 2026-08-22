@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
+import { TableIconButton } from '@/components/ui/TableIconButton'
 import { Card, CardContent } from '@/components/ui/Card'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
+import { ListTableFilters, ListTable, ListTableActions, ListTableBody, ListTableCell, ListTableHead, ListTableHeadCell, ListTableRow } from '@/components/ui/ListTable'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
@@ -20,14 +24,13 @@ function PvDownloadCell({ permitId }: { permitId: string }) {
   const { pvStatut, downloadPv } = usePvReceptionPdf(permitId, { enabled: true })
   if (pvStatut !== 'GENERE') return null
   return (
-    <button
+    <TableIconButton
       title={t('permitTravail.list.downloadPv')}
-      className="ml-1 inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50"
+      variant="success"
       onClick={(e) => { e.stopPropagation(); void downloadPv() }}
     >
-      <FileDown className="h-3.5 w-3.5" />
-      PV
-    </button>
+      <FileDown className="h-4 w-4" />
+    </TableIconButton>
   )
 }
 
@@ -49,22 +52,22 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
   const locale = i18n.language === 'mg' ? 'mg-MG' : 'fr-FR'
 
   return (
-    <tr
-      className="hover:bg-gray-50 transition-colors cursor-pointer"
+    <ListTableRow
+      className="cursor-pointer"
       onClick={() => navigate(`/permits-travail/${permit.id}`)}
     >
-      <td className="px-4 py-3">
+      <ListTableCell className="break-all">
         <span className="font-mono text-sm font-medium text-blue-700">{permit.reference}</span>
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-800">
+      </ListTableCell>
+      <ListTableCell compact className="text-gray-800">
         {typeLabel(permit.typePermis)}
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-600">
+      </ListTableCell>
+      <ListTableCell className="text-gray-600">
         {processusLabel(permit.processus)}
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-600">{permit.codeSite}</td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2 flex-wrap">
+      </ListTableCell>
+      <ListTableCell compact className="text-gray-600">{permit.codeSite}</ListTableCell>
+      <ListTableCell compact>
+        <div className="flex flex-wrap items-center gap-2">
           <StatutPermitBadge statut={permit.statut} />
           {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
             <PvDownloadCell permitId={permit.id} />
@@ -83,61 +86,68 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
             </span>
           )}
         </div>
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-500">
+      </ListTableCell>
+      <ListTableCell compact className="text-gray-500">
         {permit.soumisAt
           ? new Date(permit.soumisAt).toLocaleDateString(locale)
           : <span className="text-gray-400">—</span>}
-      </td>
+      </ListTableCell>
       {showHseColumns && (
-        <td className="px-4 py-3">
+        <ListTableCell compact>
           {permit.statut === 'VALIDE_HSE' && latestDecision ? (
             <ExpirationBadge decidedAt={latestDecision.decidedAt} typePermis={permit.typePermis} />
           ) : (
             <span className="text-gray-400 text-sm">—</span>
           )}
-        </td>
+        </ListTableCell>
       )}
-      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Button size="sm" variant="outline" onClick={() => navigate(`/permits-travail/${permit.id}`)}>
-            <Eye className="mr-1.5 h-3.5 w-3.5" />
-            {t('permitTravail.list.actions.voir')}
-          </Button>
+      <ListTableCell actions onClick={(e) => e.stopPropagation()}>
+        <ListTableActions>
+          <TableIconButton
+            title={t('permitTravail.list.actions.voir')}
+            onClick={() => navigate(`/permits-travail/${permit.id}`)}
+          >
+            <Eye className="h-4 w-4" />
+          </TableIconButton>
           {permit.statut === 'SOUMIS' && canValider && (
-            <Button size="sm" onClick={() => onValider(permit)}>
-              <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-              {t('permitTravail.list.actions.valider')}
-            </Button>
+            <TableIconButton
+              title={t('permitTravail.list.actions.valider')}
+              variant="success"
+              onClick={() => onValider(permit)}
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </TableIconButton>
           )}
           {permit.statut === 'SOUMIS' && canRefuser && (
-            <Button size="sm" variant="danger" onClick={() => onRefuser(permit)}>
-              <ShieldX className="mr-1.5 h-3.5 w-3.5" />
-              {t('permitTravail.list.actions.refuser')}
-            </Button>
+            <TableIconButton
+              title={t('permitTravail.list.actions.refuser')}
+              variant="danger"
+              onClick={() => onRefuser(permit)}
+            >
+              <ShieldX className="h-4 w-4" />
+            </TableIconButton>
           )}
           {permit.statut === 'BROUILLON' &&
             canResoumettre &&
             permit.decisionsHse?.some((d) => d.decision === 'REFUSE') && (
-              <Button
-                size="sm"
-                variant="outline"
+              <TableIconButton
+                title={t('permitTravail.list.actions.corriger')}
+                variant="warning"
                 onClick={() => navigate(`/permits-travail/${permit.id}/edit`)}
               >
-                <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                {t('permitTravail.list.actions.corriger')}
-              </Button>
+                <Pencil className="h-4 w-4" />
+              </TableIconButton>
             )}
-        </div>
-      </td>
-    </tr>
+        </ListTableActions>
+      </ListTableCell>
+    </ListTableRow>
   )
 }
 
 const HSE_STATUTS: string[] = ['SOUMIS', 'EN_COURS', 'VALIDE', 'VALIDE_HSE', 'REFUSE_HSE']
 const ITEMS_PER_PAGE = 10
 
-export default function PermitTravailListPage() {
+function PermitTravailListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const canCreate = usePermission('permit_travail.create')
@@ -148,6 +158,9 @@ export default function PermitTravailListPage() {
 
   const [hseView, setHseView] = useState(false)
   const [page, setPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
   const [selectedForValider, setSelectedForValider] = useState<PermitTravail | null>(null)
   const [selectedForRefuser, setSelectedForRefuser] = useState<PermitTravail | null>(null)
 
@@ -159,10 +172,54 @@ export default function PermitTravailListPage() {
 
   const { data, isLoading, isError } = usePermitsTravail(queryParams)
   const { validerPermit, refuserPermit, isValidating, isRefusing } = usePermitTravail()
+  const { typeLabel, processusLabel } = usePermitTravailLabels()
 
   const displayedPermits = data?.member ?? []
   const totalItems = data?.totalItems ?? 0
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+
+  const statusOptions = useMemo(
+    () => [
+      { value: 'all', label: t('permitTravail.list.filters.allStatuts') },
+      { value: 'BROUILLON', label: t('permitTravail.statut.BROUILLON') },
+      { value: 'SOUMIS', label: t('permitTravail.statut.SOUMIS') },
+      { value: 'VALIDE_HSE', label: t('permitTravail.statut.VALIDE_HSE') },
+      { value: 'REFUSE_HSE', label: t('permitTravail.statut.REFUSE_HSE') },
+      { value: 'CLOTURE', label: t('permitTravail.statut.CLOTURE') },
+    ],
+    [t],
+  )
+
+  const typeOptions = useMemo(
+    () => [
+      { value: 'all', label: t('permitTravail.list.filters.allTypes') },
+      { value: 'GENERAL', label: t('permitTravail.types.GENERAL') },
+      { value: 'ELECTRIQUE', label: t('permitTravail.types.ELECTRIQUE') },
+      { value: 'HAUTEUR', label: t('permitTravail.types.HAUTEUR') },
+    ],
+    [t],
+  )
+
+  const filteredPermits = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    return displayedPermits.filter((permit) => {
+      if (statusFilter !== 'all' && permit.statut !== statusFilter) return false
+      if (typeFilter !== 'all' && permit.typePermis !== typeFilter) return false
+      if (!query) return true
+      const haystack = [
+        permit.reference,
+        permit.codeSite,
+        typeLabel(permit.typePermis),
+        processusLabel(permit.processus),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(query)
+    })
+  }, [displayedPermits, searchQuery, statusFilter, typeFilter, typeLabel, processusLabel])
+
+  const hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'all' || typeFilter !== 'all'
 
   const handleHseViewToggle = () => {
     setHseView((v) => !v)
@@ -209,7 +266,26 @@ export default function PermitTravailListPage() {
       {isLoading && <ListPageSkeleton withStatStrip={false} />}
 
       {!isLoading && (
-      <Card>
+      <Card className="overflow-hidden">
+        <ListTableFilters>
+          <Input
+            placeholder={t('permitTravail.list.filters.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Select
+            options={statusOptions}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            placeholder={t('permitTravail.list.filters.statut')}
+          />
+          <Select
+            options={typeOptions}
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            placeholder={t('permitTravail.list.filters.type')}
+          />
+        </ListTableFilters>
         <CardContent className="p-0">
           {isError && (
             <div className="flex items-center justify-center gap-2 py-12 text-red-500">
@@ -218,7 +294,7 @@ export default function PermitTravailListPage() {
             </div>
           )}
 
-          {!isLoading && !isError && displayedPermits.length === 0 && (
+          {!isLoading && !isError && displayedPermits.length === 0 && !hasActiveFilters && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <FileText className="mb-4 h-12 w-12 text-gray-300" />
               <p className="font-medium text-gray-500">{t('permitTravail.list.empty')}</p>
@@ -230,38 +306,50 @@ export default function PermitTravailListPage() {
             </div>
           )}
 
-          {!isLoading && !isError && displayedPermits.length > 0 && (
+          {!isLoading && !isError && (displayedPermits.length > 0 || hasActiveFilters) && filteredPermits.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <FileText className="mb-4 h-12 w-12 text-gray-300" />
+              <p className="font-medium text-gray-500">{t('permitTravail.list.filters.noResults')}</p>
+            </div>
+          )}
+
+          {!isLoading && !isError && filteredPermits.length > 0 && (
             <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {headers.map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {displayedPermits.map((permit) => (
-                      <PermitRow
-                        key={permit.id}
-                        permit={permit}
-                        showHseColumns={showHseColumns}
-                        canValider={canValider}
-                        canRefuser={canRefuser}
-                        canResoumettre={canResoumettre}
-                        onValider={setSelectedForValider}
-                        onRefuser={setSelectedForRefuser}
-                      />
+              <ListTable>
+                <ListTableHead>
+                  <tr>
+                    {headers.map((h, i) => (
+                      <ListTableHeadCell
+                        key={h}
+                        actions={i === headers.length - 1}
+                        compact={
+                          i !== headers.length - 1 &&
+                          (h === t('permitTravail.list.headers.type') ||
+                            h === t('permitTravail.list.headers.site') ||
+                            h === t('permitTravail.list.headers.submittedAt') ||
+                            h === t('permitTravail.list.headers.expiration'))
+                        }
+                      >
+                        {h}
+                      </ListTableHeadCell>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </tr>
+                </ListTableHead>
+                <ListTableBody>
+                  {filteredPermits.map((permit) => (
+                    <PermitRow
+                      key={permit.id}
+                      permit={permit}
+                      showHseColumns={showHseColumns}
+                      canValider={canValider}
+                      canRefuser={canRefuser}
+                      canResoumettre={canResoumettre}
+                      onValider={setSelectedForValider}
+                      onRefuser={setSelectedForRefuser}
+                    />
+                  ))}
+                </ListTableBody>
+              </ListTable>
               {totalPages > 1 && (
                 <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
                   <p className="text-sm text-gray-600">
@@ -315,3 +403,5 @@ export default function PermitTravailListPage() {
     </div>
   )
 }
+
+export default PermitTravailListPage

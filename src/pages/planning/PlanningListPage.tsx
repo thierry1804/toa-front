@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import { TableIconButton } from "@/components/ui/TableIconButton";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
@@ -32,6 +33,8 @@ import {
 import { formatDate } from "@/utils/date";
 import { STATUS_CONFIG, STATUS_VALUES } from "@/data/constant/planning";
 import GanttChart from "@/features/planning/components/GanttChart";
+import { listFiltersContainerClass } from "@/components/ui/ListTable";
+import { cn } from "@/lib/utils";
 
 const GANTT_ROW_H = 44;
 const GANTT_TIMELINE_HEADER_H = 32;
@@ -148,8 +151,8 @@ export default function PlanningListPage() {
         ]}
       />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className={cn('rounded-lg border border-gray-200 bg-white', listFiltersContainerClass)}>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           <Input
             placeholder={t("planning.search")}
             value={searchQuery}
@@ -279,29 +282,26 @@ export default function PlanningListPage() {
                           <td className="px-4 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               {perms?.canEdit && (
-                                <button
-                                  onClick={() =>
-                                    navigate(`/planning/${p.id}/edit`)
-                                  }
-                                  className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                <TableIconButton
                                   title={t("common.edit")}
+                                  onClick={() => navigate(`/planning/${p.id}/edit`)}
                                 >
                                   <Edit className="h-4 w-4" />
-                                </button>
+                                </TableIconButton>
                               )}
                               {perms?.canDelete && (
-                                <button
+                                <TableIconButton
+                                  title={t("common.delete")}
+                                  variant="danger"
                                   onClick={() =>
                                     setDeleteTarget({
                                       id: p.id,
                                       name: p.process,
                                     })
                                   }
-                                  className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title={t("common.delete")}
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                </button>
+                                </TableIconButton>
                               )}
                             </div>
                           </td>
@@ -334,24 +334,23 @@ export default function PlanningListPage() {
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
                           {perms?.canEdit && (
-                            <button
-                              onClick={() => navigate(`/planning/${p.id}/edit`)}
-                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                            <TableIconButton
                               title={t("common.edit")}
+                              onClick={() => navigate(`/planning/${p.id}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
-                            </button>
+                            </TableIconButton>
                           )}
                           {perms?.canDelete && (
-                            <button
+                            <TableIconButton
+                              title={t("common.delete")}
+                              variant="danger"
                               onClick={() =>
                                 setDeleteTarget({ id: p.id, name: p.process })
                               }
-                              className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
-                            </button>
+                            </TableIconButton>
                           )}
                         </div>
                       </div>

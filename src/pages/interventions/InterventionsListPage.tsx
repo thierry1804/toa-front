@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useInterventionStore } from '@/store/interventionStore';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
@@ -7,11 +7,15 @@ import { interventionApi } from '@/api/interventionApi';
 import type { PermitTravailSummary } from '@/types/intervention';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { TableIconButton } from '@/components/ui/TableIconButton';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
 import { StatStrip } from '@/components/ui/StatStrip';
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton';
+import { listFiltersContainerClass } from '@/components/ui/ListTable';
+import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/layout/PageHeader';
 import {
   Clipboard,
   Plus,
@@ -68,6 +72,7 @@ function mapIntervention(raw: any) {
 
 export default function InterventionsListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { interventions, setInterventions } = useInterventionStore();
   const perms = usePermissions('/interventions');
 
@@ -202,22 +207,20 @@ export default function InterventionsListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">{t('interventions.list.title')}</h2>
-          <p className="mt-1 text-gray-600">
-            {t('interventions.list.description')}
-          </p>
-        </div>
-        {perms?.canCreate && (
-          <Link to="/interventions/new">
-            <Button>
-              <Plus className="h-5 w-5 mr-2" />
-              {t('interventions.list.newIntervention')}
-            </Button>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t('interventions.list.title')}
+        description={t('interventions.list.description')}
+        actions={
+          perms?.canCreate ? (
+            <Link to="/interventions/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('interventions.list.newIntervention')}
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
 
       {/* Statistiques */}
       <StatStrip
@@ -232,8 +235,8 @@ export default function InterventionsListPage() {
 
       {/* Filtres */}
       <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className={listFiltersContainerClass}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <Input
                 placeholder={t('interventions.list.searchPlaceholder')}
@@ -355,14 +358,12 @@ export default function InterventionsListPage() {
                             )}
                           </td>
                           <td className="px-4 py-4 text-right">
-                            <Link to={`/interventions/${intervention.id}`}>
-                              <button
-                                className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title={t('interventions.list.actions.voir')}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                            </Link>
+                            <TableIconButton
+                              title={t('interventions.list.actions.voir')}
+                              onClick={() => navigate(`/interventions/${intervention.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </TableIconButton>
                           </td>
                         </tr>
                       );
@@ -387,12 +388,9 @@ export default function InterventionsListPage() {
                           </p>
                         </div>
                         <Link to={`/interventions/${intervention.id}`} className="shrink-0 ml-2">
-                          <button
-                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
-                            title={t('interventions.list.actions.voir')}
-                          >
+                          <TableIconButton title={t('interventions.list.actions.voir')}>
                             <Eye className="h-4 w-4" />
-                          </button>
+                          </TableIconButton>
                         </Link>
                       </div>
                       <div className="mb-2 flex flex-wrap items-center gap-1">
