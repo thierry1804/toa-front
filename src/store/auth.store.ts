@@ -38,6 +38,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre', 'permit_travail.cloturer',
     'intervention.create', 'intervention.view', 'intervention.edit', 'intervention.valider_evaluation',
     'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
+    'edit_users', 'create_users',
   ],
   ROLE_ADMIN:        [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
