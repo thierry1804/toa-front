@@ -15,7 +15,9 @@ export const usersApi = {
     api.put<User>(`/api/users/${id}`, data).then((r) => r.data),
 
   patch: (id: number, data: Partial<UserUpdate>) =>
-    api.patch<User>(`/api/users/${id}`, data).then((r) => r.data),
+    api.patch<User>(`/api/users/${id}`, data, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+    }).then((r) => r.data),
 
   delete: (id: number) => api.delete(`/api/users/${id}`),
 
