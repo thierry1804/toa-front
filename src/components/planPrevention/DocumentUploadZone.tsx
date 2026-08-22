@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle, XCircle, Upload, Eye } from 'lucide-react'
 import type { TypeDocumentPrevention, DocumentPrevention } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from '@/types/planPrevention'
@@ -28,8 +29,9 @@ export default function DocumentUploadZone({
   missingTypes = [],
   disabled = false,
 }: DocumentUploadZoneProps) {
+  const { t } = useTranslation()
   const [zoneStates, setZoneStates] = useState<Record<string, ZoneState>>(
-    Object.fromEntries(ALL_DOCUMENT_TYPES.map((t) => [t, { dragging: false, uploading: false, viewing: false }])),
+    Object.fromEntries(ALL_DOCUMENT_TYPES.map((type) => [type, { dragging: false, uploading: false, viewing: false }])),
   )
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -194,8 +196,8 @@ export default function DocumentUploadZone({
         )
       })}
 
-      <p className="text-xs text-gray-400">
-        Les 5 documents sont obligatoires pour soumettre le plan. Formats acceptés : PDF, JPG/JPEG.
+      <p className="text-xs text-gray-500">
+        {t('planPrevention.components.documentUpload.hint', { count: ALL_DOCUMENT_TYPES.length })}
       </p>
     </div>
   )

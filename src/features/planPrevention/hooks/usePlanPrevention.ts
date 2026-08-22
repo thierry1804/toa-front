@@ -187,7 +187,6 @@ export function usePlanPreventionList(page: number, filters?: Record<string, str
   return useQuery({
     queryKey: [...PLAN_PREVENTION_KEY, 'list', page, filters],
     queryFn: () => planPreventionApi.list(params),
-    placeholderData: (prev) => prev,
   })
 }
 

@@ -17,22 +17,10 @@ function getNiveau(gravite: number, probabilite: number): number {
   return gravite * probabilite
 }
 
-function getRowBg(niveau: number): string {
-  if (niveau >= 15) return 'bg-red-50'
-  if (niveau >= 8) return 'bg-orange-50'
-  return 'bg-green-50'
-}
-
-function getNiveauBadge(niveau: number): string {
-  if (niveau >= 15) return 'bg-red-200 text-red-900 font-semibold'
-  if (niveau >= 8) return 'bg-orange-200 text-orange-900 font-semibold'
-  return 'bg-green-200 text-green-900 font-semibold'
-}
-
-function getEcartBadge(ecart: number): string {
-  if (ecart >= 15) return 'bg-red-200 text-red-900 font-semibold'
-  if (ecart >= 8) return 'bg-orange-200 text-orange-900 font-semibold'
-  return 'bg-green-200 text-green-900 font-semibold'
+function getNiveauTone(niveau: number): string {
+  if (niveau >= 15) return 'bg-red-100 text-red-800 border-red-200'
+  if (niveau >= 8) return 'bg-orange-100 text-orange-800 border-orange-200'
+  return 'bg-green-100 text-green-800 border-green-200'
 }
 
 function findRow(rows: RisqueRow[], tacheId: string): RisqueRow | undefined {
@@ -50,6 +38,36 @@ function defaultRow(tacheId: string): RisqueRow {
     mesuresPreventives: '',
     risqueResiduel: null,
   }
+}
+
+function ScaleSelect({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string
+  value: number
+  onChange: (v: number) => void
+  disabled?: boolean
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-1 block text-xs font-medium text-gray-600">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        disabled={disabled}
+        className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
+      >
+        {SCALE_OPTIONS.map((v) => (
+          <option key={v} value={v}>
+            {v}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
 }
 
 export default function AnalyseRisquesPlanning({
@@ -93,175 +111,164 @@ export default function AnalyseRisquesPlanning({
 
   if (sections.length === 0) {
     return (
-      <p className="text-sm text-gray-400 italic py-4 text-center">
+      <p className="py-4 text-center text-sm italic text-gray-400">
         Aucune tâche disponible dans cette planification.
       </p>
     )
   }
 
-  return (
-    <div className="space-y-2">
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full text-xs">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-2 py-2 text-left font-medium text-gray-700 w-40">Tâche</th>
-              <th className="px-2 py-2 text-left font-medium text-gray-700 w-28">Matériel</th>
-              <th className="px-2 py-2 text-left font-medium text-gray-700 w-20">Qui ?</th>
-              <th className="px-2 py-2 text-left font-medium text-gray-700 w-36">Risque identifié</th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 w-12">G</th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 w-12">P</th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 w-16">Niveau</th>
-              <th className="px-2 py-2 text-left font-medium text-gray-700 w-40">Mesures préventives</th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 w-20">Risque résiduel</th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 w-16">Écart</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {allTaches.length === 0 && (
-              <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-gray-400 italic">
-                  Aucune tâche dans cette planification.
-                </td>
-              </tr>
-            )}
-            {sections.map((section) => (
-              <>
-                {/* Section header */}
-                <tr key={`section-${section.id}`} className="bg-gray-100">
-                  <td
-                    colSpan={10}
-                    className="px-3 py-1.5 text-xs font-semibold text-gray-700 uppercase tracking-wide"
-                  >
-                    {section.libelle}
-                  </td>
-                </tr>
-                {/* Tache rows */}
-                {(section.taches ?? []).map((tache) => {
-                  const row = findRow(rows, tache.id) ?? defaultRow(tache.id)
-                  const niveau = getNiveau(row.gravite, row.probabilite)
-                  const ecart =
-                    row.risqueResiduel != null ? niveau - row.risqueResiduel : null
+  if (allTaches.length === 0) {
+    return (
+      <p className="py-4 text-center text-sm italic text-gray-400">
+        Aucune tâche dans cette planification.
+      </p>
+    )
+  }
 
-                  return (
-                    <tr key={tache.id} className={getRowBg(niveau)}>
-                      {/* Tâche — read-only */}
-                      <td className="px-2 py-1.5 text-gray-900 align-top">{tache.tache}</td>
-                      {/* Matériel — read-only */}
-                      <td className="px-2 py-1.5 text-gray-600 align-top">{tache.materiel ?? '—'}</td>
-                      {/* Qui — read-only */}
-                      <td className="px-2 py-1.5 text-gray-600 align-top">{tache.qui ?? '—'}</td>
-                      {/* Risque identifié */}
-                      <td className="px-2 py-1.5 align-top">
+  return (
+    <div className="space-y-6">
+      {sections.map((section) => {
+        const taches = section.taches ?? []
+        if (taches.length === 0) return null
+
+        return (
+          <section key={section.id} className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-800">{section.libelle}</h4>
+
+            <div className="space-y-3">
+              {taches.map((tache) => {
+                const row = findRow(rows, tache.id) ?? defaultRow(tache.id)
+                const niveau = getNiveau(row.gravite, row.probabilite)
+                const ecart =
+                  row.risqueResiduel != null ? niveau - row.risqueResiduel : null
+
+                return (
+                  <article
+                    key={tache.id}
+                    className="rounded-lg border border-gray-200 bg-white p-4"
+                  >
+                    <div className="mb-4 border-b border-gray-100 pb-3">
+                      <p className="text-sm font-medium text-gray-900">{tache.tache}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {[tache.materiel, tache.qui].filter(Boolean).join(' · ') || '—'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <span className="mb-1.5 block text-xs font-medium text-gray-600">
+                          Risque identifié
+                        </span>
                         <RisqueMultiSelect
                           categories={categories}
                           categorieIds={row.categorieIds ?? []}
-                          onChange={(ids, description) => handleRisqueChange(tache.id, ids, description)}
-                          disabled={disabled}
-                        />
-                      </td>
-                      {/* G */}
-                      <td className="px-2 py-1.5 text-center align-top">
-                        <select
-                          value={row.gravite}
-                          onChange={(e) =>
-                            handleChange(tache.id, 'gravite', Number(e.target.value))
+                          onChange={(ids, description) =>
+                            handleRisqueChange(tache.id, ids, description)
                           }
                           disabled={disabled}
-                          className="rounded border border-gray-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-transparent disabled:border-transparent"
-                        >
-                          {SCALE_OPTIONS.map((v) => (
-                            <option key={v} value={v}>{v}</option>
-                          ))}
-                        </select>
-                      </td>
-                      {/* P */}
-                      <td className="px-2 py-1.5 text-center align-top">
-                        <select
-                          value={row.probabilite}
-                          onChange={(e) =>
-                            handleChange(tache.id, 'probabilite', Number(e.target.value))
-                          }
-                          disabled={disabled}
-                          className="rounded border border-gray-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-transparent disabled:border-transparent"
-                        >
-                          {SCALE_OPTIONS.map((v) => (
-                            <option key={v} value={v}>{v}</option>
-                          ))}
-                        </select>
-                      </td>
-                      {/* Niveau */}
-                      <td className="px-2 py-1.5 text-center align-top">
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-xs ${getNiveauBadge(niveau)}`}
-                        >
-                          {niveau}
-                        </span>
-                      </td>
-                      {/* Mesures préventives */}
-                      <td className="px-2 py-1.5 align-top">
-                        <textarea
-                          value={row.mesuresPreventives}
-                          onChange={(e) =>
-                            handleChange(tache.id, 'mesuresPreventives', e.target.value)
-                          }
-                          disabled={disabled}
-                          rows={2}
-                          placeholder="Mesures préventives…"
-                          className="w-full rounded border border-gray-300 px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-transparent disabled:border-transparent disabled:text-gray-600 resize-none"
                         />
-                      </td>
-                      {/* Risque résiduel */}
-                      <td className="px-2 py-1.5 text-center align-top">
-                        <input
-                          type="number"
-                          min={0}
-                          max={niveau}
-                          value={row.risqueResiduel ?? ''}
-                          onChange={(e) => {
-                            const val = e.target.value === '' ? null : Math.min(Number(e.target.value), niveau)
-                            handleChange(tache.id, 'risqueResiduel', val)
-                          }}
-                          disabled={disabled}
-                          placeholder="—"
-                          className="w-14 rounded border border-gray-300 px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-transparent disabled:border-transparent disabled:text-gray-600"
-                        />
-                      </td>
-                      {/* Écart */}
-                      <td className="px-2 py-1.5 text-center align-top">
-                        {ecart != null ? (
-                          <span
-                            className={`inline-block rounded-full px-2 py-0.5 text-xs ${getEcartBadge(ecart)}`}
-                          >
-                            {ecart}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                      </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded-full bg-green-400" />
-          &lt;8 Faible
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <ScaleSelect
+                          label="Gravité (G)"
+                          value={row.gravite}
+                          onChange={(v) => handleChange(tache.id, 'gravite', v)}
+                          disabled={disabled}
+                        />
+                        <ScaleSelect
+                          label="Probabilité (P)"
+                          value={row.probabilite}
+                          onChange={(v) => handleChange(tache.id, 'probabilite', v)}
+                          disabled={disabled}
+                        />
+                        <div>
+                          <span className="mb-1 block text-xs font-medium text-gray-600">
+                            Niveau
+                          </span>
+                          <div
+                            className={`flex h-[38px] items-center justify-center rounded-md border text-sm font-semibold ${getNiveauTone(niveau)}`}
+                          >
+                            {niveau}
+                          </div>
+                        </div>
+                        <label className="block min-w-0">
+                          <span className="mb-1 block text-xs font-medium text-gray-600">
+                            Risque résiduel
+                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={niveau}
+                            value={row.risqueResiduel ?? ''}
+                            onChange={(e) => {
+                              const val =
+                                e.target.value === ''
+                                  ? null
+                                  : Math.min(Number(e.target.value), niveau)
+                              handleChange(tache.id, 'risqueResiduel', val)
+                            }}
+                            disabled={disabled}
+                            placeholder="—"
+                            className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+                        <label className="block min-w-0">
+                          <span className="mb-1.5 block text-xs font-medium text-gray-600">
+                            Mesures préventives
+                          </span>
+                          <textarea
+                            value={row.mesuresPreventives}
+                            onChange={(e) =>
+                              handleChange(tache.id, 'mesuresPreventives', e.target.value)
+                            }
+                            disabled={disabled}
+                            rows={3}
+                            placeholder="Mesures préventives…"
+                            className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
+                          />
+                        </label>
+                        <div className="sm:w-24">
+                          <span className="mb-1.5 block text-xs font-medium text-gray-600">
+                            Écart
+                          </span>
+                          <div
+                            className={`flex h-[74px] items-center justify-center rounded-md border text-sm font-semibold ${
+                              ecart != null
+                                ? getNiveauTone(ecart)
+                                : 'border-gray-200 bg-gray-50 text-gray-400'
+                            }`}
+                          >
+                            {ecart != null ? ecart : '—'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })}
+
+      <div className="flex flex-wrap items-center gap-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" />
+          &lt; 8 Faible
         </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded-full bg-orange-400" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-orange-500" />
           8–14 Moyen
         </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-3 w-3 rounded-full bg-red-400" />
-          ≥15 Élevé
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
+          ≥ 15 Élevé
         </span>
+        <span className="text-gray-400">Niveau = Gravité × Probabilité</span>
       </div>
     </div>
   )
