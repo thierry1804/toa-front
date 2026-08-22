@@ -24,7 +24,7 @@ export default function InterventionFormPage() {
         <CardHeader>
           <CardTitle>{t('intervention.pages.form.title')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <InterventionForm />
         </CardContent>
       </Card>

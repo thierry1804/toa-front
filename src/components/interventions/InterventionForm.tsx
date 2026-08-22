@@ -50,54 +50,53 @@ export default function InterventionForm() {
   }));
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <p className="text-sm text-gray-600 mb-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <p className="text-sm text-gray-600">
         {t('intervention.components.interventionForm.intro')}
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            {t('intervention.components.interventionForm.permitLabel')}
-          </label>
-          {permits.length === 0 ? (
-            <p className="text-sm text-amber-600">
-              {t('intervention.components.interventionForm.noPermits')}
-            </p>
-          ) : (
-            <Select
-              options={permitOptions}
-              value={selectedPermitId}
-              onChange={(e) => setSelectedPermitId(e.target.value)}
-              placeholder={t('intervention.components.interventionForm.permitPlaceholder')}
-            />
-          )}
-        </div>
-
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
-            {error}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          {t('intervention.components.interventionForm.permitLabel')}
+        </label>
+        {permits.length === 0 ? (
+          <p className="text-sm text-amber-600">
+            {t('intervention.components.interventionForm.noPermits')}
           </p>
+        ) : (
+          <Select
+            options={permitOptions}
+            value={selectedPermitId}
+            onChange={(e) => setSelectedPermitId(e.target.value)}
+            placeholder={t('intervention.components.interventionForm.permitPlaceholder')}
+          />
         )}
+      </div>
 
-        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate('/interventions')}
-          >
-            {t('intervention.components.interventionForm.cancel')}
-          </Button>
-          <Button
-            type="submit"
-            disabled={!selectedPermitId || loading}
-          >
-            {loading
-              ? t('intervention.components.interventionForm.creating')
-              : t('intervention.components.interventionForm.submit')}
-          </Button>
-        </div>
-      </form>
-    </div>
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate('/interventions')}
+        >
+          {t('intervention.components.interventionForm.cancel')}
+        </Button>
+        <Button
+          type="submit"
+          disabled={!selectedPermitId || loading}
+          isLoading={loading}
+        >
+          {loading
+            ? t('intervention.components.interventionForm.creating')
+            : t('intervention.components.interventionForm.submit')}
+        </Button>
+      </div>
+    </form>
   );
 }
