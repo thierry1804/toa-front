@@ -75,10 +75,12 @@ export default function UserFormPage() {
     entrepriseIri: scopedEntrepriseIri,
     entrepriseName: scopedEntrepriseName,
   } = usePrestataireEntrepriseScope();
-  const dynamicRoleOptions = (isPrestataireScoped
-    ? allRoles.filter((r) => r.name === "ROLE_PRESTATAIRE")
-    : allRoles
-  ).map((r) => ({ value: r.name, label: r.label }));
+  // GET /api/roles exige ROLE_SUPER_ADMIN : un prestataire scoped reçoit un
+  // 403, allRoles reste vide. Son rôle est de toute façon toujours forcé à
+  // ROLE_PRESTATAIRE, donc on n'a pas besoin de la liste complète ici.
+  const dynamicRoleOptions = isPrestataireScoped
+    ? [{ value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") }]
+    : allRoles.map((r) => ({ value: r.name, label: r.label }));
 
   const isEditMode = !!id;
 
