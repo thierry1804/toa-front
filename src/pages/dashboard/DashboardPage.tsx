@@ -45,7 +45,7 @@ function SectionPanel({
   );
 }
 
-export default function DashboardPage() {
+function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const roles = useAuthStore((s) => s.roles);
   const menuItems = useMenuStore((s) => s.items);
@@ -59,9 +59,9 @@ export default function DashboardPage() {
   const [filterProcess, setFilterProcess] = useState("");
 
   const { filteredGeoJson, prestataires, processTypes, isLoading: mapLoading } =
-    useDashboardMap(filterProvider, filterProcess);
+    useDashboardMap(filterProvider, filterProcess, { enabled: isAdmin });
 
-  const { data: kpis } = useDashboardKpis();
+  const { data: kpis } = useDashboardKpis(undefined, { enabled: isAdmin });
 
   const statItems = [
     { label: t("dashboard.kpis.plansValides"), value: kpis?.nbPlansValides ?? "—" },
@@ -218,3 +218,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default DashboardPage;

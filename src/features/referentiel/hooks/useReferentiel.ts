@@ -45,10 +45,12 @@ export function useSiteList(page = 1) {
   })
 }
 
-export function useSitesGeoJson() {
+export function useSitesGeoJson(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: REFERENTIEL_SITES_GEOJSON_KEY,
     queryFn: referentielApi.fetchSitesGeoJson,
     staleTime: 60 * 1000,
+    enabled: options?.enabled !== false,
+    retry: false,
   })
 }

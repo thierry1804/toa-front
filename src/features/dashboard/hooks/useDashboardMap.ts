@@ -5,14 +5,21 @@ import { useSitesGeoJson } from '@/features/referentiel/hooks/useReferentiel'
 import type { FeatureCollection, Point } from 'geojson'
 import type { SiteGeoJsonFeature } from '@/types/referentiel'
 
-export function useDashboardMap(filterProvider: string, filterProcess: string) {
-  const geoJsonQuery = useSitesGeoJson()
+export function useDashboardMap(
+  filterProvider: string,
+  filterProcess: string,
+  options?: { enabled?: boolean },
+) {
+  const enabled = options?.enabled !== false
+  const geoJsonQuery = useSitesGeoJson({ enabled })
 
   const planningsQuery = useQuery({
     queryKey: ['activity_plannings', 'dashboard_map'],
     queryFn: () => activityPlanningApi.list({ itemsPerPage: 1000 }),
     select: (d) => d.member,
     staleTime: 5 * 60 * 1000,
+    enabled,
+    retry: false,
   })
 
   const plannings = planningsQuery.data ?? []
