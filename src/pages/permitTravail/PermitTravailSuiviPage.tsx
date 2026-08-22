@@ -133,7 +133,7 @@ export default function PermitTravailSuiviPage() {
   }, [activeFilters, page])
 
   const { data: suiviData, isLoading: loadingSuivi } = usePermitTravailSuivi(activeFilters)
-  const { data: stats, isLoading: loadingStats }      = usePermitTravailStatsJournalieres(
+  const { data: stats } = usePermitTravailStatsJournalieres(
     undefined,
     activeFilters.codeSite,
     activeFilters.typePermis,

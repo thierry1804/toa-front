@@ -37,8 +37,9 @@ export default function InterventionForm() {
       const intervention = await interventionApi.create(selectedPermitId);
       addIntervention(intervention);
       navigate(`/interventions/${intervention.id}`);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? t('intervention.components.interventionForm.createError'));
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(detail ?? t('intervention.components.interventionForm.createError'));
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useInterventionStore } from '@/store/interventionStore';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { interventionApi } from '@/api/interventionApi';
-import type { PermitTravailSummary } from '@/types/intervention';
+import type { Intervention, PermitTravailSummary } from '@/types/intervention';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { TableIconButton } from '@/components/ui/TableIconButton';
@@ -14,7 +14,6 @@ import Badge from '@/components/ui/Badge';
 import { StatStrip } from '@/components/ui/StatStrip';
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton';
 import { listFiltersContainerClass } from '@/components/ui/ListTable';
-import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/PageHeader';
 import {
   Clipboard,
@@ -38,14 +37,19 @@ const STATUT_MAP: Record<string, string> = {
   TERMINEE: 'terminee',
 }
 
-function getPermit(intervention: any): PermitTravailSummary | null {
+type RawIntervention = Intervention & {
+  validationsJournalieres?: unknown[]
+  incidents?: unknown[]
+}
+
+function getPermit(intervention: Intervention): PermitTravailSummary | null {
   if (intervention.permitTravail && typeof intervention.permitTravail === 'object') {
-    return intervention.permitTravail as PermitTravailSummary
+    return intervention.permitTravail
   }
   return null
 }
 
-function mapIntervention(raw: any) {
+function mapIntervention(raw: RawIntervention) {
   const permit = getPermit(raw)
   const createdBy = permit?.createdBy
   const prestataire = createdBy?.entrepriseName
@@ -118,7 +122,7 @@ export default function InterventionsListPage() {
   );
 
   // Extraire les sites uniques pour le filtre
-  const uniqueSites = Array.from(new Set(interventions.map((i: any) => i.codeSite as string)));
+  const uniqueSites = Array.from(new Set(interventions.map((i) => i.codeSite as string)));
 
   const getStatusBadge = (status: InterventionStatus) => {
     const statusConfig = {
