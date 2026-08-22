@@ -2,17 +2,21 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
 import { useUsers, useDeleteUser } from "@/features/users/hooks/useUsers";
+import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
 import { useUiStore } from "@/store/ui.store";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import Button from "@/components/ui/Button";
+import { TableIconButton } from "@/components/ui/TableIconButton";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import { StatStrip } from "@/components/ui/StatStrip";
 import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
+import { listFiltersContainerClass } from "@/components/ui/ListTable";
+import { cn } from "@/lib/utils";
 import {
   Users,
   Plus,
@@ -37,6 +41,13 @@ export default function UsersListPage() {
   const addToast = useUiStore((s) => s.addToast);
   const { mutate: deleteUser } = useDeleteUser();
   const perms = usePermissions("/users");
+  const {
+    isScoped: isPrestataireScoped,
+    isProfileLoading: isPrestataireProfileLoading,
+    matchesEntreprise,
+    hasEntreprise,
+    entrepriseName: scopedEntrepriseName,
+  } = usePrestataireEntrepriseScope();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -50,8 +61,11 @@ export default function UsersListPage() {
   const itemsPerPage = 10;
   const { data: hydraData, isLoading } = useUsers(1, 1000);
   const allUsers = hydraData?.member ?? [];
+  const visibleUsers = isPrestataireScoped
+    ? allUsers.filter(matchesEntreprise)
+    : allUsers;
 
-  const filteredUsers = allUsers.filter((user) => {
+  const filteredUsers = visibleUsers.filter((user) => {
     const fullName = formatUserDisplayName(user).toLowerCase();
     const matchSearch =
       searchQuery === "" ||
@@ -78,16 +92,27 @@ export default function UsersListPage() {
   );
 
   const stats = {
-    total: allUsers.length,
-    actifs: allUsers.filter((u) => u.isActive).length,
-    inactifs: allUsers.filter((u) => !u.isActive).length,
-    prestataires: allUsers.filter((u) => u.roles.includes("ROLE_PRESTATAIRE"))
+    total: visibleUsers.length,
+    actifs: visibleUsers.filter((u) => u.isActive).length,
+    inactifs: visibleUsers.filter((u) => !u.isActive).length,
+    prestataires: visibleUsers.filter((u) => u.roles.includes("ROLE_PRESTATAIRE"))
       .length,
-    toa: allUsers.filter((u) => !u.roles.includes("ROLE_PRESTATAIRE")).length,
+    toa: visibleUsers.filter((u) => !u.roles.includes("ROLE_PRESTATAIRE")).length,
   };
+
+  const prestataireRoleOptions = [
+    { value: "all", label: t("users.filters.allRoles") },
+    { value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") },
+  ];
 
   const handleDelete = () => {
     if (!deleteTarget) return;
+    const targetUser = visibleUsers.find((u) => u.id === deleteTarget.id);
+    if (!targetUser || !matchesEntreprise(targetUser)) {
+      addToast({ message: t("users.toast.permissionDenied"), type: "error" });
+      setDeleteTarget(null);
+      return;
+    }
     deleteUser(deleteTarget.id, {
       onSuccess: () => {
         addToast({
@@ -129,7 +154,7 @@ export default function UsersListPage() {
       </Badge>
     );
 
-  if (isLoading) {
+  if (isLoading || isPrestataireProfileLoading) {
     return <ListPageSkeleton />;
   }
 
@@ -139,7 +164,7 @@ export default function UsersListPage() {
         title={t("users.title")}
         description={t("users.description")}
         actions={
-          perms?.canCreate ? (
+          perms?.canCreate && (!isPrestataireScoped || hasEntreprise) ? (
             <Link to="/users/new" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-5 w-5" />
@@ -150,18 +175,55 @@ export default function UsersListPage() {
         }
       />
 
+      {isPrestataireScoped && !hasEntreprise && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 sm:px-4">
+          <p className="text-sm font-medium text-amber-900">
+            {t("users.entreprise.missingTitle")}
+          </p>
+          <p className="mt-1 text-sm text-amber-800">
+            {t("users.entreprise.missingBody")}{" "}
+            <Link
+              to="/mon-entreprise"
+              className="font-medium text-amber-900 underline underline-offset-2 hover:text-amber-950"
+            >
+              {t("nav.myEntreprise")}
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
+      {isPrestataireScoped && hasEntreprise && perms && !perms.canCreate && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 sm:px-4">
+          <p className="text-sm font-medium text-amber-900">
+            {t("users.entreprise.creationDisabledTitle")}
+          </p>
+          <p className="mt-1 text-sm text-amber-800">
+            {t("users.entreprise.creationDisabledBody")}
+          </p>
+        </div>
+      )}
+
       <StatStrip
-        items={[
-          { label: t("users.stats.total"), value: stats.total },
-          { label: t("users.stats.active"), value: stats.actifs },
-          { label: t("users.stats.inactive"), value: stats.inactifs },
-          { label: t("users.stats.prestataires"), value: stats.prestataires },
-          { label: t("users.stats.teamToa"), value: stats.toa },
-        ]}
+        items={
+          isPrestataireScoped
+            ? [
+                { label: t("users.stats.total"), value: stats.total },
+                { label: t("users.stats.active"), value: stats.actifs },
+                { label: t("users.stats.inactive"), value: stats.inactifs },
+              ]
+            : [
+                { label: t("users.stats.total"), value: stats.total },
+                { label: t("users.stats.active"), value: stats.actifs },
+                { label: t("users.stats.inactive"), value: stats.inactifs },
+                { label: t("users.stats.prestataires"), value: stats.prestataires },
+                { label: t("users.stats.teamToa"), value: stats.toa },
+              ]
+        }
       />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className={cn('rounded-lg border border-gray-200 bg-white', listFiltersContainerClass)}>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <Input
             placeholder={t("users.search")}
             value={searchQuery}
@@ -172,7 +234,7 @@ export default function UsersListPage() {
             className="min-h-[44px]"
           />
           <Select
-            options={roleOptions}
+            options={isPrestataireScoped ? prestataireRoleOptions : roleOptions}
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
@@ -200,15 +262,23 @@ export default function UsersListPage() {
             {t("users.listTitle", { count: filteredUsers.length })}
           </h2>
           <p className="mt-0.5 text-xs text-gray-500">
-            {t("users.listSubtitle", { count: stats.prestataires })}
+            {isPrestataireScoped
+              ? t("users.listSubtitleEntreprise", {
+                  entreprise: scopedEntrepriseName ?? "—",
+                })
+              : t("users.listSubtitle", { count: stats.prestataires })}
           </p>
         </div>
 
         {filteredUsers.length === 0 ? (
           <div className="px-3 py-10 text-center sm:px-4">
             <Users className="mx-auto mb-3 h-10 w-10 text-gray-300" aria-hidden />
-            <p className="text-sm text-gray-500">{t("users.empty")}</p>
-            {perms?.canCreate && (
+            <p className="text-sm text-gray-500">
+              {isPrestataireScoped && !hasEntreprise
+                ? t("users.entreprise.emptyNoEntreprise")
+                : t("users.empty")}
+            </p>
+            {perms?.canCreate && (!isPrestataireScoped || hasEntreprise) && (
               <Link to="/users/new">
                 <Button className="mt-4" variant="outline">
                   <Plus className="mr-2 h-5 w-5" />
@@ -281,36 +351,33 @@ export default function UsersListPage() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             {perms?.canEdit && (
-                              <button
-                                type="button"
+                              <TableIconButton
+                                title={t("common.edit")}
                                 onClick={() =>
                                   navigate(`/users/${user.id}/edit`)
                                 }
-                                className="touch-target flex items-center justify-center rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-                                title={t("common.edit")}
                               >
                                 <Edit className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                             {perms?.canDelete && (
-                              <button
-                                type="button"
+                              <TableIconButton
+                                title={
+                                  String(user.id) === currentUser?.id
+                                    ? t("users.cannotDeleteSelf")
+                                    : t("common.delete")
+                                }
+                                variant="danger"
+                                disabled={String(user.id) === currentUser?.id}
                                 onClick={() =>
                                   setDeleteTarget({
                                     id: user.id,
                                     name: formatUserDisplayName(user),
                                   })
                                 }
-                                disabled={String(user.id) === currentUser?.id}
-                                className="touch-target flex items-center justify-center rounded-lg disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-600 enabled:hover:bg-red-50 enabled:hover:text-red-600"
-                                title={
-                                  String(user.id) === currentUser?.id
-                                    ? t("users.cannotDeleteSelf")
-                                    : t("common.delete")
-                                }
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                           </div>
                         </td>
@@ -351,32 +418,29 @@ export default function UsersListPage() {
                           </div>
                           <div className="flex shrink-0 items-center gap-0.5">
                             {perms?.canEdit && (
-                              <button
-                                type="button"
+                              <TableIconButton
+                                title={t("common.edit")}
                                 onClick={() =>
                                   navigate(`/users/${user.id}/edit`)
                                 }
-                                className="touch-target flex items-center justify-center rounded-lg text-gray-500 hover:bg-blue-50 hover:text-blue-600"
-                                title={t("common.edit")}
                               >
                                 <Edit className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                             {perms?.canDelete && (
-                              <button
-                                type="button"
+                              <TableIconButton
+                                title={t("common.delete")}
+                                variant="danger"
+                                disabled={String(user.id) === currentUser?.id}
                                 onClick={() =>
                                   setDeleteTarget({
                                     id: user.id,
                                     name: formatUserDisplayName(user),
                                   })
                                 }
-                                disabled={String(user.id) === currentUser?.id}
-                                className="touch-target flex items-center justify-center rounded-lg disabled:cursor-not-allowed disabled:opacity-40 enabled:text-gray-500 enabled:hover:bg-red-50 enabled:hover:text-red-600"
-                                title={t("common.delete")}
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </button>
+                              </TableIconButton>
                             )}
                           </div>
                         </div>

@@ -11,6 +11,15 @@ export function useEntreprises() {
   })
 }
 
+export function useEntreprise(id: string | null) {
+  return useQuery({
+    queryKey: [...ENTREPRISES_KEY, id],
+    queryFn: () => entrepriseApi.getById(id!),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useCreateEntreprise() {
   const queryClient = useQueryClient()
   return useMutation({

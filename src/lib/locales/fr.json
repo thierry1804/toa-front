@@ -32,7 +32,8 @@
     "expandSidebar": "Développer la barre latérale",
     "expandSection": "Développer la section",
     "collapseSection": "Réduire la section",
-    "changeLanguage": "Changer la langue"
+    "changeLanguage": "Changer la langue",
+    "myEntreprise": "Mon entreprise"
   },
   "auth": {
     "login": "Connexion",
@@ -90,20 +91,6 @@
     }
   },
   "users": {
-    "entreprise": {
-      "creationDisabledTitle": "Gestion des utilisateurs pas encore activée",
-      "creationDisabledBody": "Votre compte n'a pas encore les droits pour ajouter ou modifier des utilisateurs de votre entreprise. Contactez un administrateur TOA pour activer cet accès.",
-      "fields": {
-        "nom": "Entreprise",
-        "nomPlaceholder": "Ex. : eTech Consulting",
-        "numeroRegistreCommerce": "N° Registre du Commerce",
-        "numeroRegistreCommercePlaceholder": "Ex. : 2024 B 01234",
-        "siegeSocial": "Siège Social",
-        "siegeSocialPlaceholder": "Ex. : Lot II M 85 Antananarivo",
-        "qualiteRepresentant": "Qualité du Représentant",
-        "qualiteRepresentantPlaceholder": "Ex. : Directeur Général"
-      }
-    },
     "title": "Utilisateurs",
     "newUser": "Nouvel utilisateur",
     "description": "Gestion des utilisateurs et des accès à la plateforme",
@@ -129,6 +116,44 @@
     "createAction": "Créer un utilisateur",
     "listTitle": "Utilisateurs ({{count}})",
     "listSubtitle": "{{count}} prestataires sur les entreprises partenaires",
+    "listSubtitleEntreprise": "Utilisateurs de {{entreprise}} uniquement",
+    "entreprise": {
+      "defineAction": "Définir mon entreprise",
+      "manageAction": "Mon entreprise",
+      "createTitle": "Définir mon entreprise",
+      "createDesc": "Renseignez les informations de votre entreprise prestataire",
+      "editTitle": "Mon entreprise",
+      "editDesc": "Modifier les informations de votre entreprise",
+      "sectionTitle": "Informations entreprise",
+      "createHint": "Ces informations seront utilisées pour rattacher votre compte et vos utilisateurs à votre entreprise.",
+      "createAction": "Créer mon entreprise",
+      "backToUsers": "Retour aux utilisateurs",
+      "missingTitle": "Aucune entreprise associée",
+      "missingBody": "Configurez votre organisation depuis le menu",
+      "emptyNoEntreprise": "Configurez d'abord votre entreprise via le menu Mon entreprise.",
+      "requiredBeforeUsers": "Définissez votre entreprise avant d'ajouter des utilisateurs.",
+      "nomRequired": "Le nom de l'entreprise est obligatoire",
+      "nomMaxLength": "255 caractères maximum",
+      "created": "Entreprise créée et associée à votre compte",
+      "updated": "Entreprise mise à jour",
+      "createError": "Erreur lors de la création de l'entreprise",
+      "updateError": "Erreur lors de la mise à jour de l'entreprise",
+      "syncError": "Entreprise enregistrée, mais le rattachement au compte a échoué",
+      "userMissing": "Impossible d'identifier votre compte utilisateur",
+      "fields": {
+        "nom": "Entreprise",
+        "nomPlaceholder": "Ex. : eTech Consulting",
+        "numeroRegistreCommerce": "N° Registre du Commerce",
+        "numeroRegistreCommercePlaceholder": "Ex. : 2024 B 01234",
+        "siegeSocial": "Siège Social",
+        "siegeSocialPlaceholder": "Ex. : Lot II M 85 Antananarivo",
+        "qualiteRepresentant": "Qualité du Représentant",
+        "qualiteRepresentantPlaceholder": "Ex. : Directeur Général"
+      }
+    },
+    "filters": {
+      "allRoles": "Tous les rôles"
+    },
     "you": "Vous",
     "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
     "status": {
@@ -184,6 +209,7 @@
       "signatureHint": "Formats acceptés : PNG, WebP — max 2 Mo",
       "keepPassword": "Laissez les champs vides pour conserver le mot de passe actuel.",
       "prestataireInfo": "TOA travaille avec des prestataires partenaires. Chaque prestataire doit remplir un plan de prévention et obtenir un permis avant chaque intervention.",
+      "entrepriseScopeHint": "Vous ne pouvez gérer que les utilisateurs de {{entreprise}}.",
       "cancel": "Annuler",
       "save": "Enregistrer les modifications",
       "create": "Créer l'utilisateur"
@@ -226,6 +252,7 @@
       "ajouter_ligne": "Ajouter une ligne",
       "aucune_section": "Aucune section",
       "aucune_tache": "Aucune tâche",
+      "tache_requise": "La tâche est obligatoire",
       "title": "Sections et tâches"
     },
     "title": "Planification des activités",
@@ -486,14 +513,22 @@
         "statut": "Statut",
         "chefProjet": "Chef de Projet",
         "dateExamen": "Date examen",
+        "pdf": "PDF",
         "actions": "Actions"
       },
       "actions": {
         "voir": "Voir",
         "modifier": "Modifier",
+        "corriger": "Corriger",
         "examiner": "Examiner",
         "valider": "Valider",
         "refuser": "Refuser"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher par référence, site, processus, activité…",
+        "statut": "Filtrer par statut",
+        "processus": "Filtrer par processus",
+        "noResults": "Aucun plan ne correspond aux filtres"
       }
     },
     "detail": {
@@ -532,7 +567,7 @@
       "title": "Valider le plan {{reference}}",
       "success": "Plan validé avec succès",
       "signatureLabel": "Signature électronique",
-      "description": "Vous allez valider définitivement ce plan de prévention. Les 5 documents requis seront vérifiés avant confirmation.",
+      "description": "Vous allez valider définitivement ce plan de prévention. Les documents requis seront vérifiés avant confirmation.",
       "commentaireLabel": "Commentaire",
       "commentaireOptional": "(optionnel)",
       "commentairePlaceholder": "Observations complémentaires...",
@@ -560,6 +595,14 @@
       "errorValidate": "Erreur lors de la validation HSE du plan",
       "errorRefuse": "Erreur lors du refus HSE du plan",
       "errorExamine": "Erreur lors de l'examen du plan"
+    },
+    "components": {
+      "planReference": {
+        "label": "Référence"
+      },
+      "documentUpload": {
+        "hint": "Les {{count}} documents sont obligatoires pour soumettre le plan. Formats acceptés : PDF, JPG/JPEG."
+      }
     }
   },
   "statistics": {
@@ -680,7 +723,6 @@
     "queued": "Action sauvegardée hors ligne"
   },
   "errors": {
-    "entreprise_nom_deja_existant": "Ce nom d'entreprise est déjà utilisé",
     "incorrect_credentials": "Identifiants incorrects",
     "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
     "email_required": "L'email est obligatoire",
@@ -709,7 +751,8 @@
     "menu_access_role_required": "Le rôle est obligatoire",
     "access_denied": "Accès refusé",
     "account_not_activated": "Compte non activé",
-    "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte."
+    "login_attempt_warning": "Identifiants incorrects. Attention : il ne vous reste plus qu'une tentative avant le blocage temporaire de votre compte.",
+    "entreprise_nom_deja_existant": "Ce nom d'entreprise est déjà utilisé"
   },
   "referentiel": {
     "title": "Référentiel",
@@ -1708,7 +1751,11 @@
       },
       "filters": {
         "allStatuts": "Tous les statuts",
-        "allTypes": "Tous les types"
+        "allTypes": "Tous les types",
+        "searchPlaceholder": "Rechercher par référence, site, type…",
+        "statut": "Filtrer par statut",
+        "type": "Filtrer par type",
+        "noResults": "Aucun permis ne correspond aux filtres"
       }
     },
     "suivi": {
@@ -2040,6 +2087,16 @@
       }
     },
     "components": {
+      "interventionForm": {
+        "intro": "Sélectionnez un permis de travail validé par le HSE pour créer une nouvelle intervention.",
+        "permitLabel": "Permis de travail",
+        "permitPlaceholder": "Choisir un permis…",
+        "noPermits": "Aucun permis de travail validé disponible. Vous devez d'abord obtenir la validation HSE d'un permis.",
+        "cancel": "Annuler",
+        "submit": "Créer l'intervention",
+        "creating": "Création en cours…",
+        "createError": "Impossible de créer l'intervention."
+      },
       "avancementBadge": {
         "termine": "Terminé",
         "avance": "Avancé",

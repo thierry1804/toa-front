@@ -32,6 +32,7 @@ import { useTranslation } from "react-i18next";
 import { parseApiFieldErrors } from "@/lib/apiErrors";
 import { useRoles } from "@/features/roles/hooks/useRoles";
 import { useEntreprises } from "@/features/referentiel/hooks/useEntreprises";
+import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
 
 // Maps API propertyPath / error_key values → form field names
 const PROPERTY_TO_FIELD: Record<string, string> = {
@@ -65,7 +66,19 @@ export default function UserFormPage() {
   const { mutate: uploadSignature, isPending: isUploadingSignature } = useUploadSignature();
   const { data: rolesData, isLoading: rolesLoading } = useRoles(1, 200);
   const allRoles = rolesData?.member ?? [];
-  const dynamicRoleOptions = allRoles.map((r) => ({ value: r.name, label: r.label }));
+  const {
+    isScoped: isPrestataireScoped,
+    profile: prestataireProfile,
+    isProfileLoading: isPrestataireProfileLoading,
+    canManageUser,
+    hasEntreprise,
+    entrepriseIri: scopedEntrepriseIri,
+    entrepriseName: scopedEntrepriseName,
+  } = usePrestataireEntrepriseScope();
+  const dynamicRoleOptions = (isPrestataireScoped
+    ? allRoles.filter((r) => r.name === "ROLE_PRESTATAIRE")
+    : allRoles
+  ).map((r) => ({ value: r.name, label: r.label }));
 
   const isEditMode = !!id;
 
@@ -117,6 +130,9 @@ export default function UserFormPage() {
   });
 
   const { data: entreprises = [] } = useEntreprises();
+  const selectableEntreprises = isPrestataireScoped && scopedEntrepriseIri
+    ? entreprises.filter((ent) => ent["@id"] === scopedEntrepriseIri)
+    : entreprises;
   const canHaveEntreprise = (role: string) =>
     role === "ROLE_PRESTATAIRE" || role === "ROLE_HSE";
 
@@ -181,7 +197,65 @@ export default function UserFormPage() {
     canEditUsers,
     canCreateUsers,
     hasPermissions,
+    t,
   ]);
+
+  useEffect(() => {
+    if (!isPrestataireScoped || isPrestataireProfileLoading) return;
+
+    if (isEditMode && existingUser && !canManageUser(existingUser)) {
+      navigate("/users");
+      addToast({ message: t("users.toast.permissionDenied"), type: "error" });
+    }
+  }, [
+    isPrestataireScoped,
+    isPrestataireProfileLoading,
+    isEditMode,
+    existingUser,
+    canManageUser,
+    navigate,
+    addToast,
+    t,
+  ]);
+
+  useEffect(() => {
+    if (!isPrestataireScoped || isPrestataireProfileLoading || isEditMode) return;
+
+    if (!hasEntreprise) {
+      navigate("/mon-entreprise");
+      addToast({
+        message: t("users.entreprise.requiredBeforeUsers"),
+        type: "warning",
+      });
+    }
+  }, [
+    isPrestataireScoped,
+    isPrestataireProfileLoading,
+    isEditMode,
+    hasEntreprise,
+    navigate,
+    addToast,
+    t,
+  ]);
+
+  useEffect(() => {
+    if (!isPrestataireScoped || isEditMode || !prestataireProfile) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      role: "ROLE_PRESTATAIRE",
+      entrepriseId: prestataireProfile.entreprise?.["@id"] ?? prev.entrepriseId,
+      entrepriseName:
+        prestataireProfile.entrepriseName ??
+        prestataireProfile.entreprise?.nom ??
+        prev.entrepriseName,
+      numeroRegistreCommerce:
+        prestataireProfile.numeroRegistreCommerce ?? prev.numeroRegistreCommerce,
+      siegeSocial: prestataireProfile.siegeSocial ?? prev.siegeSocial,
+      qualiteRepresentant:
+        prestataireProfile.qualiteRepresentant ?? prev.qualiteRepresentant,
+    }));
+  }, [isPrestataireScoped, isEditMode, prestataireProfile]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -312,6 +386,7 @@ export default function UserFormPage() {
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isPrestataireScoped) return;
     const newRole = e.target.value;
     const isPrestataire = newRole === "ROLE_PRESTATAIRE";
     const hasEnt = canHaveEntreprise(newRole);
@@ -325,6 +400,12 @@ export default function UserFormPage() {
       qualiteRepresentant: isPrestataire ? formData.qualiteRepresentant : "",
     });
   };
+
+  if (isPrestataireProfileLoading && isPrestataireScoped) {
+    return (
+      <div className="py-12 text-center text-sm text-gray-500">{t("common.loading")}</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -414,8 +495,14 @@ export default function UserFormPage() {
               onChange={handleRoleChange}
               error={errors.role}
               required
-              disabled={rolesLoading}
+              disabled={rolesLoading || isPrestataireScoped}
             />
+
+            {isPrestataireScoped && scopedEntrepriseName && (
+              <p className="text-sm text-gray-600">
+                {t("users.form.entrepriseScopeHint", { entreprise: scopedEntrepriseName })}
+              </p>
+            )}
 
             {canHaveEntreprise(formData.role) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -429,6 +516,7 @@ export default function UserFormPage() {
                       label={t("users.form.entreprise")}
                       value={formData.entrepriseId}
                       onChange={(e) => {
+                        if (isPrestataireScoped) return;
                         const iri = e.target.value
                         const ent = entreprises.find((x) => x['@id'] === iri)
                         setFormData({
@@ -440,15 +528,16 @@ export default function UserFormPage() {
                           qualiteRepresentant: ent ? (ent.qualiteRepresentant ?? '') : '',
                         })
                       }}
+                      disabled={isPrestataireScoped}
                       options={[
                         { value: "", label: "— Sélectionner une entreprise —" },
-                        ...entreprises.map((ent) => ({
+                        ...selectableEntreprises.map((ent) => ({
                           value: ent['@id'],
                           label: ent.nom,
                         })),
                       ]}
                     />
-                    {canHaveEntreprise(formData.role) && (
+                    {canHaveEntreprise(formData.role) && !isPrestataireScoped && (
                       <>
                         <div className="mt-3">
                           <Input

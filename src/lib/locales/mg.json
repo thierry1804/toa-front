@@ -32,7 +32,8 @@
     "expandSidebar": "Ahalehibiazo ny tsipika ivelany",
     "expandSection": "Ahalehibiazo ny fizarana",
     "collapseSection": "Ahakeleo ny fizarana",
-    "changeLanguage": "Hanova ny fiteny"
+    "changeLanguage": "Hanova ny fiteny",
+    "myEntreprise": "Ny orinasako"
   },
   "auth": {
     "login": "Hiditra",
@@ -90,20 +91,6 @@
     }
   },
   "users": {
-    "entreprise": {
-      "creationDisabledTitle": "Tsy mbola mihatra ny fitantanana mpampiasa",
-      "creationDisabledBody": "Ny kaontinao dia tsy mbola manana ny zo hanampiana na hanovana mpampiasa ao amin'ny orinasanao. Mifandraisa amin'ny mpitantana TOA mba handraisana io zo io.",
-      "fields": {
-        "nom": "Orinasa",
-        "nomPlaceholder": "Ohatra: eTech Consulting",
-        "numeroRegistreCommerce": "Laharana Registre du Commerce",
-        "numeroRegistreCommercePlaceholder": "Ohatra: 2024 B 01234",
-        "siegeSocial": "Foibem-piasan'ny orinasa",
-        "siegeSocialPlaceholder": "Ohatra: Lot II M 85 Antananarivo",
-        "qualiteRepresentant": "Maha-izy ny Solontena",
-        "qualiteRepresentantPlaceholder": "Ohatra: Direktera Jeneraly"
-      }
-    },
     "title": "Mpampiasa",
     "newUser": "Mpampiasa vaovao",
     "description": "Fitantanana ny mpampiasa sy ny fidirana amin'ny sehatra",
@@ -129,6 +116,44 @@
     "createAction": "Hamorona mpampiasa",
     "listTitle": "Mpampiasa ({{count}})",
     "listSubtitle": "{{count}} mpiasa amin'ny orinasa mpiara-miasa",
+    "listSubtitleEntreprise": "Mpampiasa avy amin'ny {{entreprise}} ihany",
+    "entreprise": {
+      "defineAction": "Farito ny orinasako",
+      "manageAction": "Ny orinasako",
+      "createTitle": "Farito ny orinasako",
+      "createDesc": "Fenoy ny fampahalalana momba ny orinasa mpanome tolotra",
+      "editTitle": "Ny orinasako",
+      "editDesc": "Hanova ny fampahalalana momba ny orinasanao",
+      "sectionTitle": "Fampahalalana orinasa",
+      "createHint": "Ity fampahalalana ity dia hampifandray ny kaontinao sy ny mpampiasa amin'ny orinasanao.",
+      "createAction": "Hamorona ny orinasako",
+      "backToUsers": "Hiverina any amin'ny mpampiasa",
+      "missingTitle": "Tsy misy orinasa mifandray",
+      "missingBody": "Amboary ny fikambananao avy amin'ny menio",
+      "emptyNoEntreprise": "Amboary aloha ny orinasanao amin'ny alalan'ny menio Ny orinasako.",
+      "requiredBeforeUsers": "Farito ny orinasanao alohan'ny hanampiana mpampiasa.",
+      "nomRequired": "Ilaina ny anaran'ny orinasa",
+      "nomMaxLength": "255 tarehintsoratra farafahakeliny",
+      "created": "Orinasa noforonina sy nampifandraisina tamin'ny kaontinao",
+      "updated": "Orinasa novaina",
+      "createError": "Hadisoana rehefa namorona ny orinasa",
+      "updateError": "Hadisoana rehefa nanova ny orinasa",
+      "syncError": "Orinasa voatahiry, saingy tsy nahomby ny fifandraisana amin'ny kaonty",
+      "userMissing": "Tsy afaka namantatra ny kaontinao mpampiasa",
+      "fields": {
+        "nom": "Orinasa",
+        "nomPlaceholder": "Ohatra: eTech Consulting",
+        "numeroRegistreCommerce": "Laharana Registre du Commerce",
+        "numeroRegistreCommercePlaceholder": "Ohatra: 2024 B 01234",
+        "siegeSocial": "Foibem-piasan'ny orinasa",
+        "siegeSocialPlaceholder": "Ohatra: Lot II M 85 Antananarivo",
+        "qualiteRepresentant": "Maha-izy ny Solontena",
+        "qualiteRepresentantPlaceholder": "Ohatra: Direktera Jeneraly"
+      }
+    },
+    "filters": {
+      "allRoles": "Ny andra rehetra"
+    },
     "you": "Ianao",
     "cannotDeleteSelf": "Tsy afaka mamafa ny kaontinao manokana ianao",
     "status": {
@@ -184,6 +209,7 @@
       "signatureHint": "Endrika ekena: PNG, WebP — max 2 Mo",
       "keepPassword": "Avelao banga ireo saha mba hitazona ny tenimiafina ankehitriny.",
       "prestataireInfo": "TOA miara-miasa amin'ny mpiasa mpiara-miombon'antoka. Ny mpiasa tsirairay dia tsy maintsy mameno drafitra fisorohana ary mahazo permis alohan'ny fitsabahana rehetra.",
+      "entrepriseScopeHint": "Ny mpampiasa avy amin'ny {{entreprise}} ihany no azonao mitantana.",
       "cancel": "Ajanony",
       "save": "Tehirizo ny fanovana",
       "create": "Hamorona ny mpampiasa"
@@ -226,6 +252,7 @@
       "ajouter_ligne": "Manampy andalana",
       "aucune_section": "Tsy misy fizarana",
       "aucune_tache": "Tsy misy asa",
+      "tache_requise": "Tsy maintsy fenoina ny asa",
       "title": "Fizarana sy asa"
     },
     "title": "Fandrindrana ny hetsika",
@@ -486,14 +513,22 @@
         "statut": "Sata",
         "chefProjet": "Tompon'andraikitra tetikasa",
         "dateExamen": "Datin'ny fitsirihana",
+        "pdf": "PDF",
         "actions": "Hetsika"
       },
       "actions": {
         "voir": "Jereo",
         "modifier": "Hanova",
+        "corriger": "Hanitsy",
         "examiner": "Hijery",
         "valider": "Hanamafy",
         "refuser": "Hanilika"
+      },
+      "filters": {
+        "searchPlaceholder": "Mitady amin'ny reference, toerana, dingana, asa…",
+        "statut": "Sivana araka ny sata",
+        "processus": "Sivana araka ny dingana",
+        "noResults": "Tsy misy drafitra mifanaraka amin'ny sivana"
       }
     },
     "detail": {
@@ -532,7 +567,7 @@
       "title": "Hanamafy ny drafitra {{reference}}",
       "success": "Voamarina soa aman-tsara ny drafitra",
       "signatureLabel": "Sonia elektronika",
-      "description": "Hamarina tanteraka ity drafitry ny fisorohana ity ianao. Hajerena ny antontan-taratasy 5 ilaina alohan'ny fanamarinana.",
+      "description": "Hamarina tanteraka ity drafitry ny fisorohana ity ianao. Hajerena ny antontan-taratasy ilaina alohan'ny fanamarinana.",
       "commentaireLabel": "Fanamarihana",
       "commentaireOptional": "(tsy voatery)",
       "commentairePlaceholder": "Fanamarihana fanampiny...",
@@ -560,6 +595,14 @@
       "errorValidate": "Hadisoana tamin'ny fanamarinana HSE ny drafitra",
       "errorRefuse": "Hadisoana tamin'ny fandavana HSE ny drafitra",
       "errorExamine": "Hadisoana tamin'ny fitsirihana ny drafitra"
+    },
+    "components": {
+      "planReference": {
+        "label": "Laharana"
+      },
+      "documentUpload": {
+        "hint": "Ny antontan-taratasy {{count}} dia tsy maintsy ampidirina mba hatolotra ny drafitra. Format ekena : PDF, JPG/JPEG."
+      }
     }
   },
   "statistics": {
@@ -680,7 +723,6 @@
     "queued": "Voarakitra hors-ligne ny hetsika"
   },
   "errors": {
-    "entreprise_nom_deja_existant": "Efa misy orinasa mitondra io anarana io",
     "incorrect_credentials": "Diso ny mombamomba",
     "too_many_login_attempts": "Be loatra ny andrana fidirana. Andramo indray any aoriana.",
     "email_required": "Ilaina ny mailaka",
@@ -709,7 +751,8 @@
     "menu_access_role_required": "Ilaina ny andraikitra",
     "access_denied": "Voarara ny fidirana",
     "account_not_activated": "Tsy niasana ny kaonty",
-    "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao."
+    "login_attempt_warning": "Diso ny mombamomba. Tandremo: iray ihany no andrana sisa alohan'ny hosakanana vonjimaika ny kaontinao.",
+    "entreprise_nom_deja_existant": "Efa misy orinasa mitondra io anarana io"
   },
   "referentiel": {
     "title": "Referentialy",
@@ -1708,7 +1751,11 @@
       },
       "filters": {
         "allStatuts": "Sata rehetra",
-        "allTypes": "Karazana rehetra"
+        "allTypes": "Karazana rehetra",
+        "searchPlaceholder": "Hitady araka ny laharana, toerana, karazana…",
+        "statut": "Sivana araka ny sata",
+        "type": "Sivana araka ny karazana",
+        "noResults": "Tsy misy permis mifanaraka amin'ny sivana"
       }
     },
     "suivi": {
@@ -2040,6 +2087,16 @@
       }
     },
     "components": {
+      "interventionForm": {
+        "intro": "Misafidiana fahazoan-dalana hiasa voamarina avy amin'ny HSE mba hamoronana fandraisana anjara vaovao.",
+        "permitLabel": "Fahazoan-dalana hiasa",
+        "permitPlaceholder": "Misafidiana fahazoan-dalana…",
+        "noPermits": "Tsy misy fahazoan-dalana hiasa voamarina. Tokony ho voamarina aloha ny fahazoan-dalana amin'ny HSE.",
+        "cancel": "Ajanona",
+        "submit": "Hamorona ny fandraisana anjara",
+        "creating": "Mamorona…",
+        "createError": "Tsy afaka mamorona ny fandraisana anjara."
+      },
       "avancementBadge": {
         "termine": "Vita tanteraka",
         "avance": "Mandroso",

@@ -38,7 +38,10 @@ export function TopBar() {
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
   const roles = useAuthStore((s) => s.roles);
-  const roleLabel = roles.map((r) => ROLE_LABELS[r] ?? r).join(", ");
+  const roleLabel = roles
+    .filter((r) => r !== "ROLE_USER" && r in ROLE_LABELS)
+    .map((r) => ROLE_LABELS[r])
+    .join(", ");
 
   const { mutate: logout } = useLogout();
   const isOnline = useOnline();

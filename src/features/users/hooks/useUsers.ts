@@ -16,6 +16,7 @@ export function useUser(id: number) {
     queryKey: [...USERS_KEY, id],
     queryFn: () => usersApi.getById(id),
     enabled: !!id,
+    retry: false,
   })
 }
 

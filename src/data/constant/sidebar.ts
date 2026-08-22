@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Shield, ShieldCheck, FileText, Clipboard, Users, Menu, BarChart2, MapPin, Map, List, type LucideIcon } from "lucide-react"
+import { LayoutDashboard, Calendar, Shield, ShieldCheck, FileText, Clipboard, Users, Menu, BarChart2, MapPin, Map, List, Building2, type LucideIcon } from "lucide-react"
 
 export const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -12,5 +12,6 @@ export const iconMap: Record<string, LucideIcon> = {
   MapPin,
   Map,
   List,
+  Building2,
   menu: Menu,
 }

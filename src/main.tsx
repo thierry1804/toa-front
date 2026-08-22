@@ -7,11 +7,13 @@ import "@/lib/i18n";
 import { restoreQueryCache, setupQueryPersistence } from "@/offline/setupQueryPersistence";
 import { AppShell } from "@/components/layout/AppShell";
 import { RouteGuard } from "@/components/layout/RouteGuard";
+import { PrestataireRouteGuard } from "@/components/layout/PrestataireRouteGuard";
 import LoginPage from "@/pages/auth/LoginPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import PlanPreventionListPage from "@/pages/prevention/PlanPreventionListPage";
 import UsersListPage from "@/pages/users/UsersListPage";
 import UserFormPage from "@/pages/users/UserFormPage";
+import PrestataireEntreprisePage from "@/pages/users/PrestataireEntreprisePage";
 import PlanningListPage from "@/pages/planning/PlanningListPage";
 import PlanningFormPage from "@/pages/planning/PlanningFormPage";
 import MenusListPage from "@/pages/menus/MenusListPage";
@@ -80,6 +82,10 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/users" element={<UsersListPage />} />
               <Route path="/users/new" element={<UserFormPage />} />
               <Route path="/users/:id/edit" element={<UserFormPage />} />
+            </Route>
+
+            <Route element={<PrestataireRouteGuard />}>
+              <Route path="/mon-entreprise" element={<PrestataireEntreprisePage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/planning" />}>

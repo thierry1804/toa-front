@@ -1,8 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useUiStore } from "@/store/ui.store";
 import { useMenuStore } from "@/store/menu.store";
+import { useAuthStore } from "@/store/auth.store";
+import { injectPrestataireEntrepriseMenu } from "@/features/users/utils/prestataireMenu";
 import {
   ChevronLeft,
   ChevronRight,
@@ -143,13 +145,21 @@ export function Sidebar() {
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const menuStore = useMenuStore();
+  const roles = useAuthStore((s) => s.roles);
   const [collapsed, setCollapsed] = useState(false);
 
   const retryLoad = useCallback(() => {
     void menuStore.load();
   }, [menuStore]);
 
-  const rootItems = menuStore.items;
+  useEffect(() => {
+    void menuStore.load();
+  }, [menuStore]);
+
+  const rootItems = useMemo(
+    () => injectPrestataireEntrepriseMenu(menuStore.items, t("nav.myEntreprise"), roles),
+    [menuStore.items, roles, t],
+  );
   const showMenuSkeleton = menuStore.loading && !menuStore.loaded;
 
   return (

@@ -12,29 +12,23 @@ import {
 import { useUsers } from '@/features/users/hooks/useUsers'
 import { usersApi } from '@/api/usersApi'
 import { USERS_KEY } from '@/data/constant/query'
+import { parseApiFieldErrors } from '@/lib/apiErrors'
+import { useTranslation } from 'react-i18next'
 import type { Entreprise } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
+import { listFiltersContainerClass } from '@/components/ui/ListTable'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 import Modal from '@/components/ui/Modal'
-
-interface FormState {
-  nom: string
-  numeroRegistreCommerce: string
-  siegeSocial: string
-  qualiteRepresentant: string
-}
-
-const emptyForm = (): FormState => ({
-  nom: '',
-  numeroRegistreCommerce: '',
-  siegeSocial: '',
-  qualiteRepresentant: '',
-})
+import EntrepriseFormFields, {
+  emptyEntrepriseFormValues,
+  type EntrepriseFormValues,
+} from '@/components/entreprise/EntrepriseFormFields'
 
 export default function EntreprisesPage() {
+  const { t } = useTranslation()
   const addToast = useUiStore((s) => s.addToast)
   const perms = usePermissions('/referentiel/entreprises')
   const queryClient = useQueryClient()
@@ -44,7 +38,7 @@ export default function EntreprisesPage() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Entreprise | null>(null)
-  const [form, setForm] = useState<FormState>(emptyForm())
+  const [form, setForm] = useState<EntrepriseFormValues>(emptyEntrepriseFormValues())
   const [nomError, setNomError] = useState('')
 
   const [deleteTarget, setDeleteTarget] = useState<Entreprise | null>(null)
@@ -115,14 +109,14 @@ export default function EntreprisesPage() {
       )
     : entreprises
 
-  const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  const handleFieldChange = (field: keyof EntrepriseFormValues, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
     if (field === 'nom') setNomError('')
   }
 
   const openCreate = () => {
     setEditTarget(null)
-    setForm(emptyForm())
+    setForm(emptyEntrepriseFormValues())
     setNomError('')
     setSelectedHseIds(new Set())
     setInitialHseIds(new Set())
@@ -149,7 +143,7 @@ export default function EntreprisesPage() {
   const closeModal = () => {
     setModalOpen(false)
     setEditTarget(null)
-    setForm(emptyForm())
+    setForm(emptyEntrepriseFormValues())
     setNomError('')
     setSelectedHseIds(new Set())
     setInitialHseIds(new Set())
@@ -173,6 +167,15 @@ export default function EntreprisesPage() {
       qualiteRepresentant: form.qualiteRepresentant.trim() || null,
     }
 
+    const handleSaveError = (error: unknown, fallback: string) => {
+      const fieldErrors = parseApiFieldErrors(error, { nom: 'nom' })
+      if (fieldErrors.nom) {
+        setNomError(t(`errors.${fieldErrors.nom}`, fieldErrors.nom))
+        return
+      }
+      addToast({ message: fallback, type: 'error' })
+    }
+
     if (editTarget) {
       update(
         { id: editTarget.id, data: payload },
@@ -182,7 +185,7 @@ export default function EntreprisesPage() {
             await applyHseTeamChanges(updated['@id'])
             closeModal()
           },
-          onError: () => addToast({ message: 'Erreur lors de la mise à jour', type: 'error' }),
+          onError: (error) => handleSaveError(error, 'Erreur lors de la mise à jour'),
         },
       )
     } else {
@@ -192,7 +195,7 @@ export default function EntreprisesPage() {
           await applyHseTeamChanges(created['@id'])
           closeModal()
         },
-        onError: () => addToast({ message: 'Erreur lors de la création', type: 'error' }),
+        onError: (error) => handleSaveError(error, 'Erreur lors de la création'),
       })
     }
   }
@@ -238,7 +241,7 @@ export default function EntreprisesPage() {
       </div>
 
       <Card>
-        <CardContent className="p-4">
+        <CardContent className={listFiltersContainerClass}>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -326,46 +329,13 @@ export default function EntreprisesPage() {
         title={editTarget ? "Modifier l'entreprise" : 'Nouvelle entreprise'}
       >
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Entreprise <span className="text-red-500">*</span>
-            </label>
-            <Input
-              value={form.nom}
-              onChange={set('nom')}
-              placeholder="Ex. : eTech Consulting"
-              autoFocus
-            />
-            {nomError && <p className="mt-1 text-xs text-red-600">{nomError}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">N° Registre du Commerce</label>
-            <Input
-              value={form.numeroRegistreCommerce}
-              onChange={set('numeroRegistreCommerce')}
-              placeholder="Ex. : 2024 B 01234"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Siège Social</label>
-            <Input
-              value={form.siegeSocial}
-              onChange={set('siegeSocial')}
-              placeholder="Ex. : Lot II M 85 Antananarivo"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Qualité du Représentant</label>
-            <Input
-              value={form.qualiteRepresentant}
-              onChange={set('qualiteRepresentant')}
-              placeholder="Ex. : Directeur Général"
-              maxLength={100}
-            />
-          </div>
+          <EntrepriseFormFields
+            values={form}
+            onChange={handleFieldChange}
+            nomError={nomError}
+            disabled={isSaving}
+            autoFocusNom
+          />
 
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-700">
