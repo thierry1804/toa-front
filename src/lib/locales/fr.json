@@ -91,6 +91,8 @@
   },
   "users": {
     "entreprise": {
+      "creationDisabledTitle": "Gestion des utilisateurs pas encore activée",
+      "creationDisabledBody": "Votre compte n'a pas encore les droits pour ajouter ou modifier des utilisateurs de votre entreprise. Contactez un administrateur TOA pour activer cet accès.",
       "fields": {
         "nom": "Entreprise",
         "nomPlaceholder": "Ex. : eTech Consulting",

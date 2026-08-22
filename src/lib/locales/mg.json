@@ -91,6 +91,8 @@
   },
   "users": {
     "entreprise": {
+      "creationDisabledTitle": "Tsy mbola mihatra ny fitantanana mpampiasa",
+      "creationDisabledBody": "Ny kaontinao dia tsy mbola manana ny zo hanampiana na hanovana mpampiasa ao amin'ny orinasanao. Mifandraisa amin'ny mpitantana TOA mba handraisana io zo io.",
       "fields": {
         "nom": "Orinasa",
         "nomPlaceholder": "Ohatra: eTech Consulting",
