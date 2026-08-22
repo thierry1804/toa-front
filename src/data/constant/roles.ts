@@ -61,6 +61,7 @@ export const ROLE_MAP: Record<string, string> = {
   ROLE_CHEF_PROJET: "chef_projet",
   ROLE_HSE: "hse",
   ROLE_PRESTATAIRE: "prestataire",
+  ROLE_AGENT_TERRAIN: "agent_terrain",
   ROLE_DG: "dg",
 };
 
@@ -70,6 +71,7 @@ export const ROLE_LABELS: Record<string, string> = {
   ROLE_CHEF_PROJET: "Chef de Projet",
   ROLE_HSE: "HSE",
   ROLE_PRESTATAIRE: "Prestataire",
+  ROLE_AGENT_TERRAIN: "Agent de terrain",
   ROLE_DG: "DG",
 };
 
@@ -79,6 +81,7 @@ export const ROLES = [
   "ROLE_CHEF_PROJET",
   "ROLE_HSE",
   "ROLE_PRESTATAIRE",
+  "ROLE_AGENT_TERRAIN",
   "ROLE_DG",
 ];
 
@@ -107,6 +110,11 @@ export const ROLE_CONFIG: Record<
     variant: "secondary",
     icon: Building2,
   },
+  ROLE_AGENT_TERRAIN: {
+    labelKey: "roles.agent_terrain",
+    variant: "secondary",
+    icon: Building2,
+  },
   ROLE_DG: { labelKey: "roles.dg", variant: "info", icon: Briefcase },
 };
 
@@ -117,6 +125,7 @@ export const roleOptions = [
   { value: "ROLE_CHEF_PROJET", label: "Chef de Projet" },
   { value: "ROLE_HSE", label: "HSE" },
   { value: "ROLE_PRESTATAIRE", label: "Prestataire" },
+  { value: "ROLE_AGENT_TERRAIN", label: "Agent de terrain" },
   { value: "ROLE_DG", label: "DG" },
 ];
 
@@ -154,6 +163,13 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
   ROLE_PRESTATAIRE: [
     "Création de plans de prévention",
+    "Demande de permis de travail",
+    "Suivi de ses propres interventions",
+    "Soumission de validations journalières",
+    "Réalisation de Take 5",
+    "Signalement d'incidents",
+  ],
+  ROLE_AGENT_TERRAIN: [
     "Demande de permis de travail",
     "Suivi de ses propres interventions",
     "Soumission de validations journalières",

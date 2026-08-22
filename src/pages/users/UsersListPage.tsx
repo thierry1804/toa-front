@@ -103,6 +103,8 @@ export default function UsersListPage() {
   const prestataireRoleOptions = [
     { value: "all", label: t("users.filters.allRoles") },
     { value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") },
+    { value: "ROLE_HSE", label: t("roles.hse") },
+    { value: "ROLE_AGENT_TERRAIN", label: t("roles.agent_terrain") },
   ];
 
   const handleDelete = () => {

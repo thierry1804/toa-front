@@ -40,6 +40,13 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
     'edit_users', 'create_users',
   ],
+  ROLE_AGENT_TERRAIN: [
+    'permit_travail.view', 'permit_travail.create', 'permit_travail.edit',
+    'intervention.create', 'intervention.view', 'intervention.edit', 'intervention.valider_evaluation',
+    'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
+    'take5_record.create', 'take5_record.view',
+    'controle_journalier.create', 'controle_journalier.view', 'controle_journalier.edit',
+  ],
   ROLE_ADMIN:        [
     'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
     'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',

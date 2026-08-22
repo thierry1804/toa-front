@@ -76,10 +76,18 @@ export default function UserFormPage() {
     entrepriseName: scopedEntrepriseName,
   } = usePrestataireEntrepriseScope();
   // GET /api/roles exige ROLE_SUPER_ADMIN : un prestataire scoped reçoit un
-  // 403, allRoles reste vide. Son rôle est de toute façon toujours forcé à
-  // ROLE_PRESTATAIRE, donc on n'a pas besoin de la liste complète ici.
+  // 403, allRoles reste vide. Il peut cependant attribuer l'un des rôles de
+  // son équipe terrain (Prestataire, HSE, Agent de terrain) — la liste
+  // complète des rôles de la plateforme n'est pas nécessaire ici, et le
+  // backend (PrestataireUserScopeProcessor) refuse de toute façon tout rôle
+  // hors de cet ensemble.
+  const PRESTATAIRE_ASSIGNABLE_ROLES = [
+    { value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") },
+    { value: "ROLE_HSE", label: t("roles.hse") },
+    { value: "ROLE_AGENT_TERRAIN", label: t("roles.agent_terrain") },
+  ];
   const dynamicRoleOptions = isPrestataireScoped
-    ? [{ value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") }]
+    ? PRESTATAIRE_ASSIGNABLE_ROLES
     : allRoles.map((r) => ({ value: r.name, label: r.label }));
 
   const isEditMode = !!id;
@@ -136,7 +144,7 @@ export default function UserFormPage() {
     ? entreprises.filter((ent) => ent["@id"] === scopedEntrepriseIri)
     : entreprises;
   const canHaveEntreprise = (role: string) =>
-    role === "ROLE_PRESTATAIRE" || role === "ROLE_HSE";
+    role === "ROLE_PRESTATAIRE" || role === "ROLE_HSE" || role === "ROLE_AGENT_TERRAIN";
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -388,7 +396,6 @@ export default function UserFormPage() {
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (isPrestataireScoped) return;
     const newRole = e.target.value;
     const isPrestataire = newRole === "ROLE_PRESTATAIRE";
     const hasEnt = canHaveEntreprise(newRole);
@@ -492,12 +499,16 @@ export default function UserFormPage() {
           <CardContent className="space-y-4">
             <Select
               label={t("users.form.role")}
-              options={rolesLoading ? [{ value: "", label: t("common.loading") }] : dynamicRoleOptions}
+              options={
+                !isPrestataireScoped && rolesLoading
+                  ? [{ value: "", label: t("common.loading") }]
+                  : dynamicRoleOptions
+              }
               value={formData.role}
               onChange={handleRoleChange}
               error={errors.role}
               required
-              disabled={rolesLoading || isPrestataireScoped}
+              disabled={!isPrestataireScoped && rolesLoading}
             />
 
             {isPrestataireScoped && scopedEntrepriseName && (
