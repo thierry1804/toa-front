@@ -137,7 +137,6 @@ export default function PrestataireEntreprisePage() {
                 message: t('users.entreprise.updated'),
                 type: 'success',
               })
-              navigate('/users')
             } catch {
               addToast({
                 message: t('users.entreprise.syncError'),
@@ -160,7 +159,6 @@ export default function PrestataireEntreprisePage() {
             message: t('users.entreprise.created'),
             type: 'success',
           })
-          navigate('/users')
         } catch {
           addToast({
             message: t('users.entreprise.syncError'),
