@@ -407,7 +407,7 @@
       "information": "Informations",
       "label": "Libellé *",
       "labelPlaceholder": "Ex. : Dashboard",
-      "icon": "Icône",
+      "icon": "Icône *",
       "iconPlaceholder": "Ex. : LayoutDashboard",
       "route": "Route",
       "routePlaceholder": "Ex. : /dashboard",
@@ -423,7 +423,8 @@
       "error": "Erreur"
     },
     "validation": {
-      "nameRequired": "Le libellé est obligatoire"
+      "nameRequired": "Le libellé est obligatoire",
+      "iconRequired": "L'icône est obligatoire"
     },
     "manager": {
       "title": "Gestion des accès",

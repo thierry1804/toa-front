@@ -40,7 +40,7 @@ function ChildLink({ node, collapsed }: { node: MenuNode; collapsed: boolean }) 
     >
       {Icon
         ? <Icon className="h-4 w-4 flex-shrink-0" />
-        : !collapsed && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />}
+        : <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />}
       {!collapsed && <span className="truncate">{node.name}</span>}
     </NavLink>
   );

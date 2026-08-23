@@ -407,7 +407,7 @@
       "information": "Mombamomba",
       "label": "Sokajy *",
       "labelPlaceholder": "Ohatra: Dashboard",
-      "icon": "Sary",
+      "icon": "Sary *",
       "iconPlaceholder": "Ohatra: LayoutDashboard",
       "route": "Lalana",
       "routePlaceholder": "Ohatra: /dashboard",
@@ -423,7 +423,8 @@
       "error": "Hadisoana"
     },
     "validation": {
-      "nameRequired": "Ilaina ny sokajy"
+      "nameRequired": "Ilaina ny sokajy",
+      "iconRequired": "Ilaina ny sary"
     },
     "manager": {
       "title": "Fitantanana ny fidirana",

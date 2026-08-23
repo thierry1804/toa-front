@@ -58,6 +58,7 @@ export default function MenuFormPage() {
   const validate = (): boolean => {
     const e: Record<string, string> = {}
     if (!name.trim()) e.name = t('menus.validation.nameRequired')
+    if (!icon.trim()) e.icon = t('menus.validation.iconRequired')
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -110,7 +111,7 @@ export default function MenuFormPage() {
           <CardContent className="space-y-4">
             <Input label={t('menus.form.label')} value={name} onChange={(e) => setName(e.target.value)} error={errors.name} placeholder={t('menus.form.labelPlaceholder')} required />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label={t('menus.form.icon')} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder={t('menus.form.iconPlaceholder')} />
+              <Input label={t('menus.form.icon')} value={icon} onChange={(e) => setIcon(e.target.value)} error={errors.icon} placeholder={t('menus.form.iconPlaceholder')} required />
               <Input label={t('menus.form.route')} value={route} onChange={(e) => setRoute(e.target.value)} placeholder={t('menus.form.routePlaceholder')} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
