@@ -63,15 +63,13 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Logo circle above card */}
-        <div className="flex justify-center -mb-11 relative z-10">
-          <div className="w-24 h-24 rounded-full bg-white border border-gray-200 flex items-center justify-center p-3">
-            <img src="/images/TOA.png" alt="TOA" className="w-full h-full object-contain" />
-          </div>
+        {/* Logo above card */}
+        <div className="flex justify-center mb-4">
+          <img src="/images/TOA.png" alt="TOA" className="h-40 w-auto object-contain" />
         </div>
 
         <Card>
-          <CardHeader className="pt-12 text-center">
+          <CardHeader className="text-center">
             <div>
               <CardTitle className="text-gray-900">TowerCo of Africa</CardTitle>
               <CardDescription className="mt-2">
