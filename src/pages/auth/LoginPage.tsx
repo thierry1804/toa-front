@@ -49,31 +49,25 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        {/* Language toggle */}
-        <div className="flex justify-end mb-1">
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <Globe className="h-5 w-5" />
-            <span className="font-medium">
-              {i18n.language === "fr" ? "FR" : "MG"}
-            </span>
-          </button>
-        </div>
-
         {/* Logo above card */}
         <div className="flex justify-center mb-4">
           <img src="/images/TOA.png" alt="TOA" className="h-40 w-auto object-contain" />
         </div>
 
         <Card>
-          <CardHeader className="text-center">
-            <div>
-              <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
-                Plateforme de gestion HSE
-              </CardDescription>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
+              Plateforme de gestion HSE
+            </CardDescription>
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <Globe className="h-5 w-5" />
+              <span className="font-medium">
+                {i18n.language === "fr" ? "FR" : "MG"}
+              </span>
+            </button>
           </CardHeader>
 
           <CardContent>
