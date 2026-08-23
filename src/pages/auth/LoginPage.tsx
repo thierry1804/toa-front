@@ -11,7 +11,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/Card";
 import { loginSchema, type LoginFormData } from "@/utils/validation";
 import { useLogin } from "@/features/auth/useAuth";
@@ -71,8 +70,7 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="text-center">
             <div>
-              <CardTitle className="text-gray-900">TowerCo of Africa</CardTitle>
-              <CardDescription className="mt-2">
+              <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
                 Plateforme de gestion HSE
               </CardDescription>
             </div>
