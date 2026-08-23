@@ -81,14 +81,14 @@ export function TopBar() {
 
   return (
     <header
-      className="sticky top-0 z-30 border-b border-gray-200 bg-white pt-[max(0px,env(safe-area-inset-top))]"
+      className="sticky top-0 z-30 border-b border-blue-100 bg-blue-50 pt-[max(0px,env(safe-area-inset-top))]"
     >
       <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-4 lg:px-6">
         <div className="flex min-w-0 items-center gap-1 sm:gap-2">
           <button
             onClick={toggleSidebar}
             aria-label={t("nav.openMenu")}
-            className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 lg:hidden"
+            className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-blue-100/60 lg:hidden"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -105,7 +105,7 @@ export function TopBar() {
               type="button"
               onClick={() => setLangOpen(!langOpen)}
               aria-label={t("nav.changeLanguage")}
-              className="touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:border sm:border-gray-200 sm:bg-gray-50 sm:gap-2 sm:px-3"
+              className="touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-gray-900 transition-colors hover:bg-blue-100/60 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:border sm:border-blue-100 sm:bg-white sm:gap-2 sm:px-3"
             >
               {currentLang === "mg" ? <FlagMG /> : <FlagFR />}
               <span className="hidden text-sm font-medium uppercase text-gray-900 sm:inline">

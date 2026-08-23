@@ -34,7 +34,7 @@ function ChildLink({ node, collapsed }: { node: MenuNode; collapsed: boolean }) 
       className={({ isActive }) =>
         `flex items-center gap-2.5 rounded-lg py-2 pr-3 text-sm font-medium transition-colors ${
           collapsed ? "justify-center px-3" : "pl-9"
-        } ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`
+        } ${isActive ? "bg-white text-blue-700" : "text-gray-600 hover:bg-blue-100/60 hover:text-gray-900"}`
       }
       title={collapsed ? node.name : undefined}
     >
@@ -66,7 +66,7 @@ function ParentMenuItem({
   return (
     <div>
       <div
-        className={`flex w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 ${
+        className={`flex w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-blue-100/60 ${
           isChildActive ? "text-blue-700" : "text-gray-700"
         }`}
       >
@@ -129,7 +129,7 @@ function MenuItemLink({ node, collapsed }: { node: MenuNode; collapsed: boolean 
       to={node.route ?? "#"}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-          isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+          isActive ? "bg-white text-blue-700" : "text-gray-700 hover:bg-blue-100/60"
         } ${collapsed ? "justify-center" : ""}`
       }
       title={collapsed ? node.name : undefined}
@@ -171,11 +171,11 @@ export function Sidebar() {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-gray-200 bg-white transition-all duration-200 ease-in-out lg:static ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-blue-100 bg-blue-50 transition-all duration-200 ease-in-out lg:static ${
           collapsed ? "w-20" : "w-64"
         } ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className="relative flex h-14 items-center border-b border-gray-200 px-4">
+        <div className="relative flex h-14 items-center border-b border-gray-200 bg-white px-4">
           <img
             src="/images/TOA.png"
             alt="TOA"
@@ -214,7 +214,7 @@ export function Sidebar() {
           {showMenuSkeleton ? (
             <div className="flex flex-col gap-1" aria-hidden="true">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-9 animate-pulse rounded-lg bg-gray-100" />
+                <div key={i} className="h-9 animate-pulse rounded-lg bg-blue-100/60" />
               ))}
             </div>
           ) : menuStore.error && rootItems.length === 0 ? (
