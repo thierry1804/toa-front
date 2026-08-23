@@ -54,7 +54,7 @@ export default function LoginPage() {
           <img src="/images/TOA.png" alt="TOA" className="h-40 w-auto object-contain" />
         </div>
 
-        <Card>
+        <Card className="bg-[#94959a] border-[#94959a]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
               Plateforme de gestion HSE
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 <div className="flex justify-end">
                   <a
                     href="#"
-                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-sm text-gray-900 hover:text-white transition-colors underline"
                   >
                     {t("auth.forgotPassword")}
                   </a>

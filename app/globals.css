@@ -10,6 +10,19 @@
   --color-foreground: #171717;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Aligné sur le bleu des traits obliques du logo TOA */
+  --color-blue-50: #f1fafe;
+  --color-blue-100: #dff3fc;
+  --color-blue-200: #bae6f8;
+  --color-blue-300: #87d3f3;
+  --color-blue-400: #46bcec;
+  --color-blue-500: #34b5ea;
+  --color-blue-600: #1baae4;
+  --color-blue-700: #1389b9;
+  --color-blue-800: #107198;
+  --color-blue-900: #0c5978;
+  --color-blue-950: #093e53;
 }
 
 body {
