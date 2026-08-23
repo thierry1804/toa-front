@@ -6,6 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import "@/lib/i18n";
 import { restoreQueryCache, setupQueryPersistence } from "@/offline/setupQueryPersistence";
 import { AppShell } from "@/components/layout/AppShell";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { PrestataireRouteGuard } from "@/components/layout/PrestataireRouteGuard";
 import LoginPage from "@/pages/auth/LoginPage";
@@ -58,6 +59,7 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route element={<AuthGuard />}>
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -169,6 +171,7 @@ createRoot(document.getElementById("root")!).render(
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
           </Route>
         </Routes>
       </BrowserRouter>
