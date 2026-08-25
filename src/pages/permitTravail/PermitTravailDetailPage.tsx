@@ -21,6 +21,8 @@ import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
   getRequiredDocumentTypes,
+  getRequiredClotureDocumentTypes,
+  type TypeDocumentPermitTravail,
 } from '@/types/permitTravail'
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -36,7 +38,7 @@ export default function PermitTravailDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
-  const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
+  const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, uploadDocument, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
   const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
   const { data: clotureData } = usePermitTravailCloture(
     ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit?.statut ?? '') ? (id ?? '') : '',
@@ -90,8 +92,13 @@ export default function PermitTravailDetailPage() {
   }
 
   const docTypes = getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus)
+  const clotureDocTypes = getRequiredClotureDocumentTypes(permit.planProcess)
   const companionPermit = permit.permitsGroupe?.[0]
   const latestDecision = permit.decisionsHse?.at(-1)
+
+  const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
+    await uploadDocument(permit.id, type, file)
+  }
 
   return (
     <div className="space-y-6">
@@ -646,6 +653,9 @@ export default function PermitTravailDetailPage() {
         isCloturer={isCloturer}
         onClose={() => setCloturerOpen(false)}
         onCloturer={cloturerPermit}
+        requiredDocumentTypes={clotureDocTypes}
+        uploadedDocuments={permit.documents}
+        onUploadDocument={handleClotureDocUpload}
       />
       <PvValiderModal
         isOpen={pvValiderOpen}

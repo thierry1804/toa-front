@@ -21,6 +21,8 @@ export interface ConfirmActionModalProps {
   confirmLabel: string
   confirmVariant?: ButtonProps['variant']
   confirmIcon?: ReactNode
+  /** Disable the confirm button regardless of form state (e.g. a required upload not yet done). */
+  confirmDisabled?: boolean
   isSubmitting: boolean
   /**
    * Called with the trimmed comment. Throw to show a generic error banner.
@@ -48,6 +50,7 @@ export default function ConfirmActionModal({
   confirmLabel,
   confirmVariant = 'primary',
   confirmIcon,
+  confirmDisabled = false,
   isSubmitting,
   onConfirm,
   errorMessage,
@@ -132,6 +135,7 @@ export default function ConfirmActionModal({
             variant={confirmVariant}
             onClick={() => void handleConfirm()}
             isLoading={isSubmitting}
+            disabled={confirmDisabled}
           >
             {confirmIcon}
             {confirmLabel}

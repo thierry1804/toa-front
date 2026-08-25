@@ -55,6 +55,9 @@ export type TypeDocumentPermitTravail =
   | 'MESURE_VITESSE_VENT'
   | 'PHOTO_EPI_SPECIFIQUE'
   | 'PHOTO_EQUIPEMENTS_ISOLANTS'
+  | 'PV_CLOTURE_ENVIRONNEMENT'
+  | 'PV_FIN_TRAVAUX'
+  | 'PHOTO_PROPRETE_SITE'
 
 export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   TROUSSE_SECOURS:            "Trousse de secours",
@@ -70,6 +73,9 @@ export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   MESURE_VITESSE_VENT:         "Mesure de la vitesse du vent",
   PHOTO_EPI_SPECIFIQUE:        "Photo des intervenants en EPI spécifique",
   PHOTO_EQUIPEMENTS_ISOLANTS:  "Photo des équipements isolants",
+  PV_CLOTURE_ENVIRONNEMENT:    "PV clôture Environnement",
+  PV_FIN_TRAVAUX:              "PV fin travaux",
+  PHOTO_PROPRETE_SITE:         "Photo propreté du site et/ou remise en état",
 }
 
 /**
@@ -114,6 +120,23 @@ export function getRequiredDocumentTypes(
   const bucket = planTypeIntervention === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
   const index = processus === 'RENOUVELLEMENT' ? 1 : 0
   return DOCUMENT_MATRIX[bucket][typePermis][index]
+}
+
+/**
+ * Documents de clôture, exigés à la clôture manuelle d'un permis — cf.
+ * tableau de la recette interne, étape "Fin" / "Validation Fin". Doit
+ * rester synchronisée avec PermitDocumentRequirementResolver côté API.
+ */
+const CLOTURE_DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', TypeDocumentPermitTravail[]> = {
+  NOUVEAU_SITE: ['PV_CLOTURE_ENVIRONNEMENT', 'PV_FIN_TRAVAUX'],
+  AUTRES: ['PHOTO_PROPRETE_SITE', 'PV_FIN_TRAVAUX'],
+}
+
+export function getRequiredClotureDocumentTypes(
+  planTypeIntervention: string | null | undefined,
+): TypeDocumentPermitTravail[] {
+  const bucket = planTypeIntervention === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
+  return CLOTURE_DOCUMENT_MATRIX[bucket]
 }
 
 export const PROCESSUS_LABELS: Record<ProcessusPermit, string> = {

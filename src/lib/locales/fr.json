@@ -1813,6 +1813,7 @@
       "cloturerModal": {
         "title": "Clôturer le permis",
         "banner": "<strong>Action irréversible.</strong> Le permis passera en statut CLÔTURÉ et un PV de réception sera généré automatiquement.",
+        "documentsLabel": "Documents de clôture",
         "commentPlaceholder": "Motif de clôture, remarques de réception…",
         "accordClientLabel": "Accord client obtenu",
         "confirmLabel": "Confirmer la clôture",

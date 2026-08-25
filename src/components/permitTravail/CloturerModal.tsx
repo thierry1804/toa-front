@@ -3,6 +3,8 @@ import { AlertTriangle, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 import Checkbox from '@/components/ui/Checkbox'
+import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
+import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 
 interface CloturerModalProps {
   isOpen: boolean
@@ -11,6 +13,9 @@ interface CloturerModalProps {
   isCloturer: boolean
   onClose: () => void
   onCloturer: (id: string, commentaire?: string, accordClient?: boolean) => Promise<unknown>
+  requiredDocumentTypes: TypeDocumentPermitTravail[]
+  uploadedDocuments: DocumentPermitTravail[]
+  onUploadDocument: (type: TypeDocumentPermitTravail, file: File) => Promise<void>
 }
 
 export default function CloturerModal({
@@ -20,9 +25,15 @@ export default function CloturerModal({
   isCloturer,
   onClose,
   onCloturer,
+  requiredDocumentTypes,
+  uploadedDocuments,
+  onUploadDocument,
 }: CloturerModalProps) {
   const { t } = useTranslation()
   const [accordClient, setAccordClient] = useState(false)
+
+  const uploadedTypes = new Set(uploadedDocuments.map((d) => d.type))
+  const missingTypes = requiredDocumentTypes.filter((type) => !uploadedTypes.has(type))
 
   return (
     <ConfirmActionModal
@@ -41,16 +52,30 @@ export default function CloturerModal({
       }
       commentPlaceholder={t('permitTravail.components.cloturerModal.commentPlaceholder')}
       extraContent={
-        <Checkbox
-          label={t('permitTravail.components.cloturerModal.accordClientLabel')}
-          checked={accordClient}
-          onChange={(e) => setAccordClient(e.target.checked)}
-          disabled={isCloturer}
-        />
+        <div className="space-y-4">
+          <div>
+            <p className="mb-2 text-sm font-medium text-gray-700">
+              {t('permitTravail.components.cloturerModal.documentsLabel')}
+            </p>
+            <PermitDocumentUploadZone
+              permitId={permitId}
+              documentTypes={requiredDocumentTypes}
+              uploadedDocuments={uploadedDocuments}
+              onUpload={onUploadDocument}
+            />
+          </div>
+          <Checkbox
+            label={t('permitTravail.components.cloturerModal.accordClientLabel')}
+            checked={accordClient}
+            onChange={(e) => setAccordClient(e.target.checked)}
+            disabled={isCloturer}
+          />
+        </div>
       }
       confirmLabel={t('permitTravail.components.cloturerModal.confirmLabel')}
       confirmVariant="danger"
       confirmIcon={<Lock className="mr-2 h-4 w-4" />}
+      confirmDisabled={missingTypes.length > 0}
       isSubmitting={isCloturer}
       onConfirm={async (commentaire) => {
         await onCloturer(permitId, commentaire || undefined, accordClient)

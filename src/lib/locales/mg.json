@@ -1813,6 +1813,7 @@
       "cloturerModal": {
         "title": "Hanakatona ny permis",
         "banner": "<strong>Hetsika tsy azo soloana.</strong> Ho lasa amin'ny sata VOAKATONA ny permis ary hisy PV fandraisana haforonina ho azy.",
+        "documentsLabel": "Antontan-taratasy fanakatonana",
         "commentPlaceholder": "Antony fanakatonana, fanamarihana amin'ny fandraisana…",
         "accordClientLabel": "Nahazoana ny faneken'ny mpanjifa",
         "confirmLabel": "Hanamafy ny fanakatonana",
