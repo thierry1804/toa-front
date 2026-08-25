@@ -140,6 +140,8 @@
       "updateError": "Erreur lors de la mise à jour de l'entreprise",
       "syncError": "Entreprise enregistrée, mais le rattachement au compte a échoué",
       "userMissing": "Impossible d'identifier votre compte utilisateur",
+      "creationDisabledTitle": "Création d'utilisateurs désactivée",
+      "creationDisabledBody": "Votre rôle ne dispose pas de la permission de créer des utilisateurs pour cette entreprise. Contactez un administrateur pour en faire la demande.",
       "fields": {
         "nom": "Entreprise",
         "nomPlaceholder": "Ex. : eTech Consulting",
@@ -668,6 +670,10 @@
     "createAction": "Créer un rôle",
     "listTitle": "Rôles ({{count}})",
     "systemRoleProtected": "Les rôles système ne peuvent pas être supprimés",
+    "management": {
+      "description": "Gérer les droits d'accès des rôles aux menus de la plateforme",
+      "permissionsMatrix": "Matrice des permissions"
+    },
     "stats": {
       "total": "Total",
       "system": "Rôles système",
@@ -2136,6 +2142,181 @@
         "uploading": "Envoi en cours…",
         "chooseFiles": "Choisir des fichiers",
         "dropHint": "ou glissez-déposez ici (JPG, PNG, WEBP, PDF)"
+      },
+      "dailyValidationModal": {
+        "title": "Validation journalière de l'intervention",
+        "headerIntervention": "Intervention {{ref}}",
+        "headerSite": "Site : {{site}}",
+        "headerDate": "Date :",
+        "scheduleSection": {
+          "title": "Horaires et personnel",
+          "heureDebutLabel": "Heure de début",
+          "heureFinLabel": "Heure de fin",
+          "personnelLabel": "Personnel présent ({{count}})",
+          "personnelPlaceholder": "Nom du membre du personnel",
+          "add": "Ajouter"
+        },
+        "conditionsSection": {
+          "title": "Conditions",
+          "meteoLabel": "Conditions météo",
+          "meteoPlaceholder": "Ex. : Ensoleillé",
+          "temperatureLabel": "Température (°C)",
+          "ventLabel": "Vitesse du vent (km/h)"
+        },
+        "safetyChecksSection": {
+          "title": "Vérifications de sécurité",
+          "epiLabel": "EPI vérifiés",
+          "outillageLabel": "Outillage vérifié",
+          "zoneLabel": "Zone sécurisée",
+          "consignesLabel": "Consignes rappelées",
+          "sauvetageLabel": "Plan de sauvetage revu"
+        },
+        "take5Section": {
+          "label": "Take 5 effectué",
+          "description": "Une analyse Take 5 a été réalisée avant le début des travaux"
+        },
+        "activitySection": {
+          "title": "Activités réalisées",
+          "activitesLabel": "Description des activités",
+          "activitesPlaceholder": "Décrire les activités réalisées durant la journée…",
+          "avancementLabel": "Avancement ({{pct}}%)"
+        },
+        "incidentsSection": {
+          "checkboxLabel": "Un incident est survenu",
+          "detailsLabel": "Détails de l'incident",
+          "detailsPlaceholder": "Décrire l'incident…"
+        },
+        "observationsLabel": "Observations du jour",
+        "observationsPlaceholder": "Observations, remarques…",
+        "photosSection": {
+          "title": "Photos et documents",
+          "comingSoon": "L'ajout de photos sera bientôt disponible",
+          "hint": "Formats acceptés : JPG, PNG, PDF"
+        },
+        "permitControlSection": {
+          "title": "Contrôle journalier du permis associé",
+          "introElectrique": "Ce permis de travail électrique nécessite un contrôle journalier avant de valider l'intervention.",
+          "introHauteur": "Ce permis de travail en hauteur nécessite un contrôle journalier avant de valider l'intervention.",
+          "button": "Effectuer le contrôle journalier",
+          "titleElectrique": "Contrôle journalier — Travaux électriques",
+          "titleHauteur": "Contrôle journalier — Travaux en hauteur"
+        },
+        "finalValidationSection": {
+          "label": "Valider cette journée d'intervention",
+          "description": "Cette validation clôture le suivi journalier de l'intervention"
+        },
+        "cancel": "Annuler",
+        "incompleteWarning": "Veuillez compléter les champs obligatoires avant de valider",
+        "submit": "Valider la journée"
+      },
+      "take5Form": {
+        "header": {
+          "title": "Take 5 — Analyse avant intervention",
+          "subtitle": "Arrêter, Observer, Analyser, Contrôler, Procéder"
+        },
+        "generalInfo": {
+          "title": "Informations générales",
+          "responsableLabel": "Responsable",
+          "responsablePlaceholder": "Nom du responsable",
+          "localisationLabel": "Localisation",
+          "localisationPlaceholder": "Ex. : Pylône zone A",
+          "tacheLabel": "Description de la tâche",
+          "tachePlaceholder": "Décrire la tâche à réaliser…",
+          "equipeLabel": "Équipe",
+          "membrePlaceholder": "Nom du membre de l'équipe"
+        },
+        "add": "Ajouter",
+        "cancel": "Annuler",
+        "submit": "Soumettre",
+        "incompleteWarning": "Veuillez compléter toutes les étapes avant de soumettre",
+        "readyToSubmit": "Prêt à soumettre",
+        "step1": {
+          "title": "1. Arrêter",
+          "description": "Prenez un moment pour vous arrêter avant de commencer",
+          "checkboxLabel": "Je me suis arrêté pour évaluer la situation",
+          "observationsLabel": "Observations",
+          "observationsPlaceholder": "Observations initiales…"
+        },
+        "step2": {
+          "title": "2. Observer",
+          "description": "Identifiez les dangers présents sur le lieu d'intervention",
+          "dangersLabel": "Dangers identifiés",
+          "autresDangersLabel": "Autres dangers",
+          "autresDangersPlaceholder": "Décrire les autres dangers identifiés…",
+          "checkboxLabel": "J'ai observé et identifié les dangers"
+        },
+        "step3": {
+          "title": "3. Analyser",
+          "description": "Évaluez les risques associés aux dangers identifiés",
+          "addRisqueTitle": "Ajouter un risque",
+          "dangerLabel": "Danger",
+          "dangerPlaceholder": "Décrire le danger…",
+          "probabiliteLabel": "Probabilité",
+          "graviteLabel": "Gravité",
+          "niveauRisqueLabel": "Niveau de risque",
+          "addRisqueButton": "Ajouter le risque",
+          "probabiliteBadge": "Probabilité : {{value}}",
+          "graviteBadge": "Gravité : {{value}}",
+          "niveauBadge": "Niveau : {{value}}",
+          "checkboxLabel": "J'ai analysé les risques identifiés"
+        },
+        "step4": {
+          "title": "4. Contrôler",
+          "description": "Définissez les mesures de contrôle à mettre en place",
+          "addMesureTitle": "Ajouter une mesure de contrôle",
+          "typeLabel": "Type de mesure",
+          "descriptionLabel": "Description",
+          "descriptionPlaceholder": "Décrire la mesure de contrôle…",
+          "responsableLabel": "Responsable",
+          "responsablePlaceholder": "Nom du responsable",
+          "miseEnPlaceLabel": "Mise en place",
+          "addMesureButton": "Ajouter la mesure",
+          "responsableBadge": "Responsable : {{value}}",
+          "checkboxLabel": "Les mesures de contrôle ont été définies"
+        },
+        "step5": {
+          "title": "5. Procéder",
+          "description": "Confirmez que les conditions sont réunies pour procéder",
+          "securiteConfirmeeLabel": "La sécurité de l'équipe est confirmée",
+          "autorisationLabel": "L'autorisation de procéder est donnée",
+          "checkboxLabel": "L'équipe est autorisée à procéder aux travaux"
+        },
+        "graviteOptions": {
+          "mineure": "Mineure",
+          "moderee": "Modérée",
+          "grave": "Grave",
+          "critique": "Critique"
+        },
+        "probabiliteOptions": {
+          "faible": "Faible",
+          "moyenne": "Moyenne",
+          "elevee": "Élevée"
+        },
+        "niveauRisqueOptions": {
+          "faible": "Faible",
+          "moyen": "Moyen",
+          "eleve": "Élevé",
+          "critique": "Critique"
+        },
+        "typeOptions": {
+          "elimination": "Élimination",
+          "substitution": "Substitution",
+          "controleIngenierie": "Contrôle d'ingénierie",
+          "controleAdministratif": "Contrôle administratif",
+          "epi": "EPI"
+        },
+        "dangers": {
+          "travailHauteur": "Travail en hauteur",
+          "risqueElectrique": "Risque électrique",
+          "chuteObjets": "Chute d'objets",
+          "risqueChimique": "Risque chimique",
+          "manutentionManuelle": "Manutention manuelle",
+          "conditionsMeteo": "Conditions météo",
+          "circulationVehicules": "Circulation véhicules",
+          "espacesConfines": "Espaces confinés",
+          "machinesMouvement": "Machines en mouvement",
+          "surfacesGlissantes": "Surfaces glissantes"
+        }
       }
     }
   },
