@@ -2104,6 +2104,38 @@
         "avance": "Mandroso",
         "enCours": "Mandeha",
         "faible": "Ambany"
+      },
+      "evaluationRisqueTable": {
+        "empty": "Tsy misy risika hotombanana indray.",
+        "headers": {
+          "description": "Risika",
+          "gravite": "Halehiben'ny fahavoazana",
+          "probabilite": "Mety hitranga",
+          "niveauRisque": "Ambaratongan'ny risika",
+          "mesuresConfirmees": "Fepetra voamarina",
+          "reevalue": "Notombanana indray"
+        },
+        "mesuresPlaceholder": "Farito ny fepetra voamarina…",
+        "oui": "Eny",
+        "non": "Tsia",
+        "legend": {
+          "faible": "Ambany",
+          "modere": "Antonony",
+          "eleve": "Avo"
+        }
+      },
+      "niveauRisqueBadge": {
+        "faible": "Ambany",
+        "modere": "Antonony",
+        "eleve": "Avo"
+      },
+      "suiviDocumentUploadZone": {
+        "title": "Antontan-taratasy",
+        "imgBadge": "Sary",
+        "delete": "Fafao",
+        "uploading": "Mandefa…",
+        "chooseFiles": "Misafidiana rakitra",
+        "dropHint": "na ento sy apetaho eto (JPG, PNG, WEBP, PDF)"
       }
     }
   },

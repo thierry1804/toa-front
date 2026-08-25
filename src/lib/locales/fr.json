@@ -2104,6 +2104,38 @@
         "avance": "Avancé",
         "enCours": "En cours",
         "faible": "Faible"
+      },
+      "evaluationRisqueTable": {
+        "empty": "Aucun risque à réévaluer.",
+        "headers": {
+          "description": "Risque",
+          "gravite": "Gravité",
+          "probabilite": "Probabilité",
+          "niveauRisque": "Niveau de risque",
+          "mesuresConfirmees": "Mesures confirmées",
+          "reevalue": "Réévalué"
+        },
+        "mesuresPlaceholder": "Décrire les mesures confirmées…",
+        "oui": "Oui",
+        "non": "Non",
+        "legend": {
+          "faible": "Faible",
+          "modere": "Modéré",
+          "eleve": "Élevé"
+        }
+      },
+      "niveauRisqueBadge": {
+        "faible": "Faible",
+        "modere": "Modéré",
+        "eleve": "Élevé"
+      },
+      "suiviDocumentUploadZone": {
+        "title": "Documents",
+        "imgBadge": "Image",
+        "delete": "Supprimer",
+        "uploading": "Envoi en cours…",
+        "chooseFiles": "Choisir des fichiers",
+        "dropHint": "ou glissez-déposez ici (JPG, PNG, WEBP, PDF)"
       }
     }
   },
