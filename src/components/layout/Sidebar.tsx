@@ -144,23 +144,29 @@ export function Sidebar() {
   const { t } = useTranslation();
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
-  const menuStore = useMenuStore();
+  const items = useMenuStore((s) => s.items);
+  const loading = useMenuStore((s) => s.loading);
+  const loaded = useMenuStore((s) => s.loaded);
+  const menuError = useMenuStore((s) => s.error);
+  const load = useMenuStore((s) => s.load);
   const roles = useAuthStore((s) => s.roles);
   const [collapsed, setCollapsed] = useState(false);
 
   const retryLoad = useCallback(() => {
-    void menuStore.load();
-  }, [menuStore]);
+    void load();
+  }, [load]);
 
   useEffect(() => {
-    void menuStore.load();
-  }, [menuStore]);
+    if (!loaded && !loading) {
+      void load();
+    }
+  }, [loaded, loading, load]);
 
   const rootItems = useMemo(
-    () => injectPrestataireEntrepriseMenu(menuStore.items, t("nav.myEntreprise"), roles),
-    [menuStore.items, roles, t],
+    () => injectPrestataireEntrepriseMenu(items, t("nav.myEntreprise"), roles),
+    [items, roles, t],
   );
-  const showMenuSkeleton = menuStore.loading && !menuStore.loaded;
+  const showMenuSkeleton = loading && !loaded;
 
   return (
     <>
@@ -217,7 +223,7 @@ export function Sidebar() {
                 <div key={i} className="h-9 animate-pulse rounded-lg bg-blue-100/60" />
               ))}
             </div>
-          ) : menuStore.error && rootItems.length === 0 ? (
+          ) : menuError && rootItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertCircle className="mb-2 h-5 w-5 text-gray-500" />
               <p className="text-xs text-gray-600">{t('layout.sidebar.menuUnavailable')}</p>

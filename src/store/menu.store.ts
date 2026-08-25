@@ -24,7 +24,10 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   load: async () => {
     if (loadPromise) return loadPromise
 
-    const isInitialLoad = !get().loaded
+    const state = get()
+    if (state.loaded && !state.error) return
+
+    const isInitialLoad = !state.loaded
     if (isInitialLoad) {
       set({ loading: true, error: null })
     }
