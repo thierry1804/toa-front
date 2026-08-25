@@ -142,7 +142,7 @@ export default function PermitTravailCreatePage() {
   const allCategories = categoriesData?.member ?? []
 
   // ── Derived ───────────────────────────────────────────────────────────────────
-  const isNouveauSite = selectedPlan?.typeIntervention === 'NOUVEAU_SITE'
+  const isNouveauSite = selectedPlan?.typeIntervention === 'Nouveau site'
   const generalPermitId = selectedPlan?.permitGeneralId ?? null
   const generalRequisAvant = isNouveauSite && !generalPermitId
 
@@ -276,7 +276,7 @@ export default function PermitTravailCreatePage() {
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId)
     const plan = suggestedPlans.find((p) => p.id === planId)
-    const nouveauSite = plan?.typeIntervention === 'NOUVEAU_SITE'
+    const nouveauSite = plan?.typeIntervention === 'Nouveau site'
     setTypePermis(nouveauSite && !plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
   }
 
@@ -312,11 +312,11 @@ export default function PermitTravailCreatePage() {
 
   const isPending = isCreating || isSubmitting
   const mainDocTypes = permit
-    ? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.process, permit.typePermis, permit.processus)
+    ? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus)
     : []
   const companionPermit = permit?.permitsGroupe?.[0]
   const companionDocTypes = companionPermit
-    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.process, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE')
+    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE')
     : []
 
   // ── Render steps ──────────────────────────────────────────────────────────────

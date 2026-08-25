@@ -107,11 +107,11 @@ const DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', Record<TypePermit, [Typ
 }
 
 export function getRequiredDocumentTypes(
-  planProcess: string | null | undefined,
+  planTypeIntervention: string | null | undefined,
   typePermis: TypePermit,
   processus: ProcessusPermit,
 ): TypeDocumentPermitTravail[] {
-  const bucket = planProcess === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
+  const bucket = planTypeIntervention === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
   const index = processus === 'RENOUVELLEMENT' ? 1 : 0
   return DOCUMENT_MATRIX[bucket][typePermis][index]
 }
