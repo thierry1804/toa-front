@@ -126,7 +126,7 @@ function PlanRow({
       </ListTableCell>
       <ListTableCell compact className="text-gray-800">{plan.codeSite}</ListTableCell>
       <ListTableCell className="text-gray-600">
-        {plan.process ?? <span className="text-gray-400 italic">—</span>}
+        {plan.typeIntervention ?? <span className="text-gray-400 italic">—</span>}
       </ListTableCell>
       <ListTableCell className="text-gray-600">{plan.activitePlanifiee}</ListTableCell>
       <ListTableCell compact>
@@ -220,7 +220,7 @@ export default function PlanPreventionListPage() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [processFilter, setProcessFilter] = useState('all')
+  const [typeInterventionFilter, setTypeInterventionFilter] = useState('all')
 
   const apiFilters = useMemo(() => {
     const filters: Record<string, string> = {}
@@ -253,13 +253,13 @@ export default function PlanPreventionListPage() {
     [t],
   )
 
-  const processOptions = useMemo(() => {
-    const processes = [...new Set(plans.map((p) => p.process).filter(Boolean))] as string[]
+  const typeInterventionOptions = useMemo(() => {
+    const types = [...new Set(plans.map((p) => p.typeIntervention).filter(Boolean))] as string[]
     return [
       { value: 'all', label: t('common.all') },
-      ...processes.sort((a, b) => a.localeCompare(b)).map((process) => ({
-        value: process,
-        label: process,
+      ...types.sort((a, b) => a.localeCompare(b)).map((type) => ({
+        value: type,
+        label: type,
       })),
     ]
   }, [plans, t])
@@ -268,12 +268,12 @@ export default function PlanPreventionListPage() {
     const query = searchQuery.trim().toLowerCase()
     return plans.filter((plan) => {
       if (statusFilter !== 'all' && plan.statut !== statusFilter) return false
-      if (processFilter !== 'all' && plan.process !== processFilter) return false
+      if (typeInterventionFilter !== 'all' && plan.typeIntervention !== typeInterventionFilter) return false
       if (!query) return true
       const haystack = [
         plan.reference,
         plan.codeSite,
-        plan.process,
+        plan.typeIntervention,
         plan.activitePlanifiee,
       ]
         .filter(Boolean)
@@ -281,7 +281,7 @@ export default function PlanPreventionListPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [plans, searchQuery, statusFilter, processFilter])
+  }, [plans, searchQuery, statusFilter, typeInterventionFilter])
 
   const headers = [
     t('planPrevention.list.headers.reference'),
@@ -298,7 +298,7 @@ export default function PlanPreventionListPage() {
     t('planPrevention.list.headers.actions'),
   ]
 
-  const hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'all' || processFilter !== 'all'
+  const hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'all' || typeInterventionFilter !== 'all'
 
   return (
     <div className="space-y-6">
@@ -335,10 +335,10 @@ export default function PlanPreventionListPage() {
               placeholder={t('planPrevention.list.filters.statut')}
             />
             <Select
-              options={processOptions}
-              value={processFilter}
+              options={typeInterventionOptions}
+              value={typeInterventionFilter}
               onChange={(e) => {
-                setProcessFilter(e.target.value)
+                setTypeInterventionFilter(e.target.value)
                 setPage(1)
               }}
               placeholder={t('planPrevention.list.filters.processus')}
