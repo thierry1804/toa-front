@@ -280,6 +280,10 @@ export default function PlanPreventionDetailPage() {
               value={plan.activitePlanifiee}
             />
             <InfoRow
+              label={t("planPrevention.detail.fields.processus")}
+              value={plan.typeIntervention ?? "—"}
+            />
+            <InfoRow
               label={t("planPrevention.detail.fields.periode")}
               value={
                 <span className="flex items-center gap-1.5">
