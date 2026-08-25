@@ -282,7 +282,10 @@ export default function PermitTravailCreatePage() {
 
   // ── Step 2 → 3: create permit ────────────────────────────────────────────────
   const handleStep2Next = handleSubmit(async (data) => {
-    const processus = isNouveauSite ? 'NOUVEAU_SITE' : 'RENOUVELLEMENT'
+    // NOUVEAU_SITE pour un plan "Nouveau site", MAINTENANCE pour les 4 autres
+    // processus — RENOUVELLEMENT est réservé au renouvellement d'un permis
+    // existant (pas encore de flux dédié dans l'assistant de création).
+    const processus = isNouveauSite ? 'NOUVEAU_SITE' : 'MAINTENANCE'
     const created = await createPermit({
       processus,
       typePermis,
