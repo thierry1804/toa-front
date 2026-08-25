@@ -652,13 +652,13 @@ export default function PlanPreventionCreatePage({
               disabled={!canEdit || (isPrestataire && !!selectedPlanifId)}
             />
 
-            {activePlanif?.process && (
+            {activePlanif?.typeIntervention && (
               <div>
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                   Processus
                 </p>
                 <p className="text-sm font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                  {activePlanif.process}
+                  {activePlanif.typeIntervention}
                 </p>
               </div>
             )}

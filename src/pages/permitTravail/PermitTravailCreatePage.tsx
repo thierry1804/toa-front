@@ -462,11 +462,11 @@ export default function PermitTravailCreatePage() {
               <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">
                 {TYPE_PERMIT_LABELS[typePermis]}
               </span>
-              {selectedPlan?.process && (
+              {selectedPlan?.typeIntervention && (
                 <>
                   <span className="text-sm text-gray-600 ml-2">Processus :</span>
                   <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5">
-                    {selectedPlan.process}
+                    {selectedPlan.typeIntervention}
                   </span>
                 </>
               )}
