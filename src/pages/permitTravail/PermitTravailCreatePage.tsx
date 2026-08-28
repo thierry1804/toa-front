@@ -25,6 +25,7 @@ import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPl
 import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
 import { usePermission } from '@/features/auth/usePermission'
+import { useUiStore } from '@/store/ui.store'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import type {
   PermitTravail,
@@ -103,6 +104,7 @@ function StepIndicator({ current }: { current: number }) {
 export default function PermitTravailCreatePage() {
   const navigate = useNavigate()
   const canSubmit = usePermission('permit_travail.submit')
+  const addToast = useUiStore((s) => s.addToast)
 
   const { createPermit, updatePermit, uploadDocument, soumettrePermit, isCreating, isSubmitting } =
     usePermitTravail()
@@ -256,7 +258,27 @@ export default function PermitTravailCreatePage() {
       moyensMaitrise: evaluation.moyensMaitrise || null,
       evaluationFinale: evaluation.evaluationFinale || null,
     })
+
     const companionId = permit.permitsGroupe?.[0]?.id
+
+    // Nouveau site : le permis Général seul ne peut pas être soumis tant que
+    // son binôme (Électrique/Hauteur) n'existe pas — le backend refuse avec
+    // "deux_permis_requis". On enregistre l'engagement et on invite
+    // l'utilisateur à créer le second permis avant toute soumission.
+    if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
+      addToast({
+        message:
+          'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur sur ce même plan : les deux seront soumis ensemble.',
+        type: 'info',
+      })
+      navigate('/permits-travail')
+      return
+    }
+
+    // Le backend soumet le binôme Nouveau site en un seul appel : soumettre
+    // l'un des deux permis fait aussi passer l'autre à SOUMIS. Un second
+    // appel /soumettre échouerait avec "statut_not_brouillon" puisque le
+    // permis n'est déjà plus en BROUILLON.
     if (companionId) {
       await updatePermit(companionId, { engagementAccepte: true })
     }
