@@ -89,6 +89,113 @@ export interface SuiviJournalierUpdateInput {
   commentaire?: string | null
 }
 
+export interface ControleJournalier {
+  '@id'?: string
+  id: string
+  date: string
+  intervenants: string[]
+  confirmationMesures: boolean
+  vitesseVent: number | null
+  signatureDemandeur: string
+  signatureIntervenant: string
+  signatureClotureDemandeur: string | null
+  signatureClotureIntervenant: string | null
+  createdBy: { id: number; name: string; firstname?: string }
+  createdAt: string
+}
+
+export interface ControleJournalierInput {
+  intervention: string
+  date: string
+  intervenants: string[]
+  confirmationMesures: boolean
+  vitesseVent?: number | null
+  signatureDemandeur: string
+  signatureIntervenant: string
+}
+
+export interface ControleJournalierUpdateInput {
+  signatureClotureDemandeur?: string
+  signatureClotureIntervenant?: string
+}
+
+export interface Take5Etape1Arreter {
+  complete: boolean
+  observations: string
+}
+
+export interface Take5Etape2Observer {
+  complete: boolean
+  dangersIdentifies: string[]
+  autresDangers: string
+}
+
+export interface Take5Risque {
+  danger: string
+  probabilite: number
+  gravite: number
+  niveauRisque: number
+}
+
+export interface Take5Etape3Analyser {
+  complete: boolean
+  risquesEvalues: Take5Risque[]
+}
+
+export type Take5MesureType =
+  | 'elimination'
+  | 'substitution'
+  | 'controle_ingenierie'
+  | 'controle_administratif'
+  | 'epi'
+
+export interface Take5Mesure {
+  type: Take5MesureType
+  description: string
+  responsable: string
+  miseEnPlace: boolean
+}
+
+export interface Take5Etape4Controler {
+  complete: boolean
+  mesuresControle: Take5Mesure[]
+}
+
+export interface Take5Etape5Proceder {
+  complete: boolean
+  securiteConfirmee: boolean
+  autorisationProceder: boolean
+}
+
+export interface Take5Record {
+  '@id'?: string
+  id: string
+  responsableNom: string
+  equipe: string[]
+  localisation: string
+  tacheDescription: string
+  etape1Arreter: Take5Etape1Arreter
+  etape2Observer: Take5Etape2Observer
+  etape3Analyser: Take5Etape3Analyser
+  etape4Controler: Take5Etape4Controler
+  etape5Proceder: Take5Etape5Proceder
+  createdBy: { id: number; name: string; firstname?: string }
+  createdAt: string
+}
+
+export interface Take5RecordInput {
+  intervention: string
+  responsableNom: string
+  equipe: string[]
+  localisation: string
+  tacheDescription: string
+  etape1Arreter: Take5Etape1Arreter
+  etape2Observer: Take5Etape2Observer
+  etape3Analyser: Take5Etape3Analyser
+  etape4Controler: Take5Etape4Controler
+  etape5Proceder: Take5Etape5Proceder
+}
+
 // HSE/Chef de Projet dashboard types
 
 export interface InterventionSuiviFilters {

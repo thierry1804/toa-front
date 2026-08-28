@@ -348,7 +348,7 @@ export default function PlanPreventionDetailPage() {
             {planifSites.length === 0 ? (
               <p className="text-sm text-gray-400 italic">Aucun site renseigné.</p>
             ) : (
-              <div className={planifSites.length > 10 ? "overflow-y-auto max-h-[26rem]" : ""}>
+              <div className={planifSites.length > 10 ? "overflow-x-auto overflow-y-auto max-h-[26rem]" : "overflow-x-auto"}>
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-white">
                     <tr className="border-b border-gray-200">

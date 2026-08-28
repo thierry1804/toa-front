@@ -1,7 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isOfflineQueued } from '@/offline/offlineError'
 import { interventionApi } from '@/api/interventionApi'
-import { INTERVENTION_KEY, PERMIT_TRAVAIL_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
+import {
+  INTERVENTION_KEY,
+  PERMIT_TRAVAIL_KEY,
+  SUIVI_JOURNALIER_KEY,
+  CONTROLE_JOURNALIER_KEY,
+  TAKE5_RECORD_KEY,
+} from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
 import type {
   EvaluationRisqueInput,
@@ -9,6 +15,9 @@ import type {
   SuiviJournalierInput,
   SuiviJournalierUpdateInput,
   InterventionSuiviFilters,
+  ControleJournalierInput,
+  ControleJournalierUpdateInput,
+  Take5RecordInput,
 } from '@/types/intervention'
 
 const SUIVI_REFETCH_MS = 60_000
@@ -206,5 +215,83 @@ export function useSuiviJournalier(interventionId: string) {
     isUpdating: updateMutation.isPending,
     createError: createMutation.error,
     updateError: updateMutation.error,
+  }
+}
+
+export function useInterventionControlesJournaliers(interventionId: string) {
+  return useQuery({
+    queryKey: [...CONTROLE_JOURNALIER_KEY, interventionId],
+    queryFn: () => interventionApi.getControlesJournaliers(interventionId),
+    enabled: !!interventionId,
+    select: (data) => data.member,
+  })
+}
+
+export function useControleJournalier(interventionId: string) {
+  const queryClient = useQueryClient()
+  const addToast = useUiStore((s) => s.addToast)
+  const controleKey = [...CONTROLE_JOURNALIER_KEY, interventionId]
+
+  const createMutation = useMutation({
+    mutationFn: (data: ControleJournalierInput) => interventionApi.createControleJournalier(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: controleKey })
+      addToast({ message: 'Contrôle journalier enregistré', type: 'success' })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: "Erreur lors de l'enregistrement du contrôle journalier", type: 'error' })
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ControleJournalierUpdateInput }) =>
+      interventionApi.updateControleJournalier(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: controleKey })
+      addToast({ message: 'Contrôle journalier clôturé', type: 'success' })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: 'Erreur lors de la clôture du contrôle journalier', type: 'error' })
+    },
+  })
+
+  return {
+    createControleJournalier: (data: ControleJournalierInput) => createMutation.mutateAsync(data),
+    updateControleJournalier: (id: string, data: ControleJournalierUpdateInput) =>
+      updateMutation.mutateAsync({ id, data }),
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    createError: createMutation.error,
+  }
+}
+
+export function useInterventionTake5Records(interventionId: string) {
+  return useQuery({
+    queryKey: [...TAKE5_RECORD_KEY, interventionId],
+    queryFn: () => interventionApi.getTake5Records(interventionId),
+    enabled: !!interventionId,
+    select: (data) => data.member,
+  })
+}
+
+export function useTake5Record(interventionId: string) {
+  const queryClient = useQueryClient()
+  const addToast = useUiStore((s) => s.addToast)
+
+  const createMutation = useMutation({
+    mutationFn: (data: Take5RecordInput) => interventionApi.createTake5Record(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...TAKE5_RECORD_KEY, interventionId] })
+      addToast({ message: 'Take 5 enregistré', type: 'success' })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: "Erreur lors de l'enregistrement du Take 5", type: 'error' })
+    },
+  })
+
+  return {
+    createTake5Record: (data: Take5RecordInput) => createMutation.mutateAsync(data),
+    isCreating: createMutation.isPending,
+    createError: createMutation.error,
   }
 }

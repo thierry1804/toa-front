@@ -592,7 +592,7 @@ export default function PlanPreventionCreatePage({
                         {isEditMode ? "Aucun site lié à cette planification" : "Sélectionnez une planification pour voir les sites"}
                       </p>
                     ) : (
-                      <div className="rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="rounded-lg border border-gray-200 overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
@@ -866,7 +866,7 @@ export default function PlanPreventionCreatePage({
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">
                     Sites concernés ({fallbackSites.length})
                   </h3>
-                  <div className={`rounded-lg border border-gray-200 overflow-hidden${fallbackSites.length > 10 ? ' overflow-y-auto max-h-[26rem]' : ''}`}>
+                  <div className={`rounded-lg border border-gray-200 overflow-x-auto${fallbackSites.length > 10 ? ' overflow-y-auto max-h-[26rem]' : ''}`}>
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-white">
                         <tr className="bg-gray-50 border-b border-gray-200">

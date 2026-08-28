@@ -1,16 +1,18 @@
 import type { HTMLAttributes, ReactNode, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-/** Tableau pleine largeur — padding interne uniforme, sans marge sur le conteneur. */
+/** Tableau pleine largeur avec défilement horizontal local sur petits écrans. */
 export function ListTable({
   className,
   children,
   ...props
 }: TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <table className={cn('w-full border-collapse text-sm', className)} {...props}>
-      {children}
-    </table>
+    <div className="w-full max-w-full overflow-x-auto">
+      <table className={cn('w-full min-w-[960px] border-collapse text-sm', className)} {...props}>
+        {children}
+      </table>
+    </div>
   )
 }
 
@@ -44,6 +46,8 @@ export function ListTableHeadCell({
       className={cn(
         'border-b border-gray-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600',
         align === 'right' || actions ? 'text-right' : 'text-left',
+        'first:sticky first:left-0 first:z-20 first:bg-gray-50 first:shadow-[2px_0_4px_rgba(0,0,0,0.08)]',
+        actions && 'sticky right-0 z-20 bg-gray-50 shadow-[-2px_0_4px_rgba(0,0,0,0.08)]',
         (actions || compact) && 'w-[1%] whitespace-nowrap',
         className,
       )}
@@ -65,7 +69,8 @@ export function ListTableCell({
     <td
       className={cn(
         'px-4 py-3 align-top',
-        actions && 'w-[1%] whitespace-nowrap text-right',
+        'first:sticky first:left-0 first:z-10 first:bg-white first:shadow-[2px_0_4px_rgba(0,0,0,0.08)]',
+        actions && 'sticky right-0 z-10 w-[1%] whitespace-nowrap bg-white text-right shadow-[-2px_0_4px_rgba(0,0,0,0.08)]',
         compact && !actions && 'w-[1%] whitespace-nowrap',
         !actions && !compact && 'break-words',
         className,

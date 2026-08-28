@@ -18,6 +18,10 @@ export const ROLES_KEY = ['roles'] as const
 
 export const SUIVI_JOURNALIER_KEY = ['suivis-journaliers'] as const
 
+export const CONTROLE_JOURNALIER_KEY = ['controles-journaliers'] as const
+
+export const TAKE5_RECORD_KEY = ['take5-records'] as const
+
 export const DASHBOARD_KEY = ['dashboard-kpis'] as const
 
 export const REFERENTIEL_SITES_KEY = ['referentiel', 'sites'] as const

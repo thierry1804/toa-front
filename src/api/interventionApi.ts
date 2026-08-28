@@ -12,6 +12,11 @@ import type {
   InterventionDashboard,
   InterventionDetailHse,
   InterventionStatsJournalieres,
+  ControleJournalier,
+  ControleJournalierInput,
+  ControleJournalierUpdateInput,
+  Take5Record,
+  Take5RecordInput,
 } from '@/types/intervention'
 import type { KpiIntervention } from '@/types/permitTravail'
 
@@ -93,6 +98,29 @@ export const interventionApi = {
     if (date) params.date = date
     return api.get<InterventionStatsJournalieres>('/api/interventions/stats-journalieres', { params }).then((r) => r.data)
   },
+
+  getControlesJournaliers: (interventionId: string) =>
+    api
+      .get<HydraCollection<ControleJournalier>>(`/api/interventions/${interventionId}/controles-journaliers`)
+      .then((r) => r.data),
+
+  createControleJournalier: (data: ControleJournalierInput) =>
+    api.post<ControleJournalier>('/api/controles-journaliers', data).then((r) => r.data),
+
+  updateControleJournalier: (id: string, data: ControleJournalierUpdateInput) =>
+    api
+      .patch<ControleJournalier>(`/api/controles-journaliers/${id}`, data, {
+        headers: { 'Content-Type': 'application/merge-patch+json' },
+      })
+      .then((r) => r.data),
+
+  getTake5Records: (interventionId: string) =>
+    api
+      .get<HydraCollection<Take5Record>>(`/api/interventions/${interventionId}/take5-records`)
+      .then((r) => r.data),
+
+  createTake5Record: (data: Take5RecordInput) =>
+    api.post<Take5Record>('/api/take5-records', data).then((r) => r.data),
 
   getKpis: (codeSite?: string, periode?: string) => {
     const params: Record<string, string> = {}

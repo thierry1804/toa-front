@@ -46,7 +46,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://toa-back.dev.arkeup.com",
+        // Temporairement repointé vers le backend Docker local pour tester
+        // les correctifs non encore déployés sur toa-back.dev.arkeup.com.
+        // Remettre "https://toa-back.dev.arkeup.com" une fois les tests finis.
+        target: "http://localhost:8081",
         changeOrigin: true,
       },
     },
