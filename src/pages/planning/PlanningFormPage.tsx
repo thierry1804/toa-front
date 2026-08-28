@@ -259,10 +259,10 @@ export default function PlanningFormPage() {
         onError: (error: unknown) => {
           const response = (error as { response?: { status?: number; data?: { error_key?: string; detail?: string } } }).response;
           if (response?.status === 409) {
-            const key = response.data?.error_key;
+            const key = response.data?.error_key ?? response.data?.detail;
             const message = key
-              ? t(`errors.${key}`, response.data?.detail ?? t('planning.toast.createConflict'))
-              : (response.data?.detail ?? t('planning.toast.createConflict'));
+              ? t(`errors.${key}`, t('planning.toast.createConflict'))
+              : t('planning.toast.createConflict');
             addToast({ message, type: "error" });
             return;
           }
