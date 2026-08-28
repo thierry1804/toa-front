@@ -340,6 +340,7 @@
       "updated": "Fandrindrana novana soa aman-tsara",
       "deleted": "Fandrindrana voafafa soa aman-tsara",
       "createError": "Hadisoana tamin'ny famoronana",
+      "createConflict": "Efa misy fandrindrana mifanipaka amin'io toerana sy vaninandro io. Jereo ny daty na ny toerana voafantina.",
       "updateError": "Hadisoana tamin'ny fanovana",
       "deleteError": "Hadisoana tamin'ny famafana",
       "permissionDenied": "Tsy nahazo alalana"

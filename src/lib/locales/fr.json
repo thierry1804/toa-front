@@ -340,6 +340,7 @@
       "updated": "Planification modifiée avec succès",
       "deleted": "Planification supprimée avec succès",
       "createError": "Erreur lors de la création",
+      "createConflict": "Une planification en conflit existe déjà pour ce site sur cette période. Veuillez vérifier les dates ou le site sélectionné.",
       "updateError": "Erreur lors de la modification",
       "deleteError": "Erreur lors de la suppression",
       "permissionDenied": "Permission refusée"

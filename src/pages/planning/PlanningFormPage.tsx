@@ -256,8 +256,18 @@ export default function PlanningFormPage() {
             message: t('planning.toast.created'),
             type: "success",
           }),
-        onError: () =>
-          addToast({ message: t('planning.toast.createError'), type: "error" }),
+        onError: (error: unknown) => {
+          const response = (error as { response?: { status?: number; data?: { error_key?: string; detail?: string } } }).response;
+          if (response?.status === 409) {
+            const key = response.data?.error_key;
+            const message = key
+              ? t(`errors.${key}`, response.data?.detail ?? t('planning.toast.createConflict'))
+              : (response.data?.detail ?? t('planning.toast.createConflict'));
+            addToast({ message, type: "error" });
+            return;
+          }
+          addToast({ message: t('planning.toast.createError'), type: "error" });
+        },
       });
     }
   };
