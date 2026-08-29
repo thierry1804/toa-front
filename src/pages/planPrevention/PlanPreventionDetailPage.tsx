@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
-
+  Plus,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -98,6 +98,7 @@ export default function PlanPreventionDetailPage() {
   const canExamine = usePermission("plan_prevention.examine");
   const canValiderHse = usePermission("plan_prevention.valider_hse");
   const canRefuserHse = usePermission("plan_prevention.refuser_hse");
+  const canCreatePermit = usePermission("permit_travail.create");
 
   const { data: plan, isLoading, isError } = usePlanPreventionDetail(id ?? "");
   const {
@@ -227,6 +228,18 @@ export default function PlanPreventionDetailPage() {
               <Button onClick={() => setExaminerOpen(true)}>
                 <Eye className="mr-2 h-4 w-4" />
                 {t("planPrevention.detail.examinerBtn")}
+              </Button>
+            )}
+            {canCreatePermit && plan.statut === "VALIDE_HSE" && (
+              <Button
+                onClick={() =>
+                  navigate(
+                    `/permits-travail/new?planId=${plan.id}&codeSite=${encodeURIComponent(plan.codeSite)}`,
+                  )
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t("planPrevention.detail.createPermitBtn")}
               </Button>
             )}
             <PdfGenerationButton planId={plan.id} planStatut={plan.statut} />

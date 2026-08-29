@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -104,6 +104,7 @@ function StepIndicator({ current }: { current: number }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function PermitTravailCreatePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const canSubmit = usePermission('permit_travail.submit')
   const addToast = useUiStore((s) => s.addToast)
 
@@ -111,8 +112,14 @@ export default function PermitTravailCreatePage() {
     usePermitTravail()
 
   // ── Step 0 state ─────────────────────────────────────────────────────────────
-  const [codeSiteInput, setCodeSiteInput] = useState('')
-  const [codeSiteSearched, setCodeSiteSearched] = useState('')
+  // Pré-remplissage depuis la fiche d'un plan de prévention validé
+  // (bouton "Créer un permis" → /permits-travail/new?planId=...&codeSite=...).
+  const prefilledPlanId = searchParams.get('planId')
+  const prefilledCodeSite = searchParams.get('codeSite')
+  const autoAdvancedRef = useRef(false)
+
+  const [codeSiteInput, setCodeSiteInput] = useState(prefilledCodeSite ?? '')
+  const [codeSiteSearched, setCodeSiteSearched] = useState(prefilledCodeSite ?? '')
   const [selectedPlanId, setSelectedPlanId] = useState('')
   const [typePermis, setTypePermis] = useState<TypePermit>('ELECTRIQUE')
 
@@ -302,6 +309,19 @@ export default function PermitTravailCreatePage() {
     const nouveauSite = plan?.typeIntervention === 'Nouveau site'
     setTypePermis(nouveauSite && !plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
   }
+
+  // Une fois le plan pré-rempli chargé, sélection et passage direct à l'étape
+  // suivante — une seule fois, pour ne pas bloquer un retour manuel à l'étape 0.
+  useEffect(() => {
+    if (autoAdvancedRef.current || !prefilledPlanId) return
+    const plan = suggestedPlans.find((p) => p.id === prefilledPlanId)
+    if (plan) {
+      autoAdvancedRef.current = true
+      handleSelectPlan(plan.id)
+      setStep(1)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledPlanId, suggestedPlans])
 
   // ── Step 2 → 3: create permit ────────────────────────────────────────────────
   const handleStep2Next = handleSubmit(async (data) => {

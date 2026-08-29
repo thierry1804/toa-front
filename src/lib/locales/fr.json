@@ -540,6 +540,7 @@
       "description": "Lecture seule — aucune modification possible",
       "back": "Retour",
       "examinerBtn": "Examiner ce plan",
+      "createPermitBtn": "Créer un permis",
       "notFound": "Plan introuvable",
       "notFoundDesc": "Ce plan de prévention n'existe pas ou vous n'y avez pas accès.",
       "decisionPanel": "Ce plan est en attente de décision HSE",

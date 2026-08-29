@@ -540,6 +540,7 @@
       "description": "Vakiana ihany — tsy misy fanovana azo atao",
       "back": "Hiverina",
       "examinerBtn": "Hijery ity drafitra ity",
+      "createPermitBtn": "Mamorona alalana",
       "notFound": "Tsy hita ny drafitra",
       "notFoundDesc": "Ity drafitry ny fisorohana ity tsy misy na tsy afaka miditra ianao.",
       "decisionPanel": "Ity drafitra ity dia miandry fanapahan-kevitry ny HSE",
