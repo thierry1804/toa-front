@@ -271,15 +271,16 @@ export default function PermitTravailCreatePage() {
 
     // Nouveau site : le permis Général seul ne peut pas être soumis tant que
     // son binôme (Électrique/Hauteur) n'existe pas — le backend refuse avec
-    // "deux_permis_requis". On enregistre l'engagement et on invite
-    // l'utilisateur à créer le second permis avant toute soumission.
+    // "deux_permis_requis". On enregistre l'engagement et on enchaîne
+    // directement sur la création du second permis, sur le même plan/site.
     if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
       addToast({
-        message:
-          'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur sur ce même plan : les deux seront soumis ensemble.',
+        message: 'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur.',
         type: 'info',
       })
-      navigate('/permits-travail')
+      navigate(
+        `/permits-travail/new?planId=${selectedPlanId}&codeSite=${encodeURIComponent(codeSiteSearched)}`,
+      )
       return
     }
 
@@ -310,16 +311,21 @@ export default function PermitTravailCreatePage() {
     setTypePermis(nouveauSite && !plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
   }
 
-  // Une fois le plan pré-rempli chargé, sélection et passage direct à l'étape
-  // suivante — une seule fois, pour ne pas bloquer un retour manuel à l'étape 0.
+  // Une fois le plan pré-rempli chargé, sélection automatique — une seule
+  // fois, pour ne pas bloquer un retour manuel à l'étape 0. On ne saute
+  // directement à l'étape suivante que si le type de permis est déterminé
+  // sans ambiguïté (Nouveau site sans Général existant) ; sinon (binôme
+  // Électrique/Hauteur à choisir, ou processus Maintenance) on reste à
+  // l'étape 0 pour laisser l'utilisateur choisir le type.
   useEffect(() => {
     if (autoAdvancedRef.current || !prefilledPlanId) return
     const plan = suggestedPlans.find((p) => p.id === prefilledPlanId)
-    if (plan) {
-      autoAdvancedRef.current = true
-      handleSelectPlan(plan.id)
-      setStep(1)
-    }
+    if (!plan) return
+    autoAdvancedRef.current = true
+    handleSelectPlan(plan.id)
+    const nouveauSite = plan.typeIntervention === 'Nouveau site'
+    const singleTypeChoice = nouveauSite && !plan.permitGeneralId
+    if (singleTypeChoice) setStep(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledPlanId, suggestedPlans])
 
