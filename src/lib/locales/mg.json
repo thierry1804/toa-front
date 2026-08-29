@@ -1760,7 +1760,18 @@
         "voir": "Jereo",
         "valider": "Hanamafy",
         "refuser": "Hanilika",
-        "corriger": "Hanitsy"
+        "corriger": "Hanitsy",
+        "supprimer": "Hamafa"
+      },
+      "deleteModal": {
+        "title": "Hamafa ny permis {{reference}}",
+        "message": "Ho voafafa tanteraka ity drafitra ity.",
+        "groupMessage": "Anisan’ny vondrona Toerana vaovao ity drafitra ity. Ho voafafa miaraka ny permis Ankapobeny sy ny permis Herinaratra na Haavony.",
+        "confirm": "Hamafa",
+        "success": "Voafafa soa aman-tsara ny permis.",
+        "forbidden": "Ny drafitrao ihany no azonao fafana.",
+        "conflict": "Tsy azo fafana intsony ity permis na ny vondrona misy azy ity.",
+        "error": "Nisy hadisoana teo am-pamafana ny permis."
       },
       "filters": {
         "allStatuts": "Sata rehetra",

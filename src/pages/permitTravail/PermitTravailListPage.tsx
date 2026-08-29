@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown, X } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown, Trash2, X } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
+import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { TableIconButton } from '@/components/ui/TableIconButton'
@@ -17,6 +18,8 @@ import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
 import { usePermitsTravail, usePermitTravail, usePvReceptionPdf } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravailLabels'
 import { usePermission } from '@/features/auth/usePermission'
+import { useAuthStore } from '@/store/auth.store'
+import { canDeletePermit } from '@/features/permitTravail/utils/permitDeletion'
 import type { PermitTravail } from '@/types/permitTravail'
 
 function PvDownloadCell({ permitId }: { permitId: string }) {
@@ -40,11 +43,23 @@ interface PermitRowProps {
   canValider: boolean
   canRefuser: boolean
   canResoumettre: boolean
+  canDelete: boolean
   onValider: (permit: PermitTravail) => void
   onRefuser: (permit: PermitTravail) => void
+  onDelete: (permit: PermitTravail) => void
 }
 
-function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumettre, onValider, onRefuser }: PermitRowProps) {
+function PermitRow({
+  permit,
+  showHseColumns,
+  canValider,
+  canRefuser,
+  canResoumettre,
+  canDelete,
+  onValider,
+  onRefuser,
+  onDelete,
+}: PermitRowProps) {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const { typeLabel, processusLabel } = usePermitTravailLabels()
@@ -138,6 +153,15 @@ function PermitRow({ permit, showHseColumns, canValider, canRefuser, canResoumet
                 <Pencil className="h-4 w-4" />
               </TableIconButton>
             )}
+          {canDelete && (
+            <TableIconButton
+              title={t('permitTravail.list.actions.supprimer')}
+              variant="danger"
+              onClick={() => onDelete(permit)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </TableIconButton>
+          )}
         </ListTableActions>
       </ListTableCell>
     </ListTableRow>
@@ -151,6 +175,7 @@ function PermitTravailListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [urlParams] = useSearchParams()
+  const currentUserId = useAuthStore((s) => s.user?.id)
   const groupeIdFilter = urlParams.get('groupeId')
   const canCreate = usePermission('permit_travail.create')
   const canValider = usePermission('permit_travail.valider_hse')
@@ -165,6 +190,7 @@ function PermitTravailListPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [selectedForValider, setSelectedForValider] = useState<PermitTravail | null>(null)
   const [selectedForRefuser, setSelectedForRefuser] = useState<PermitTravail | null>(null)
+  const [selectedForDelete, setSelectedForDelete] = useState<PermitTravail | null>(null)
 
   const queryParams: Record<string, string | string[]> = {
     page: String(page),
@@ -174,10 +200,17 @@ function PermitTravailListPage() {
   }
 
   const { data, isLoading, isError } = usePermitsTravail(queryParams)
-  const { validerPermit, refuserPermit, isValidating, isRefusing } = usePermitTravail()
+  const {
+    validerPermit,
+    refuserPermit,
+    deletePermit,
+    isValidating,
+    isRefusing,
+    isDeleting,
+  } = usePermitTravail()
   const { typeLabel, processusLabel } = usePermitTravailLabels()
 
-  const displayedPermits = data?.member ?? []
+  const displayedPermits = useMemo(() => data?.member ?? [], [data?.member])
   const totalItems = data?.totalItems ?? 0
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 
@@ -364,8 +397,10 @@ function PermitTravailListPage() {
                       canValider={canValider}
                       canRefuser={canRefuser}
                       canResoumettre={canResoumettre}
+                      canDelete={canDeletePermit(permit, currentUserId)}
                       onValider={setSelectedForValider}
                       onRefuser={setSelectedForRefuser}
+                      onDelete={setSelectedForDelete}
                     />
                   ))}
                 </ListTableBody>
@@ -419,6 +454,37 @@ function PermitTravailListPage() {
           onClose={() => setSelectedForRefuser(null)}
           onRefuser={refuserPermit}
         />
+      )}
+      {selectedForDelete && (
+        <Modal
+          isOpen={true}
+          onClose={() => {
+            if (!isDeleting) setSelectedForDelete(null)
+          }}
+          title={t('permitTravail.list.deleteModal.title', { reference: selectedForDelete.reference })}
+        >
+          <p className="text-sm text-gray-600">
+            {selectedForDelete.groupeId
+              ? t('permitTravail.list.deleteModal.groupMessage')
+              : t('permitTravail.list.deleteModal.message')}
+          </p>
+          <ModalFooter>
+            <Button variant="secondary" onClick={() => setSelectedForDelete(null)} disabled={isDeleting}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                await deletePermit(selectedForDelete.id)
+                setSelectedForDelete(null)
+              }}
+              isLoading={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('permitTravail.list.deleteModal.confirm')}
+            </Button>
+          </ModalFooter>
+        </Modal>
       )}
     </div>
   )

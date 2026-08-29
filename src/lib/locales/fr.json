@@ -1760,7 +1760,18 @@
         "voir": "Voir",
         "valider": "Valider",
         "refuser": "Refuser",
-        "corriger": "Corriger"
+        "corriger": "Corriger",
+        "supprimer": "Supprimer"
+      },
+      "deleteModal": {
+        "title": "Supprimer le permis {{reference}}",
+        "message": "Ce brouillon sera supprimé définitivement.",
+        "groupMessage": "Ce brouillon appartient à un groupe Nouveau site. Le permis Général et son permis Électrique ou Hauteur seront supprimés ensemble.",
+        "confirm": "Supprimer",
+        "success": "Permis supprimé avec succès.",
+        "forbidden": "Vous ne pouvez supprimer que vos propres brouillons.",
+        "conflict": "Ce permis ou son groupe ne peut plus être supprimé.",
+        "error": "Erreur lors de la suppression du permis."
       },
       "filters": {
         "allStatuts": "Tous les statuts",

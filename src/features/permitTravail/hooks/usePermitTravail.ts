@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { interventionApi } from '@/api/interventionApi'
 import { PERMIT_TRAVAIL_KEY, INTERVENTION_KEY, DASHBOARD_KEY } from '@/data/constant/query'
@@ -320,6 +321,7 @@ export function usePermitTravailVersions(id: string) {
 export function usePermitTravail() {
   const queryClient = useQueryClient()
   const addToast = useUiStore((s) => s.addToast)
+  const { t } = useTranslation()
 
   const createMutation = useMutation({
     mutationFn: (data: PermitTravailInput) => permitTravailApi.create(data),
@@ -337,6 +339,27 @@ export function usePermitTravail() {
         return
       }
       addToast({ message: 'Erreur lors de la création du permis', type: 'error' })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => permitTravailApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+      addToast({ message: t('permitTravail.list.deleteModal.success'), type: 'success' })
+    },
+    onError: (error: unknown) => {
+      if (isOfflineQueued(error)) return
+      const status = (error as { response?: { status?: number } })?.response?.status
+      if (status === 403) {
+        addToast({ message: t('permitTravail.list.deleteModal.forbidden'), type: 'error' })
+        return
+      }
+      if (status === 409) {
+        addToast({ message: t('permitTravail.list.deleteModal.conflict'), type: 'error' })
+        return
+      }
+      addToast({ message: t('permitTravail.list.deleteModal.error'), type: 'error' })
     },
   })
 
@@ -447,6 +470,10 @@ export function usePermitTravail() {
     return createMutation.mutateAsync(data)
   }
 
+  const deletePermit = async (id: string): Promise<void> => {
+    await deleteMutation.mutateAsync(id)
+  }
+
   const updatePermit = async (id: string, data: Partial<PermitTravailInput>) => {
     return updateMutation.mutateAsync({ id, data })
   }
@@ -510,6 +537,7 @@ export function usePermitTravail() {
 
   return {
     createPermit,
+    deletePermit,
     updatePermit,
     uploadDocument,
     soumettrePermit,
@@ -520,6 +548,7 @@ export function usePermitTravail() {
     validerPv,
     refuserPv,
     isCreating: createMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     isUpdating: updateMutation.isPending,
     isUploading: uploadMutation.isPending,
     isSubmitting: soumettresMutation.isPending,

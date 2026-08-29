@@ -42,6 +42,9 @@ export const permitTravailApi = {
       })
       .then((r) => r.data),
 
+  delete: (id: string): Promise<void> =>
+    api.delete(`/api/permits-travail/${id}`).then(() => undefined),
+
   uploadDocument: (id: string, type: string, file: File) => {
     const formData = new FormData()
     formData.append('file', file)
