@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Check, AlertCircle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import SiteCodeAutocomplete from "@/components/planning/SiteCodeAutocomplete";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
@@ -180,6 +181,7 @@ export default function PlanPreventionCreatePage({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<Step0FormData>({
     resolver: zodResolver(step0Schema),
@@ -627,9 +629,13 @@ export default function PlanPreventionCreatePage({
               })()
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
+                <SiteCodeAutocomplete
                   label="Code site *"
-                  {...register("codeSite")}
+                  value={watchedCodSite ?? ""}
+                  onChange={(v) => setValue("codeSite", v, { shouldValidate: true })}
+                  onSelect={(site) =>
+                    setValue("codeSite", site.codeSite, { shouldValidate: true })
+                  }
                   error={errors.codeSite?.message}
                   placeholder="Ex. : ANT-001"
                   disabled={!canEdit}

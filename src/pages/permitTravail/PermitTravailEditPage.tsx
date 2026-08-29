@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import BandeauRefus from '@/components/planPrevention/BandeauRefus'
@@ -122,8 +123,12 @@ export default function PermitTravailEditPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<Step2FormData>({ resolver: zodResolver(step2Schema) })
+
+  const watchedCodeSite = watch('codeSite')
 
   useEffect(() => {
     if (!permit) return
@@ -274,9 +279,11 @@ export default function PermitTravailEditPage() {
       case 2:
         return (
           <div className="space-y-4">
-            <Input
+            <SiteCodeAutocomplete
               label="Code site *"
-              {...register('codeSite')}
+              value={watchedCodeSite ?? ''}
+              onChange={(v) => setValue('codeSite', v, { shouldValidate: true })}
+              onSelect={(site) => setValue('codeSite', site.codeSite, { shouldValidate: true })}
               error={errors.codeSite?.message}
               disabled={!canEdit}
             />

@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
+import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
 import { usePermission } from '@/features/auth/usePermission'
@@ -355,13 +356,18 @@ export default function PermitTravailCreatePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Code site *</label>
               <div className="flex gap-2">
-                <Input
-                  value={codeSiteInput}
-                  onChange={(e) => setCodeSiteInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
-                  placeholder="Ex: AND-001"
-                  className="flex-1"
-                />
+                <div className="flex-1">
+                  <SiteCodeAutocomplete
+                    value={codeSiteInput}
+                    onChange={setCodeSiteInput}
+                    onSelect={(site) => {
+                      setCodeSiteInput(site.codeSite)
+                      setCodeSiteSearched(site.codeSite)
+                      setSelectedPlanId('')
+                    }}
+                    placeholder="Ex: AND-001"
+                  />
+                </div>
                 <Button
                   type="button"
                   variant="outline"
