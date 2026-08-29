@@ -28,6 +28,7 @@ import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategori
 import { usePermission } from '@/features/auth/usePermission'
 import { useUiStore } from '@/store/ui.store'
 import { planPreventionApi } from '@/api/planPreventionApi'
+import { getPermitCreationTransition } from './permitCreationTransition'
 import type {
   PermitTravail,
   TypePermit,
@@ -258,6 +259,13 @@ export default function PermitTravailCreatePage() {
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────────
+  const resetPermitDraftState = () => {
+    setPermit(null)
+    setCompanionDocs([])
+    setEngagementChecked(false)
+    setEvaluation({ dangers: '', evaluationPreliminaire: '', moyensMaitrise: '', evaluationFinale: '' })
+  }
+
   const handleSoumettre = async () => {
     if (!permit) return
     await updatePermit(permit.id, {
@@ -287,10 +295,7 @@ export default function PermitTravailCreatePage() {
       await queryClient.invalidateQueries({
         queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
       })
-      setPermit(null)
-      setCompanionDocs([])
-      setEngagementChecked(false)
-      setEvaluation({ dangers: '', evaluationPreliminaire: '', moyensMaitrise: '', evaluationFinale: '' })
+      resetPermitDraftState()
       setTypePermis('ELECTRIQUE')
       setStep(0)
       return
@@ -356,8 +361,24 @@ export default function PermitTravailCreatePage() {
       dateDebutPrevue: data.dateDebutPrevue,
       dateFinPrevue: data.dateFinPrevue,
     })
+
+    const transition = getPermitCreationTransition(processus, typePermis)
+    if (transition.resetDraft) {
+      addToast({
+        message: 'Permis Général créé. Créez maintenant le permis Électrique ou Hauteur.',
+        type: 'info',
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
+      })
+      resetPermitDraftState()
+      setTypePermis(transition.typePermis)
+      setStep(transition.step)
+      return
+    }
+
     setPermit(created)
-    setStep(3)
+    setStep(transition.step)
   })
 
   // ── Navigation ────────────────────────────────────────────────────────────────
