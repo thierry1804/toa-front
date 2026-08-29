@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown, X } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -150,6 +150,8 @@ const ITEMS_PER_PAGE = 10
 function PermitTravailListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [urlParams] = useSearchParams()
+  const groupeIdFilter = urlParams.get('groupeId')
   const canCreate = usePermission('permit_travail.create')
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
@@ -168,6 +170,7 @@ function PermitTravailListPage() {
     page: String(page),
     itemsPerPage: String(ITEMS_PER_PAGE),
     ...(hseView ? { statut: HSE_STATUTS } : {}),
+    ...(groupeIdFilter ? { groupeId: groupeIdFilter } : {}),
   }
 
   const { data, isLoading, isError } = usePermitsTravail(queryParams)
@@ -262,6 +265,23 @@ function PermitTravailListPage() {
           </div>
         }
       />
+
+      {groupeIdFilter && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50 px-4 py-2.5">
+          <span className="flex items-center gap-2 text-sm text-purple-800">
+            <Users className="h-4 w-4" />
+            {t('permitTravail.list.groupFilterActive')}
+          </span>
+          <button
+            type="button"
+            onClick={() => navigate('/permits-travail')}
+            className="flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-900"
+          >
+            <X className="h-3.5 w-3.5" />
+            {t('permitTravail.list.groupFilterClear')}
+          </button>
+        </div>
+      )}
 
       {isLoading && <ListPageSkeleton withStatStrip={false} />}
 

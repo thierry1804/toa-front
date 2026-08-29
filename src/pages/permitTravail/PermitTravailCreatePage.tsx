@@ -15,7 +15,7 @@ import {
   ShieldAlert,
   Wrench,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -105,6 +105,7 @@ function StepIndicator({ current }: { current: number }) {
 export default function PermitTravailCreatePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const queryClient = useQueryClient()
   const canSubmit = usePermission('permit_travail.submit')
   const addToast = useUiStore((s) => s.addToast)
 
@@ -271,16 +272,27 @@ export default function PermitTravailCreatePage() {
 
     // Nouveau site : le permis Général seul ne peut pas être soumis tant que
     // son binôme (Électrique/Hauteur) n'existe pas — le backend refuse avec
-    // "deux_permis_requis". On enregistre l'engagement et on enchaîne
-    // directement sur la création du second permis, sur le même plan/site.
+    // "deux_permis_requis". On enregistre l'engagement et on enchaîne sur la
+    // création du second permis SANS naviguer : /permits-travail/new est déjà
+    // la route courante, donc react-router ne remonte pas le composant sur un
+    // simple changement de query string — le state du wizard resterait figé.
+    // On réinitialise l'état localement à la place, en gardant le site et le
+    // plan déjà sélectionnés, et on invalide le cache "plans par site" pour
+    // que permitGeneralId reflète le Général qu'on vient de créer.
     if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
       addToast({
         message: 'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur.',
         type: 'info',
       })
-      navigate(
-        `/permits-travail/new?planId=${selectedPlanId}&codeSite=${encodeURIComponent(codeSiteSearched)}`,
-      )
+      await queryClient.invalidateQueries({
+        queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
+      })
+      setPermit(null)
+      setCompanionDocs([])
+      setEngagementChecked(false)
+      setEvaluation({ dangers: '', evaluationPreliminaire: '', moyensMaitrise: '', evaluationFinale: '' })
+      setTypePermis('ELECTRIQUE')
+      setStep(0)
       return
     }
 

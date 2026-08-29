@@ -1743,6 +1743,8 @@
       "downloadPv": "Télécharger le PV de réception",
       "groupBadge": "Groupe",
       "groupTitle": "Fait partie d'un groupe de permis",
+      "groupFilterActive": "Liste filtrée sur ce groupe de permis",
+      "groupFilterClear": "Retirer le filtre",
       "paginationPermits": "permis",
       "headers": {
         "reference": "Référence",

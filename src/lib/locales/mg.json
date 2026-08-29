@@ -1743,6 +1743,8 @@
       "downloadPv": "Hisintona ny PV fandraisana",
       "groupBadge": "Vondrona",
       "groupTitle": "Anisan'ny vondrona permis iray",
+      "groupFilterActive": "Lisitra sivanina araka ity vondrona permis ity",
+      "groupFilterClear": "Esory ny sivana",
       "paginationPermits": "permis",
       "headers": {
         "reference": "Laharana",
