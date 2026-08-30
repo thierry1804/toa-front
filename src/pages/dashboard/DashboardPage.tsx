@@ -4,7 +4,7 @@ import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatStrip } from "@/components/ui/StatStrip";
 import Badge from "@/components/ui/Badge";
-import { CloudOff, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DASHBOARD_EXCERPT_LIMIT, DASHBOARD_KPI_SCAN_LIMIT, quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
@@ -21,8 +21,6 @@ import { useActivityPlannings } from "@/features/planning/hooks/useActivityPlann
 import { useUsers } from "@/features/users/hooks/useUsers";
 import StatutPermitBadge from "@/components/permitTravail/StatutPermitBadge";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
-import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
-import { useFailedSyncCount } from "@/hooks/useFailedSyncCount";
 import { formatUserDisplayName } from "@/utils/format";
 import { STATUS_CONFIG } from "@/data/constant/planning";
 import { sortNewestFirst } from "@/lib/listOrder";
@@ -74,8 +72,6 @@ function DashboardPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { typeLabel } = usePermitTravailLabels();
-  const pendingSyncCount = usePendingSyncCount();
-  const failedSyncCount = useFailedSyncCount();
 
   const isSuperAdmin = roles.includes("ROLE_SUPER_ADMIN");
   const isAdmin =
@@ -230,8 +226,6 @@ function DashboardPage() {
   const locale = i18n.language?.startsWith("mg") ? "mg-MG" : "fr-FR";
   const formatDay = (iso: string) => new Date(iso).toLocaleDateString(locale);
 
-  const syncBanner = pendingSyncCount > 0 || failedSyncCount > 0;
-
   const excerptCount = [
     showPermits,
     showPlans,
@@ -246,17 +240,6 @@ function DashboardPage() {
         title={`${t("dashboard.greeting")}${userName ? `, ${userName}` : ""}`}
         description={t("dashboard.description")}
       />
-
-      {syncBanner && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
-          <CloudOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>
-            {failedSyncCount > 0
-              ? t("offline.syncFailed", { count: failedSyncCount })
-              : t("dashboard.syncPending", { count: pendingSyncCount })}
-          </span>
-        </div>
-      )}
 
       {isAdmin && (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">

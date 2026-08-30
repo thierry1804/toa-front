@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import api from '@/lib/axios'
+import i18n from '@/lib/i18n'
 import { syncQueue, type SyncItem } from './syncQueue'
 import { isOfflineQueued } from './offlineError'
 import { deleteBlobsForParts, rebuildFormData } from './blobStore'
@@ -59,7 +60,7 @@ export async function drainSyncQueue(
 
   if (dropped > 0) {
     addToast({
-      message: `${dropped} action(s) non synchronisée(s) après ${MAX_RETRIES} tentatives`,
+      message: i18n.t('offline.dropped', { count: dropped, max: MAX_RETRIES }),
       type: 'error',
     })
   }

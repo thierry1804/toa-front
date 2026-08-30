@@ -30,4 +30,16 @@ describe('withSnapshotFallback', () => {
       ),
     ).rejects.toThrow('network')
   })
+
+  it('reads local first when the browser is offline', async () => {
+    const previous = navigator.onLine
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
+    try {
+      const network = async () => 'online'
+      const result = await withSnapshotFallback(network, async () => 'cached')
+      expect(result).toBe('cached')
+    } finally {
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: previous })
+    }
+  })
 })

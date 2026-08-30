@@ -77,6 +77,17 @@ export const syncQueue = {
     notify()
   },
 
+  async requeueFailed(): Promise<number> {
+    const db = await getOfflineDb()
+    const failed = await db.getAll(FAILED_STORE)
+    for (const item of failed) {
+      await db.put(QUEUE_STORE, { ...item, retries: 0 })
+      await db.delete(FAILED_STORE, item.id)
+    }
+    if (failed.length > 0) notify()
+    return failed.length
+  },
+
   async clear() {
     const db = await getOfflineDb()
     await db.clear(QUEUE_STORE)

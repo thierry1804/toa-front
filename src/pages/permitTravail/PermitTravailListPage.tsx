@@ -198,7 +198,7 @@ function PermitTravailListPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [statusFilter])
+  }, [statusFilter, groupeIdFilter])
   const [selectedForValider, setSelectedForValider] = useState<PermitTravail | null>(null)
   const [selectedForRefuser, setSelectedForRefuser] = useState<PermitTravail | null>(null)
   const [selectedForDelete, setSelectedForDelete] = useState<PermitTravail | null>(null)

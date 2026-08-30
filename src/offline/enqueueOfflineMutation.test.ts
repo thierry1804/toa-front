@@ -92,9 +92,7 @@ describe('enqueueOfflineMutation', () => {
         ]),
       }),
     )
-    expect(mockAddToast).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'warning' }),
-    )
+    expect(mockAddToast).not.toHaveBeenCalled()
   })
 
   it('returns quota and does not enqueue when ingest fails', async () => {

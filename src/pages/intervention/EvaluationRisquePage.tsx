@@ -14,7 +14,7 @@ import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import EvaluationRisqueTable from '@/components/intervention/EvaluationRisqueTable'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
-import { useInterventionDetail, useIntervention } from '@/features/intervention/hooks/useIntervention'
+import { useInterventionDetail, useIntervention, useInterventionRisques } from '@/features/intervention/hooks/useIntervention'
 import { usePermitTravailDetail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
 import type { EvaluationRisqueInput } from '@/types/intervention'
@@ -46,6 +46,10 @@ export default function EvaluationRisquePage() {
     isLoading: loadingPermit,
   } = usePermitTravailDetail(intervention?.permitTravailId ?? '')
 
+  const {
+    data: risquesFromQuery,
+  } = useInterventionRisques(id ?? '')
+
   const { updateRisque, validerEvaluation, isUpdatingRisque, isValidating } = useIntervention()
 
   const [highlightNonReevalues, setHighlightNonReevalues] = useState(false)
@@ -69,7 +73,10 @@ export default function EvaluationRisquePage() {
     )
   }
 
-  const risques = intervention.evaluations ?? []
+  const risques =
+    (intervention.evaluations && intervention.evaluations.length > 0
+      ? intervention.evaluations
+      : risquesFromQuery) ?? []
   const totalRisques = risques.length
   const reevaluesCount = risques.filter((r) => r.estReevalue).length
   const allReevalues = reevaluesCount === totalRisques && totalRisques > 0

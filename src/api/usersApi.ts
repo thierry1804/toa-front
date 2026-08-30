@@ -1,15 +1,24 @@
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList } from '@/offline/snapshotRead'
 import type { User, UserCreate, UserUpdate, HydraCollection } from '@/types'
 
 export const usersApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
-    api
-      .get<HydraCollection<User>>('/api/users', { params: withNewestFirst(params) })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<User>>('/api/users', { params: withNewestFirst(params) })
+          .then((r) => r.data),
+      () => snapshotList<User>('users', params),
+    ),
 
   getById: (id: number) =>
-    api.get<User>(`/api/users/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<User>(`/api/users/${id}`).then((r) => r.data),
+      () => snapshotById<User>('users', id),
+    ),
 
   create: (data: UserCreate) =>
     api.post<User>('/api/users', data).then((r) => r.data),

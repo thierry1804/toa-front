@@ -1,18 +1,20 @@
 import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useOnline } from './useOnline'
 import { useUiStore } from '@/store/ui.store'
 import { drainSyncQueue } from '@/offline/drainSyncQueue'
 import { maybePullIncremental } from '@/offline/pullOfflineSnapshot'
+import { getSyncing, setSyncing } from '@/offline/syncStatus'
 import { shouldDrainSync } from './shouldDrainSync'
 
 export function useSyncOnReconnect(): void {
   const isOnline = useOnline()
   const wasOnlineRef = useRef(isOnline)
   const isFirstRunRef = useRef(true)
-  const drainingRef = useRef(false)
   const queryClient = useQueryClient()
   const addToast = useUiStore((s) => s.addToast)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const shouldDrain = shouldDrainSync({
@@ -23,21 +25,22 @@ export function useSyncOnReconnect(): void {
     isFirstRunRef.current = false
     wasOnlineRef.current = isOnline
 
-    if (!shouldDrain || drainingRef.current) return
+    if (!shouldDrain || getSyncing()) return
 
-    drainingRef.current = true
-    drainSyncQueue(queryClient, addToast)
-      .then(async (synced) => {
+    void (async () => {
+      setSyncing(true)
+      try {
+        const synced = await drainSyncQueue(queryClient, addToast)
         if (synced > 0) {
           addToast({
-            message: `${synced} action(s) synchronisée(s)`,
+            message: t('offline.synced', { count: synced }),
             type: 'success',
           })
         }
-        await maybePullIncremental(queryClient)
-      })
-      .finally(() => {
-        drainingRef.current = false
-      })
-  }, [isOnline, queryClient, addToast])
+      } finally {
+        setSyncing(false)
+      }
+      await maybePullIncremental(queryClient)
+    })()
+  }, [isOnline, queryClient, addToast, t])
 }

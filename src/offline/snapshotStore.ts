@@ -8,7 +8,7 @@ import type {
 } from '@/types/offlineSnapshot'
 
 export const SNAPSHOT_DB = 'toa-snapshot'
-export const SNAPSHOT_DB_VER = 1
+export const SNAPSHOT_DB_VER = 2
 
 export const SNAPSHOT_META_STORE = 'meta'
 export const SNAPSHOT_MODULE_STORES = [
@@ -17,6 +17,8 @@ export const SNAPSHOT_MODULE_STORES = [
   'interventions',
   'activityPlannings',
   'sites',
+  'users',
+  'entreprises',
   'categoriesRisque',
   'installationsEquipements',
 ] as const
@@ -64,24 +66,40 @@ export function resetSnapshotDbForTests(): void {
 }
 
 function storeKey(module: SnapshotStoreName, id: string | number): string | number {
-  if (module === 'activityPlannings') return Number(id)
+  if (module === 'activityPlannings' || module === 'users') return Number(id)
   return String(id)
+}
+
+function withEntityId(item: unknown): Record<string, unknown> | null {
+  if (!item || typeof item !== 'object') return null
+  const record = item as Record<string, unknown>
+  if (typeof record.id === 'string' || typeof record.id === 'number') return record
+  if (typeof record['@id'] === 'string') {
+    const last = record['@id'].replace(/\/$/, '').split('/').pop()
+    if (!last) return null
+    const numeric = Number(last)
+    const id = Number.isFinite(numeric) && String(numeric) === last ? numeric : last
+    return { ...record, id }
+  }
+  return null
 }
 
 async function replaceStore(store: SnapshotStoreName, items: unknown[]): Promise<void> {
   const db = await getSnapshotDb()
   await db.clear(store)
   for (const item of items) {
-    if (!item || typeof item !== 'object' || !('id' in item)) continue
-    await db.put(store, item)
+    const entity = withEntityId(item)
+    if (!entity) continue
+    await db.put(store, entity)
   }
 }
 
 async function putItems(store: SnapshotStoreName, items: unknown[]): Promise<void> {
   const db = await getSnapshotDb()
   for (const item of items) {
-    if (!item || typeof item !== 'object' || !('id' in item)) continue
-    await db.put(store, item)
+    const entity = withEntityId(item)
+    if (!entity) continue
+    await db.put(store, entity)
   }
 }
 
@@ -99,6 +117,8 @@ function modulesPresent(snapshot: OfflineSnapshot): OfflineSnapshotModule[] {
   if (snapshot.interventions) modules.push('interventions')
   if (snapshot.activityPlannings) modules.push('activityPlannings')
   if (snapshot.sites) modules.push('sites')
+  if (snapshot.users) modules.push('users')
+  if (snapshot.entreprises) modules.push('entreprises')
   if (snapshot.referentiel) modules.push('referentiel')
   return modules
 }
@@ -139,6 +159,8 @@ export async function saveSnapshot(snapshot: OfflineSnapshot): Promise<void> {
   await replaceStore('interventions', snapshot.interventions ?? [])
   await replaceStore('activityPlannings', snapshot.activityPlannings ?? [])
   await replaceStore('sites', snapshot.sites ?? [])
+  await replaceStore('users', snapshot.users ?? [])
+  await replaceStore('entreprises', snapshot.entreprises ?? [])
   await replaceStore('categoriesRisque', snapshot.referentiel?.categoriesRisque ?? [])
   await replaceStore(
     'installationsEquipements',
@@ -155,6 +177,8 @@ export async function applyDelta(snapshot: OfflineSnapshot): Promise<void> {
   await putItems('interventions', snapshot.interventions ?? [])
   await putItems('activityPlannings', snapshot.activityPlannings ?? [])
   await putItems('sites', snapshot.sites ?? [])
+  await putItems('users', snapshot.users ?? [])
+  await putItems('entreprises', snapshot.entreprises ?? [])
   await putItems('categoriesRisque', snapshot.referentiel?.categoriesRisque ?? [])
   await putItems(
     'installationsEquipements',
@@ -174,6 +198,8 @@ export async function applyTombstones(tombstones?: OfflineSnapshotTombstones): P
     await deleteIds('activityPlannings', tombstones.activityPlannings)
   }
   if (tombstones.sites?.length) await deleteIds('sites', tombstones.sites)
+  if (tombstones.users?.length) await deleteIds('users', tombstones.users)
+  if (tombstones.entreprises?.length) await deleteIds('entreprises', tombstones.entreprises)
   if (tombstones.categoriesRisque?.length) {
     await deleteIds('categoriesRisque', tombstones.categoriesRisque)
   }

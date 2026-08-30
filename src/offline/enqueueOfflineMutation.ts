@@ -47,10 +47,6 @@ export async function enqueueOfflineMutation(
       contentType: 'multipart/form-data',
     })
 
-    useUiStore.getState().addToast({
-      message: i18n.t('offline.queued', 'Action sauvegardée hors ligne'),
-      type: 'warning',
-    })
     return 'queued'
   }
 
@@ -73,11 +69,6 @@ export async function enqueueOfflineMutation(
     method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     body,
     contentType,
-  })
-
-  useUiStore.getState().addToast({
-    message: i18n.t('offline.queued', 'Action sauvegardée hors ligne'),
-    type: 'warning',
   })
 
   return 'queued'

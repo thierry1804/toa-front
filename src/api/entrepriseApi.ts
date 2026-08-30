@@ -1,5 +1,7 @@
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList } from '@/offline/snapshotRead'
 import type { Entreprise, HydraCollection } from '@/types'
 
 export interface EntrepriseCreate {
@@ -18,14 +20,21 @@ export interface EntrepriseUpdate {
 
 export const entrepriseApi = {
   list: () =>
-    api
-      .get<HydraCollection<Entreprise>>('/api/entreprises', {
-        params: withNewestFirst({ pagination: false }),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<Entreprise>>('/api/entreprises', {
+            params: withNewestFirst({ pagination: false }),
+          })
+          .then((r) => r.data),
+      () => snapshotList<Entreprise>('entreprises'),
+    ),
 
   getById: (id: string) =>
-    api.get<Entreprise>(`/api/entreprises/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<Entreprise>(`/api/entreprises/${id}`).then((r) => r.data),
+      () => snapshotById<Entreprise>('entreprises', id),
+    ),
 
   create: (data: EntrepriseCreate) =>
     api.post<Entreprise>('/api/entreprises', data).then((r) => r.data),

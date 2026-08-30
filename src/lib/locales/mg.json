@@ -753,6 +753,17 @@
     "pending_one": "{{count}} miandry",
     "pending_other": "{{count}} miandry",
     "queued": "Voarakitra hors-ligne ny hetsika",
+    "synced_one": "{{count}} hetsika voarindra",
+    "synced_other": "{{count}} hetsika voarindra",
+    "dropped_one": "{{count}} hetsika tsy voarindra taorian'ny andrana {{max}}",
+    "dropped_other": "{{count}} hetsika tsy voarindra taorian'ny andrana {{max}}",
+    "syncBadge_one": "{{count}} miandry fandrindrana",
+    "syncBadge_other": "{{count}} miandry fandrindrana",
+    "syncBadgeFailed_one": "{{count}} hetsika tsy voarindra",
+    "syncBadgeFailed_other": "{{count}} hetsika tsy voarindra",
+    "syncing": "Fandrindrana mandeha",
+    "retryFailed": "Andramo indray",
+    "failedList": "Hetsika tsy voarindra",
     "attachmentRequiresNetwork": "Rakitra: ilaina ny fifandraisana",
     "quotaExceeded": "Lehibe loatra ny rakitra na feno ny toerana hors-ligne (15 Mo / rakitra, 80 Mo)",
     "pendingUpload": "Miandry fandrindrana",
@@ -782,6 +793,8 @@
         "interventions": "Fitsabahana",
         "activityPlannings": "Fandaharam-potoana",
         "sites": "Toerana",
+        "users": "Mpampiasa",
+        "entreprises": "Orinasa",
         "referentiel": "Lisitra"
       }
     }

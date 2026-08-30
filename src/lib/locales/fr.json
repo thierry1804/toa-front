@@ -753,6 +753,17 @@
     "pending_one": "{{count}} en attente",
     "pending_other": "{{count}} en attente",
     "queued": "Action sauvegardée hors ligne",
+    "synced_one": "{{count}} action synchronisée",
+    "synced_other": "{{count}} actions synchronisées",
+    "dropped_one": "{{count}} action non synchronisée après {{max}} tentatives",
+    "dropped_other": "{{count}} actions non synchronisées après {{max}} tentatives",
+    "syncBadge_one": "{{count}} en attente de synchronisation",
+    "syncBadge_other": "{{count}} en attente de synchronisation",
+    "syncBadgeFailed_one": "{{count}} action non synchronisée",
+    "syncBadgeFailed_other": "{{count}} actions non synchronisées",
+    "syncing": "Synchronisation en cours",
+    "retryFailed": "Réessayer",
+    "failedList": "Actions non synchronisées",
     "attachmentRequiresNetwork": "Pièce jointe : une connexion est requise",
     "quotaExceeded": "Fichier trop volumineux ou quota hors-ligne dépassé (15 Mo / fichier, 80 Mo au total)",
     "pendingUpload": "En attente de synchronisation",
@@ -782,6 +793,8 @@
         "interventions": "Interventions",
         "activityPlannings": "Planning",
         "sites": "Sites",
+        "users": "Utilisateurs",
+        "entreprises": "Entreprises",
         "referentiel": "Référentiel"
       }
     }

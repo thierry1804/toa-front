@@ -4,6 +4,8 @@ export const SNAPSHOT_ENTITY_MODULES = [
   'interventions',
   'activityPlannings',
   'sites',
+  'users',
+  'entreprises',
 ] as const
 
 export type OfflineSnapshotEntityModule = (typeof SNAPSHOT_ENTITY_MODULES)[number]
@@ -16,6 +18,8 @@ export const SNAPSHOT_PATH_MODULES = [
   'interventions',
   'activity-plannings',
   'sites',
+  'users',
+  'entreprises',
   'referentiel',
 ] as const
 
@@ -27,6 +31,8 @@ export const ENTITY_MODULE_TO_PATH: Record<OfflineSnapshotModule, OfflineSnapsho
   interventions: 'interventions',
   activityPlannings: 'activity-plannings',
   sites: 'sites',
+  users: 'users',
+  entreprises: 'entreprises',
   referentiel: 'referentiel',
 }
 
@@ -36,6 +42,8 @@ export const PATH_TO_ENTITY_MODULE: Record<OfflineSnapshotPathModule, OfflineSna
   interventions: 'interventions',
   'activity-plannings': 'activityPlannings',
   sites: 'sites',
+  users: 'users',
+  entreprises: 'entreprises',
   referentiel: 'referentiel',
 }
 
@@ -63,6 +71,8 @@ export interface OfflineSnapshotTombstones {
   interventions?: string[]
   activityPlannings?: Array<string | number>
   sites?: string[]
+  users?: Array<string | number>
+  entreprises?: string[]
   categoriesRisque?: string[]
   installationsEquipements?: string[]
 }
@@ -76,6 +86,8 @@ export interface OfflineSnapshot {
   interventions?: unknown[]
   activityPlannings?: unknown[]
   sites?: unknown[]
+  users?: unknown[]
+  entreprises?: unknown[]
   referentiel?: OfflineSnapshotReferentiel
   tombstones?: OfflineSnapshotTombstones
 }

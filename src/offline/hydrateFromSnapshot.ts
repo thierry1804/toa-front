@@ -11,6 +11,8 @@ import {
   SUIVI_JOURNALIER_KEY,
   CONTROLE_JOURNALIER_KEY,
   TAKE5_RECORD_KEY,
+  USERS_KEY,
+  ENTREPRISES_KEY,
 } from '@/data/constant/query'
 import type { OfflineSnapshot } from '@/types/offlineSnapshot'
 import { asHydra } from './asHydra'
@@ -46,6 +48,8 @@ export function hydrateFromSnapshot(queryClient: QueryClient, snapshot: OfflineS
   setDetails(queryClient, INTERVENTION_KEY, snapshot.interventions)
   setDetails(queryClient, PLANNING_KEY, snapshot.activityPlannings)
   setDetails(queryClient, REFERENTIEL_SITES_KEY, snapshot.sites)
+  setDetails(queryClient, USERS_KEY, snapshot.users)
+  setDetails(queryClient, ENTREPRISES_KEY, snapshot.entreprises)
 
   if (snapshot.plansPrevention) {
     queryClient.setQueryData([...PLAN_PREVENTION_KEY, 'snapshot'], asHydra(snapshot.plansPrevention))
@@ -67,6 +71,10 @@ export function hydrateFromSnapshot(queryClient: QueryClient, snapshot: OfflineS
       }
       const take5 = nestedArray(item, 'take5Records')
       if (take5) queryClient.setQueryData([...TAKE5_RECORD_KEY, String(id)], asHydra(take5))
+      const risques = nestedArray(item, 'evaluations', 'risques', 'evaluationRisques')
+      if (risques) {
+        queryClient.setQueryData([...INTERVENTION_KEY, String(id), 'risques'], asHydra(risques))
+      }
     }
   }
   if (snapshot.activityPlannings) {
@@ -89,5 +97,12 @@ export function hydrateFromSnapshot(queryClient: QueryClient, snapshot: OfflineS
   }
   if (snapshot.referentiel?.sitesGeoJson) {
     queryClient.setQueryData(REFERENTIEL_SITES_GEOJSON_KEY, snapshot.referentiel.sitesGeoJson)
+  }
+  if (snapshot.users) {
+    queryClient.setQueryData([...USERS_KEY, { page: 1, itemsPerPage: 1000 }], asHydra(snapshot.users))
+    queryClient.setQueryData([...USERS_KEY, { page: 1, itemsPerPage: 500 }], asHydra(snapshot.users))
+  }
+  if (snapshot.entreprises) {
+    queryClient.setQueryData(ENTREPRISES_KEY, asHydra(snapshot.entreprises))
   }
 }

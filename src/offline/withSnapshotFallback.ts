@@ -2,6 +2,10 @@ export async function withSnapshotFallback<T>(
   network: () => Promise<T>,
   local: () => Promise<T | undefined>,
 ): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    const cached = await local()
+    if (cached !== undefined) return cached
+  }
   try {
     return await network()
   } catch (err) {

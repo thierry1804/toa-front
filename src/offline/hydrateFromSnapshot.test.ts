@@ -37,6 +37,24 @@ describe('hydrateFromSnapshot', () => {
     )
   })
 
+  it('hydrates nested intervention risques', () => {
+    const qc = makeClient()
+    hydrateFromSnapshot(qc, {
+      generatedAt: '2026-08-30T12:00:00Z',
+      userId: 1,
+      interventions: [
+        {
+          id: 'i1',
+          risques: [{ id: 'r1', description: 'Chute' }],
+        },
+      ],
+    })
+
+    expect(qc.getQueryData([...INTERVENTION_KEY, 'i1', 'risques'])).toEqual(
+      expect.objectContaining({ member: [{ id: 'r1', description: 'Chute' }] }),
+    )
+  })
+
   it('hydrates referentiel collections', () => {
     const qc = makeClient()
     hydrateFromSnapshot(qc, {

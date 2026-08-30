@@ -165,4 +165,27 @@ describe('syncQueue', () => {
     expect(await syncQueue.getFailed()).toHaveLength(1)
     expect((await syncQueue.getFailed())[0].url).toBe('/api/drop')
   })
+
+  it('requeueFailed returns 0 when the failed store is empty', async () => {
+    expect(await syncQueue.requeueFailed()).toBe(0)
+    expect(await syncQueue.getAll()).toHaveLength(0)
+  })
+
+  it('requeueFailed moves failed items back to the queue with retries=0', async () => {
+    await syncQueue.add({ url: '/api/a', method: 'POST' })
+    await syncQueue.add({ url: '/api/b', method: 'PATCH' })
+    const [a, b] = await syncQueue.getAll()
+    await syncQueue.incrementRetries(a.id)
+    await syncQueue.moveToFailed(a.id)
+    await syncQueue.moveToFailed(b.id)
+
+    const moved = await syncQueue.requeueFailed()
+
+    expect(moved).toBe(2)
+    expect(await syncQueue.getFailed()).toHaveLength(0)
+    const queued = await syncQueue.getAll()
+    expect(queued).toHaveLength(2)
+    expect(queued.every((item) => item.retries === 0)).toBe(true)
+    expect(queued.map((item) => item.url).sort()).toEqual(['/api/a', '/api/b'])
+  })
 })

@@ -134,4 +134,26 @@ describe('snapshotStore', () => {
     expect(await getSnapshotMeta()).toBeNull()
     expect(await getAllFromSnapshot('permitsTravail')).toEqual([])
   })
+
+  it('stores entities that only have @id and persists users', async () => {
+    const { saveSnapshot, getAllFromSnapshot, getByIdFromSnapshot } = await import('./snapshotStore')
+
+    await saveSnapshot({
+      generatedAt: '2026-08-30T12:00:00Z',
+      userId: 42,
+      interventions: [{ '@id': '/api/interventions/i1', statut: 'EN_PREPARATION' }],
+      users: [{ id: 25, email: 'j@b.c', entreprise: '/api/entreprises/e1' }],
+      entreprises: [{ id: 'e1', nom: 'Bouvier SARL' }],
+    })
+
+    expect(await getByIdFromSnapshot('interventions', 'i1')).toEqual(
+      expect.objectContaining({ id: 'i1', statut: 'EN_PREPARATION' }),
+    )
+    expect(await getByIdFromSnapshot('users', 25)).toEqual(
+      expect.objectContaining({ id: 25, email: 'j@b.c' }),
+    )
+    expect(await getAllFromSnapshot('entreprises')).toEqual([
+      expect.objectContaining({ id: 'e1', nom: 'Bouvier SARL' }),
+    ])
+  })
 })
