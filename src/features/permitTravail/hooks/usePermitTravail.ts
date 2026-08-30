@@ -295,10 +295,14 @@ export function usePvDecision(permitId: string, opts?: { enabled?: boolean }) {
   })
 }
 
-export function usePermitsTravail(params?: Record<string, string | string[]>) {
+export function usePermitsTravail(
+  params?: Record<string, string | string[]>,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [...PERMIT_TRAVAIL_KEY, params],
     queryFn: () => permitTravailApi.list(params),
+    enabled: options?.enabled ?? true,
   })
 }
 

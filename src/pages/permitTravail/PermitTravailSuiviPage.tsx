@@ -139,7 +139,7 @@ export default function PermitTravailSuiviPage() {
     activeFilters.typePermis,
   )
   const { data: permitsData, isLoading: loadingPermits } = usePermitsTravail(listParams)
-  const permits = permitsData?.member ?? []
+  const permits = useMemo(() => permitsData?.member ?? [], [permitsData?.member])
   const totalItems = permitsData?.totalItems ?? 0
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 

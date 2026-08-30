@@ -35,7 +35,24 @@ export default function InterventionForm() {
     setError(null);
     try {
       const intervention = await interventionApi.create(selectedPermitId);
-      addIntervention(intervention);
+      addIntervention({
+        id: intervention.id,
+        createdAt: intervention.createdAt,
+        reference: intervention.id,
+        codeSite: '',
+        nomSite: '',
+        description: '',
+        prestataire: '',
+        dateDebut: intervention.createdAt,
+        dateFin: intervention.createdAt,
+        status: 'planifiee',
+        zoneEnclavee: false,
+        nombreIntervenants: 0,
+        validationsJournalieres: [],
+        take5Records: [],
+        incidents: [],
+        documentsProgres: [],
+      });
       navigate(`/interventions/${intervention.id}`);
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;

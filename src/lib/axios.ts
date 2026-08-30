@@ -3,12 +3,14 @@ import i18n from "@/lib/i18n";
 import { useUiStore } from "@/store/ui.store";
 import { useAuthStore, derivePermissionsFromRoles } from "@/store/auth.store";
 import { decodeJwtPayload } from "@/utils/jwt";
-import { syncQueue } from "@/offline/syncQueue";
 import { OfflineQueuedError } from "@/offline/offlineError";
+import { enqueueOfflineMutation } from "@/offline/enqueueOfflineMutation";
+import { clearOfflineState } from "@/offline/clearOfflineState";
 
 declare module "axios" {
   interface AxiosRequestConfig {
     _skipAuthInterceptor?: boolean;
+    _skipOfflineQueue?: boolean;
   }
 }
 
@@ -102,7 +104,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("access_token");
+        await clearOfflineState();
+        useAuthStore.getState().logout();
         window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
@@ -112,38 +115,8 @@ api.interceptors.response.use(
 
     // Network error on mutating request → queue for offline sync
     if (!error.response && !originalRequest?._skipAuthInterceptor) {
-      const method = (originalRequest?.method ?? '').toUpperCase() as string
-      const queueable = ['POST', 'PUT', 'PATCH', 'DELETE']
-      const isFormData =
-        typeof FormData !== 'undefined' && originalRequest?.data instanceof FormData
-
-      if (queueable.includes(method) && !isFormData) {
-        let body: unknown
-        try {
-          body =
-            typeof originalRequest?.data === 'string'
-              ? JSON.parse(originalRequest.data)
-              : originalRequest?.data
-        } catch {
-          body = originalRequest?.data
-        }
-
-        const contentType =
-          (originalRequest?.headers?.['Content-Type'] as string | undefined) ??
-          (originalRequest?.headers?.['content-type'] as string | undefined)
-
-        void syncQueue.add({
-          url:    originalRequest?.url ?? '',
-          method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-          body,
-          contentType,
-        })
-
-        useUiStore.getState().addToast({
-          message: i18n.t('offline.queued', 'Action sauvegardée hors ligne'),
-          type:    'warning',
-        })
-
+      const result = await enqueueOfflineMutation(originalRequest)
+      if (result === 'queued' || result === 'quota') {
         return Promise.reject(new OfflineQueuedError())
       }
     }

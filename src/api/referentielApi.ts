@@ -1,4 +1,5 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse, InstallationEquipement, InstallationEquipementInput, InstallationEquipementListResponse } from '@/types/referentiel'
 import type { HydraCollection } from '@/types'
 import type { FeatureCollection, Point } from 'geojson'
@@ -21,7 +22,11 @@ export const referentielApi = {
     api.delete(`/api/referentiel/import-kmz/${id}`).then((r) => r.data),
 
   listSites: (page = 1): Promise<HydraCollection<Site>> =>
-    api.get<HydraCollection<Site>>(`/api/referentiel/sites?page=${page}`).then((r) => r.data),
+    api
+      .get<HydraCollection<Site>>('/api/referentiel/sites', {
+        params: withNewestFirst({ page }),
+      })
+      .then((r) => r.data),
 
   fetchSitesGeoJson: (): Promise<FeatureCollection<Point, SiteGeoJsonFeature>> =>
     api
@@ -58,7 +63,11 @@ export const referentielApi = {
     api.delete(`/api/referentiel/categories-risque/${id}`).then(() => undefined),
 
   listInstallationsEquipements: (params?: { page?: number; limit?: number; search?: string }): Promise<InstallationEquipementListResponse> =>
-    api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', { params }).then((r) => r.data),
+    api
+      .get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', {
+        params: withNewestFirst(params),
+      })
+      .then((r) => r.data),
 
   getAllInstallationsEquipements: (): Promise<InstallationEquipementListResponse> =>
     api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-all').then((r) => r.data),

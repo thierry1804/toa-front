@@ -9,3 +9,13 @@ export function decodeJwtPayload(token: string): Record<string, unknown> | null 
     return null
   }
 }
+
+export function currentUserId(): string | null {
+  const token = localStorage.getItem('access_token')
+  if (!token) return null
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+  const id = payload.id ?? payload.sub
+  if (id == null || id === '') return null
+  return String(id)
+}

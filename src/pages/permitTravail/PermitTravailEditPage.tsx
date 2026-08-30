@@ -19,8 +19,7 @@ import {
   usePermitTravail,
 } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
-import { useAuthStore } from '@/store/auth.store'
-import type { DecisionHsePermitTravail, TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
+import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
@@ -97,7 +96,6 @@ function StepIndicator({ current }: { current: number }) {
 export default function PermitTravailEditPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
   const canEdit = usePermission('permit_travail.edit')
   const canResoumettre = usePermission('permit_travail.resoumettre')
 

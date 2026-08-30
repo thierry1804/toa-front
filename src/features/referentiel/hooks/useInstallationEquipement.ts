@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { referentielApi } from '@/api/referentielApi'
 import type { InstallationEquipementInput } from '@/types/referentiel'
 import { REFERENTIEL_INSTALLATIONS_KEY } from '@/data/constant/query'
+import { sortNewestFirst } from '@/lib/listOrder'
 
 export function useInstallationsEquipements(page = 1, search = '') {
   return useQuery({
     queryKey: [...REFERENTIEL_INSTALLATIONS_KEY, { page, search }],
     queryFn: () => referentielApi.listInstallationsEquipements({ page, limit: 20, search: search || undefined }),
+    select: (data) => ({ ...data, member: sortNewestFirst(data.member) }),
   })
 }
 

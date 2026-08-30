@@ -4,10 +4,11 @@ import { usersApi } from '@/api/usersApi'
 import type { UserCreate, UserUpdate } from '@/types'
 import { USERS_KEY } from '@/data/constant/query'
 
-export function useUsers(page: number = 1, itemsPerPage: number = 10) {
+export function useUsers(page: number = 1, itemsPerPage: number = 10, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...USERS_KEY, { page, itemsPerPage }],
     queryFn: () => usersApi.list({ page, itemsPerPage }),
+    enabled: options?.enabled ?? true,
   })
 }
 

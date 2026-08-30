@@ -1,4 +1,6 @@
 import api from '@/lib/axios'
+import { triggerBlobDownload } from '@/lib/downloadBlob'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { HydraCollection } from '@/types'
 import type {
   PermitTravail,
@@ -20,7 +22,9 @@ import type {
 export const permitTravailApi = {
   list: (params?: Record<string, string | string[]>) =>
     api
-      .get<HydraCollection<PermitTravail>>('/api/permits-travail', { params })
+      .get<HydraCollection<PermitTravail>>('/api/permits-travail', {
+        params: withNewestFirst(params),
+      })
       .then((r) => r.data),
 
   getById: (id: string) =>
@@ -56,19 +60,16 @@ export const permitTravailApi = {
       .then((r) => r.data)
   },
 
+  getDocumentBlob: (permitId: string, documentId: string): Promise<Blob> =>
+    api
+      .get(`/api/permits-travail/${permitId}/documents/${documentId}/download`, {
+        responseType: 'blob',
+      })
+      .then((r) => r.data as Blob),
+
   downloadDocument: async (permitId: string, documentId: string, filename?: string): Promise<void> => {
-    const response = await api.get(
-      `/api/permits-travail/${permitId}/documents/${documentId}/download`,
-      { responseType: 'blob' },
-    )
-    const url = URL.createObjectURL(response.data as Blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename ?? documentId
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
+    const blob = await permitTravailApi.getDocumentBlob(permitId, documentId)
+    triggerBlobDownload(blob, filename ?? documentId)
   },
 
   soumettre: (id: string) =>
@@ -113,7 +114,7 @@ export const permitTravailApi = {
   },
 
   getLogs: (permitId: string, date?: string) => {
-    const params: Record<string, string | number> = { itemsPerPage: 50 }
+    const params: Record<string, string | number> = withNewestFirst({ itemsPerPage: 50 })
     if (date) params.date = date
     return api
       .get<HydraCollection<PermitTravailLog>>(`/api/permits-travail/${permitId}/logs`, { params })

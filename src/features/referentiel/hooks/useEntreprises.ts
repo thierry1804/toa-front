@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { entrepriseApi, type EntrepriseCreate, type EntrepriseUpdate } from '@/api/entrepriseApi'
 import { ENTREPRISES_KEY } from '@/data/constant/query'
+import { sortNewestFirst } from '@/lib/listOrder'
 
 export function useEntreprises() {
   return useQuery({
     queryKey: ENTREPRISES_KEY,
     queryFn: entrepriseApi.list,
-    select: (data) => data.member,
+    select: (data) => sortNewestFirst(data.member),
     staleTime: 5 * 60 * 1000,
   })
 }

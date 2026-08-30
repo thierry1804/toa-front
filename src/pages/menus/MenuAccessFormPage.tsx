@@ -50,7 +50,7 @@ export default function MenuAccessFormPage() {
       navigate('/menu-accesses')
       addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
-  }, [navigate, addToast, canManageMenus, hasPermissions])
+  }, [navigate, addToast, canManageMenus, hasPermissions, t])
 
   const menuOptions = (allMenus ?? []).map((m) => ({
     value: m['@id'],

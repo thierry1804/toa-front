@@ -1,4 +1,4 @@
-import { useAuthStore, ROLE_PERMISSIONS, derivePermissionsFromRoles } from '@/store/auth.store'
+import { useAuthStore, derivePermissionsFromRoles } from '@/store/auth.store'
 
 export function usePermission(permission: string): boolean {
   return useAuthStore((s) => {

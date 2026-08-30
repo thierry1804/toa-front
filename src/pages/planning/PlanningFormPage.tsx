@@ -146,7 +146,7 @@ export default function PlanningFormPage() {
       navigate("/planning");
       addToast({ message: t('planning.toast.permissionDenied'), type: "error" });
     }
-  }, [isEditMode, permsLoaded, canEditPlanning, canCreatePlanning, navigate, addToast]);
+  }, [isEditMode, permsLoaded, canEditPlanning, canCreatePlanning, navigate, addToast, t]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -230,8 +230,10 @@ export default function PlanningFormPage() {
     };
 
     if (isEditMode && existing) {
+      const target = payload as Record<string, unknown>
+      const source = existing as unknown as Record<string, unknown>
       for (const field of lockedFields) {
-        (payload as any)[field] = (existing as any)[field];
+        target[field] = source[field]
       }
 
       updatePlanning(

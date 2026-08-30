@@ -236,7 +236,7 @@ export default function PreventionFormPage() {
     };
 
     loadPreventionData();
-  }, [id, plansPrevention, getPlanPreventionById]);
+  }, [id, plansPrevention, getPlanPreventionById, toast]);
 
   const defaultValues: any = {
     // Step 1
@@ -317,6 +317,7 @@ export default function PreventionFormPage() {
 
   const onSubmit = async (data: PreventionFormData) => {
     try {
+      preventionPlanSchema.safeParse(data)
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 

@@ -13,6 +13,7 @@ import { useUsers } from '@/features/users/hooks/useUsers'
 import { usersApi } from '@/api/usersApi'
 import { USERS_KEY } from '@/data/constant/query'
 import { parseApiFieldErrors } from '@/lib/apiErrors'
+import { sortNewestFirst } from '@/lib/listOrder'
 import { useTranslation } from 'react-i18next'
 import type { Entreprise } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -102,12 +103,14 @@ export default function EntreprisesPage() {
     void queryClient.invalidateQueries({ queryKey: USERS_KEY })
   }
 
-  const filtered = search
-    ? entreprises.filter((e) =>
-        e.nom.toLowerCase().includes(search.toLowerCase()) ||
-        (e.numeroRegistreCommerce ?? '').toLowerCase().includes(search.toLowerCase()),
-      )
-    : entreprises
+  const filtered = sortNewestFirst(
+    search
+      ? entreprises.filter((e) =>
+          e.nom.toLowerCase().includes(search.toLowerCase()) ||
+          (e.numeroRegistreCommerce ?? '').toLowerCase().includes(search.toLowerCase()),
+        )
+      : entreprises,
+  )
 
   const handleFieldChange = (field: keyof EntrepriseFormValues, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))

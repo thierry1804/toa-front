@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { useTranslation } from 'react-i18next';
-import { useInterventionStore } from '@/store/interventionStore';
+import { useInterventionStore, type StoredIntervention } from '@/store/interventionStore';
 import { usePermissions } from '@/features/menus/hooks/usePermissions';
 import { interventionApi } from '@/api/interventionApi';
 import type { Intervention, PermitTravailSummary } from '@/types/intervention';
+import type { ValidationInterventionJournaliere } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { TableIconButton } from '@/components/ui/TableIconButton';
@@ -28,6 +30,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { sortNewestFirst } from '@/lib/listOrder';
 import type { InterventionStatus } from '@/types';
 
 const STATUT_MAP: Record<string, string> = {
@@ -49,7 +52,7 @@ function getPermit(intervention: Intervention): PermitTravailSummary | null {
   return null
 }
 
-function mapIntervention(raw: RawIntervention) {
+function mapIntervention(raw: RawIntervention): StoredIntervention {
   const permit = getPermit(raw)
   const createdBy = permit?.createdBy
   const prestataire = createdBy?.entrepriseName
@@ -57,7 +60,8 @@ function mapIntervention(raw: RawIntervention) {
     : `${createdBy?.firstname ?? ''} ${createdBy?.name ?? ''}`.trim()
 
   return {
-    ...raw,
+    id: raw.id,
+    createdAt: raw.createdAt,
     reference: permit?.reference ?? raw.id,
     codeSite: permit?.codeSite ?? '—',
     nomSite: permit?.codeSite ?? '—',
@@ -65,12 +69,14 @@ function mapIntervention(raw: RawIntervention) {
     dateDebut: permit?.dateDebutPrevue ?? raw.createdAt,
     dateFin: permit?.dateFinPrevue ?? raw.createdAt,
     prestataire,
-    status: STATUT_MAP[raw.statut] ?? raw.statut,
+    status: (STATUT_MAP[raw.statut] ?? raw.statut) as InterventionStatus,
     creerPar: raw.createdBy?.email ?? '',
     zoneEnclavee: false,
     nombreIntervenants: 0,
-    validationsJournalieres: raw.validationsJournalieres ?? [],
+    validationsJournalieres: (raw.validationsJournalieres ?? []) as ValidationInterventionJournaliere[],
+    take5Records: [],
     incidents: raw.incidents ?? [],
+    documentsProgres: [],
   }
 }
 
@@ -81,10 +87,14 @@ export default function InterventionsListPage() {
   const perms = usePermissions('/interventions');
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilterParam] = useSearchParamState('statut');
   const [siteFilter, setSiteFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -96,7 +106,7 @@ export default function InterventionsListPage() {
       })
       .catch((err) => console.error('[InterventionsList] fetch error:', err))
       .finally(() => setIsLoading(false))
-  }, []);
+  }, [setInterventions]);
 
   // Filtrer les interventions (ownership filtré par le backend)
   const filteredInterventions = interventions.filter((intervention) => {
@@ -113,10 +123,11 @@ export default function InterventionsListPage() {
 
     return matchSearch && matchStatus && matchSite;
   });
+  const sortedInterventions = sortNewestFirst(filteredInterventions);
 
-  const totalItems = filteredInterventions.length;
+  const totalItems = sortedInterventions.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const pagedInterventions = filteredInterventions.slice(
+  const pagedInterventions = sortedInterventions.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
@@ -229,10 +240,10 @@ export default function InterventionsListPage() {
       {/* Statistiques */}
       <StatStrip
         items={[
-          { label: t('interventions.list.stats.total'), value: stats.total },
-          { label: t('interventions.list.stats.enCours'), value: stats.enCours },
-          { label: t('interventions.list.stats.planifiees'), value: stats.planifiees },
-          { label: t('interventions.list.stats.terminees'), value: stats.terminees },
+          { label: t('interventions.list.stats.total'), value: stats.total, href: '/interventions' },
+          { label: t('interventions.list.stats.enCours'), value: stats.enCours, href: '/interventions?statut=en_cours' },
+          { label: t('interventions.list.stats.planifiees'), value: stats.planifiees, href: '/interventions?statut=planifiee' },
+          { label: t('interventions.list.stats.terminees'), value: stats.terminees, href: '/interventions?statut=terminee' },
           { label: t('interventions.list.stats.zonesEnclavees'), value: stats.zonesEnclavees },
         ]}
       />
@@ -256,7 +267,7 @@ export default function InterventionsListPage() {
               options={statusOptions}
               value={statusFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value);
+                setStatusFilterParam(e.target.value);
                 setPage(1);
               }}
               placeholder={t('interventions.list.filterStatus')}

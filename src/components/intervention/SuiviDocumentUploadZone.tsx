@@ -1,19 +1,71 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Upload, FileText, X, Loader2 } from 'lucide-react'
+import { Upload, FileText, X, Loader2, Clock } from 'lucide-react'
 import type { SuiviJournalierDocument } from '@/types/intervention'
+import { interventionApi } from '@/api/interventionApi'
+import { usePendingUploads } from '@/hooks/usePendingUploads'
 
 const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf'
 
 interface SuiviDocumentUploadZoneProps {
+  suiviId: string
   documents: SuiviJournalierDocument[]
   onUpload: (file: File) => Promise<unknown>
   onDelete: (docId: string) => Promise<unknown>
   disabled?: boolean
 }
 
+function SuiviImageThumb({
+  suiviId,
+  doc,
+}: {
+  suiviId: string
+  doc: SuiviJournalierDocument
+}) {
+  const { t } = useTranslation()
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    let objectUrl: string | null = null
+    interventionApi
+      .getSuiviDocumentBlob(suiviId, doc.id)
+      .then((blob) => {
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(blob)
+        setSrc(objectUrl)
+      })
+      .catch(() => {
+        if (!cancelled) setSrc(null)
+      })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [suiviId, doc.id])
+
+  if (!src) {
+    return (
+      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-gray-200">
+        <span className="flex h-full w-full items-center justify-center text-xs text-gray-500">
+          {t('intervention.components.suiviDocumentUploadZone.imgBadge')}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt=""
+      className="h-10 w-10 flex-shrink-0 rounded object-cover"
+    />
+  )
+}
+
 export default function SuiviDocumentUploadZone({
+  suiviId,
   documents,
   onUpload,
   onDelete,
@@ -24,6 +76,9 @@ export default function SuiviDocumentUploadZone({
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const pendingUploads = usePendingUploads(
+    suiviId ? `/api/suivis-journaliers/${suiviId}/documents` : undefined,
+  )
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || disabled) return
@@ -56,20 +111,37 @@ export default function SuiviDocumentUploadZone({
         {t('intervention.components.suiviDocumentUploadZone.title')}
       </p>
 
-      {/* Existing documents */}
-      {documents.length > 0 && (
+      {(documents.length > 0 || pendingUploads.length > 0) && (
         <div className="space-y-2">
+          {pendingUploads.map((pending) => (
+            <div
+              key={pending.id}
+              className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2"
+            >
+              {pending.previewUrl ? (
+                <img
+                  src={pending.previewUrl}
+                  alt=""
+                  className="h-10 w-10 flex-shrink-0 rounded object-cover"
+                />
+              ) : (
+                <Clock className="h-8 w-8 flex-shrink-0 text-amber-600" />
+              )}
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-amber-900">
+                  {pending.filename ?? t('offline.pendingUpload')}
+                </span>
+                <span className="text-xs text-amber-700">{t('offline.pendingUpload')}</span>
+              </div>
+            </div>
+          ))}
           {documents.map((doc) => (
             <div
               key={doc.id}
               className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
             >
               {isImage(doc.mimeType) ? (
-                <div className="h-10 w-10 flex-shrink-0 rounded overflow-hidden bg-gray-200">
-                  <span className="flex h-full w-full items-center justify-center text-xs text-gray-500">
-                    {t('intervention.components.suiviDocumentUploadZone.imgBadge')}
-                  </span>
-                </div>
+                <SuiviImageThumb suiviId={suiviId} doc={doc} />
               ) : (
                 <FileText className="h-8 w-8 flex-shrink-0 text-red-500" />
               )}
@@ -94,7 +166,6 @@ export default function SuiviDocumentUploadZone({
         </div>
       )}
 
-      {/* Upload zone */}
       {!disabled && (
         <div
           onDrop={(e) => {

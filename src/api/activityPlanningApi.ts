@@ -1,10 +1,11 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection, User } from '@/types'
 
 export const activityPlanningApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
     api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', {
-      params: { 'order[id]': 'desc', ...params },
+      params: withNewestFirst(params),
     }).then((r) => r.data),
 
   getById: (id: number) =>

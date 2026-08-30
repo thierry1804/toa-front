@@ -1,4 +1,13 @@
-import { openDB, type IDBPDatabase } from 'idb'
+import { getOfflineDb, QUEUE_STORE, FAILED_STORE } from './offlineDb'
+
+export type FormPart = {
+  name: string
+  kind: 'file' | 'text'
+  value?: string
+  blobId?: string
+  filename?: string
+  mimeType?: string
+}
 
 export interface SyncItem {
   id: string
@@ -6,26 +15,9 @@ export interface SyncItem {
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   contentType?: string
+  formParts?: FormPart[]
   createdAt: number
   retries: number
-}
-
-const DB_NAME = 'toa-offline'
-const STORE_NAME = 'sync-queue'
-
-let dbPromise: Promise<IDBPDatabase> | null = null
-
-function getDb(): Promise<IDBPDatabase> {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 1, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-        }
-      },
-    })
-  }
-  return dbPromise
 }
 
 type Listener = () => void
@@ -35,47 +27,63 @@ function notify() {
 }
 
 export const syncQueue = {
-  async add(item: Omit<SyncItem, 'id' | 'createdAt' | 'retries'>) {
-    const db = await getDb()
-    await db.add(STORE_NAME, {
+  async add(item: Omit<SyncItem, 'id' | 'createdAt' | 'retries'>): Promise<string> {
+    const db = await getOfflineDb()
+    const id = crypto.randomUUID()
+    await db.add(QUEUE_STORE, {
       ...item,
-      id: crypto.randomUUID(),
+      id,
       createdAt: Date.now(),
       retries: 0,
     })
     notify()
+    return id
   },
 
   async getAll(): Promise<SyncItem[]> {
-    const db = await getDb()
-    return db.getAll(STORE_NAME)
+    const db = await getOfflineDb()
+    const items = await db.getAll(QUEUE_STORE)
+    return items.sort((a: SyncItem, b: SyncItem) => a.createdAt - b.createdAt)
+  },
+
+  async getFailed(): Promise<SyncItem[]> {
+    const db = await getOfflineDb()
+    return db.getAll(FAILED_STORE)
   },
 
   async remove(id: string) {
-    const db = await getDb()
-    await db.delete(STORE_NAME, id)
+    const db = await getOfflineDb()
+    await db.delete(QUEUE_STORE, id)
     notify()
   },
 
   async incrementRetries(id: string): Promise<number> {
-    const db = await getDb()
-    const item = await db.get(STORE_NAME, id)
+    const db = await getOfflineDb()
+    const item = await db.get(QUEUE_STORE, id)
     if (item) {
       item.retries += 1
-      await db.put(STORE_NAME, item)
+      await db.put(QUEUE_STORE, item)
       return item.retries
     }
     return 0
   },
 
-  async clear() {
-    const db = await getDb()
-    await db.clear(STORE_NAME)
+  async moveToFailed(id: string) {
+    const db = await getOfflineDb()
+    const item = await db.get(QUEUE_STORE, id)
+    if (!item) return
+    await db.put(FAILED_STORE, item)
+    await db.delete(QUEUE_STORE, id)
     notify()
   },
 
-  // Notifies on add/remove/clear so UI can reflect the pending-item count
-  // without polling. Returns an unsubscribe function.
+  async clear() {
+    const db = await getOfflineDb()
+    await db.clear(QUEUE_STORE)
+    await db.clear(FAILED_STORE)
+    notify()
+  },
+
   subscribe(listener: Listener): () => void {
     listeners.add(listener)
     return () => listeners.delete(listener)

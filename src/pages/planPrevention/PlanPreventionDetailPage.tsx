@@ -38,6 +38,7 @@ import {
 } from "@/features/planPrevention/hooks/usePlanPrevention";
 import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
 import { usePermission } from "@/features/auth/usePermission";
+import { planPreventionApi } from "@/api/planPreventionApi";
 import {
   TYPES_DOCUMENT_LABELS,
   ALL_DOCUMENT_TYPES,
@@ -187,19 +188,7 @@ export default function PlanPreventionDetailPage() {
   const uploadedTypes = new Set((plan.documents ?? []).map((d) => d.type));
 
   const downloadDocument = async (docId: string, filename: string) => {
-    const token = localStorage.getItem("access_token");
-    const url = `${import.meta.env.VITE_API_URL}/api/plans-prevention/${plan.id}/documents/${docId}/download`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(blobUrl);
+    await planPreventionApi.downloadDocument(plan.id, docId, filename);
   };
 
   const dateDebut = plan.dateDebut

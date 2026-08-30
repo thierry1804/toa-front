@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useRole, useCreateRole, useUpdateRole } from "@/features/roles/hooks/useRoles";
 import { useUiStore } from "@/store/ui.store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -22,7 +22,6 @@ const PROPERTY_TO_FIELD: Record<string, string> = {
 
 export default function RoleFormPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const addToast = useUiStore((s) => s.addToast);
 

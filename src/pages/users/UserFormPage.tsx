@@ -33,6 +33,8 @@ import { parseApiFieldErrors } from "@/lib/apiErrors";
 import { useRoles } from "@/features/roles/hooks/useRoles";
 import { useEntreprises } from "@/features/referentiel/hooks/useEntreprises";
 import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
+import { isOfflineQueued } from "@/offline/offlineError";
+import { usePendingUploads } from "@/hooks/usePendingUploads";
 
 // Maps API propertyPath / error_key values → form field names
 const PROPERTY_TO_FIELD: Record<string, string> = {
@@ -151,6 +153,10 @@ export default function UserFormPage() {
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
   const [existingSignatureUrl, setExistingSignatureUrl] = useState<string | null>(null);
+  const pendingSignatures = usePendingUploads(
+    existingUser?.id ? `/api/users/${existingUser.id}/signature` : undefined,
+  );
+  const pendingSignature = pendingSignatures[0];
 
   // The download endpoint requires the Authorization header, which a plain
   // <img src="..."> can't send — fetch it as an authenticated blob instead.
@@ -630,6 +636,21 @@ export default function UserFormPage() {
                         </div>
                       )}
 
+                      {pendingSignature && (
+                        <div className="mb-3">
+                          <p className="text-xs text-amber-800 mb-1">{t("offline.pendingUpload")}</p>
+                          {pendingSignature.previewUrl ? (
+                            <img
+                              src={pendingSignature.previewUrl}
+                              alt=""
+                              className="h-16 border border-amber-200 rounded bg-white object-contain"
+                            />
+                          ) : (
+                            <p className="text-xs text-amber-700">{pendingSignature.filename}</p>
+                          )}
+                        </div>
+                      )}
+
                       {isEditMode ? (
                         <div className="flex items-center gap-2">
                           <label className="flex-1 cursor-pointer">
@@ -666,7 +687,8 @@ export default function UserFormPage() {
                                       addToast({ message: t("users.toast.signatureUploaded"), type: "success" });
                                       setSignatureFile(null);
                                     },
-                                    onError: () => {
+                                    onError: (error) => {
+                                      if (isOfflineQueued(error)) return;
                                       addToast({ message: t("users.toast.signatureError"), type: "error" });
                                     },
                                   }

@@ -22,7 +22,6 @@ const PX_PER_DAY: Record<ViewMode, number> = { day: 52, week: 26, month: 10 }
 
 const ROW_H         = 44   // px — h-11
 const HEADER_H      = 32   // px — h-8
-const MAX_ROWS      = 10
 
 // ─── Tick builder ────────────────────────────────────────────────────────────
 
@@ -155,7 +154,7 @@ export default function GanttChart({ activities }: Props) {
       scrollRatio.current = tw > 0 ? el.scrollLeft / tw : 0
       hasMounted.current = true
     })
-  }, [valid.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [valid.length])
 
   // On viewMode change: restore same temporal position (ratio-based).
   useEffect(() => {
@@ -166,15 +165,10 @@ export default function GanttChart({ activities }: Props) {
       const tw = scrollVals.current.timelineWidth
       el.scrollLeft = Math.max(0, scrollRatio.current * tw)
     })
-  }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [viewMode])
 
   // ── early return ──
   if (valid.length === 0) return null
-
-  // ── layout helpers ──
-  const visibleRows = Math.min(valid.length, MAX_ROWS)
-  // containerH kept for reference but height is now controlled by the parent wrapper
-  const _containerH = HEADER_H + visibleRows * ROW_H
 
   const getBarStyle = (a: ActivityPlanning) => {
     const s = new Date(a.expectedStartDate).getTime()

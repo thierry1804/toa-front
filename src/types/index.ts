@@ -329,7 +329,7 @@ export interface ActivityPlanningUpdate {
 
 export interface ValidationInterventionJournaliere {
   id?: string
-  date?: any
+  date?: string | Date
   observationsJour?: string
   avancementPourcentage?: number
   controles?: ControleJournalierPermis[]
@@ -340,7 +340,7 @@ export interface ValidationInterventionJournaliere {
   conditionsMeteo?: string
   temperatureC?: number
   vitesseVentKmh?: number
-  verificationsSecurite?: any
+  verificationsSecurite?: Record<string, boolean>
   activitesRealisees?: string
   take5Effectue?: boolean
   take5Id?: string
@@ -349,7 +349,7 @@ export interface ValidationInterventionJournaliere {
   photosAvancement?: string[]
   documents?: string[]
   validee?: boolean
-  dateValidation?: any
+  dateValidation?: string | Date
 }
 
 export interface ControleJournalierPermis {
@@ -358,16 +358,50 @@ export interface ControleJournalierPermis {
   conforme?: boolean
   remarque?: string
   permisId?: string
-  date?: any
-  createdAt?: any
-  [key: string]: any
+  date?: string | Date
+  createdAt?: string | Date
+  codeSite?: string
+  intervenants?: string[]
+  confirmationMesures?: boolean
+  signatureDemandeur?: string
+  signatureIntervenant?: string
+  signatureClotureDemandeur?: string
+  signatureClotureIntervenant?: string
+  vitesseVent?: number
+}
+
+export interface Take5EtapeArreter {
+  complete: boolean
+  observations: string
+}
+
+export interface Take5EtapeObserver {
+  complete: boolean
+  dangersIdentifies: string[]
+  autresDangers: string
+}
+
+export interface Take5EtapeAnalyser {
+  complete: boolean
+  risquesEvalues: RisqueEvalue[]
+}
+
+export interface Take5EtapeControler {
+  complete: boolean
+  mesuresControle: MesureControle[]
+}
+
+export interface Take5EtapeProceder {
+  complete: boolean
+  securiteConfirmee: boolean
+  autorisationProceder: boolean
 }
 
 export interface Take5Record {
   id?: string
   interventionId?: string
-  date?: any
-  equipe?: string[]
+  date?: string | Date
+  equipe: string[]
   heure?: string
   membres?: string[]
   risquesEvalues?: RisqueEvalue[]
@@ -376,13 +410,13 @@ export interface Take5Record {
   localisation?: string
   tacheDescription?: string
   transmisHSE?: boolean
-  etape1_arreter?: any
-  etape2_observer?: any
-  etape3_analyser?: any
-  etape4_controler?: any
-  etape5_proceder?: any
-  createdAt?: any
-  updatedAt?: any
+  etape1_arreter: Take5EtapeArreter
+  etape2_observer: Take5EtapeObserver
+  etape3_analyser: Take5EtapeAnalyser
+  etape4_controler: Take5EtapeControler
+  etape5_proceder: Take5EtapeProceder
+  createdAt?: string | Date
+  updatedAt?: string | Date
 }
 
 export interface RisqueEvalue {

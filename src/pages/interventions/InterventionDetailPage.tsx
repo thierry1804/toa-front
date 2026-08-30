@@ -436,7 +436,7 @@ export default function InterventionDetailPage() {
               <CardContent>
                 <ul className="list-disc list-inside space-y-1 text-gray-700">
                   {intervention.observations.map((obs, index) => (
-                    <li key={index}>{obs}</li>
+                    <li key={index}>{String(obs)}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -470,7 +470,7 @@ export default function InterventionDetailPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-lg">
-                          {formatDate(validation.date)}
+                          {formatDate(validation.date ?? '')}
                         </CardTitle>
                         <CardDescription>
                           {validation.heureDebut} - {validation.heureFin || 'En cours'}
@@ -502,7 +502,7 @@ export default function InterventionDetailPage() {
                         Personnel ({validation.nombrePersonnes})
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {validation.listePersonnel.map((person, i) => (
+                        {(validation.listePersonnel ?? []).map((person, i) => (
                           <span
                             key={i}
                             className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
@@ -539,7 +539,7 @@ export default function InterventionDetailPage() {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-2">Vérifications de sécurité</h4>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        {Object.entries(validation.verificationsSecurite).map(([key, value]) => (
+                        {Object.entries(validation.verificationsSecurite ?? {}).map(([key, value]) => (
                           <div key={key} className="flex items-center gap-2">
                             {value ? (
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -638,7 +638,7 @@ export default function InterventionDetailPage() {
                           <div className="flex items-center justify-between">
                             <div>
                               <CardTitle className="text-lg">
-                                {formatDate(take5.date)} - {take5.heure}
+                                {formatDate(take5.date ?? '')} - {take5.heure}
                               </CardTitle>
                               <CardDescription>
                                 Responsable: {take5.responsableNom}

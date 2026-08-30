@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import type { RisqueRow } from '@/types/planPrevention'

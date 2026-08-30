@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, FileText, AlertCircle, Eye, ShieldCheck, ShieldX, Pencil, Wrench, FileCheck } from 'lucide-react'
@@ -20,6 +20,13 @@ import {
   ListTableRow,
 } from '@/components/ui/ListTable'
 import StatutBadge from '@/components/planPrevention/StatutBadge'
+import { sortNewestFirst } from '@/lib/listOrder'
+import { useSearchParamState } from '@/hooks/useSearchParamState'
+import {
+  PLAN_STATUT_GROUPS,
+  statutApiParam,
+  statutMatchesFilter,
+} from '@/features/dashboard/buildProfileKpis'
 import ExaminerModal from '@/components/planPrevention/ExaminerModal'
 import ValiderModal from '@/components/planPrevention/ValiderModal'
 import RefuserModal from '@/components/planPrevention/RefuserModal'
@@ -219,17 +226,22 @@ export default function PlanPreventionListPage() {
 
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilterParam] = useSearchParamState('statut')
   const [typeInterventionFilter, setTypeInterventionFilter] = useState('all')
 
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter])
+
   const apiFilters = useMemo(() => {
-    const filters: Record<string, string> = {}
-    if (statusFilter !== 'all') filters.statut = statusFilter
+    const filters: Record<string, string | string[]> = {}
+    const statutParam = statutApiParam(statusFilter, PLAN_STATUT_GROUPS)
+    if (statutParam) filters.statut = statutParam
     return filters
   }, [statusFilter])
 
   const { data: collection, isLoading, isError } = usePlanPreventionList(page, apiFilters)
-  const plans = collection?.member ?? []
+  const plans = sortNewestFirst(collection?.member ?? [])
   const totalItems = collection?.totalItems ?? 0
   const totalPages = Math.max(1, Math.ceil(totalItems / PLAN_PREVENTION_PAGE_SIZE))
 
@@ -245,6 +257,8 @@ export default function PlanPreventionListPage() {
   const statusOptions = useMemo(
     () => [
       { value: 'all', label: t('common.all') },
+      { value: 'todo', label: t('dashboard.kpis.plansToHandle') },
+      { value: 'valides', label: t('dashboard.kpis.plansValides') },
       ...PLAN_STATUTS.map((statut) => ({
         value: statut,
         label: t(`planPrevention.statut.${statut}`),
@@ -267,7 +281,7 @@ export default function PlanPreventionListPage() {
   const filteredPlans = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return plans.filter((plan) => {
-      if (statusFilter !== 'all' && plan.statut !== statusFilter) return false
+      if (!statutMatchesFilter(plan.statut, statusFilter, PLAN_STATUT_GROUPS)) return false
       if (typeInterventionFilter !== 'all' && plan.typeIntervention !== typeInterventionFilter) return false
       if (!query) return true
       const haystack = [
@@ -329,7 +343,7 @@ export default function PlanPreventionListPage() {
               options={statusOptions}
               value={statusFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value)
+                setStatusFilterParam(e.target.value)
                 setPage(1)
               }}
               placeholder={t('planPrevention.list.filters.statut')}

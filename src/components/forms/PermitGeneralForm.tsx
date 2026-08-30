@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,10 +62,8 @@ type Step2Data = z.infer<ReturnType<typeof makeStep2Schema>>;
 type Step3Data = z.infer<ReturnType<typeof makeStep3Schema>>;
 
 interface PermitGeneralFormProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onComplete: (data: any) => void;
   onCancel?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
 }
 
@@ -77,7 +76,6 @@ export default function PermitGeneralForm({
   const { t } = useTranslation();
 
   // État global pour partager les données entre les étapes
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<any>({});
 
   // Filtrer les plans validés
@@ -89,7 +87,6 @@ export default function PermitGeneralForm({
     }));
 
   // Étape 1: Détails de l'intervention
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step1Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -201,7 +198,6 @@ export default function PermitGeneralForm({
   };
 
   // Étape 2: Types de travaux à risques
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step2Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -278,7 +274,6 @@ export default function PermitGeneralForm({
   };
 
   // Étape 3: Engagement du demandeur
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step3Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -367,7 +362,6 @@ export default function PermitGeneralForm({
   };
 
   // Étape 4: Révision et soumission
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step4Component = (formData: any) => {
     const { t } = useTranslation();
     const risquesSelectionnes: { key: string; label: string }[] = [
@@ -495,7 +489,6 @@ export default function PermitGeneralForm({
     },
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleComplete = (data: any) => {
     // Préparer les données pour le store
     const permisData = {

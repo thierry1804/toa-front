@@ -20,7 +20,16 @@ export default function ControleJournalierModal({
   permisId,
 }: ControleJournalierModalProps) {
   const { t } = useTranslation();
-  const handleElectriqueSubmit = (data: any) => {
+  const handleElectriqueSubmit = (data: {
+    date: string
+    codeSite: string
+    intervenants: string[]
+    confirmationMesures: boolean
+    signatureDemandeur: string
+    signatureIntervenant: string
+    signatureClotureDemandeur: string
+    signatureClotureIntervenant: string
+  }) => {
     const controleData: ControleJournalierPermis = {
       id: `CONT-${Date.now()}`,
       permisId,
@@ -37,7 +46,17 @@ export default function ControleJournalierModal({
     onSubmit(controleData);
   };
 
-  const handleHauteurSubmit = (data: any) => {
+  const handleHauteurSubmit = (data: {
+    date: string
+    codeSite: string
+    intervenants: string[]
+    confirmationMesures: boolean
+    signatureDemandeur: string
+    signatureIntervenant: string
+    signatureClotureDemandeur: string
+    signatureClotureIntervenant: string
+    vitesseVent?: number
+  }) => {
     const controleData: ControleJournalierPermis = {
       id: `CONT-${Date.now()}`,
       permisId,

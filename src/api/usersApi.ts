@@ -1,9 +1,12 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { User, UserCreate, UserUpdate, HydraCollection } from '@/types'
 
 export const usersApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
-    api.get<HydraCollection<User>>('/api/users', { params }).then((r) => r.data),
+    api
+      .get<HydraCollection<User>>('/api/users', { params: withNewestFirst(params) })
+      .then((r) => r.data),
 
   getById: (id: number) =>
     api.get<User>(`/api/users/${id}`).then((r) => r.data),

@@ -1,4 +1,6 @@
 import api from '@/lib/axios'
+import { openBlobInNewTab, triggerBlobDownload } from '@/lib/downloadBlob'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
@@ -6,7 +8,6 @@ import type {
   RisquePreventionInput,
   RisquePrevention,
   DocumentPrevention,
-  SitePrevention,
   KmzImportResult,
   PlanPreventionPdfStatus,
   GeneratePdfResult,
@@ -14,9 +15,11 @@ import type {
 } from '@/types/planPrevention'
 
 export const planPreventionApi = {
-  list: (params?: Record<string, string>) =>
+  list: (params?: Record<string, string | string[]>) =>
     api
-      .get<HydraCollection<PlanPrevention>>('/api/plans-prevention', { params })
+      .get<HydraCollection<PlanPrevention>>('/api/plans-prevention', {
+        params: withNewestFirst(params),
+      })
       .then((r) => r.data),
 
   getById: (id: string) =>
@@ -126,17 +129,21 @@ export const planPreventionApi = {
       })
       .then((r) => r.data),
 
+  getDocumentBlob: (planId: string, documentId: string): Promise<Blob> =>
+    api
+      .get(`/api/plans-prevention/${planId}/documents/${documentId}/download`, {
+        responseType: 'blob',
+      })
+      .then((r) => r.data as Blob),
+
   viewDocument: async (planId: string, documentId: string): Promise<void> => {
-    const token = localStorage.getItem('access_token') ?? ''
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/plans-prevention/${planId}/documents/${documentId}/download`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-    if (!res.ok) throw new Error('Visualisation impossible')
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    const blob = await planPreventionApi.getDocumentBlob(planId, documentId)
+    openBlobInNewTab(blob)
+  },
+
+  downloadDocument: async (planId: string, documentId: string, filename: string): Promise<void> => {
+    const blob = await planPreventionApi.getDocumentBlob(planId, documentId)
+    triggerBlobDownload(blob, filename)
   },
 
   downloadPdf: async (planId: string): Promise<void> => {

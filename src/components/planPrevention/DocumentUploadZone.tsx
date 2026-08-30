@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle, XCircle, Upload, Eye } from 'lucide-react'
+import { CheckCircle, XCircle, Upload, Eye, Clock } from 'lucide-react'
 import type { TypeDocumentPrevention, DocumentPrevention } from '@/types/planPrevention'
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from '@/types/planPrevention'
 import { planPreventionApi } from '@/api/planPreventionApi'
+import { usePendingUploads } from '@/hooks/usePendingUploads'
 
 const ACCEPTED_MIME = ['application/pdf', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg'
@@ -30,6 +31,9 @@ export default function DocumentUploadZone({
   disabled = false,
 }: DocumentUploadZoneProps) {
   const { t } = useTranslation()
+  const pendingUploads = usePendingUploads(
+    planId ? `/api/plans-prevention/${planId}/documents` : undefined,
+  )
   const [zoneStates, setZoneStates] = useState<Record<string, ZoneState>>(
     Object.fromEntries(ALL_DOCUMENT_TYPES.map((type) => [type, { dragging: false, uploading: false, viewing: false }])),
   )
@@ -94,7 +98,8 @@ export default function DocumentUploadZone({
     <div className="space-y-3">
       {ALL_DOCUMENT_TYPES.map((type) => {
         const uploaded = uploadedTypes.has(type)
-        const missing = missingTypes.includes(type)
+        const pending = pendingUploads.find((item) => item.type === type)
+        const missing = missingTypes.includes(type) && !pending
         const state = zoneStates[type]
         const label = TYPES_DOCUMENT_LABELS[type]
 
@@ -105,18 +110,22 @@ export default function DocumentUploadZone({
             onDragOver={(e) => handleDragOver(type, e)}
             onDragLeave={() => handleDragLeave(type)}
             className={`flex items-center gap-4 rounded-lg border-2 px-4 py-3 transition-all ${
-              uploaded
-                ? 'border-green-300 bg-green-50'
-                : missing
-                  ? 'border-red-300 bg-red-50'
-                  : state.dragging
-                    ? 'border-blue-400 bg-blue-50'
-                    : 'border-dashed border-gray-300 bg-white hover:border-gray-400'
+              pending
+                ? 'border-amber-300 bg-amber-50'
+                : uploaded
+                  ? 'border-green-300 bg-green-50'
+                  : missing
+                    ? 'border-red-300 bg-red-50'
+                    : state.dragging
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'border-dashed border-gray-300 bg-white hover:border-gray-400'
             }`}
           >
             {/* Status icon */}
             <div className="flex-shrink-0">
-              {uploaded ? (
+              {pending ? (
+                <Clock className="h-6 w-6 text-amber-600" />
+              ) : uploaded ? (
                 <CheckCircle className="h-6 w-6 text-green-500" />
               ) : (
                 <XCircle className={`h-6 w-6 ${missing ? 'text-red-500' : 'text-gray-300'}`} />
@@ -125,10 +134,23 @@ export default function DocumentUploadZone({
 
             {/* Label & info */}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium ${uploaded ? 'text-green-800' : missing ? 'text-red-800' : 'text-gray-800'}`}>
+              <p className={`text-sm font-medium ${
+                pending
+                  ? 'text-amber-900'
+                  : uploaded
+                    ? 'text-green-800'
+                    : missing
+                      ? 'text-red-800'
+                      : 'text-gray-800'
+              }`}>
                 {label}
               </p>
-              {uploaded ? (
+              {pending ? (
+                <p className="text-xs text-amber-700 mt-0.5">
+                  {t('offline.pendingUpload')}
+                  {pending.filename ? ` — ${pending.filename}` : ''}
+                </p>
+              ) : uploaded ? (
                 <p className="text-xs text-green-600 mt-0.5">Document téléversé ✓</p>
               ) : (
                 <p className="text-xs text-gray-500 mt-0.5">

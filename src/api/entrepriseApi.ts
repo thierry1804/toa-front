@@ -1,4 +1,5 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { Entreprise, HydraCollection } from '@/types'
 
 export interface EntrepriseCreate {
@@ -18,7 +19,9 @@ export interface EntrepriseUpdate {
 export const entrepriseApi = {
   list: () =>
     api
-      .get<HydraCollection<Entreprise>>('/api/entreprises', { params: { pagination: false } })
+      .get<HydraCollection<Entreprise>>('/api/entreprises', {
+        params: withNewestFirst({ pagination: false }),
+      })
       .then((r) => r.data),
 
   getById: (id: string) =>

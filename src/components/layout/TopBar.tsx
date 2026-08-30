@@ -4,8 +4,9 @@ import { ROLE_LABELS } from "@/data/constant/roles";
 import { useLogout } from "@/features/auth/useAuth";
 import { useOnline } from "@/hooks/useOnline";
 import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
+import { useFailedSyncCount } from "@/hooks/useFailedSyncCount";
 import { useTranslation } from "react-i18next";
-import { LogOut, ChevronDown, Menu } from "lucide-react";
+import { LogOut, ChevronDown, Menu, WifiOff, CloudOff, AlertTriangle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -46,6 +47,7 @@ export function TopBar() {
   const { mutate: logout } = useLogout();
   const isOnline = useOnline();
   const pendingSyncCount = usePendingSyncCount();
+  const failedSyncCount = useFailedSyncCount();
   const { t, i18n } = useTranslation();
 
   const [langOpen, setLangOpen] = useState(false);
@@ -168,13 +170,29 @@ export function TopBar() {
 
       {statusMessage && (
         <div
-          className={`border-b px-3 py-1.5 text-center text-xs font-medium sm:px-4 ${
+          role="status"
+          className={`flex items-center justify-center gap-1.5 border-b px-3 py-1.5 text-center text-xs font-medium sm:px-4 ${
             !isOnline
               ? "border-yellow-100 bg-yellow-50 text-yellow-800"
               : "border-blue-100 bg-blue-50 text-blue-800"
           }`}
         >
-          {statusMessage}
+          {!isOnline ? (
+            <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          ) : (
+            <CloudOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          )}
+          <span>{statusMessage}</span>
+        </div>
+      )}
+
+      {failedSyncCount > 0 && (
+        <div
+          role="status"
+          className="flex items-center justify-center gap-1.5 border-b border-red-100 bg-red-50 px-3 py-1.5 text-center text-xs font-medium text-red-800 sm:px-4"
+        >
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>{t("offline.syncFailed", { count: failedSyncCount })}</span>
         </div>
       )}
 

@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSearchParamState } from "@/hooks/useSearchParamState";
 import {
   useActivityPlannings,
   useDeleteActivityPlanning,
@@ -35,6 +36,7 @@ import { STATUS_CONFIG, STATUS_VALUES } from "@/data/constant/planning";
 import GanttChart from "@/features/planning/components/GanttChart";
 import { listFiltersContainerClass } from "@/components/ui/ListTable";
 import { cn } from "@/lib/utils";
+import { sortNewestFirst } from "@/lib/listOrder";
 
 const GANTT_ROW_H = 44;
 const GANTT_TIMELINE_HEADER_H = 32;
@@ -49,8 +51,12 @@ export default function PlanningListPage() {
   const perms = usePermissions("/planning");
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilterParam] = useSearchParamState("statut");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
 
   const statusFilterOptions = useMemo(
     () => [
@@ -82,10 +88,11 @@ export default function PlanningListPage() {
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
+  const sorted = sortNewestFirst(filtered);
 
-  const totalItems = filtered.length;
+  const totalItems = sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const plannings = filtered.slice(
+  const plannings = sorted.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
@@ -143,11 +150,11 @@ export default function PlanningListPage() {
 
       <StatStrip
         items={[
-          { label: t("planning.stats.total"), value: stats.total },
-          { label: t("planning.stats.planifie"), value: stats.planifie },
-          { label: t("planning.stats.en_cours"), value: stats.en_cours },
-          { label: t("planning.stats.valide"), value: stats.valide },
-          { label: t("planning.stats.brouillon"), value: stats.brouillon },
+          { label: t("planning.stats.total"), value: stats.total, href: "/planning" },
+          { label: t("planning.stats.planifie"), value: stats.planifie, href: "/planning?statut=planifie" },
+          { label: t("planning.stats.en_cours"), value: stats.en_cours, href: "/planning?statut=en_cours" },
+          { label: t("planning.stats.valide"), value: stats.valide, href: "/planning?statut=valide" },
+          { label: t("planning.stats.brouillon"), value: stats.brouillon, href: "/planning?statut=brouillon" },
         ]}
       />
 
@@ -165,7 +172,7 @@ export default function PlanningListPage() {
             options={statusFilterOptions}
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              setStatusFilterParam(e.target.value);
               setPage(1);
             }}
             placeholder={t("planning.filterStatus")}

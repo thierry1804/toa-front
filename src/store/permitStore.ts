@@ -1,19 +1,27 @@
 import { create } from 'zustand'
+import type { Permit, ValidationJournaliere } from '@/types'
 import type { PreventionPlan } from '@/types/prevention'
+
+export interface PermisGeneral extends Permit {
+  commentaireChef?: string
+  commentaireHSE?: string
+  motifRefus?: string
+  validationsJournalieres?: ValidationJournaliere[]
+}
 
 interface PermitState {
   selectedPermitId: string | null
   plansPrevention: PreventionPlan[]
-  permisGeneraux: any[]
+  permisGeneraux: PermisGeneral[]
   setSelectedPermitId: (id: string | null) => void
   setPlansPrevention: (plans: PreventionPlan[]) => void
-  getPermisGeneralById: (id: string) => any | undefined
+  getPermisGeneralById: (id: string) => PermisGeneral | undefined
   getPlanPreventionById: (id: string) => PreventionPlan | undefined
-  addPermisGeneral: (permis: any) => void
+  addPermisGeneral: (permis: PermisGeneral) => void
   validerParChefProjet: (id: string, nom: string, commentaire: string) => void
   validerParHSE: (id: string, nom: string, commentaire: string) => void
   refuserPermis: (id: string, commentaire: string) => void
-  updatePermisHauteur: (id: string, data: any) => void
+  updatePermisHauteur: (id: string, data: Partial<PermisGeneral>) => void
 }
 
 export const usePermitStore = create<PermitState>((set, get) => ({
@@ -29,25 +37,25 @@ export const usePermitStore = create<PermitState>((set, get) => ({
   validerParChefProjet: (id, _nom, commentaire) =>
     set((state) => ({
       permisGeneraux: state.permisGeneraux.map((p) =>
-        p.id === id ? { ...p, status: 'en_attente_validation_hse', commentaireChef: commentaire } : p
+        p.id === id ? { ...p, status: 'en_attente_validation_hse', commentaireChef: commentaire } : p,
       ),
     })),
   validerParHSE: (id, _nom, commentaire) =>
     set((state) => ({
       permisGeneraux: state.permisGeneraux.map((p) =>
-        p.id === id ? { ...p, status: 'valide', commentaireHSE: commentaire } : p
+        p.id === id ? { ...p, status: 'valide', commentaireHSE: commentaire } : p,
       ),
     })),
   refuserPermis: (id, commentaire) =>
     set((state) => ({
       permisGeneraux: state.permisGeneraux.map((p) =>
-        p.id === id ? { ...p, status: 'refuse', motifRefus: commentaire } : p
+        p.id === id ? { ...p, status: 'refuse', motifRefus: commentaire } : p,
       ),
     })),
   updatePermisHauteur: (id, data) =>
     set((state) => ({
       permisGeneraux: state.permisGeneraux.map((p) =>
-        p.id === id ? { ...p, ...data } : p
+        p.id === id ? { ...p, ...data } : p,
       ),
     })),
 }))

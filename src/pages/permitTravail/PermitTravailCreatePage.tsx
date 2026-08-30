@@ -155,7 +155,7 @@ export default function PermitTravailCreatePage() {
 
   // ── Categories for risk filter ────────────────────────────────────────────────
   const { data: categoriesData } = useCategoriesRisqueAll()
-  const allCategories = categoriesData?.member ?? []
+  const allCategories = useMemo(() => categoriesData?.member ?? [], [categoriesData?.member])
 
   // ── Derived ───────────────────────────────────────────────────────────────────
   const isNouveauSite = selectedPlan?.typeIntervention === 'Nouveau site'

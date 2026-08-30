@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useMenus } from "@/features/menus/hooks/useMenus";
 import { useMenuAccesses } from "@/features/menus/hooks/useMenuAccesses";
@@ -38,8 +38,11 @@ export default function MenuManagerPage() {
   );
 
   const { t } = useTranslation();
-  const menuItems = (menus ?? []).filter((m) => m.name !== "Dashboard");
-  const allRoles = rolesData?.member ?? [];
+  const menuItems = useMemo(
+    () => (menus ?? []).filter((m) => m.name !== "Dashboard"),
+    [menus],
+  );
+  const allRoles = useMemo(() => rolesData?.member ?? [], [rolesData?.member]);
   const [loaded, setLoaded] = useState(false);
   const [toggling, setToggling] = useState<AccessKey | null>(null);
 
@@ -67,7 +70,7 @@ export default function MenuManagerPage() {
     }
     setEntries(map);
     setLoaded(true);
-  }, [menus, accesses, rolesData, loaded]);
+  }, [menus, accesses, rolesData, loaded, allRoles, menuItems]);
 
   const toggle = useCallback(
     async (key: AccessKey, perm: string) => {
@@ -139,7 +142,7 @@ export default function MenuManagerPage() {
         setToggling(null);
       }
     },
-    [entries, addToast],
+    [entries, addToast, queryClient, t],
   );
 
   if (menusLoading || accessesLoading || rolesLoading) {

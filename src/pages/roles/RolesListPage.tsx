@@ -15,6 +15,7 @@ import { StatStrip } from '@/components/ui/StatStrip'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { Plus, Edit, Trash2, Lock } from 'lucide-react'
 import { formatDate } from '@/utils/date'
+import { sortNewestFirst } from '@/lib/listOrder'
 
 function RolesListPage() {
   const { t } = useTranslation()
@@ -42,6 +43,7 @@ function RolesListPage() {
       (role.description ?? '').toLowerCase().includes(q)
     )
   })
+  const sortedRoles = sortNewestFirst(filtered)
 
   const stats = {
     total: totalItems,
@@ -102,7 +104,7 @@ function RolesListPage() {
         <CardSectionHeader className="space-y-2 py-2">
           <div>
             <h2 className="text-sm font-semibold text-gray-900">
-              {t('roles.listTitle', { count: filtered.length })}
+              {t('roles.listTitle', { count: sortedRoles.length })}
             </h2>
             <p className="mt-0.5 text-xs text-gray-500">{t('roles.tableDescription')}</p>
           </div>
@@ -114,8 +116,8 @@ function RolesListPage() {
           />
         </CardSectionHeader>
 
-        <CardContent className={filtered.length === 0 ? undefined : 'p-0'}>
-          {filtered.length === 0 ? (
+        <CardContent className={sortedRoles.length === 0 ? undefined : 'p-0'}>
+          {sortedRoles.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-sm text-gray-500">{t('roles.empty')}</p>
               {perms?.canCreate && (
@@ -154,7 +156,7 @@ function RolesListPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filtered.map((role) => (
+                    {sortedRoles.map((role) => (
                       <tr key={role.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <span className="text-sm font-medium text-gray-900">{role.label}</span>
@@ -215,7 +217,7 @@ function RolesListPage() {
               </div>
 
               <div className="divide-y divide-gray-200 lg:hidden">
-                {filtered.map((role) => (
+                {sortedRoles.map((role) => (
                   <div
                     key={role.id}
                     className="flex items-start justify-between gap-3 px-4 py-3"

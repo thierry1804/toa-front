@@ -49,6 +49,14 @@ export function useInterventionStatsJournalieres(codeSite?: string, date?: strin
   })
 }
 
+export function useRecentInterventions(limit: number, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: [...INTERVENTION_KEY, 'recent', limit],
+    queryFn: () => interventionApi.getAll({ page: 1, itemsPerPage: limit }),
+    enabled: options?.enabled ?? true,
+  })
+}
+
 export function useInterventionDetail(id: string) {
   return useQuery({
     queryKey: [...INTERVENTION_KEY, id],

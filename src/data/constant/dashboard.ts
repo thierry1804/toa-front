@@ -1,5 +1,8 @@
 import { FileText, Users, Calendar, Shield, Clipboard, type LucideIcon } from "lucide-react"
 
+export const DASHBOARD_EXCERPT_LIMIT = 5
+export const DASHBOARD_KPI_SCAN_LIMIT = 500
+
 export interface QuickLink {
   labelKey: string
   descKey: string

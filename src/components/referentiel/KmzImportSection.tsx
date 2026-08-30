@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Upload, AlertCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import type { KmzImportResponse } from '@/types/referentiel'
+import { isOfflineQueued } from '@/offline/offlineError'
 
 interface KmzImportSectionProps {
   onImport: (file: File) => Promise<KmzImportResponse>
@@ -28,6 +29,7 @@ export default function KmzImportSection({ onImport, isLoading }: KmzImportSecti
     try {
       await onImport(file)
     } catch (err: unknown) {
+      if (isOfflineQueued(err)) return
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
       setError(detail || t('referentiel.sites.import.error'))

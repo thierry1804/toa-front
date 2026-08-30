@@ -81,20 +81,20 @@ export default function ValidationHSEModal({
       item: "Formation du personnel",
       conforme:
         plan.formation.personnelForme &&
-        plan.formation.formationsRequises.length > 0,
+        (plan.formation.formationsRequises?.length ?? 0) > 0,
       description:
         "Le personnel est formé et les formations requises sont identifiées",
     },
     {
       item: "Équipements de protection",
-      conforme: plan.equipements.equipementsProtection.length > 0,
+      conforme: (plan.equipements.equipementsProtection?.length ?? 0) > 0,
       description: "Les équipements de protection nécessaires sont identifiés",
     },
     {
       item: "Procédures d'urgence",
       conforme:
         plan.proceduresUrgence.planEvacuation &&
-        plan.proceduresUrgence.numerosUrgence.length > 0,
+        (plan.proceduresUrgence.numerosUrgence?.length ?? 0) > 0,
       description: "Les procédures d'urgence sont définies",
     },
     {
@@ -219,9 +219,9 @@ export default function ValidationHSEModal({
                   <p className="text-sm text-gray-600">Validation Chef</p>
                   <p className="font-medium">
                     {plan.validationChef?.valideePar || "Non validé"} -{" "}
-                    {plan.validationChef?.dateValidation?.toLocaleDateString(
-                      "fr-FR",
-                    ) || "Non définie"}
+                    {plan.validationChef?.dateValidation
+                      ? new Date(plan.validationChef.dateValidation).toLocaleDateString("fr-FR")
+                      : "Non définie"}
                   </p>
                 </div>
               </div>

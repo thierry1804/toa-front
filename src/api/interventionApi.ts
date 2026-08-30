@@ -1,4 +1,5 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { HydraCollection } from '@/types'
 import type {
   Intervention,
@@ -21,8 +22,12 @@ import type {
 import type { KpiIntervention } from '@/types/permitTravail'
 
 export const interventionApi = {
-  getAll: () =>
-    api.get<HydraCollection<Intervention>>('/api/interventions').then((r) => r.data),
+  getAll: (params?: { page?: number; itemsPerPage?: number }) =>
+    api
+      .get<HydraCollection<Intervention>>('/api/interventions', {
+        params: withNewestFirst(params),
+      })
+      .then((r) => r.data),
 
   create: (permitTravailId: string) =>
     api
@@ -80,6 +85,13 @@ export const interventionApi = {
     api
       .delete(`/api/suivis-journaliers/${suiviId}/documents/${docId}`)
       .then((r) => r.data),
+
+  getSuiviDocumentBlob: (suiviId: string, docId: string): Promise<Blob> =>
+    api
+      .get(`/api/suivis-journaliers/${suiviId}/documents/${docId}/download`, {
+        responseType: 'blob',
+      })
+      .then((r) => r.data as Blob),
 
   getDashboard: (filters?: InterventionSuiviFilters) => {
     const params: Record<string, string> = {}

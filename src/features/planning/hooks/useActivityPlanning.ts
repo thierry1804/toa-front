@@ -13,10 +13,15 @@ export function usePrestataires() {
   })
 }
 
-export function useActivityPlannings(page: number = 1, itemsPerPage: number = 10) {
+export function useActivityPlannings(
+  page: number = 1,
+  itemsPerPage: number = 10,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [...PLANNING_KEY, { page, itemsPerPage }],
     queryFn: () => activityPlanningApi.list({ page, itemsPerPage }),
+    enabled: options?.enabled ?? true,
   })
 }
 

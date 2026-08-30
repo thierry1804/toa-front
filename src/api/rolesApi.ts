@@ -1,9 +1,12 @@
 import api from '@/lib/axios'
+import { withNewestFirst } from '@/lib/listOrder'
 import type { Role, RoleCreate, RoleUpdate, HydraCollection } from '@/types'
 
 export const rolesApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
-    api.get<HydraCollection<Role>>('/api/roles', { params }).then((r) => r.data),
+    api
+      .get<HydraCollection<Role>>('/api/roles', { params: withNewestFirst(params) })
+      .then((r) => r.data),
 
   getById: (id: number) =>
     api.get<Role>(`/api/roles/${id}`).then((r) => r.data),

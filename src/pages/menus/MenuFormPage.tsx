@@ -46,7 +46,7 @@ export default function MenuFormPage() {
       navigate('/menus')
       addToast({ message: t('users.toast.permissionDenied'), type: 'error' })
     }
-  }, [navigate, addToast, canManageMenus, hasPermissions])
+  }, [navigate, addToast, canManageMenus, hasPermissions, t])
 
   const parentOptions = [
     { value: '', label: t('menus.form.noParent') },

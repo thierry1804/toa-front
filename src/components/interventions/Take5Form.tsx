@@ -43,11 +43,17 @@ export default function Take5Form({
     equipe: string[];
     localisation: string;
     tacheDescription: string;
-    etape1_arreter: any;
-    etape2_observer: any;
-    etape3_analyser: any;
-    etape4_controler: any;
-    etape5_proceder: any;
+    etape1_arreter: NonNullable<Take5Record["etape1_arreter"]>;
+    etape2_observer: NonNullable<Take5Record["etape2_observer"]> & {
+      dangersIdentifies: string[];
+    };
+    etape3_analyser: NonNullable<Take5Record["etape3_analyser"]> & {
+      risquesEvalues: RisqueEvalue[];
+    };
+    etape4_controler: NonNullable<Take5Record["etape4_controler"]> & {
+      mesuresControle: MesureControle[];
+    };
+    etape5_proceder: NonNullable<Take5Record["etape5_proceder"]>;
   }>({
     responsableNom: initialData?.responsableNom || "",
     equipe: (initialData?.equipe as unknown as string[]) || [],
@@ -607,9 +613,9 @@ export default function Take5Form({
                         {t("intervention.components.take5Form.step3.graviteBadge", { value: risque.gravite })}
                       </span>
                       <span
-                        className={`px-2 py-1 rounded font-medium ${getNiveauRisqueColor(risque.niveauRisque)}`}
+                        className={`px-2 py-1 rounded font-medium ${getNiveauRisqueColor(risque.niveauRisque ?? "")}`}
                       >
-                        {t("intervention.components.take5Form.step3.niveauBadge", { value: risque.niveauRisque })}
+                        {t("intervention.components.take5Form.step3.niveauBadge", { value: risque.niveauRisque ?? "" })}
                       </span>
                     </div>
                   </div>
@@ -749,7 +755,7 @@ export default function Take5Form({
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {mesure.type.replace(/_/g, " ")}
+                        {mesure.type?.replace(/_/g, " ")}
                       </span>
                       {mesure.miseEnPlace && (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />

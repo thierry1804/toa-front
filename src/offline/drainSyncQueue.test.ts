@@ -5,7 +5,13 @@ vi.mock('@/offline/syncQueue', () => ({
     getAll:            vi.fn(),
     remove:            vi.fn(),
     incrementRetries:  vi.fn(),
+    moveToFailed:      vi.fn(),
   },
+}))
+
+vi.mock('@/offline/blobStore', () => ({
+  rebuildFormData: vi.fn(),
+  deleteBlobsForParts: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/axios', () => ({
@@ -15,12 +21,14 @@ vi.mock('@/lib/axios', () => ({
 import { drainSyncQueue } from './drainSyncQueue'
 import { syncQueue } from '@/offline/syncQueue'
 import api from '@/lib/axios'
+import { rebuildFormData, deleteBlobsForParts } from '@/offline/blobStore'
 
 type SyncItem = {
   id: string
   url: string
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
+  formParts?: Array<{ name: string; kind: 'file' | 'text'; blobId?: string; value?: string; filename?: string }>
   createdAt: number
   retries: number
 }
@@ -29,6 +37,7 @@ const mockApi              = vi.mocked(api as unknown as (c: unknown) => Promise
 const mockGetAll           = vi.mocked(syncQueue.getAll)
 const mockRemove           = vi.mocked(syncQueue.remove)
 const mockIncrementRetries = vi.mocked(syncQueue.incrementRetries)
+const mockMoveToFailed     = vi.mocked(syncQueue.moveToFailed)
 
 const queryClient = { invalidateQueries: vi.fn() } as unknown as import('@tanstack/react-query').QueryClient
 const addToast    = vi.fn()
@@ -41,6 +50,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockRemove.mockResolvedValue(undefined)
   mockIncrementRetries.mockResolvedValue(1)
+  mockMoveToFailed.mockResolvedValue(undefined)
 })
 
 describe('drainSyncQueue', () => {
@@ -59,7 +69,12 @@ describe('drainSyncQueue', () => {
 
     await drainSyncQueue(queryClient, addToast)
 
-    expect(mockApi).toHaveBeenCalledWith({ method: 'POST', url: '/api/permits', data: { name: 'PT-1' } })
+    expect(mockApi).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/api/permits',
+      data: { name: 'PT-1' },
+      _skipOfflineQueue: true,
+    })
   })
 
   it('removes item and counts it on success', async () => {
@@ -106,5 +121,49 @@ describe('drainSyncQueue', () => {
     expect(mockRemove).toHaveBeenCalledWith('1')
     expect(mockIncrementRetries).toHaveBeenCalledWith('2')
     expect(synced).toBe(1)
+  })
+
+  it('moves item to failed store after max retries instead of removing', async () => {
+    mockGetAll.mockResolvedValue([item({ id: 'drop-me' })])
+    mockApi.mockRejectedValue(new Error('network'))
+    mockIncrementRetries.mockResolvedValue(5)
+
+    const synced = await drainSyncQueue(queryClient, addToast)
+
+    expect(mockMoveToFailed).toHaveBeenCalledWith('drop-me')
+    expect(mockRemove).not.toHaveBeenCalled()
+    expect(synced).toBe(0)
+    expect(addToast).toHaveBeenCalled()
+  })
+
+  it('rebuilds FormData from formParts and deletes blobs on success', async () => {
+    const form = new FormData()
+    form.append('file', new File(['x'], 'a.jpg'))
+    form.append('type', 'PV')
+    vi.mocked(rebuildFormData).mockResolvedValue(form)
+
+    const queued = item({
+      id: 'doc-1',
+      url: '/api/permits-travail/1/documents',
+      formParts: [
+        { name: 'type', kind: 'text', value: 'PV' },
+        { name: 'file', kind: 'file', blobId: 'b1', filename: 'a.jpg' },
+      ],
+    })
+    mockGetAll.mockResolvedValue([queued])
+    mockApi.mockResolvedValue({})
+
+    await drainSyncQueue(queryClient, addToast)
+
+    expect(rebuildFormData).toHaveBeenCalled()
+    expect(mockApi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/api/permits-travail/1/documents',
+        _skipOfflineQueue: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    )
+    expect(deleteBlobsForParts).toHaveBeenCalledWith(queued.formParts)
+    expect(mockRemove).toHaveBeenCalledWith('doc-1')
   })
 })

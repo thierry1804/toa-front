@@ -22,7 +22,7 @@ export function useDashboardMap(
     retry: false,
   })
 
-  const plannings = planningsQuery.data ?? []
+  const plannings = useMemo(() => planningsQuery.data ?? [], [planningsQuery.data])
 
   const prestataires = useMemo(
     () => [...new Set(plannings.map((p) => p.provider).filter(Boolean))].sort(),

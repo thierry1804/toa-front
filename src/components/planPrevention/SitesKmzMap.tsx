@@ -121,7 +121,7 @@ export default function SitesKmzMap({
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
-      center: ANTANANARIVO,
+      center: getBarycenter(sites),
       zoom: 10,
       attributionControl: false,
     })
@@ -136,6 +136,7 @@ export default function SitesKmzMap({
       map.remove()
       mapRef.current = null
     }
+    // Map is created once; markers are synced in a separate effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

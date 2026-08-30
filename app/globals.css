@@ -52,53 +52,9 @@ body {
 }
 
 @media (display-mode: standalone), (display-mode: fullscreen) {
-  .login-shell[data-pwa="true"] .login-brand {
+  .login-page[data-pwa="true"] {
     padding-top: max(0.75rem, env(safe-area-inset-top));
-  }
-
-  .login-shell[data-pwa="true"] .login-main {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-  }
-
-  .login-shell[data-pwa="true"] .login-card {
-    border-radius: 1.25rem;
-    padding: 1.25rem;
-  }
-
-  .login-shell[data-pwa="true"] .login-grid {
-    max-width: 100%;
-    padding-inline: 0;
-  }
-
-  .login-shell[data-pwa="true"] .login-brand .mt-10 {
-    display: none;
-  }
-}
-
-@media (max-width: 1023px) {
-  .login-shell[data-pwa="true"] {
-    min-height: 100dvh;
-  }
-
-  .login-shell[data-pwa="true"] .login-card {
-    border-left: 0;
-    border-right: 0;
-    border-radius: 1.5rem 1.5rem 0 0;
-    box-shadow: none;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .login-shell[data-pwa="true"] .login-main {
-    flex: 1;
-    justify-content: flex-end;
-    padding-inline: 0;
-  }
-
-  .login-shell[data-pwa="true"] .login-grid {
-    min-height: 100dvh;
   }
 }
 
@@ -127,6 +83,21 @@ body {
 
   * {
     box-sizing: border-box;
+  }
+
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }
 

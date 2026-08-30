@@ -1,16 +1,43 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatStrip } from "@/components/ui/StatStrip";
-import { ArrowRight, Activity, MapPin } from "lucide-react";
+import Badge from "@/components/ui/Badge";
+import { CloudOff, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { quickLinks } from "@/data/constant/dashboard";
+import { DASHBOARD_EXCERPT_LIMIT, DASHBOARD_KPI_SCAN_LIMIT, quickLinks } from "@/data/constant/dashboard";
 import { useTranslation } from "react-i18next";
 import type { MenuNode } from "@/types";
+import type { Intervention } from "@/types/intervention";
 import ReferentielSitesMap from "@/components/referentiel/ReferentielSitesMap";
 import { useDashboardMap } from "@/features/dashboard/hooks/useDashboardMap";
 import { useDashboardKpis } from "@/features/dashboard/hooks/useDashboardKpis";
+import { usePermitsTravail } from "@/features/permitTravail/hooks/usePermitTravail";
+import { usePermitTravailLabels } from "@/features/permitTravail/usePermitTravailLabels";
+import { usePlanPreventionCollection } from "@/features/planPrevention/hooks/usePlanPrevention";
+import { useRecentInterventions } from "@/features/intervention/hooks/useIntervention";
+import { useActivityPlannings } from "@/features/planning/hooks/useActivityPlanning";
+import { useUsers } from "@/features/users/hooks/useUsers";
+import StatutPermitBadge from "@/components/permitTravail/StatutPermitBadge";
+import StatutBadge from "@/components/planPrevention/StatutBadge";
+import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
+import { useFailedSyncCount } from "@/hooks/useFailedSyncCount";
+import { formatUserDisplayName } from "@/utils/format";
+import { STATUS_CONFIG } from "@/data/constant/planning";
+import { sortNewestFirst } from "@/lib/listOrder";
+import { buildProfileKpis, PROFILE_KPI_HREF } from "@/features/dashboard/buildProfileKpis";
+import {
+  DashboardExcerptPanel,
+  DashboardExcerptRow,
+} from "@/pages/dashboard/DashboardExcerptPanel";
+
+const INTERVENTION_STATUT_I18N: Record<string, string> = {
+  EN_PREPARATION: "planifiee",
+  EVALUATION_COMPLETE: "planifiee",
+  EN_COURS: "en_cours",
+  TERMINEE: "terminee",
+};
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   const out: MenuNode[] = [];
@@ -24,36 +51,35 @@ function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   return out;
 }
 
-function SectionPanel({
-  title,
-  children,
-  className = "",
-}: {
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`overflow-hidden rounded-lg border border-gray-200 bg-white ${className}`}
-    >
-      <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-        <h2 className="text-sm font-medium text-gray-700">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
+function interventionReference(intervention: Intervention): string {
+  if (intervention.permitTravail && typeof intervention.permitTravail === "object") {
+    return intervention.permitTravail.reference;
+  }
+  return intervention.id;
+}
+
+function interventionSite(intervention: Intervention): string {
+  if (intervention.permitTravail && typeof intervention.permitTravail === "object") {
+    return intervention.permitTravail.codeSite;
+  }
+  return "";
 }
 
 function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const roles = useAuthStore((s) => s.roles);
   const menuItems = useMenuStore((s) => s.items);
+  const menuLoaded = useMenuStore((s) => s.loaded);
+  const menuError = useMenuStore((s) => s.error);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { typeLabel } = usePermitTravailLabels();
+  const pendingSyncCount = usePendingSyncCount();
+  const failedSyncCount = useFailedSyncCount();
 
+  const isSuperAdmin = roles.includes("ROLE_SUPER_ADMIN");
   const isAdmin =
-    roles.includes("ROLE_ADMIN") || roles.includes("ROLE_SUPER_ADMIN");
+    isSuperAdmin || roles.includes("ROLE_ADMIN");
 
   const [filterProvider, setFilterProvider] = useState("");
   const [filterProcess, setFilterProcess] = useState("");
@@ -61,32 +87,158 @@ function DashboardPage() {
   const { filteredGeoJson, prestataires, processTypes, isLoading: mapLoading } =
     useDashboardMap(filterProvider, filterProcess, { enabled: isAdmin });
 
-  const { data: kpis } = useDashboardKpis(undefined, { enabled: isAdmin });
+  const { data: kpis } = useDashboardKpis(undefined, { enabled: isSuperAdmin });
 
-  const statItems = [
-    { label: t("dashboard.kpis.plansValides"), value: kpis?.nbPlansValides ?? "—" },
-    { label: t("dashboard.kpis.permisValides"), value: kpis?.nbPermisValides ?? "—" },
-    { label: t("dashboard.kpis.permisClotures"), value: kpis?.nbPermisClotures ?? "—" },
-    {
-      label: t("dashboard.kpis.tauxCloture"),
-      value: kpis ? `${Math.round(kpis.tauxCloture * 100)}%` : "—",
-    },
-  ];
-
-  const visibleQuickLinks = useMemo(() => {
-    if (menuItems.length === 0) return quickLinks;
-    const flat = flattenMenu(menuItems);
-    const viewable = new Set(
-      flat
+  const viewableRoutes = useMemo(() => {
+    if (menuError && menuItems.length === 0) {
+      return new Set(quickLinks.map((l) => l.route));
+    }
+    return new Set(
+      flattenMenu(menuItems)
         .filter((n) => n.route && (n.canView ?? true))
         .map((n) => n.route as string),
     );
-    return quickLinks.filter((l) => viewable.has(l.route));
-  }, [menuItems]);
+  }, [menuItems, menuError]);
+
+  const showPermits = viewableRoutes.has("/permits-travail");
+  const showPlans = viewableRoutes.has("/prevention");
+  const showInterventions = viewableRoutes.has("/interventions");
+  const showPlanning = viewableRoutes.has("/planning");
+  const showUsers = viewableRoutes.has("/users");
+
+  const listPageSize = isSuperAdmin
+    ? DASHBOARD_EXCERPT_LIMIT
+    : DASHBOARD_KPI_SCAN_LIMIT;
+
+  const excerptParams = {
+    page: "1",
+    itemsPerPage: String(listPageSize),
+  };
+
+  const { data: permitsData, isLoading: permitsLoading, isError: permitsError } =
+    usePermitsTravail(excerptParams, { enabled: showPermits });
+
+  const { data: plansData, isLoading: plansLoading, isError: plansError } =
+    usePlanPreventionCollection(excerptParams, { enabled: showPlans });
+
+  const {
+    data: interventionsData,
+    isLoading: interventionsLoading,
+    isError: interventionsError,
+  } = useRecentInterventions(listPageSize, {
+    enabled: showInterventions,
+  });
+
+  const {
+    data: planningData,
+    isLoading: planningLoading,
+    isError: planningError,
+  } = useActivityPlannings(1, listPageSize, {
+    enabled: showPlanning,
+  });
+
+  const { data: usersData, isLoading: usersLoading, isError: usersError } =
+    useUsers(1, listPageSize, { enabled: showUsers });
+
+  const recentPermits = useMemo(
+    () => sortNewestFirst(permitsData?.member ?? []).slice(0, DASHBOARD_EXCERPT_LIMIT),
+    [permitsData?.member],
+  );
+  const recentPlans = useMemo(
+    () => sortNewestFirst(plansData?.member ?? []).slice(0, DASHBOARD_EXCERPT_LIMIT),
+    [plansData?.member],
+  );
+  const recentInterventions = useMemo(
+    () =>
+      sortNewestFirst(interventionsData?.member ?? []).slice(
+        0,
+        DASHBOARD_EXCERPT_LIMIT,
+      ),
+    [interventionsData?.member],
+  );
+  const recentPlannings = useMemo(
+    () => sortNewestFirst(planningData?.member ?? []).slice(0, DASHBOARD_EXCERPT_LIMIT),
+    [planningData?.member],
+  );
+  const recentUsers = useMemo(
+    () => sortNewestFirst(usersData?.member ?? []).slice(0, DASHBOARD_EXCERPT_LIMIT),
+    [usersData?.member],
+  );
+
+  const superAdminStatItems = [
+    { label: t("dashboard.kpis.plansValides"), value: kpis?.nbPlansValides ?? "—", href: "/prevention?statut=valides" },
+    { label: t("dashboard.kpis.permisValides"), value: kpis?.nbPermisValides ?? "—", href: "/permits-travail?statut=valides" },
+    { label: t("dashboard.kpis.permisClotures"), value: kpis?.nbPermisClotures ?? "—", href: "/permits-travail?statut=clotures" },
+    {
+      label: t("dashboard.kpis.tauxCloture"),
+      value: kpis ? `${Math.round(kpis.tauxCloture * 100)}%` : "—",
+      href: "/permits-travail?statut=clotures",
+    },
+  ];
+
+  const profileKpis = useMemo(
+    () =>
+      buildProfileKpis(
+        {
+          permits: showPermits,
+          plans: showPlans,
+          interventions: showInterventions,
+          planning: showPlanning,
+          users: showUsers,
+        },
+        {
+          permits: showPermits && !permitsLoading ? permitsData?.member : undefined,
+          plans: showPlans && !plansLoading ? plansData?.member : undefined,
+          interventions:
+            showInterventions && !interventionsLoading
+              ? interventionsData?.member
+              : undefined,
+          plannings:
+            showPlanning && !planningLoading ? planningData?.member : undefined,
+          users: showUsers && !usersLoading ? usersData?.member : undefined,
+        },
+      ),
+    [
+      showPermits,
+      showPlans,
+      showInterventions,
+      showPlanning,
+      showUsers,
+      permitsLoading,
+      plansLoading,
+      interventionsLoading,
+      planningLoading,
+      usersLoading,
+      permitsData?.member,
+      plansData?.member,
+      interventionsData?.member,
+      planningData?.member,
+      usersData?.member,
+    ],
+  );
+
+  const profileStatItems = profileKpis.map((item) => ({
+    label: t(`dashboard.kpis.${item.key}`),
+    value: item.value ?? "—",
+    href: PROFILE_KPI_HREF[item.key],
+  }));
 
   const userName = user
     ? `${user.prenom ? `${user.prenom} ` : ""}${user.nom}`
     : "";
+
+  const locale = i18n.language?.startsWith("mg") ? "mg-MG" : "fr-FR";
+  const formatDay = (iso: string) => new Date(iso).toLocaleDateString(locale);
+
+  const syncBanner = pendingSyncCount > 0 || failedSyncCount > 0;
+
+  const excerptCount = [
+    showPermits,
+    showPlans,
+    showInterventions,
+    showPlanning,
+    showUsers,
+  ].filter(Boolean).length;
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -94,6 +246,17 @@ function DashboardPage() {
         title={`${t("dashboard.greeting")}${userName ? `, ${userName}` : ""}`}
         description={t("dashboard.description")}
       />
+
+      {syncBanner && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+          <CloudOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            {failedSyncCount > 0
+              ? t("offline.syncFailed", { count: failedSyncCount })
+              : t("dashboard.syncPending", { count: pendingSyncCount })}
+          </span>
+        </div>
+      )}
 
       {isAdmin && (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -138,7 +301,7 @@ function DashboardPage() {
                     setFilterProvider("");
                     setFilterProcess("");
                   }}
-                  className="self-start text-xs text-blue-600 hover:text-blue-700 sm:self-center"
+                  className="cursor-pointer self-start text-xs text-blue-600 hover:text-blue-700 sm:self-center"
                 >
                   {t("dashboard.resetFilters")}
                 </button>
@@ -161,60 +324,193 @@ function DashboardPage() {
         </div>
       )}
 
-      {isAdmin && <StatStrip items={statItems} />}
+      {isSuperAdmin && <StatStrip items={superAdminStatItems} />}
+      {!isSuperAdmin && profileStatItems.length > 0 && (
+        <StatStrip items={profileStatItems} />
+      )}
 
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
-        <div className="lg:col-span-2">
-          <SectionPanel title={t("dashboard.quickAccess")}>
-            {visibleQuickLinks.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-gray-500">
-                {t("dashboard.noQuickAccess")}
-              </p>
-            ) : (
+      {!menuLoaded ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <DashboardExcerptPanel
+            title={t("dashboard.recentPermits")}
+            seeAllLabel={t("dashboard.seeAll")}
+            onSeeAll={() => undefined}
+            loading
+            error={false}
+            errorMessage=""
+            empty={false}
+            emptyMessage=""
+          >
+            {null}
+          </DashboardExcerptPanel>
+          <DashboardExcerptPanel
+            title={t("dashboard.recentPlans")}
+            seeAllLabel={t("dashboard.seeAll")}
+            onSeeAll={() => undefined}
+            loading
+            error={false}
+            errorMessage=""
+            empty={false}
+            emptyMessage=""
+          >
+            {null}
+          </DashboardExcerptPanel>
+        </div>
+      ) : excerptCount === 0 ? (
+        <p className="rounded-lg border border-gray-200 bg-white px-4 py-6 text-sm text-gray-500">
+          {t("dashboard.noActivity")}
+        </p>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {showPermits && (
+            <DashboardExcerptPanel
+              title={t("dashboard.recentPermits")}
+              seeAllLabel={t("dashboard.seeAll")}
+              onSeeAll={() => navigate("/permits-travail")}
+              loading={permitsLoading}
+              error={permitsError}
+              errorMessage={t("dashboard.excerptLoadError")}
+              empty={recentPermits.length === 0}
+              emptyMessage={t("dashboard.noPermits")}
+            >
               <ul className="divide-y divide-gray-100">
-                {visibleQuickLinks.map((link) => {
-                  const Icon = link.icon;
+                {recentPermits.map((permit) => (
+                  <DashboardExcerptRow
+                    key={permit.id}
+                    title={permit.reference}
+                    meta={`${permit.codeSite} · ${typeLabel(permit.typePermis)} · ${formatDay(permit.createdAt)}`}
+                    badge={<StatutPermitBadge statut={permit.statut} />}
+                    onClick={() => navigate(`/permits-travail/${permit.id}`)}
+                  />
+                ))}
+              </ul>
+            </DashboardExcerptPanel>
+          )}
+
+          {showPlans && (
+            <DashboardExcerptPanel
+              title={t("dashboard.recentPlans")}
+              seeAllLabel={t("dashboard.seeAll")}
+              onSeeAll={() => navigate("/prevention")}
+              loading={plansLoading}
+              error={plansError}
+              errorMessage={t("dashboard.excerptLoadError")}
+              empty={recentPlans.length === 0}
+              emptyMessage={t("dashboard.noPlans")}
+            >
+              <ul className="divide-y divide-gray-100">
+                {recentPlans.map((plan) => (
+                  <DashboardExcerptRow
+                    key={plan.id}
+                    title={plan.reference}
+                    meta={`${plan.codeSite} · ${formatDay(plan.createdAt)}`}
+                    badge={<StatutBadge statut={plan.statut} />}
+                    onClick={() => navigate(`/prevention/${plan.id}`)}
+                  />
+                ))}
+              </ul>
+            </DashboardExcerptPanel>
+          )}
+
+          {showInterventions && (
+            <DashboardExcerptPanel
+              title={t("dashboard.recentInterventions")}
+              seeAllLabel={t("dashboard.seeAll")}
+              onSeeAll={() => navigate("/interventions")}
+              loading={interventionsLoading}
+              error={interventionsError}
+              errorMessage={t("dashboard.excerptLoadError")}
+              empty={recentInterventions.length === 0}
+              emptyMessage={t("dashboard.noInterventions")}
+            >
+              <ul className="divide-y divide-gray-100">
+                {recentInterventions.map((intervention) => {
+                  const site = interventionSite(intervention);
+                  const statutKey =
+                    INTERVENTION_STATUT_I18N[intervention.statut] ?? "planifiee";
                   return (
-                    <li key={link.route}>
-                      <button
-                        type="button"
-                        onClick={() => navigate(link.route)}
-                        className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
-                      >
-                        <Icon
-                          className="h-4 w-4 shrink-0 text-gray-400"
-                          aria-hidden
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {t(link.labelKey)}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {t(link.descKey)}
-                          </p>
-                        </div>
-                        <ArrowRight
-                          className="h-4 w-4 shrink-0 text-gray-300 transition-colors group-hover:text-blue-600"
-                          aria-hidden
-                        />
-                      </button>
-                    </li>
+                    <DashboardExcerptRow
+                      key={intervention.id}
+                      title={interventionReference(intervention)}
+                      meta={`${site ? `${site} · ` : ""}${formatDay(intervention.createdAt)}`}
+                      badge={
+                        <Badge variant="secondary">
+                          {t(`interventions.list.status.${statutKey}`)}
+                        </Badge>
+                      }
+                      onClick={() => navigate(`/interventions/${intervention.id}`)}
+                    />
                   );
                 })}
               </ul>
-            )}
-          </SectionPanel>
-        </div>
+            </DashboardExcerptPanel>
+          )}
 
-        <SectionPanel title={t("dashboard.recentActivity")}>
-          <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
-            <Activity className="h-6 w-6 text-gray-300" aria-hidden />
-            <p className="mt-2 text-sm text-gray-500">
-              {t("dashboard.noActivity")}
-            </p>
-          </div>
-        </SectionPanel>
-      </div>
+          {showPlanning && (
+            <DashboardExcerptPanel
+              title={t("dashboard.recentPlanning")}
+              seeAllLabel={t("dashboard.seeAll")}
+              onSeeAll={() => navigate("/planning")}
+              loading={planningLoading}
+              error={planningError}
+              errorMessage={t("dashboard.excerptLoadError")}
+              empty={recentPlannings.length === 0}
+              emptyMessage={t("dashboard.noPlanning")}
+            >
+              <ul className="divide-y divide-gray-100">
+                {recentPlannings.map((planning) => (
+                  <DashboardExcerptRow
+                    key={planning.id}
+                    title={planning.process}
+                    meta={`${planning.siteCode} · ${formatDay(planning.createdAt)}`}
+                    badge={
+                      <Badge
+                        variant={STATUS_CONFIG[planning.status]?.variant ?? "default"}
+                      >
+                        {t(`planning.status.${planning.status}`)}
+                      </Badge>
+                    }
+                    mono={false}
+                    onClick={() => navigate(`/planning/${planning.id}/edit`)}
+                  />
+                ))}
+              </ul>
+            </DashboardExcerptPanel>
+          )}
+
+          {showUsers && (
+            <DashboardExcerptPanel
+              title={t("dashboard.recentUsers")}
+              seeAllLabel={t("dashboard.seeAll")}
+              onSeeAll={() => navigate("/users")}
+              loading={usersLoading}
+              error={usersError}
+              errorMessage={t("dashboard.excerptLoadError")}
+              empty={recentUsers.length === 0}
+              emptyMessage={t("dashboard.noUsers")}
+            >
+              <ul className="divide-y divide-gray-100">
+                {recentUsers.map((u) => (
+                  <DashboardExcerptRow
+                    key={u.id}
+                    title={formatUserDisplayName(u)}
+                    meta={`${u.email} · ${formatDay(u.createdAt)}`}
+                    badge={
+                      <Badge variant={u.isActive ? "success" : "default"}>
+                        {u.isActive
+                          ? t("users.status.active")
+                          : t("users.status.inactive")}
+                      </Badge>
+                    }
+                    mono={false}
+                    onClick={() => navigate(`/users/${u.id}/edit`)}
+                  />
+                ))}
+              </ul>
+            </DashboardExcerptPanel>
+          )}
+        </div>
+      )}
     </div>
   );
 }

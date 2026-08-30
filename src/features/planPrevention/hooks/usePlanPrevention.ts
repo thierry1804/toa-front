@@ -168,18 +168,33 @@ export function usePlanificationsDisponibles(opts?: { enabled?: boolean }) {
   });
 }
 
-export function usePlanPreventions(params?: Record<string, string>) {
+export function usePlanPreventionCollection(
+  params?: Record<string, string>,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: [...PLAN_PREVENTION_KEY, params],
+    queryFn: () => planPreventionApi.list(params),
+    enabled: options?.enabled ?? true,
+  })
+}
+
+export function usePlanPreventions(
+  params?: Record<string, string>,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [...PLAN_PREVENTION_KEY, params],
     queryFn: () => planPreventionApi.list(params),
     select: (data) => data.member,
+    enabled: options?.enabled ?? true,
   });
 }
 
 const PAGE_SIZE = 10
 
-export function usePlanPreventionList(page: number, filters?: Record<string, string>) {
-  const params: Record<string, string> = {
+export function usePlanPreventionList(page: number, filters?: Record<string, string | string[]>) {
+  const params: Record<string, string | string[]> = {
     ...filters,
     page: String(page),
     itemsPerPage: String(PAGE_SIZE),
@@ -399,6 +414,7 @@ export function usePlanPrevention() {
     try {
       return await importKmzMutation.mutateAsync({ id, file });
     } catch (err: unknown) {
+      if (isOfflineQueued(err)) throw err;
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
           ?.detail ?? "";

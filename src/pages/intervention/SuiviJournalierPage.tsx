@@ -517,6 +517,7 @@ export default function SuiviJournalierPage() {
                     {(suivi.documents.length > 0 || (isToday && canEdit)) && (
                       <div className="mt-3">
                         <SuiviDocumentUploadZone
+                          suiviId={suivi.id}
                           documents={suivi.documents}
                           onUpload={(file) => uploadSuiviDocument(suivi.id, file)}
                           onDelete={(docId) => deleteSuiviDocument(suivi.id, docId)}

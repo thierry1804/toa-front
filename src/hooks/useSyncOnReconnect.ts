@@ -3,16 +3,30 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useOnline } from './useOnline'
 import { useUiStore } from '@/store/ui.store'
 import { drainSyncQueue } from '@/offline/drainSyncQueue'
+import { shouldDrainSync } from './shouldDrainSync'
 
 export function useSyncOnReconnect(): void {
-  const isOnline      = useOnline()
-  const wasOnlineRef  = useRef(isOnline)
-  const queryClient   = useQueryClient()
-  const addToast      = useUiStore((s) => s.addToast)
+  const isOnline = useOnline()
+  const wasOnlineRef = useRef(isOnline)
+  const isFirstRunRef = useRef(true)
+  const drainingRef = useRef(false)
+  const queryClient = useQueryClient()
+  const addToast = useUiStore((s) => s.addToast)
 
   useEffect(() => {
-    if (!wasOnlineRef.current && isOnline) {
-      drainSyncQueue(queryClient, addToast).then((synced) => {
+    const shouldDrain = shouldDrainSync({
+      isFirstRun: isFirstRunRef.current,
+      wasOnline: wasOnlineRef.current,
+      isOnline,
+    })
+    isFirstRunRef.current = false
+    wasOnlineRef.current = isOnline
+
+    if (!shouldDrain || drainingRef.current) return
+
+    drainingRef.current = true
+    drainSyncQueue(queryClient, addToast)
+      .then((synced) => {
         if (synced > 0) {
           addToast({
             message: `${synced} action(s) synchronisée(s)`,
@@ -20,7 +34,8 @@ export function useSyncOnReconnect(): void {
           })
         }
       })
-    }
-    wasOnlineRef.current = isOnline
+      .finally(() => {
+        drainingRef.current = false
+      })
   }, [isOnline, queryClient, addToast])
 }

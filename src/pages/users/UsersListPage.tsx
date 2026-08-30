@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSearchParamState } from "@/hooks/useSearchParamState";
 import { useAuthStore } from "@/store/auth.store";
 import { useUsers, useDeleteUser } from "@/features/users/hooks/useUsers";
 import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { formatUserDisplayName } from "@/utils/format";
+import { sortNewestFirst } from "@/lib/listOrder";
 import { ROLE_CONFIG, roleOptions, statusOptions } from "@/data/constant/roles";
 
 function getDisplayRole(roles: string[]): string {
@@ -51,8 +53,12 @@ export default function UsersListPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilterParam] = useSearchParamState("statut");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
@@ -75,18 +81,18 @@ export default function UsersListPage() {
     const role = getDisplayRole(user.roles);
     const matchRole = roleFilter === "all" || role === roleFilter;
 
-    const actif = user.roles.length > 0;
     const matchStatus =
       statusFilter === "all" ||
-      (statusFilter === "actif" && actif) ||
-      (statusFilter === "inactif" && !actif);
+      (statusFilter === "actif" && user.isActive) ||
+      (statusFilter === "inactif" && !user.isActive);
 
     return matchSearch && matchRole && matchStatus;
   });
+  const sortedUsers = sortNewestFirst(filteredUsers);
 
-  const totalItems = filteredUsers.length;
+  const totalItems = sortedUsers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const pagedUsers = filteredUsers.slice(
+  const pagedUsers = sortedUsers.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage,
   );
@@ -210,14 +216,14 @@ export default function UsersListPage() {
         items={
           isPrestataireScoped
             ? [
-                { label: t("users.stats.total"), value: stats.total },
-                { label: t("users.stats.active"), value: stats.actifs },
-                { label: t("users.stats.inactive"), value: stats.inactifs },
+                { label: t("users.stats.total"), value: stats.total, href: "/users" },
+                { label: t("users.stats.active"), value: stats.actifs, href: "/users?statut=actif" },
+                { label: t("users.stats.inactive"), value: stats.inactifs, href: "/users?statut=inactif" },
               ]
             : [
-                { label: t("users.stats.total"), value: stats.total },
-                { label: t("users.stats.active"), value: stats.actifs },
-                { label: t("users.stats.inactive"), value: stats.inactifs },
+                { label: t("users.stats.total"), value: stats.total, href: "/users" },
+                { label: t("users.stats.active"), value: stats.actifs, href: "/users?statut=actif" },
+                { label: t("users.stats.inactive"), value: stats.inactifs, href: "/users?statut=inactif" },
                 { label: t("users.stats.prestataires"), value: stats.prestataires },
                 { label: t("users.stats.teamToa"), value: stats.toa },
               ]
@@ -249,7 +255,7 @@ export default function UsersListPage() {
             options={statusOptions}
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              setStatusFilterParam(e.target.value);
               setPage(1);
             }}
             placeholder={t("users.filterStatus")}

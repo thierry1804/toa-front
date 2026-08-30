@@ -31,7 +31,7 @@ export function TableIconButton({
       title={title}
       aria-label={title}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex cursor-pointer items-center justify-center rounded-lg p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40',
         variantClasses[variant],
         className,
       )}

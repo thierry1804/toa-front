@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { referentielApi } from '@/api/referentielApi'
+import { sortByDateDesc } from '@/lib/listOrder'
 import {
   REFERENTIEL_IMPORT_KMZ_KEY,
   REFERENTIEL_SITES_KEY,
@@ -10,7 +11,7 @@ export function useImportKmzList() {
   return useQuery({
     queryKey: REFERENTIEL_IMPORT_KMZ_KEY,
     queryFn: referentielApi.listImportKmz,
-    select: (data) => data.member,
+    select: (data) => sortByDateDesc(data.member, (item) => item.importedAt),
   })
 }
 

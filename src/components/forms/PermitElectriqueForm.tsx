@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -102,10 +103,8 @@ type Step4Data = z.infer<ReturnType<typeof makeStep4Schema>>;
 type Step5Data = z.infer<ReturnType<typeof makeStep5Schema>>;
 
 interface PermitElectriqueFormProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onComplete: (data: any) => void;
   onCancel?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
 }
 
@@ -118,11 +117,9 @@ export default function PermitElectriqueForm({
   const { t } = useTranslation();
 
   // État global pour partager les données entre les étapes
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<any>(initialData || {});
 
   // Étape 1: Informations générales et type de travail
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step1Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -272,7 +269,6 @@ export default function PermitElectriqueForm({
   };
 
   // Étape 2: Description et risques
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step2Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -355,7 +351,6 @@ export default function PermitElectriqueForm({
   };
 
   // Étape 3: Matériels et mesures de prévention
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step3Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -479,7 +474,6 @@ export default function PermitElectriqueForm({
   };
 
   // Étape 4: Prévention urgence et engagement
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step4Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -543,7 +537,6 @@ export default function PermitElectriqueForm({
   };
 
   // Étape 5: Consignation énergétique (optionnelle)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Step5Component = (
     formData: any,
     updateFormData: (data: any) => void,
@@ -727,7 +720,6 @@ export default function PermitElectriqueForm({
     },
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleComplete = (data: any) => {
     // Récupérer la référence du plan de prévention
     const { getPlanPreventionById } = usePreventionStore.getState();

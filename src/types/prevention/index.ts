@@ -9,6 +9,61 @@ export type PreventionStatus =
   | 'en_cours'
   | 'termine'
 
+export interface HorairesTravail {
+  debut?: string
+  fin?: string
+  pause?: string
+}
+
+export interface FormationPrevention {
+  personnelForme?: boolean
+  formationsRequises?: string[]
+}
+
+export interface ProceduresUrgence {
+  planEvacuation?: boolean
+  numerosUrgence?: string[]
+  secouristePresent?: boolean
+  posteSecours?: string
+  hopitalReference?: string
+}
+
+export interface SurveillancePrevention {
+  controlesReguliers?: boolean
+  frequenceControles?: string
+  responsableControle?: string
+  pointsControle?: string[]
+}
+
+export interface AttestationsPrevention {
+  assuranceResponsabilite?: boolean
+  attestationFormation?: boolean
+  certificatHabilitation?: boolean
+  autres?: string[]
+}
+
+export interface SignatureDonneurOrdre {
+  nomPrenom?: string
+  fonction?: string
+  signature?: string
+}
+
+export interface SignaturePrestataire {
+  nomSociete?: string
+  nomPrenom?: string
+  fonction?: string
+  signature?: string
+}
+
+export interface EquipementsPrevention {
+  equipementsProtection?: string[]
+}
+
+export interface ValidationChef {
+  valideePar?: string
+  dateValidation?: Date | string
+}
+
 export interface PreventionPlan {
   id: string
   reference: string
@@ -33,7 +88,7 @@ export interface PreventionPlan {
   descriptionTravaux: string
   nombreIntervenants: number
   dureeEstimee: string
-  horairesTravail: any
+  horairesTravail: HorairesTravail
   risquesIdentifies: string[]
   mesuresPrevention: string[]
   numeroRCS: string
@@ -48,19 +103,19 @@ export interface PreventionPlan {
   district: string
   situationGeographique: string
   situationGeographiqueAutre: string
-  formation: any
-  proceduresUrgence: any
-  surveillance: any
-  documents: any
-  attestations: any
-  signatureDonneurOrdre: any
-  signaturePrestataire: any
-  projetActivite: any
-  dateSignature: any
+  formation: FormationPrevention
+  proceduresUrgence: ProceduresUrgence
+  surveillance: SurveillancePrevention
+  documents: string[]
+  attestations: AttestationsPrevention
+  signatureDonneurOrdre: SignatureDonneurOrdre
+  signaturePrestataire: SignaturePrestataire
+  projetActivite: string
+  dateSignature: Date | string
   status: PreventionStatus
   risques: Risque[]
-  equipements: any
-  validationChef: any
+  equipements: EquipementsPrevention
+  validationChef: ValidationChef
   created_at: string
   updated_at: string
   createdAt: string

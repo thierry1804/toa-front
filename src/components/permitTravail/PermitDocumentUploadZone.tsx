@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
-import { CheckCircle, XCircle, Upload, Download } from 'lucide-react'
+import { CheckCircle, XCircle, Upload, Download, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 import { DOCUMENT_TYPE_LABELS } from '@/types/permitTravail'
 import { permitTravailApi } from '@/api/permitTravailApi'
+import { usePendingUploads } from '@/hooks/usePendingUploads'
 
 const ACCEPTED_MIME = ['application/pdf', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg'
@@ -33,6 +34,9 @@ export default function PermitDocumentUploadZone({
   allowDownload = false,
 }: PermitDocumentUploadZoneProps) {
   const { t } = useTranslation()
+  const pendingUploads = usePendingUploads(
+    permitId ? `/api/permits-travail/${permitId}/documents` : undefined,
+  )
   const [zoneStates, setZoneStates] = useState<Record<string, ZoneState>>(
     Object.fromEntries(documentTypes.map((t) => [t, { dragging: false, uploading: false }])),
   )
@@ -78,7 +82,8 @@ export default function PermitDocumentUploadZone({
     <div className="space-y-3">
       {documentTypes.map((type) => {
         const uploaded = uploadedTypes.has(type)
-        const missing = missingTypes.includes(type)
+        const pending = pendingUploads.find((item) => item.type === type)
+        const missing = missingTypes.includes(type) && !pending
         const state = zoneStates[type] ?? { dragging: false, uploading: false }
         const label = DOCUMENT_TYPE_LABELS[type]
 
@@ -91,7 +96,9 @@ export default function PermitDocumentUploadZone({
             onDragOver={(e) => handleDragOver(type, e)}
             onDragLeave={() => handleDragLeave(type)}
             className={`flex items-center gap-4 rounded-lg border-2 px-4 py-3 transition-all ${
-              uploaded
+              pending
+                ? 'border-amber-300 bg-amber-50'
+                : uploaded
                 ? 'border-green-300 bg-green-50'
                 : missing
                 ? 'border-red-300 bg-red-50'
@@ -101,7 +108,9 @@ export default function PermitDocumentUploadZone({
             }`}
           >
             <div className="flex-shrink-0">
-              {uploaded ? (
+              {pending ? (
+                <Clock className="h-6 w-6 text-amber-600" />
+              ) : uploaded ? (
                 <CheckCircle className="h-6 w-6 text-green-500" />
               ) : (
                 <XCircle className={`h-6 w-6 ${missing ? 'text-red-500' : 'text-gray-300'}`} />
@@ -111,12 +120,23 @@ export default function PermitDocumentUploadZone({
             <div className="flex-1 min-w-0">
               <p
                 className={`text-sm font-medium ${
-                  uploaded ? 'text-green-800' : missing ? 'text-red-800' : 'text-gray-800'
+                  pending
+                    ? 'text-amber-900'
+                    : uploaded
+                      ? 'text-green-800'
+                      : missing
+                        ? 'text-red-800'
+                        : 'text-gray-800'
                 }`}
               >
                 {label}
               </p>
-              {uploaded ? (
+              {pending ? (
+                <p className="text-xs text-amber-700 mt-0.5">
+                  {t('offline.pendingUpload')}
+                  {pending.filename ? ` — ${pending.filename}` : ''}
+                </p>
+              ) : uploaded ? (
                 <p className="text-xs text-green-600 mt-0.5">
                   {t('permitTravail.components.documentUploadZone.uploadedCheck')}
                 </p>

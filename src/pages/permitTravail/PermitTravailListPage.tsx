@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, FileText, AlertCircle, Eye, Users, ShieldCheck, ShieldX, Pencil, FileDown, Trash2, X } from 'lucide-react'
@@ -13,6 +13,13 @@ import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { ListTableFilters, ListTable, ListTableActions, ListTableBody, ListTableCell, ListTableHead, ListTableHeadCell, ListTableRow } from '@/components/ui/ListTable'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
+import { sortNewestFirst } from '@/lib/listOrder'
+import { useSearchParamState } from '@/hooks/useSearchParamState'
+import {
+  PERMIT_STATUT_GROUPS,
+  statutApiParam,
+  statutMatchesFilter,
+} from '@/features/dashboard/buildProfileKpis'
 import ValiderPermitModal from '@/components/permitTravail/ValiderPermitModal'
 import RefuserPermitModal from '@/components/permitTravail/RefuserPermitModal'
 import { usePermitsTravail, usePermitTravail, usePvReceptionPdf } from '@/features/permitTravail/hooks/usePermitTravail'
@@ -186,16 +193,25 @@ function PermitTravailListPage() {
   const [hseView, setHseView] = useState(false)
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilterParam] = useSearchParamState('statut')
   const [typeFilter, setTypeFilter] = useState('all')
+
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter])
   const [selectedForValider, setSelectedForValider] = useState<PermitTravail | null>(null)
   const [selectedForRefuser, setSelectedForRefuser] = useState<PermitTravail | null>(null)
   const [selectedForDelete, setSelectedForDelete] = useState<PermitTravail | null>(null)
 
+  const statutParam = statutApiParam(statusFilter, PERMIT_STATUT_GROUPS)
   const queryParams: Record<string, string | string[]> = {
     page: String(page),
     itemsPerPage: String(ITEMS_PER_PAGE),
-    ...(hseView ? { statut: HSE_STATUTS } : {}),
+    ...(statutParam
+      ? { statut: statutParam }
+      : hseView
+        ? { statut: HSE_STATUTS }
+        : {}),
     ...(groupeIdFilter ? { groupeId: groupeIdFilter } : {}),
   }
 
@@ -210,13 +226,19 @@ function PermitTravailListPage() {
   } = usePermitTravail()
   const { typeLabel, processusLabel } = usePermitTravailLabels()
 
-  const displayedPermits = useMemo(() => data?.member ?? [], [data?.member])
+  const displayedPermits = useMemo(
+    () => sortNewestFirst(data?.member ?? []),
+    [data?.member],
+  )
   const totalItems = data?.totalItems ?? 0
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
 
   const statusOptions = useMemo(
     () => [
       { value: 'all', label: t('permitTravail.list.filters.allStatuts') },
+      { value: 'todo', label: t('dashboard.kpis.permitsToHandle') },
+      { value: 'valides', label: t('dashboard.kpis.permisValides') },
+      { value: 'clotures', label: t('dashboard.kpis.permisClotures') },
       { value: 'BROUILLON', label: t('permitTravail.statut.BROUILLON') },
       { value: 'SOUMIS', label: t('permitTravail.statut.SOUMIS') },
       { value: 'VALIDE_HSE', label: t('permitTravail.statut.VALIDE_HSE') },
@@ -239,7 +261,7 @@ function PermitTravailListPage() {
   const filteredPermits = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return displayedPermits.filter((permit) => {
-      if (statusFilter !== 'all' && permit.statut !== statusFilter) return false
+      if (!statutMatchesFilter(permit.statut, statusFilter, PERMIT_STATUT_GROUPS)) return false
       if (typeFilter !== 'all' && permit.typePermis !== typeFilter) return false
       if (!query) return true
       const haystack = [
@@ -329,7 +351,10 @@ function PermitTravailListPage() {
           <Select
             options={statusOptions}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilterParam(e.target.value)
+              setPage(1)
+            }}
             placeholder={t('permitTravail.list.filters.statut')}
           />
           <Select

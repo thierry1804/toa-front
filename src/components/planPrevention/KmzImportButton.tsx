@@ -14,7 +14,6 @@ interface KmzImportButtonProps {
 }
 
 export default function KmzImportButton({
-  planId: _planId,
   sites,
   onImport,
   onImportSuccess,

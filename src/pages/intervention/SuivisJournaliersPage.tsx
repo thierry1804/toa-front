@@ -12,6 +12,7 @@ import { StatStrip } from '@/components/ui/StatStrip'
 import { useQuery } from '@tanstack/react-query'
 import { interventionApi } from '@/api/interventionApi'
 import { INTERVENTION_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
+import { sortNewestFirst } from '@/lib/listOrder'
 
 function AvancementCell({ interventionId }: { interventionId: string }) {
   const { data } = useQuery({
@@ -36,12 +37,11 @@ export default function SuivisJournaliersPage() {
     queryKey: INTERVENTION_KEY,
     queryFn: () => interventionApi.getAll(),
     select: (d) =>
-      (d.member ?? []).filter((i) => i.statut === 'EVALUATION_COMPLETE'),
+      sortNewestFirst((d.member ?? []).filter((i) => i.statut === 'EVALUATION_COMPLETE')),
   })
 
-  const interventions = data ?? []
-
   const filtered = useMemo(() => {
+    const interventions = data ?? []
     const q = search.trim().toLowerCase()
     if (!q) return interventions
     return interventions.filter((intervention) => {
@@ -50,7 +50,7 @@ export default function SuivisJournaliersPage() {
       const site = (permit?.codeSite ?? '').toLowerCase()
       return ref.includes(q) || site.includes(q)
     })
-  }, [interventions, search])
+  }, [data, search])
 
   const withSuivi = useMemo(
     () => filtered.filter((i) => i.statut === 'EVALUATION_COMPLETE').length,

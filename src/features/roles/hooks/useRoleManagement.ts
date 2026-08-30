@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMenus } from '@/features/menus/hooks/useMenus'
 import { useMenuAccesses } from '@/features/menus/hooks/useMenuAccesses'
@@ -42,8 +42,11 @@ export function useRoleManagement(): RoleManagementResult {
   const { data: accesses, isLoading: accessesLoading } = useMenuAccesses()
   const { data: rolesData, isLoading: rolesLoading } = useRoles(1, 200)
 
-  const menuItems = (menus ?? []).filter((m) => m.name !== 'Dashboard')
-  const roles = rolesData?.member ?? []
+  const menuItems = useMemo(
+    () => (menus ?? []).filter((m) => m.name !== 'Dashboard'),
+    [menus],
+  )
+  const roles = useMemo(() => rolesData?.member ?? [], [rolesData?.member])
 
   const [entries, setEntries] = useState<Map<AccessKey, AccessEntry>>(new Map())
   const [loaded, setLoaded] = useState(false)
@@ -72,7 +75,7 @@ export function useRoleManagement(): RoleManagementResult {
     }
     setEntries(map)
     setLoaded(true)
-  }, [menus, accesses, rolesData, loaded])
+  }, [menus, accesses, roles, loaded])
 
   const toggle = useCallback(async (key: AccessKey, perm: string) => {
     setToggling(key)

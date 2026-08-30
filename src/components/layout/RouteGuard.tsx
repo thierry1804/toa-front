@@ -41,7 +41,7 @@ export function RouteGuard({ menuRoute }: RouteGuardProps) {
     const node = flattenMenu(items).find((n) => n.route === menuRoute)
     if (!node) return false
     return node.canView ?? true
-  }, [items, loading, loaded, error, menuRoute])
+  }, [items, loaded, error, menuRoute])
 
   useEffect(() => {
     if (canView === false) {
