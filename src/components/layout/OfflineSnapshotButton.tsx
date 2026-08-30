@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download } from 'lucide-react'
+import { HardDriveDownload } from 'lucide-react'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { useOfflineSnapshot } from '@/hooks/useOfflineSnapshot'
@@ -147,10 +147,9 @@ export function OfflineSnapshotButton() {
         onClick={() => setOpen(true)}
         title={t('offline.snapshot.prepare')}
         aria-label={t('offline.snapshot.prepare')}
-        className="touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-gray-900 transition-colors hover:bg-blue-100/60 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:border sm:border-blue-100 sm:bg-white sm:px-3"
+        className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-blue-100/60 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <Download className="h-4 w-4" aria-hidden />
-        <span className="hidden text-sm font-medium sm:inline">{t('offline.snapshot.short')}</span>
+        <HardDriveDownload className="h-5 w-5" aria-hidden />
         {meta ? <span className="sr-only">{t('offline.snapshot.readyHint')}</span> : null}
       </button>
       <OfflineSnapshotModal isOpen={open} onClose={() => setOpen(false)} />
