@@ -36,7 +36,11 @@ import type {
   DocumentPermitTravail,
 } from '@/types/permitTravail'
 import type { PlanBySiteResult, RisqueRow } from '@/types/planPrevention'
-import { TYPE_PERMIT_LABELS, getRequiredDocumentTypes } from '@/types/permitTravail'
+import {
+  TYPE_PERMIT_LABELS,
+  getMissingDocumentTypes,
+  getRequiredDocumentTypes,
+} from '@/types/permitTravail'
 
 // ─── Step 2 schema ────────────────────────────────────────────────────────────
 const step2Schema = z
@@ -288,6 +292,7 @@ export default function PermitTravailCreatePage() {
     // plan déjà sélectionnés, et on invalide le cache "plans par site" pour
     // que permitGeneralId reflète le Général qu'on vient de créer.
     if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
+      const generalDocuments = permit.documents
       addToast({
         message: 'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur.',
         type: 'info',
@@ -296,6 +301,7 @@ export default function PermitTravailCreatePage() {
         queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
       })
       resetPermitDraftState()
+      setCompanionDocs(generalDocuments)
       setTypePermis('ELECTRIQUE')
       setStep(0)
       return
@@ -363,20 +369,6 @@ export default function PermitTravailCreatePage() {
     })
 
     const transition = getPermitCreationTransition(processus, typePermis)
-    if (transition.resetDraft) {
-      addToast({
-        message: 'Permis Général créé. Créez maintenant le permis Électrique ou Hauteur.',
-        type: 'info',
-      })
-      await queryClient.invalidateQueries({
-        queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
-      })
-      resetPermitDraftState()
-      setTypePermis(transition.typePermis)
-      setStep(transition.step)
-      return
-    }
-
     setPermit(created)
     setStep(transition.step)
   })
@@ -403,6 +395,13 @@ export default function PermitTravailCreatePage() {
   const companionDocTypes = companionPermit
     ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE')
     : []
+  const mainMissingDocTypes = permit
+    ? getMissingDocumentTypes(mainDocTypes, permit.documents)
+    : []
+  const companionMissingDocTypes = companionPermit
+    ? getMissingDocumentTypes(companionDocTypes, companionDocs)
+    : []
+  const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0
 
   // ── Render steps ──────────────────────────────────────────────────────────────
   const renderStep = () => {
@@ -700,6 +699,7 @@ export default function PermitTravailCreatePage() {
                     permitId={permit.id}
                     documentTypes={mainDocTypes}
                     uploadedDocuments={permit.documents}
+                    missingTypes={mainMissingDocTypes}
                     onUpload={handleMainDocUpload}
                   />
                 </div>
@@ -711,6 +711,7 @@ export default function PermitTravailCreatePage() {
                     permitId={companionPermit.id}
                     documentTypes={companionDocTypes}
                     uploadedDocuments={companionDocs}
+                    missingTypes={companionMissingDocTypes}
                     onUpload={handleCompanionDocUpload}
                   />
                 </div>
@@ -720,6 +721,7 @@ export default function PermitTravailCreatePage() {
                 permitId={permit?.id ?? ''}
                 documentTypes={mainDocTypes}
                 uploadedDocuments={permit?.documents ?? []}
+                missingTypes={mainMissingDocTypes}
                 onUpload={handleMainDocUpload}
               />
             )}
@@ -790,7 +792,7 @@ export default function PermitTravailCreatePage() {
           canSubmit && (
             <Button
               onClick={handleSoumettre}
-              disabled={isPending || !engagementChecked}
+              disabled={isPending || !engagementChecked || hasMissingDocuments}
               loading={isSubmitting}
               size="lg"
             >

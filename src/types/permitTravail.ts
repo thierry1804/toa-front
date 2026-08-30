@@ -159,6 +159,14 @@ export interface DocumentPermitTravail {
   uploadedAt: string
 }
 
+export function getMissingDocumentTypes(
+  requiredTypes: readonly TypeDocumentPermitTravail[],
+  uploadedDocuments: ReadonlyArray<Pick<DocumentPermitTravail, 'type'>>,
+): TypeDocumentPermitTravail[] {
+  const uploadedTypes = new Set(uploadedDocuments.map((document) => document.type))
+  return requiredTypes.filter((type) => !uploadedTypes.has(type))
+}
+
 export interface DecisionHsePermitTravail {
   id: string
   decision: 'VALIDE' | 'REFUSE'

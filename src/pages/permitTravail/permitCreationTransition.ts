@@ -11,7 +11,7 @@ export function getPermitCreationTransition(
   typePermis: TypePermit,
 ): PermitCreationTransition {
   if (processus === 'NOUVEAU_SITE' && typePermis === 'GENERAL') {
-    return { step: 0, typePermis: 'ELECTRIQUE', resetDraft: true }
+    return { step: 3, typePermis: 'GENERAL', resetDraft: false }
   }
 
   return { step: 3, typePermis, resetDraft: false }
