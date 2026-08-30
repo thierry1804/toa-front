@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useOnline } from './useOnline'
 import { useUiStore } from '@/store/ui.store'
 import { drainSyncQueue } from '@/offline/drainSyncQueue'
+import { maybePullIncremental } from '@/offline/pullOfflineSnapshot'
 import { shouldDrainSync } from './shouldDrainSync'
 
 export function useSyncOnReconnect(): void {
@@ -26,13 +27,14 @@ export function useSyncOnReconnect(): void {
 
     drainingRef.current = true
     drainSyncQueue(queryClient, addToast)
-      .then((synced) => {
+      .then(async (synced) => {
         if (synced > 0) {
           addToast({
             message: `${synced} action(s) synchronisée(s)`,
             type: 'success',
           })
         }
+        await maybePullIncremental(queryClient)
       })
       .finally(() => {
         drainingRef.current = false

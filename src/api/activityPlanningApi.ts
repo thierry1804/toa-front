@@ -1,15 +1,24 @@
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList } from '@/offline/snapshotRead'
 import type { ActivityPlanning, ActivityPlanningCreate, ActivityPlanningUpdate, HydraCollection, User } from '@/types'
 
 export const activityPlanningApi = {
   list: (params?: { page?: number; itemsPerPage?: number }) =>
-    api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', {
-      params: withNewestFirst(params),
-    }).then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api.get<HydraCollection<ActivityPlanning>>('/api/activity_plannings', {
+          params: withNewestFirst(params),
+        }).then((r) => r.data),
+      () => snapshotList<ActivityPlanning>('activityPlannings', params),
+    ),
 
   getById: (id: number) =>
-    api.get<ActivityPlanning>(`/api/activity_plannings/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<ActivityPlanning>(`/api/activity_plannings/${id}`).then((r) => r.data),
+      () => snapshotById<ActivityPlanning>('activityPlannings', id),
+    ),
 
   create: (data: ActivityPlanningCreate) =>
     api.post<ActivityPlanning>('/api/activity_plannings', data).then((r) => r.data),

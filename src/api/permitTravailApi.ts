@@ -1,6 +1,8 @@
 import api from '@/lib/axios'
 import { triggerBlobDownload } from '@/lib/downloadBlob'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList } from '@/offline/snapshotRead'
 import type { HydraCollection } from '@/types'
 import type {
   PermitTravail,
@@ -21,14 +23,21 @@ import type {
 
 export const permitTravailApi = {
   list: (params?: Record<string, string | string[]>) =>
-    api
-      .get<HydraCollection<PermitTravail>>('/api/permits-travail', {
-        params: withNewestFirst(params),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<PermitTravail>>('/api/permits-travail', {
+            params: withNewestFirst(params),
+          })
+          .then((r) => r.data),
+      () => snapshotList<PermitTravail>('permitsTravail', params),
+    ),
 
   getById: (id: string) =>
-    api.get<PermitTravail>(`/api/permits-travail/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<PermitTravail>(`/api/permits-travail/${id}`).then((r) => r.data),
+      () => snapshotById<PermitTravail>('permitsTravail', id),
+    ),
 
   create: (data: PermitTravailInput) => {
     const { planPreventionId, ...rest } = data

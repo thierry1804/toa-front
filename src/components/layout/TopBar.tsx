@@ -10,6 +10,7 @@ import { LogOut, ChevronDown, Menu, WifiOff, CloudOff, AlertTriangle } from "luc
 import { useState, useRef, useEffect } from "react";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import { OfflineSnapshotButton } from "@/components/layout/OfflineSnapshotButton";
 
 const FlagFR = () => (
   <svg
@@ -102,6 +103,7 @@ export function TopBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <OfflineSnapshotButton />
           <div className="relative" ref={langRef}>
             <button
               type="button"

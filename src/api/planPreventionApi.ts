@@ -1,6 +1,8 @@
 import api from '@/lib/axios'
 import { openBlobInNewTab, triggerBlobDownload } from '@/lib/downloadBlob'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList } from '@/offline/snapshotRead'
 import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
@@ -16,14 +18,21 @@ import type {
 
 export const planPreventionApi = {
   list: (params?: Record<string, string | string[]>) =>
-    api
-      .get<HydraCollection<PlanPrevention>>('/api/plans-prevention', {
-        params: withNewestFirst(params),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<PlanPrevention>>('/api/plans-prevention', {
+            params: withNewestFirst(params),
+          })
+          .then((r) => r.data),
+      () => snapshotList<PlanPrevention>('plansPrevention', params),
+    ),
 
   getById: (id: string) =>
-    api.get<PlanPrevention>(`/api/plans-prevention/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<PlanPrevention>(`/api/plans-prevention/${id}`).then((r) => r.data),
+      () => snapshotById<PlanPrevention>('plansPrevention', id),
+    ),
 
   create: (data: PlanPreventionInput) =>
     api.post<PlanPrevention>('/api/plans-prevention', data).then((r) => r.data),

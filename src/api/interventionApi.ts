@@ -1,5 +1,7 @@
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotById, snapshotList, snapshotNestedHydra } from '@/offline/snapshotRead'
 import type { HydraCollection } from '@/types'
 import type {
   Intervention,
@@ -23,11 +25,15 @@ import type { KpiIntervention } from '@/types/permitTravail'
 
 export const interventionApi = {
   getAll: (params?: { page?: number; itemsPerPage?: number }) =>
-    api
-      .get<HydraCollection<Intervention>>('/api/interventions', {
-        params: withNewestFirst(params),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<Intervention>>('/api/interventions', {
+            params: withNewestFirst(params),
+          })
+          .then((r) => r.data),
+      () => snapshotList<Intervention>('interventions', params),
+    ),
 
   create: (permitTravailId: string) =>
     api
@@ -37,12 +43,19 @@ export const interventionApi = {
       .then((r) => r.data),
 
   getById: (id: string) =>
-    api.get<Intervention>(`/api/interventions/${id}`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<Intervention>(`/api/interventions/${id}`).then((r) => r.data),
+      () => snapshotById<Intervention>('interventions', id),
+    ),
 
   getRisques: (interventionId: string) =>
-    api
-      .get<HydraCollection<EvaluationRisque>>(`/api/interventions/${interventionId}/risques`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<EvaluationRisque>>(`/api/interventions/${interventionId}/risques`)
+          .then((r) => r.data),
+      () => snapshotNestedHydra<EvaluationRisque>(interventionId, ['evaluations', 'risques']),
+    ),
 
   updateRisque: (interventionId: string, risqueId: string, data: EvaluationRisqueInput) =>
     api
@@ -57,9 +70,13 @@ export const interventionApi = {
     api.post<Intervention>(`/api/interventions/${id}/valider-evaluation`).then((r) => r.data),
 
   getSuivis: (interventionId: string) =>
-    api
-      .get<HydraCollection<SuiviJournalier>>(`/api/interventions/${interventionId}/suivis`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<SuiviJournalier>>(`/api/interventions/${interventionId}/suivis`)
+          .then((r) => r.data),
+      () => snapshotNestedHydra<SuiviJournalier>(interventionId, ['suivisJournaliers', 'suivis']),
+    ),
 
   createSuivi: (data: SuiviJournalierInput) =>
     api.post<SuiviJournalier>('/api/suivis-journaliers', data).then((r) => r.data),
@@ -112,9 +129,15 @@ export const interventionApi = {
   },
 
   getControlesJournaliers: (interventionId: string) =>
-    api
-      .get<HydraCollection<ControleJournalier>>(`/api/interventions/${interventionId}/controles-journaliers`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<ControleJournalier>>(
+            `/api/interventions/${interventionId}/controles-journaliers`,
+          )
+          .then((r) => r.data),
+      () => snapshotNestedHydra<ControleJournalier>(interventionId, ['controlesJournaliers']),
+    ),
 
   createControleJournalier: (data: ControleJournalierInput) =>
     api.post<ControleJournalier>('/api/controles-journaliers', data).then((r) => r.data),
@@ -127,9 +150,15 @@ export const interventionApi = {
       .then((r) => r.data),
 
   getTake5Records: (interventionId: string) =>
-    api
-      .get<HydraCollection<Take5Record>>(`/api/interventions/${interventionId}/take5-records`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<Take5Record>>(
+            `/api/interventions/${interventionId}/take5-records`,
+          )
+          .then((r) => r.data),
+      () => snapshotNestedHydra<Take5Record>(interventionId, ['take5Records']),
+    ),
 
   createTake5Record: (data: Take5RecordInput) =>
     api.post<Take5Record>('/api/take5-records', data).then((r) => r.data),

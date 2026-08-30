@@ -1,5 +1,7 @@
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
+import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
+import { snapshotList, snapshotSitesGeoJson, snapshotSiteByCode, snapshotSiteSearch } from '@/offline/snapshotRead'
 import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse, InstallationEquipement, InstallationEquipementInput, InstallationEquipementListResponse } from '@/types/referentiel'
 import type { HydraCollection } from '@/types'
 import type { FeatureCollection, Point } from 'geojson'
@@ -22,34 +24,64 @@ export const referentielApi = {
     api.delete(`/api/referentiel/import-kmz/${id}`).then((r) => r.data),
 
   listSites: (page = 1): Promise<HydraCollection<Site>> =>
-    api
-      .get<HydraCollection<Site>>('/api/referentiel/sites', {
-        params: withNewestFirst({ page }),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<Site>>('/api/referentiel/sites', {
+            params: withNewestFirst({ page }),
+          })
+          .then((r) => r.data),
+      () => snapshotList<Site>('sites', { page, itemsPerPage: 30 }),
+    ),
 
   fetchSitesGeoJson: (): Promise<FeatureCollection<Point, SiteGeoJsonFeature>> =>
-    api
-      .get<FeatureCollection<Point, SiteGeoJsonFeature>>('/api/referentiel/sites/geojson')
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<FeatureCollection<Point, SiteGeoJsonFeature>>('/api/referentiel/sites/geojson')
+          .then((r) => r.data),
+      () => snapshotSitesGeoJson(),
+    ),
 
   fetchSiteByCode: (code: string): Promise<{ codeSite: string; nomSite: string }> =>
-    api
-      .get<{ codeSite: string; nomSite: string }>(`/api/referentiel/sites/by-code/${encodeURIComponent(code)}`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<{ codeSite: string; nomSite: string }>(
+            `/api/referentiel/sites/by-code/${encodeURIComponent(code)}`,
+          )
+          .then((r) => r.data),
+      () => snapshotSiteByCode(code),
+    ),
 
   fetchSiteSearch: (q: string, limit = 10): Promise<{ codeSite: string; nomSite: string }[]> =>
-    api
-      .get<{ codeSite: string; nomSite: string }[]>('/api/referentiel/sites/search', {
-        params: { q, limit },
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<{ codeSite: string; nomSite: string }[]>('/api/referentiel/sites/search', {
+            params: { q, limit },
+          })
+          .then((r) => r.data),
+      () => snapshotSiteSearch(q, limit),
+    ),
 
   listCategoriesRisque: (params?: { page?: number; limit?: number; search?: string }): Promise<CategorieRisqueListResponse> =>
-    api.get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-list', { params }).then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-list', { params })
+          .then((r) => r.data),
+      () => snapshotList<CategorieRisque>('categoriesRisque', params),
+    ),
 
   getAllCategoriesRisque: (): Promise<CategorieRisqueListResponse> =>
-    api.get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-all').then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-all')
+          .then((r) => r.data),
+      () => snapshotList<CategorieRisque>('categoriesRisque'),
+    ),
 
   createCategorieRisque: (data: CategorieRisqueInput): Promise<CategorieRisque> =>
     api.post<CategorieRisque>('/api/referentiel/categories-risque', data).then((r) => r.data),
@@ -63,14 +95,24 @@ export const referentielApi = {
     api.delete(`/api/referentiel/categories-risque/${id}`).then(() => undefined),
 
   listInstallationsEquipements: (params?: { page?: number; limit?: number; search?: string }): Promise<InstallationEquipementListResponse> =>
-    api
-      .get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', {
-        params: withNewestFirst(params),
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-list', {
+            params: withNewestFirst(params),
+          })
+          .then((r) => r.data),
+      () => snapshotList<InstallationEquipement>('installationsEquipements', params),
+    ),
 
   getAllInstallationsEquipements: (): Promise<InstallationEquipementListResponse> =>
-    api.get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-all').then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<InstallationEquipementListResponse>('/api/referentiel/installations-equipements-all')
+          .then((r) => r.data),
+      () => snapshotList<InstallationEquipement>('installationsEquipements'),
+    ),
 
   createInstallationEquipement: (data: InstallationEquipementInput): Promise<InstallationEquipement> =>
     api.post<InstallationEquipement>('/api/referentiel/installations-equipements', data).then((r) => r.data),

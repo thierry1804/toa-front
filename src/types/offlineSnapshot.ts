@@ -1,0 +1,95 @@
+export const SNAPSHOT_ENTITY_MODULES = [
+  'plansPrevention',
+  'permitsTravail',
+  'interventions',
+  'activityPlannings',
+  'sites',
+] as const
+
+export type OfflineSnapshotEntityModule = (typeof SNAPSHOT_ENTITY_MODULES)[number]
+
+export type OfflineSnapshotModule = OfflineSnapshotEntityModule | 'referentiel'
+
+export const SNAPSHOT_PATH_MODULES = [
+  'plans-prevention',
+  'permits-travail',
+  'interventions',
+  'activity-plannings',
+  'sites',
+  'referentiel',
+] as const
+
+export type OfflineSnapshotPathModule = (typeof SNAPSHOT_PATH_MODULES)[number]
+
+export const ENTITY_MODULE_TO_PATH: Record<OfflineSnapshotModule, OfflineSnapshotPathModule> = {
+  plansPrevention: 'plans-prevention',
+  permitsTravail: 'permits-travail',
+  interventions: 'interventions',
+  activityPlannings: 'activity-plannings',
+  sites: 'sites',
+  referentiel: 'referentiel',
+}
+
+export const PATH_TO_ENTITY_MODULE: Record<OfflineSnapshotPathModule, OfflineSnapshotModule> = {
+  'plans-prevention': 'plansPrevention',
+  'permits-travail': 'permitsTravail',
+  interventions: 'interventions',
+  'activity-plannings': 'activityPlannings',
+  sites: 'sites',
+  referentiel: 'referentiel',
+}
+
+export interface OfflineSnapshotModuleStats {
+  count: number
+  estimatedBytes: number
+}
+
+export interface OfflineSnapshotManifest {
+  generatedAt: string
+  userId: number | string
+  modules: Partial<Record<OfflineSnapshotModule, OfflineSnapshotModuleStats>>
+  documents?: OfflineSnapshotModuleStats
+}
+
+export interface OfflineSnapshotReferentiel {
+  categoriesRisque?: unknown[]
+  installationsEquipements?: unknown[]
+  sitesGeoJson?: unknown
+}
+
+export interface OfflineSnapshotTombstones {
+  plansPrevention?: string[]
+  permitsTravail?: string[]
+  interventions?: string[]
+  activityPlannings?: Array<string | number>
+  sites?: string[]
+  categoriesRisque?: string[]
+  installationsEquipements?: string[]
+}
+
+export interface OfflineSnapshot {
+  generatedAt: string
+  userId: number | string
+  since?: string | null
+  plansPrevention?: unknown[]
+  permitsTravail?: unknown[]
+  interventions?: unknown[]
+  activityPlannings?: unknown[]
+  sites?: unknown[]
+  referentiel?: OfflineSnapshotReferentiel
+  tombstones?: OfflineSnapshotTombstones
+}
+
+export interface OfflineSnapshotMeta {
+  userId: string
+  generatedAt: string
+  lastPulledAt: number
+  modules: OfflineSnapshotModule[]
+}
+
+export type SnapshotPullErrorCode =
+  | 'forbidden'
+  | 'rateLimited'
+  | 'tooLarge'
+  | 'network'
+  | 'unknown'

@@ -759,7 +759,32 @@
     "syncFailed_one": "{{count}} action non synchronisée",
     "syncFailed_other": "{{count}} actions non synchronisées",
     "updateAvailable": "Nouvelle version disponible",
-    "reload": "Recharger"
+    "reload": "Recharger",
+    "snapshot": {
+      "short": "Hors-ligne",
+      "title": "Préparer le hors-ligne",
+      "prepare": "Préparer le hors-ligne",
+      "download": "Télécharger",
+      "lastSync": "Dernier dump : {{date}}",
+      "never": "aucun",
+      "estimatedSize": "Taille estimée : {{size}}",
+      "progress": "Téléchargement en cours…",
+      "success": "Données disponibles hors-ligne.",
+      "forbidden": "Le dump hors-ligne n’est pas disponible pour ce compte.",
+      "rateLimited": "Trop de téléchargements. Réessayez dans quelques minutes.",
+      "tooLarge": "Le dump est trop volumineux. Réessayez plus tard.",
+      "network": "Connexion requise pour télécharger le dump.",
+      "error": "Le dump hors-ligne a échoué.",
+      "readyHint": "Dump déjà téléchargé",
+      "modules": {
+        "plansPrevention": "Plans de prévention",
+        "permitsTravail": "Permis de travail",
+        "interventions": "Interventions",
+        "activityPlannings": "Planning",
+        "sites": "Sites",
+        "referentiel": "Référentiel"
+      }
+    }
   },
   "errors": {
     "incorrect_credentials": "Identifiants incorrects",

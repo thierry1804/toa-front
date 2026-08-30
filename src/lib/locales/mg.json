@@ -759,7 +759,32 @@
     "syncFailed_one": "{{count}} hetsika tsy voarindra",
     "syncFailed_other": "{{count}} hetsika tsy voarindra",
     "updateAvailable": "Misy kinova vaovao",
-    "reload": "Averina"
+    "reload": "Averina",
+    "snapshot": {
+      "short": "Tsy an-tambajotra",
+      "title": "Omano ny fampiasana tsy an-tambajotra",
+      "prepare": "Omano ny fampiasana tsy an-tambajotra",
+      "download": "Alao",
+      "lastSync": "Dump farany : {{date}}",
+      "never": "tsy mbola nisy",
+      "estimatedSize": "Habeny tombanana : {{size}}",
+      "progress": "Eo am-pakana…",
+      "success": "Azo ampiasaina tsy an-tambajotra ny angona.",
+      "forbidden": "Tsy azo alaina ny dump ho an'ity kaonty ity.",
+      "rateLimited": "Be loatra ny fampakana. Andramo indray afaka minitra vitsy.",
+      "tooLarge": "Lehibe loatra ny dump. Andramo indray any aoriana.",
+      "network": "Ilaina ny fifandraisana mba haka ny dump.",
+      "error": "Tsy nahomby ny dump.",
+      "readyHint": "Efa voaala ny dump",
+      "modules": {
+        "plansPrevention": "Drafitra fisorohana",
+        "permitsTravail": "Fahazoan-dàlana",
+        "interventions": "Fitsabahana",
+        "activityPlannings": "Fandaharam-potoana",
+        "sites": "Toerana",
+        "referentiel": "Lisitra"
+      }
+    }
   },
   "errors": {
     "incorrect_credentials": "Diso ny mombamomba",
