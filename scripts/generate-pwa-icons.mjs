@@ -34,5 +34,7 @@ await squareIcon(192, 0.1, path.join(iconsDir, "icon-192.png"));
 await squareIcon(512, 0.1, path.join(iconsDir, "icon-512.png"));
 await squareIcon(512, 0.2, path.join(iconsDir, "icon-512-maskable.png"));
 await squareIcon(180, 0.1, path.join(root, "public", "apple-touch-icon.png"));
+await squareIcon(32, 0.08, path.join(root, "public", "favicon-32.png"));
+await squareIcon(48, 0.08, path.join(root, "public", "favicon-48.png"));
 
-console.log("PWA icons generated from public/images/TOA.png");
+console.log("PWA icons and favicons generated from public/images/TOA.png");
