@@ -9,21 +9,32 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
+      devOptions: {
+        enabled: true,
+      },
       includeAssets: ['icons/*.png', 'apple-touch-icon.png', 'images/TOA.png'],
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /\/api\/token\//,
+            // Fonction plutôt que regex : Workbox n'exige un match à
+            // l'index 0 que pour les regex, pas pour un matchCallback,
+            // ce qui est nécessaire ici car VITE_API_URL peut pointer
+            // vers une origine distincte de l'app (cross-origin).
+            urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/api/token/'),
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /\/(documents\/[^/]+\/download|signature\/download)/,
+            urlPattern: ({ url }: { url: URL }) =>
+              /\/(documents\/[^/]+\/download|signature\/download)/.test(url.pathname),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'toa-doc-cache',
-              networkTimeoutSeconds: 10,
+              // Réduit de 10s à 3s : un réseau qui fonctionne répond
+              // largement dans ce délai, et ça évite de faire attendre
+              // l'utilisateur hors-ligne avant de servir le cache.
+              networkTimeoutSeconds: 3,
               cacheableResponse: { statuses: [200] },
               expiration: {
                 maxEntries: 50,
@@ -32,11 +43,13 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\/api\//,
-            handler: 'NetworkFirst',
+            urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/api/'),
+            // StaleWhileRevalidate : sert le cache immédiatement (pas
+            // d'attente réseau, contrairement à NetworkFirst) puis
+            // revalide en arrière-plan si le réseau est disponible.
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'toa-api-cache',
-              networkTimeoutSeconds: 10,
               cacheableResponse: { statuses: [200] },
               expiration: { maxAgeSeconds: 24 * 60 * 60, maxEntries: 200 },
             },

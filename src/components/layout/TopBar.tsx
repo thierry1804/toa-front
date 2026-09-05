@@ -95,6 +95,16 @@ export function TopBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          {statusMessage && (
+            <span
+              role="status"
+              title={statusMessage}
+              className="flex shrink-0 items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 sm:gap-1.5 sm:px-2.5"
+            >
+              <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span className="hidden sm:inline">{statusMessage}</span>
+            </span>
+          )}
           <OfflineSnapshotButton />
           <div className="relative" ref={langRef}>
             <button
@@ -161,16 +171,6 @@ export function TopBar() {
           </button>
         </div>
       </div>
-
-      {statusMessage && (
-        <div
-          role="status"
-          className="flex items-center justify-center gap-1.5 border-b border-yellow-100 bg-yellow-50 px-3 py-1.5 text-center text-xs font-medium text-yellow-800 sm:px-4"
-        >
-          <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>{statusMessage}</span>
-        </div>
-      )}
 
       <Modal
         isOpen={logoutConfirmOpen}
