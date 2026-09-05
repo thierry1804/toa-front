@@ -22,6 +22,7 @@ import { useInterventionDetail } from '@/features/intervention/hooks/useInterven
 import { useInterventionSuivis, useSuiviJournalier } from '@/features/intervention/hooks/useIntervention'
 import { usePermitTravailDetail } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
+import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -318,10 +319,22 @@ export default function SuiviJournalierPage() {
     data: SuiviJournalierInput | SuiviJournalierUpdateInput,
     editingId?: string,
   ) => {
-    if (editingId) {
-      await updateSuivi(editingId, data as SuiviJournalierUpdateInput)
-    } else {
-      await createSuivi(data as SuiviJournalierInput)
+    try {
+      if (editingId) {
+        await updateSuivi(editingId, data as SuiviJournalierUpdateInput)
+      } else {
+        await createSuivi(data as SuiviJournalierInput)
+      }
+    } catch (error) {
+      // Hors ligne : la mutation est mise en file d'attente (queue offline)
+      // et rejette quand même côté React Query — on ferme le formulaire
+      // comme en cas de succès, l'action a bien été capturée. Une vraie
+      // erreur réseau/API reste affichée via createError/updateError.
+      if (isOfflineQueued(error)) {
+        setShowForm(false)
+        setEditingSuivi(null)
+      }
+      return
     }
     setShowForm(false)
     setEditingSuivi(null)

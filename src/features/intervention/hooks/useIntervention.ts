@@ -178,6 +178,9 @@ export function useSuiviJournalier(interventionId: string) {
       queryClient.invalidateQueries({ queryKey: suiviKey })
       addToast({ message: 'Suivi journalier enregistré', type: 'success' })
     },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: 'Erreur lors de l\'enregistrement du suivi', type: 'error' })
+    },
   })
 
   const updateMutation = useMutation({
@@ -186,6 +189,9 @@ export function useSuiviJournalier(interventionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: suiviKey })
       addToast({ message: 'Suivi mis à jour', type: 'success' })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: 'Erreur lors de la mise à jour du suivi', type: 'error' })
     },
   })
 
