@@ -69,7 +69,7 @@ export const referentielApi = {
     withSnapshotFallback(
       () =>
         api
-          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-list', { params })
+          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-list', { params: withNewestFirst(params) })
           .then((r) => r.data),
       () => snapshotList<CategorieRisque>('categoriesRisque', params),
     ),
@@ -78,7 +78,7 @@ export const referentielApi = {
     withSnapshotFallback(
       () =>
         api
-          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-all')
+          .get<CategorieRisqueListResponse>('/api/referentiel/categories-risque-all', { params: withNewestFirst() })
           .then((r) => r.data),
       () => snapshotList<CategorieRisque>('categoriesRisque'),
     ),

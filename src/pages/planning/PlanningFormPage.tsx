@@ -447,6 +447,7 @@ export default function PlanningFormPage() {
               options={statusOptions}
               value={formData.status}
               onChange={(e) => set("status", e.target.value)}
+              disabled={!isEditMode}
             />
             {formData.status === "brouillon" && (
               <p className="mt-2 text-xs text-gray-500">

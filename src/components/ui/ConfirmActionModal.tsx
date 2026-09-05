@@ -16,6 +16,8 @@ export interface ConfirmActionModalProps {
   commentPlaceholder?: string
   commentRequired?: boolean
   commentRequiredMessage?: string
+  /** Set to false to hide the comment field entirely (e.g. a simple confirm). */
+  showComment?: boolean
   /** Extra form content rendered between the comment field and the error banner (e.g. a checkbox). */
   extraContent?: ReactNode
   confirmLabel: string
@@ -46,6 +48,7 @@ export default function ConfirmActionModal({
   commentPlaceholder,
   commentRequired = false,
   commentRequiredMessage,
+  showComment = true,
   extraContent,
   confirmLabel,
   confirmVariant = 'primary',
@@ -105,19 +108,21 @@ export default function ConfirmActionModal({
           <>
             {banner}
             {description && <p className="text-sm text-gray-600">{description}</p>}
-            <Textarea
-              label={effectiveCommentLabel}
-              required={commentRequired}
-              value={comment}
-              onChange={(e) => {
-                setComment(e.target.value)
-                if (commentError) setCommentError(null)
-              }}
-              placeholder={commentPlaceholder}
-              rows={commentRequired ? 4 : 3}
-              disabled={isSubmitting}
-              error={commentError || undefined}
-            />
+            {showComment && (
+              <Textarea
+                label={effectiveCommentLabel}
+                required={commentRequired}
+                value={comment}
+                onChange={(e) => {
+                  setComment(e.target.value)
+                  if (commentError) setCommentError(null)
+                }}
+                placeholder={commentPlaceholder}
+                rows={commentRequired ? 4 : 3}
+                disabled={isSubmitting}
+                error={commentError || undefined}
+              />
+            )}
             {extraContent}
             {error && (
               <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>

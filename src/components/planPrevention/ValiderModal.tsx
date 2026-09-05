@@ -28,8 +28,7 @@ export default function ValiderModal({
       onClose={onClose}
       title={t('planPrevention.validerModal.title', { reference: planReference })}
       description={t('planPrevention.validerModal.description')}
-      commentLabel={t('planPrevention.validerModal.commentaireLabel')}
-      commentPlaceholder={t('planPrevention.validerModal.commentairePlaceholder')}
+      showComment={false}
       confirmLabel={t('planPrevention.validerModal.confirm')}
       confirmIcon={<ShieldCheck className="mr-2 h-4 w-4" />}
       isSubmitting={isValidating}

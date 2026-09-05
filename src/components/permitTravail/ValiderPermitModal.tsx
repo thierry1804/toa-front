@@ -33,7 +33,7 @@ export default function ValiderPermitModal({
           <span className="font-semibold text-blue-700">{permitReference}</span>.
         </>
       }
-      commentPlaceholder={t('permitTravail.components.validerModal.commentPlaceholder')}
+      showComment={false}
       confirmLabel={t('permitTravail.components.validerModal.confirmLabel')}
       confirmIcon={<ShieldCheck className="mr-2 h-4 w-4" />}
       isSubmitting={isValidating}
