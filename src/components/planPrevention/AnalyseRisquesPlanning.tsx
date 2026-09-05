@@ -1,3 +1,4 @@
+import { Plus, Trash2 } from 'lucide-react'
 import type { SectionPlanifieeItem } from '@/types'
 import type { RisqueRow } from '@/types/planPrevention'
 import type { CategorieRisque } from '@/types/referentiel'
@@ -23,13 +24,9 @@ function getNiveauTone(niveau: number): string {
   return 'bg-green-100 text-green-800 border-green-200'
 }
 
-function findRow(rows: RisqueRow[], tacheId: string): RisqueRow | undefined {
-  return rows.find((r) => r.tachePlanifieeId === tacheId)
-}
-
-function defaultRow(tacheId: string): RisqueRow {
+function defaultRow(tacheId: string, localId: string): RisqueRow {
   return {
-    localId: tacheId,
+    localId,
     tachePlanifieeId: tacheId,
     description: '',
     categorieIds: [],
@@ -78,33 +75,25 @@ export default function AnalyseRisquesPlanning({
   disabled = false,
 }: AnalyseRisquesProps) {
   const handleChange = <K extends keyof RisqueRow>(
-    tacheId: string,
+    localId: string,
     field: K,
     value: RisqueRow[K],
   ) => {
-    const existing = rows.find((r) => r.tachePlanifieeId === tacheId)
-    if (existing) {
-      onChange(
-        rows.map((r) =>
-          r.tachePlanifieeId === tacheId ? { ...r, [field]: value } : r,
-        ),
-      )
-    } else {
-      onChange([...rows, { ...defaultRow(tacheId), [field]: value }])
-    }
+    onChange(rows.map((r) => (r.localId === localId ? { ...r, [field]: value } : r)))
   }
 
-  const handleRisqueChange = (tacheId: string, categorieIds: string[], description: string) => {
-    const existing = rows.find((r) => r.tachePlanifieeId === tacheId)
-    if (existing) {
-      onChange(
-        rows.map((r) =>
-          r.tachePlanifieeId === tacheId ? { ...r, categorieIds, description } : r,
-        ),
-      )
-    } else {
-      onChange([...rows, { ...defaultRow(tacheId), categorieIds, description }])
-    }
+  const handleRisqueChange = (localId: string, categorieIds: string[], description: string) => {
+    onChange(
+      rows.map((r) => (r.localId === localId ? { ...r, categorieIds, description } : r)),
+    )
+  }
+
+  const handleAddRow = (tacheId: string) => {
+    onChange([...rows, defaultRow(tacheId, crypto.randomUUID())])
+  }
+
+  const handleRemoveRow = (localId: string) => {
+    onChange(rows.filter((r) => r.localId !== localId))
   }
 
   const allTaches = sections.flatMap((s) => s.taches ?? [])
@@ -137,10 +126,7 @@ export default function AnalyseRisquesPlanning({
 
             <div className="space-y-3">
               {taches.map((tache) => {
-                const row = findRow(rows, tache.id) ?? defaultRow(tache.id)
-                const niveau = getNiveau(row.gravite, row.probabilite)
-                const ecart =
-                  row.risqueResiduel != null ? niveau - row.risqueResiduel : null
+                const taskRows = rows.filter((r) => r.tachePlanifieeId === tache.id)
 
                 return (
                   <article
@@ -155,97 +141,125 @@ export default function AnalyseRisquesPlanning({
                     </div>
 
                     <div className="space-y-4">
-                      <div>
-                        <span className="mb-1.5 block text-xs font-medium text-gray-600">
-                          Risque identifié
-                        </span>
-                        <RisqueMultiSelect
-                          categories={categories}
-                          categorieIds={row.categorieIds ?? []}
-                          onChange={(ids, description) =>
-                            handleRisqueChange(tache.id, ids, description)
-                          }
-                          disabled={disabled}
-                        />
-                      </div>
+                      {taskRows.length === 0 && (
+                        <p className="text-sm italic text-gray-400">
+                          Aucun risque évalué pour cette tâche.
+                        </p>
+                      )}
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <ScaleSelect
-                          label="Gravité (G)"
-                          value={row.gravite}
-                          onChange={(v) => handleChange(tache.id, 'gravite', v)}
-                          disabled={disabled}
-                        />
-                        <ScaleSelect
-                          label="Probabilité (P)"
-                          value={row.probabilite}
-                          onChange={(v) => handleChange(tache.id, 'probabilite', v)}
-                          disabled={disabled}
-                        />
-                        <div>
-                          <span className="mb-1 block text-xs font-medium text-gray-600">
-                            Niveau
-                          </span>
-                          <div
-                            className={`flex h-[38px] items-center justify-center rounded-md border text-sm font-semibold ${getNiveauTone(niveau)}`}
-                          >
-                            {niveau}
-                          </div>
-                        </div>
-                        <label className="block min-w-0">
-                          <span className="mb-1 block text-xs font-medium text-gray-600">
-                            Risque résiduel
-                          </span>
-                          <input
-                            type="number"
-                            min={0}
-                            max={niveau}
-                            value={row.risqueResiduel ?? ''}
-                            onChange={(e) => {
-                              const val =
-                                e.target.value === ''
-                                  ? null
-                                  : Math.min(Number(e.target.value), niveau)
-                              handleChange(tache.id, 'risqueResiduel', val)
-                            }}
-                            disabled={disabled}
-                            placeholder="—"
-                            className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                          />
-                        </label>
-                      </div>
+                      {taskRows.map((row, index) => {
+                        const niveau = getNiveau(row.gravite, row.probabilite)
 
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-                        <label className="block min-w-0">
-                          <span className="mb-1.5 block text-xs font-medium text-gray-600">
-                            Mesures préventives
-                          </span>
-                          <textarea
-                            value={row.mesuresPreventives}
-                            onChange={(e) =>
-                              handleChange(tache.id, 'mesuresPreventives', e.target.value)
-                            }
-                            disabled={disabled}
-                            rows={3}
-                            placeholder="Mesures préventives…"
-                            className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                          />
-                        </label>
-                        <div className="sm:w-24">
-                          <span className="mb-1.5 block text-xs font-medium text-gray-600">
-                            Écart
-                          </span>
+                        return (
                           <div
-                            className={`flex h-[74px] items-center justify-center rounded-md border text-sm font-semibold ${
-                              ecart != null
-                                ? getNiveauTone(ecart)
-                                : 'border-gray-200 bg-gray-50 text-gray-400'
-                            }`}
+                            key={row.localId}
+                            className="space-y-4 rounded-md border border-gray-100 bg-gray-50/50 p-3"
                           >
-                            {ecart != null ? ecart : '—'}
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Risque {index + 1}
+                              </span>
+                              {!disabled && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveRow(row.localId)}
+                                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Supprimer
+                                </button>
+                              )}
+                            </div>
+
+                            <div>
+                              <span className="mb-1.5 block text-xs font-medium text-gray-600">
+                                Risque identifié
+                              </span>
+                              <RisqueMultiSelect
+                                categories={categories}
+                                categorieIds={row.categorieIds ?? []}
+                                onChange={(ids, description) =>
+                                  handleRisqueChange(row.localId, ids, description)
+                                }
+                                disabled={disabled}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                              <ScaleSelect
+                                label="Gravité (G)"
+                                value={row.gravite}
+                                onChange={(v) => handleChange(row.localId, 'gravite', v)}
+                                disabled={disabled}
+                              />
+                              <ScaleSelect
+                                label="Probabilité (P)"
+                                value={row.probabilite}
+                                onChange={(v) => handleChange(row.localId, 'probabilite', v)}
+                                disabled={disabled}
+                              />
+                              <div>
+                                <span className="mb-1 block text-xs font-medium text-gray-600">
+                                  Niveau
+                                </span>
+                                <div
+                                  className={`flex h-[38px] items-center justify-center rounded-md border text-sm font-semibold ${getNiveauTone(niveau)}`}
+                                >
+                                  {niveau}
+                                </div>
+                              </div>
+                              <label className="block min-w-0">
+                                <span className="mb-1 block text-xs font-medium text-gray-600">
+                                  Risque résiduel
+                                </span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={niveau}
+                                  value={row.risqueResiduel ?? ''}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === ''
+                                        ? null
+                                        : Math.min(Number(e.target.value), niveau)
+                                    handleChange(row.localId, 'risqueResiduel', val)
+                                  }}
+                                  disabled={disabled}
+                                  placeholder="—"
+                                  className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
+                                />
+                              </label>
+                            </div>
+
+                            <label className="block min-w-0">
+                              <span className="mb-1.5 block text-xs font-medium text-gray-600">
+                                Mesures préventives
+                              </span>
+                              <textarea
+                                value={row.mesuresPreventives}
+                                onChange={(e) =>
+                                  handleChange(row.localId, 'mesuresPreventives', e.target.value)
+                                }
+                                disabled={disabled}
+                                rows={3}
+                                placeholder="Mesures préventives…"
+                                className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
+                              />
+                            </label>
                           </div>
-                        </div>
-                      </div>
+                        )
+                      })}
+
+                      {!disabled && (
+                        <button
+                          type="button"
+                          onClick={() => handleAddRow(tache.id)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-blue-400 hover:text-blue-700"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Ajouter un risque
+                        </button>
+                      )}
                     </div>
                   </article>
                 )
