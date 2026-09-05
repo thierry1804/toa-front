@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
-import { CheckCircle, XCircle, Upload, Download, Clock } from 'lucide-react'
+import { CheckCircle, XCircle, Upload, Download, Eye, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 import { DOCUMENT_TYPE_LABELS } from '@/types/permitTravail'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { usePendingUploads } from '@/hooks/usePendingUploads'
+import DocumentViewerModal from '@/components/documents/DocumentViewerModal'
 
 const ACCEPTED_MIME = ['application/pdf', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg'
@@ -44,6 +45,7 @@ export default function PermitDocumentUploadZone({
 
   const uploadedByType = Object.fromEntries(uploadedDocuments.map((d) => [d.type, d]))
   const uploadedTypes = new Set(uploadedDocuments.map((d) => d.type))
+  const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null)
 
   const setZoneState = (type: string, partial: Partial<ZoneState>) => {
     setZoneStates((prev) => ({ ...prev, [type]: { ...prev[type], ...partial } }))
@@ -148,6 +150,17 @@ export default function PermitDocumentUploadZone({
             </div>
 
             <div className="flex-shrink-0 flex items-center gap-2">
+              {uploaded && doc && (
+                <button
+                  type="button"
+                  onClick={() => setViewingDoc({ id: doc.id, label })}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                  title="Visualiser le document"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  Voir
+                </button>
+              )}
               {allowDownload && uploaded && doc && (
                 <button
                   type="button"
@@ -200,6 +213,13 @@ export default function PermitDocumentUploadZone({
       <p className="text-xs text-gray-400">
         {t('permitTravail.components.documentUploadZone.footerNote')}
       </p>
+
+      <DocumentViewerModal
+        isOpen={viewingDoc !== null}
+        onClose={() => setViewingDoc(null)}
+        title={viewingDoc?.label ?? ''}
+        blob={viewingDoc ? () => permitTravailApi.getDocumentBlob(permitId, viewingDoc.id) : null}
+      />
     </div>
   )
 }

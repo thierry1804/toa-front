@@ -5,6 +5,7 @@ import type { TypeDocumentPrevention, DocumentPrevention } from '@/types/planPre
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from '@/types/planPrevention'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import { usePendingUploads } from '@/hooks/usePendingUploads'
+import DocumentViewerModal from '@/components/documents/DocumentViewerModal'
 
 const ACCEPTED_MIME = ['application/pdf', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg'
@@ -40,6 +41,7 @@ export default function DocumentUploadZone({
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const uploadedTypes = new Set(uploadedDocuments.map((d) => d.type))
+  const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null)
 
   const setZoneState = (type: string, partial: Partial<ZoneState>) => {
     setZoneStates((prev) => ({ ...prev, [type]: { ...prev[type], ...partial } }))
@@ -63,15 +65,10 @@ export default function DocumentUploadZone({
     }
   }
 
-  const handleView = async (type: TypeDocumentPrevention) => {
+  const handleView = (type: TypeDocumentPrevention) => {
     const doc = uploadedDocuments.find((d) => d.type === type)
     if (!doc) return
-    setZoneState(type, { viewing: true })
-    try {
-      await planPreventionApi.viewDocument(planId, doc.id)
-    } finally {
-      setZoneState(type, { viewing: false })
-    }
+    setViewingDoc({ id: doc.id, label: TYPES_DOCUMENT_LABELS[type] })
   }
 
   const handleDrop = (type: TypeDocumentPrevention, e: React.DragEvent) => {
@@ -221,6 +218,13 @@ export default function DocumentUploadZone({
       <p className="text-xs text-gray-500">
         {t('planPrevention.components.documentUpload.hint', { count: ALL_DOCUMENT_TYPES.length })}
       </p>
+
+      <DocumentViewerModal
+        isOpen={viewingDoc !== null}
+        onClose={() => setViewingDoc(null)}
+        title={viewingDoc?.label ?? ''}
+        blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(planId, viewingDoc.id) : null}
+      />
     </div>
   )
 }

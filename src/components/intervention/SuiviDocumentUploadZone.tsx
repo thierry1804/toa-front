@@ -4,6 +4,7 @@ import { Upload, FileText, X, Loader2, Clock } from 'lucide-react'
 import type { SuiviJournalierDocument } from '@/types/intervention'
 import { interventionApi } from '@/api/interventionApi'
 import { usePendingUploads } from '@/hooks/usePendingUploads'
+import DocumentViewerModal from '@/components/documents/DocumentViewerModal'
 
 const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf'
@@ -76,6 +77,7 @@ export default function SuiviDocumentUploadZone({
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingDoc, setViewingDoc] = useState<SuiviJournalierDocument | null>(null)
   const pendingUploads = usePendingUploads(
     suiviId ? `/api/suivis-journaliers/${suiviId}/documents` : undefined,
   )
@@ -140,12 +142,25 @@ export default function SuiviDocumentUploadZone({
               key={doc.id}
               className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
             >
-              {isImage(doc.mimeType) ? (
-                <SuiviImageThumb suiviId={suiviId} doc={doc} />
-              ) : (
-                <FileText className="h-8 w-8 flex-shrink-0 text-red-500" />
-              )}
-              <span className="flex-1 truncate text-sm text-gray-700">{doc.nom}</span>
+              <button
+                type="button"
+                onClick={() => setViewingDoc(doc)}
+                className="flex-shrink-0 cursor-pointer"
+                title={t('intervention.components.suiviDocumentUploadZone.view', 'Visualiser')}
+              >
+                {isImage(doc.mimeType) ? (
+                  <SuiviImageThumb suiviId={suiviId} doc={doc} />
+                ) : (
+                  <FileText className="h-8 w-8 text-red-500" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewingDoc(doc)}
+                className="flex-1 cursor-pointer truncate text-left text-sm text-gray-700 hover:underline"
+              >
+                {doc.nom}
+              </button>
               {!disabled && (
                 <button
                   type="button"
@@ -212,6 +227,13 @@ export default function SuiviDocumentUploadZone({
           </div>
         </div>
       )}
+
+      <DocumentViewerModal
+        isOpen={viewingDoc !== null}
+        onClose={() => setViewingDoc(null)}
+        title={viewingDoc?.nom ?? ''}
+        blob={viewingDoc ? () => interventionApi.getSuiviDocumentBlob(suiviId, viewingDoc.id) : null}
+      />
     </div>
   )
 }
