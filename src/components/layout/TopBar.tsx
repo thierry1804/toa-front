@@ -52,10 +52,16 @@ export function TopBar() {
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [logoutBlockedOpen, setLogoutBlockedOpen] = useState(false);
   const currentLang = i18n.language?.startsWith("mg") ? "mg" : "fr";
 
   const handleLogoutClick = () => {
-    if (pendingSyncCount > 0) {
+    if (pendingSyncCount > 0 && !isOnline) {
+      // Hors ligne avec des actions non synchronisées : on bloque plutôt
+      // que de proposer de les perdre, il n'y a aucun moyen de les
+      // envoyer avant d'avoir retrouvé une connexion.
+      setLogoutBlockedOpen(true);
+    } else if (pendingSyncCount > 0) {
       setLogoutConfirmOpen(true);
     } else {
       logout();
@@ -192,6 +198,21 @@ export function TopBar() {
             }}
           >
             {t("auth.logoutConfirmAction")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      <Modal
+        isOpen={logoutBlockedOpen}
+        onClose={() => setLogoutBlockedOpen(false)}
+        title={t("auth.logoutBlockedTitle")}
+      >
+        <p className="text-sm text-gray-600">
+          {t("auth.logoutBlockedMessage", { count: pendingSyncCount })}
+        </p>
+        <ModalFooter>
+          <Button variant="secondary" onClick={() => setLogoutBlockedOpen(false)}>
+            {t("auth.logoutBlockedAction")}
           </Button>
         </ModalFooter>
       </Modal>
