@@ -10,7 +10,7 @@ import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
-import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
+import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import BandeauRefus from '@/components/planPrevention/BandeauRefus'
 import HistoriqueVersions from '@/components/planPrevention/HistoriqueVersions'
 import {
@@ -105,12 +105,7 @@ export default function PermitTravailEditPage() {
 
   const [step, setStep] = useState(0)
   const [engagementChecked, setEngagementChecked] = useState(false)
-  const [evaluation, setEvaluation] = useState<EvaluationData>({
-    dangers: '',
-    evaluationPreliminaire: '',
-    moyensMaitrise: '',
-    evaluationFinale: '',
-  })
+  const [evaluations, setEvaluations] = useState<EvaluationData[]>([emptyEvaluation()])
   const [motif, setMotif] = useState('')
   const [inlineError, setInlineError] = useState<string | null>(null)
   const [missingDocTypes, setMissingDocTypes] = useState<TypeDocumentPermitTravail[]>([])
@@ -142,12 +137,7 @@ export default function PermitTravailEditPage() {
     })
     setEngagementChecked(permit.engagementAccepte ?? false)
     setLocalDocs(permit.documents ?? [])
-    setEvaluation({
-      dangers: permit.dangers ?? '',
-      evaluationPreliminaire: (permit.evaluationPreliminaire as EvaluationData['evaluationPreliminaire']) ?? '',
-      moyensMaitrise: permit.moyensMaitrise ?? '',
-      evaluationFinale: (permit.evaluationFinale as EvaluationData['evaluationFinale']) ?? '',
-    })
+    setEvaluations(permit.dangers && permit.dangers.length > 0 ? permit.dangers : [emptyEvaluation()])
   }, [permit, reset])
 
   if (isLoading) {
@@ -355,8 +345,8 @@ export default function PermitTravailEditPage() {
                 checked={engagementChecked}
                 onChange={setEngagementChecked}
                 statut="BROUILLON"
-                evaluation={evaluation}
-                onEvaluationChange={setEvaluation}
+                evaluations={evaluations}
+                onEvaluationsChange={setEvaluations}
               />
             </div>
 

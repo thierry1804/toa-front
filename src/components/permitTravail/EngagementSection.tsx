@@ -1,24 +1,24 @@
 import { useState } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { useAuthStore } from '@/store/auth.store'
 import type { StatutPermitTravail } from '@/types/permitTravail'
+import type { DangerEntry } from '@/types/permitTravail'
 
 export type NiveauRisque = 'rouge' | 'jaune' | 'vert'
+export type EvaluationData = DangerEntry
 
-export interface EvaluationData {
-  dangers: string
-  evaluationPreliminaire: NiveauRisque | ''
-  moyensMaitrise: string
-  evaluationFinale: NiveauRisque | ''
+export function emptyEvaluation(): EvaluationData {
+  return { dangers: '', evaluationPreliminaire: '', moyensMaitrise: '', evaluationFinale: '' }
 }
 
 interface EngagementSectionProps {
   checked: boolean
   onChange: (checked: boolean) => void
   statut?: StatutPermitTravail
-  evaluation: EvaluationData
-  onEvaluationChange: (data: EvaluationData) => void
+  evaluations: EvaluationData[]
+  onEvaluationsChange: (data: EvaluationData[]) => void
   onSaveEvaluation?: () => Promise<void>
 }
 
@@ -78,8 +78,8 @@ export default function EngagementSection({
   checked,
   onChange,
   statut,
-  evaluation,
-  onEvaluationChange,
+  evaluations,
+  onEvaluationsChange,
   onSaveEvaluation,
 }: EngagementSectionProps) {
   const { t } = useTranslation()
@@ -111,77 +111,121 @@ export default function EngagementSection({
     }
   }
 
+  const updateEntry = (index: number, patch: Partial<EvaluationData>) => {
+    onEvaluationsChange(evaluations.map((e, i) => (i === index ? { ...e, ...patch } : e)))
+  }
+
+  const addEntry = () => {
+    onEvaluationsChange([...evaluations, emptyEvaluation()])
+  }
+
+  const removeEntry = (index: number) => {
+    onEvaluationsChange(evaluations.filter((_, i) => i !== index))
+  }
+
   return (
     <div className="space-y-4">
 
-      {/* ── Questionnaire évaluation ── */}
-      <div className="rounded-lg border border-red-300 bg-white p-4 space-y-1">
-        {/* Dangers */}
-        <div className="border-b border-gray-200 pb-2">
-          <textarea
-            value={evaluation.dangers}
-            onChange={(e) => onEvaluationChange({ ...evaluation, dangers: e.target.value })}
-            disabled={readonly}
-            placeholder={t('permitTravail.components.engagementSection.dangersPlaceholder')}
-            rows={2}
-            className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
-          />
-        </div>
+      {/* ── Questionnaire évaluation (répéteur) ── */}
+      <div className="space-y-3">
+        {evaluations.map((evaluation, index) => (
+          <div key={index} className="rounded-lg border border-red-300 bg-white p-4 space-y-1">
+            {evaluations.length > 1 && (
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Danger {index + 1}
+                </span>
+                {!readonly && (
+                  <button
+                    type="button"
+                    onClick={() => removeEntry(index)}
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            )}
 
-        <NiveauPicker
-          label={t('permitTravail.components.engagementSection.evaluationPreliminaireLabel')}
-          value={evaluation.evaluationPreliminaire}
-          onChange={(v) => onEvaluationChange({ ...evaluation, evaluationPreliminaire: v })}
-          disabled={readonly}
-        />
+            {/* Dangers */}
+            <div className="border-b border-gray-200 pb-2">
+              <textarea
+                value={evaluation.dangers}
+                onChange={(e) => updateEntry(index, { dangers: e.target.value })}
+                disabled={readonly}
+                placeholder={t('permitTravail.components.engagementSection.dangersPlaceholder')}
+                rows={2}
+                className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
+              />
+            </div>
 
-        {/* Moyens de maîtrise */}
-        <div className="border-b border-gray-200 pt-1 pb-2">
-          <textarea
-            value={evaluation.moyensMaitrise}
-            onChange={(e) => onEvaluationChange({ ...evaluation, moyensMaitrise: e.target.value })}
-            disabled={readonly}
-            placeholder={t('permitTravail.components.engagementSection.moyensMaitrisePlaceholder')}
-            rows={2}
-            className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
-          />
-        </div>
+            <NiveauPicker
+              label={t('permitTravail.components.engagementSection.evaluationPreliminaireLabel')}
+              value={evaluation.evaluationPreliminaire}
+              onChange={(v) => updateEntry(index, { evaluationPreliminaire: v })}
+              disabled={readonly}
+            />
 
-        <NiveauPicker
-          label={t('permitTravail.components.engagementSection.evaluationFinaleLabel')}
-          value={evaluation.evaluationFinale}
-          onChange={(v) => onEvaluationChange({ ...evaluation, evaluationFinale: v })}
-          disabled={readonly}
-        />
+            {/* Moyens de maîtrise */}
+            <div className="border-b border-gray-200 pt-1 pb-2">
+              <textarea
+                value={evaluation.moyensMaitrise}
+                onChange={(e) => updateEntry(index, { moyensMaitrise: e.target.value })}
+                disabled={readonly}
+                placeholder={t('permitTravail.components.engagementSection.moyensMaitrisePlaceholder')}
+                rows={2}
+                className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none disabled:bg-transparent disabled:text-gray-600"
+              />
+            </div>
 
-        {/* Bouton enregistrer */}
+            <NiveauPicker
+              label={t('permitTravail.components.engagementSection.evaluationFinaleLabel')}
+              value={evaluation.evaluationFinale}
+              onChange={(v) => updateEntry(index, { evaluationFinale: v })}
+              disabled={readonly}
+            />
+          </div>
+        ))}
+
         {!readonly && (
-          <div className="pt-2 flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className={`px-6 py-1.5 text-sm font-semibold uppercase tracking-wide rounded transition-colors disabled:cursor-not-allowed ${
-                saved
-                  ? 'bg-green-100 text-green-700 border border-green-300'
-                  : saveError
-                  ? 'bg-red-100 text-red-700 border border-red-300'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-              }`}
+              onClick={addEntry}
+              className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-blue-400 hover:text-blue-700"
             >
-              {saving
-                ? t('permitTravail.components.engagementSection.saveButtonSaving')
-                : saved
-                  ? t('permitTravail.components.engagementSection.saveButtonSaved')
-                  : saveError
-                    ? t('permitTravail.components.engagementSection.saveButtonError')
-                    : t('permitTravail.components.engagementSection.saveButtonDefault')}
+              <Plus className="h-3.5 w-3.5" />
+              Ajouter un danger
             </button>
-            {saveError && (
-              <p className="text-xs text-red-600">
-                {t('permitTravail.components.engagementSection.saveErrorText')}
-              </p>
-            )}
+
+            <div className="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className={`px-6 py-1.5 text-sm font-semibold uppercase tracking-wide rounded transition-colors disabled:cursor-not-allowed ${
+                  saved
+                    ? 'bg-green-100 text-green-700 border border-green-300'
+                    : saveError
+                    ? 'bg-red-100 text-red-700 border border-red-300'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                }`}
+              >
+                {saving
+                  ? t('permitTravail.components.engagementSection.saveButtonSaving')
+                  : saved
+                    ? t('permitTravail.components.engagementSection.saveButtonSaved')
+                    : saveError
+                      ? t('permitTravail.components.engagementSection.saveButtonError')
+                      : t('permitTravail.components.engagementSection.saveButtonDefault')}
+              </button>
+              {saveError && (
+                <p className="text-xs text-red-600">
+                  {t('permitTravail.components.engagementSection.saveErrorText')}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

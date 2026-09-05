@@ -20,7 +20,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
-import EngagementSection, { type EvaluationData } from '@/components/permitTravail/EngagementSection'
+import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
@@ -136,12 +136,7 @@ export default function PermitTravailCreatePage() {
   const [permit, setPermit] = useState<PermitTravail | null>(null)
   const [companionDocs, setCompanionDocs] = useState<DocumentPermitTravail[]>([])
   const [engagementChecked, setEngagementChecked] = useState(false)
-  const [evaluation, setEvaluation] = useState<EvaluationData>({
-    dangers: '',
-    evaluationPreliminaire: '',
-    moyensMaitrise: '',
-    evaluationFinale: '',
-  })
+  const [evaluations, setEvaluations] = useState<EvaluationData[]>([emptyEvaluation()])
 
   // ── Plans by site ─────────────────────────────────────────────────────────────
   const { data: plansBySiteData, isLoading: isLoadingPlans } = useQuery({
@@ -267,17 +262,18 @@ export default function PermitTravailCreatePage() {
     setPermit(null)
     setCompanionDocs([])
     setEngagementChecked(false)
-    setEvaluation({ dangers: '', evaluationPreliminaire: '', moyensMaitrise: '', evaluationFinale: '' })
+    setEvaluations([emptyEvaluation()])
   }
+
+  const nonEmptyEvaluations = (list: EvaluationData[]) =>
+    list.filter((e) => e.dangers || e.moyensMaitrise || e.evaluationPreliminaire || e.evaluationFinale)
 
   const handleSoumettre = async () => {
     if (!permit) return
+    const dangers = nonEmptyEvaluations(evaluations)
     await updatePermit(permit.id, {
       engagementAccepte: true,
-      dangers: evaluation.dangers || null,
-      evaluationPreliminaire: evaluation.evaluationPreliminaire || null,
-      moyensMaitrise: evaluation.moyensMaitrise || null,
-      evaluationFinale: evaluation.evaluationFinale || null,
+      dangers: dangers.length > 0 ? dangers : null,
     })
 
     const companionId = permit.permitsGroupe?.[0]?.id
@@ -370,6 +366,17 @@ export default function PermitTravailCreatePage() {
 
     const transition = getPermitCreationTransition(processus, typePermis)
     setPermit(created)
+    // Reprend les risques identifiés du plan de prévention (description +
+    // mesures préventives) pour pré-remplir le champ "dangers" du permis —
+    // l'utilisateur peut toujours le modifier, ce n'est qu'un point de
+    // départ pour éviter une ressaisie complète.
+    const risqueSummary = filteredRisqueRows
+      .filter((r) => r.description)
+      .map((r) => (r.mesuresPreventives ? `${r.description} — ${r.mesuresPreventives}` : r.description))
+      .join('\n')
+    if (risqueSummary) {
+      setEvaluations((prev) => [{ ...prev[0], dangers: risqueSummary }, ...prev.slice(1)])
+    }
     setStep(transition.step)
   })
 
@@ -731,16 +738,12 @@ export default function PermitTravailCreatePage() {
               checked={engagementChecked}
               onChange={setEngagementChecked}
               statut={permit?.statut}
-              evaluation={evaluation}
-              onEvaluationChange={setEvaluation}
+              evaluations={evaluations}
+              onEvaluationsChange={setEvaluations}
               onSaveEvaluation={async () => {
                 if (!permit) return
-                await updatePermit(permit.id, {
-                  dangers: evaluation.dangers || null,
-                  evaluationPreliminaire: evaluation.evaluationPreliminaire || null,
-                  moyensMaitrise: evaluation.moyensMaitrise || null,
-                  evaluationFinale: evaluation.evaluationFinale || null,
-                })
+                const dangers = nonEmptyEvaluations(evaluations)
+                await updatePermit(permit.id, { dangers: dangers.length > 0 ? dangers : null })
               }}
             />
           </div>

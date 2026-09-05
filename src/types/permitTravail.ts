@@ -7,6 +7,14 @@ export type StatutPvReceptionPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
 
 export type ActionPermitTravailLog = 'CONSULTE' | 'DOCUMENT_TELECHARGE' | 'STATUT_CHANGE' | 'PDF_GENERE'
 
+/** Une entrée du formulaire des dangers (champs répéteurs) d'un permis. */
+export interface DangerEntry {
+  dangers: string
+  evaluationPreliminaire: 'rouge' | 'jaune' | 'vert' | ''
+  moyensMaitrise: string
+  evaluationFinale: 'rouge' | 'jaune' | 'vert' | ''
+}
+
 export interface PermitTravailLog {
   id: string
   action: ActionPermitTravailLog
@@ -194,10 +202,7 @@ export interface PermitTravailInput {
   dateDebutPrevue: string
   dateFinPrevue: string
   engagementAccepte?: boolean
-  dangers?: string | null
-  evaluationPreliminaire?: string | null
-  moyensMaitrise?: string | null
-  evaluationFinale?: string | null
+  dangers?: DangerEntry[] | null
 }
 
 export type StatutPermitTravailPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
@@ -268,10 +273,7 @@ export interface PermitTravail {
   dateFinPrevue: string
   statut: StatutPermitTravail
   engagementAccepte: boolean
-  dangers?: string | null
-  evaluationPreliminaire?: string | null
-  moyensMaitrise?: string | null
-  evaluationFinale?: string | null
+  dangers?: DangerEntry[] | null
   createdBy: { id: number; email: string; name: string; firstname?: string }
   nomPrestataire?: string | null
   soumisAt?: string | null

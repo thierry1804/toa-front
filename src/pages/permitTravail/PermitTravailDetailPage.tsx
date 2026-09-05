@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -49,6 +49,7 @@ export default function PermitTravailDetailPage() {
   const latestPvDecision = pvDecisionsData?.at(-1)
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
+  const canResoumettre = usePermission('permit_travail.resoumettre')
   const canCloturer = usePermission('permit_travail.cloturer')
   const canValiderPv = usePermission('permit_travail.pv_valider')
   const canRefuserPv = usePermission('permit_travail.pv_refuser')
@@ -95,6 +96,10 @@ export default function PermitTravailDetailPage() {
   const clotureDocTypes = getRequiredClotureDocumentTypes(permit.planProcess)
   const companionPermit = permit.permitsGroupe?.[0]
   const latestDecision = permit.decisionsHse?.at(-1)
+  const canCorrigerEtResoumettre =
+    permit.statut === 'BROUILLON' &&
+    canResoumettre &&
+    permit.decisionsHse?.some((d) => d.decision === 'REFUSE')
 
   const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
     await uploadDocument(permit.id, type, file)
@@ -115,10 +120,21 @@ export default function PermitTravailDetailPage() {
         }
         description={`${TYPE_PERMIT_LABELS[permit.typePermis]} — ${PROCESSUS_LABELS[permit.processus]}`}
         actions={
-          <Button variant="outline" onClick={() => navigate('/permits-travail')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
+          <div className="flex items-center gap-2">
+            {canCorrigerEtResoumettre && (
+              <Button
+                variant="primary"
+                onClick={() => navigate(`/permits-travail/${permit.id}/edit`)}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Corriger et resoumettre
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate('/permits-travail')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Button>
+          </div>
         }
       />
 
@@ -181,53 +197,65 @@ export default function PermitTravailDetailPage() {
           <CardTitle className="text-base font-semibold text-gray-800">Évaluation des risques</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border border-red-300 bg-white p-4 space-y-3 text-sm">
-            <div className="border-b border-gray-200 pb-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                Quels sont les dangers ?
-              </p>
-              <p className="text-gray-800 whitespace-pre-wrap">{permit.dangers || <span className="italic text-gray-400">—</span>}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
-                Évaluation préliminaire des risques
-              </span>
-              {permit.evaluationPreliminaire ? (
-                <>
-                  <span className={`inline-block h-5 w-5 rounded-full border-2 ${
-                    permit.evaluationPreliminaire === 'rouge' ? 'bg-red-400 border-red-400' :
-                    permit.evaluationPreliminaire === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
-                    'bg-green-500 border-green-500'
-                  }`} />
-                  <span className="text-gray-700 capitalize">{permit.evaluationPreliminaire}</span>
-                </>
-              ) : (
-                <span className="italic text-gray-400">—</span>
-              )}
-            </div>
-            <div className="border-t border-gray-200 pt-3 border-b border-gray-200 pb-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                Quels sont les moyens de maîtriser les dangers en sécurité ?
-              </p>
-              <p className="text-gray-800 whitespace-pre-wrap">{permit.moyensMaitrise || <span className="italic text-gray-400">—</span>}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
-                Évaluation finale des risques
-              </span>
-              {permit.evaluationFinale ? (
-                <>
-                  <span className={`inline-block h-5 w-5 rounded-full border-2 ${
-                    permit.evaluationFinale === 'rouge' ? 'bg-red-400 border-red-400' :
-                    permit.evaluationFinale === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
-                    'bg-green-500 border-green-500'
-                  }`} />
-                  <span className="text-gray-700 capitalize">{permit.evaluationFinale}</span>
-                </>
-              ) : (
-                <span className="italic text-gray-400">—</span>
-              )}
-            </div>
+          <div className="space-y-3">
+            {(!permit.dangers || permit.dangers.length === 0) && (
+              <p className="text-sm italic text-gray-400">Aucun danger évalué.</p>
+            )}
+            {permit.dangers?.map((danger, index) => (
+              <div key={index} className="rounded-lg border border-red-300 bg-white p-4 space-y-3 text-sm">
+                {permit.dangers && permit.dangers.length > 1 && (
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Danger {index + 1}
+                  </p>
+                )}
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Quels sont les dangers ?
+                  </p>
+                  <p className="text-gray-800 whitespace-pre-wrap">{danger.dangers || <span className="italic text-gray-400">—</span>}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
+                    Évaluation préliminaire des risques
+                  </span>
+                  {danger.evaluationPreliminaire ? (
+                    <>
+                      <span className={`inline-block h-5 w-5 rounded-full border-2 ${
+                        danger.evaluationPreliminaire === 'rouge' ? 'bg-red-400 border-red-400' :
+                        danger.evaluationPreliminaire === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
+                        'bg-green-500 border-green-500'
+                      }`} />
+                      <span className="text-gray-700 capitalize">{danger.evaluationPreliminaire}</span>
+                    </>
+                  ) : (
+                    <span className="italic text-gray-400">—</span>
+                  )}
+                </div>
+                <div className="border-t border-gray-200 pt-3 border-b border-gray-200 pb-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Quels sont les moyens de maîtriser les dangers en sécurité ?
+                  </p>
+                  <p className="text-gray-800 whitespace-pre-wrap">{danger.moyensMaitrise || <span className="italic text-gray-400">—</span>}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-600 flex-1">
+                    Évaluation finale des risques
+                  </span>
+                  {danger.evaluationFinale ? (
+                    <>
+                      <span className={`inline-block h-5 w-5 rounded-full border-2 ${
+                        danger.evaluationFinale === 'rouge' ? 'bg-red-400 border-red-400' :
+                        danger.evaluationFinale === 'jaune' ? 'bg-yellow-400 border-yellow-400' :
+                        'bg-green-500 border-green-500'
+                      }`} />
+                      <span className="text-gray-700 capitalize">{danger.evaluationFinale}</span>
+                    </>
+                  ) : (
+                    <span className="italic text-gray-400">—</span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -269,7 +297,7 @@ export default function PermitTravailDetailPage() {
         <CardContent>
           <PermitDocumentUploadZone
             permitId={permit.id}
-            documentTypes={docTypes}
+            documentTypes={[...docTypes, ...clotureDocTypes]}
             uploadedDocuments={permit.documents}
             onUpload={async () => {}}
             disabled={true}
