@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 
-const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockDelta, mockHydrate } =
+const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockDelta, mockHydrate, mockClearDocs, mockPrefetch } =
   vi.hoisted(() => ({
     mockGetManifest: vi.fn(),
     mockGetSnapshot: vi.fn(),
@@ -9,6 +9,8 @@ const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockD
     mockSave: vi.fn().mockResolvedValue(undefined),
     mockDelta: vi.fn().mockResolvedValue(undefined),
     mockHydrate: vi.fn(),
+    mockClearDocs: vi.fn().mockResolvedValue(undefined),
+    mockPrefetch: vi.fn().mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 }),
   }))
 
 vi.mock('@/api/offlineSnapshotApi', () => ({
@@ -29,8 +31,25 @@ vi.mock('./hydrateFromSnapshot', () => ({
   hydrateFromSnapshot: mockHydrate,
 }))
 
+vi.mock('./docCache', () => ({
+  clearDocCache: mockClearDocs,
+}))
+
+vi.mock('./prefetchSnapshotDocuments', () => ({
+  prefetchSnapshotDocuments: mockPrefetch,
+}))
+
+vi.mock('./collectSnapshotDocuments', () => ({
+  collectSnapshotDocuments: vi.fn(() => [{ url: '/api/doc', filename: 'a.pdf' }]),
+}))
+
+vi.mock('@/lib/axios', () => ({
+  default: { get: vi.fn() },
+}))
+
 import { pullOfflineSnapshot } from './pullOfflineSnapshot'
 import { getSnapshotMeta } from './snapshotStore'
+import { collectSnapshotDocuments } from './collectSnapshotDocuments'
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
 
@@ -38,6 +57,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockSave.mockResolvedValue(undefined)
   mockDelta.mockResolvedValue(undefined)
+  mockClearDocs.mockResolvedValue(undefined)
+  mockPrefetch.mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 })
+  vi.mocked(collectSnapshotDocuments).mockReturnValue([{ url: '/api/doc', filename: 'a.pdf' }])
 })
 
 describe('pullOfflineSnapshot', () => {
@@ -60,6 +82,8 @@ describe('pullOfflineSnapshot', () => {
     expect(mockSave).toHaveBeenCalledWith(snapshot)
     expect(mockDelta).not.toHaveBeenCalled()
     expect(mockHydrate).toHaveBeenCalledWith(qc, snapshot)
+    expect(mockClearDocs).toHaveBeenCalledTimes(1)
+    expect(mockPrefetch).toHaveBeenCalled()
   })
 
   it('uses applyDelta when since is set', async () => {
@@ -72,6 +96,46 @@ describe('pullOfflineSnapshot', () => {
     expect(result.ok).toBe(true)
     expect(mockDelta).toHaveBeenCalledWith(snapshot)
     expect(mockSave).not.toHaveBeenCalled()
+    expect(mockClearDocs).not.toHaveBeenCalled()
+    expect(mockPrefetch).toHaveBeenCalled()
+  })
+
+  it('skips document prefetch on silent pulls', async () => {
+    mockGetManifest.mockResolvedValue({ generatedAt: '', userId: 1, modules: {} })
+    mockGetSnapshot.mockResolvedValue({ generatedAt: 't', userId: 1 })
+
+    await pullOfflineSnapshot(qc, { silent: true })
+
+    expect(mockPrefetch).not.toHaveBeenCalled()
+    expect(mockClearDocs).not.toHaveBeenCalled()
+  })
+
+  it('reports overall percent through download and documents', async () => {
+    mockGetManifest.mockResolvedValue({
+      generatedAt: '2026-08-30T12:00:00Z',
+      userId: 1,
+      modules: { permitsTravail: { count: 1, estimatedBytes: 1000 } },
+    })
+    mockGetSnapshot.mockImplementation(async (opts?: { onDownloadProgress?: (e: { loaded: number; total: number }) => void }) => {
+      opts?.onDownloadProgress?.({ loaded: 500, total: 1000 })
+      opts?.onDownloadProgress?.({ loaded: 1000, total: 1000 })
+      return { generatedAt: '2026-08-30T12:00:00Z', userId: 1 }
+    })
+    mockPrefetch.mockImplementation(async (_docs, opts) => {
+      opts.onProgress?.({ phase: 'documents', loaded: 1, total: 2 })
+      opts.onProgress?.({ phase: 'documents', loaded: 2, total: 2 })
+      return { total: 2, cached: 2, skipped: 0, failed: 0 }
+    })
+
+    const onProgress = vi.fn()
+    await pullOfflineSnapshot(qc, { onProgress })
+
+    const percents = onProgress.mock.calls.map((c) => c[0].percent as number)
+    expect(percents[0]).toBeGreaterThanOrEqual(0)
+    expect(percents).toContain(30)
+    expect(percents).toContain(55)
+    expect(percents.at(-1)).toBe(100)
+    expect(percents.every((p, i) => i === 0 || p >= percents[i - 1])).toBe(true)
   })
 
   it('falls back to paginated modules on 413', async () => {

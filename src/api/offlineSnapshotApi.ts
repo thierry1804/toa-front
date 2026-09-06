@@ -1,4 +1,5 @@
 import api from '@/lib/axios'
+import type { AxiosRequestConfig } from 'axios'
 import type {
   OfflineSnapshot,
   OfflineSnapshotManifest,
@@ -16,11 +17,20 @@ export const offlineSnapshotApi = {
   getManifest: () =>
     api.get<OfflineSnapshotManifest>(SNAPSHOT_MANIFEST_PATH).then((r) => r.data),
 
-  getSnapshot: (opts?: { since?: string; modules?: string[] }) => {
+  getSnapshot: (opts?: {
+    since?: string
+    modules?: string[]
+    onDownloadProgress?: AxiosRequestConfig['onDownloadProgress']
+  }) => {
     const params: Record<string, string> = {}
     if (opts?.since) params.since = opts.since
     if (opts?.modules?.length) params.modules = opts.modules.join(',')
-    return api.get<OfflineSnapshot>(SNAPSHOT_PATH, { params }).then((r) => r.data)
+    return api
+      .get<OfflineSnapshot>(SNAPSHOT_PATH, {
+        params,
+        onDownloadProgress: opts?.onDownloadProgress,
+      })
+      .then((r) => r.data)
   },
 
   getSnapshotModule: (

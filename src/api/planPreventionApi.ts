@@ -3,6 +3,7 @@ import { openBlobInNewTab, triggerBlobDownload } from '@/lib/downloadBlob'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
+import { withCachedDocumentBlob } from '@/offline/docCache'
 import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
@@ -138,12 +139,12 @@ export const planPreventionApi = {
       })
       .then((r) => r.data),
 
-  getDocumentBlob: (planId: string, documentId: string): Promise<Blob> =>
-    api
-      .get(`/api/plans-prevention/${planId}/documents/${documentId}/download`, {
-        responseType: 'blob',
-      })
-      .then((r) => r.data as Blob),
+  getDocumentBlob: (planId: string, documentId: string): Promise<Blob> => {
+    const url = `/api/plans-prevention/${planId}/documents/${documentId}/download`
+    return withCachedDocumentBlob(url, () =>
+      api.get(url, { responseType: 'blob' }).then((r) => r.data as Blob),
+    )
+  },
 
   viewDocument: async (planId: string, documentId: string): Promise<void> => {
     const blob = await planPreventionApi.getDocumentBlob(planId, documentId)

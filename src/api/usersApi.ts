@@ -2,6 +2,7 @@ import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
+import { withCachedDocumentBlob } from '@/offline/docCache'
 import type { User, UserCreate, UserUpdate, HydraCollection } from '@/types'
 
 export const usersApi = {
@@ -46,8 +47,10 @@ export const usersApi = {
   // Plain <img src="..."> can't send the Authorization header the API
   // requires, so the signature must be fetched as an authenticated blob
   // and turned into an object URL by the caller.
-  getSignatureBlob: (id: number) =>
-    api
-      .get(`/api/users/${id}/signature/download`, { responseType: 'blob' })
-      .then((r) => r.data as Blob),
+  getSignatureBlob: (id: number) => {
+    const url = `/api/users/${id}/signature/download`
+    return withCachedDocumentBlob(url, () =>
+      api.get(url, { responseType: 'blob' }).then((r) => r.data as Blob),
+    )
+  },
 }

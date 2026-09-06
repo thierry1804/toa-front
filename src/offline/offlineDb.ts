@@ -1,10 +1,11 @@
 import { openDB, type IDBPDatabase } from 'idb'
 
 export const OFFLINE_DB = 'toa-offline'
-export const OFFLINE_DB_VER = 3
+export const OFFLINE_DB_VER = 4
 export const QUEUE_STORE = 'sync-queue'
 export const FAILED_STORE = 'sync-failed'
 export const BLOB_STORE = 'blobs'
+export const DOC_CACHE_STORE = 'doc-cache'
 
 let dbPromise: Promise<IDBPDatabase> | null = null
 
@@ -20,6 +21,9 @@ export function getOfflineDb(): Promise<IDBPDatabase> {
         }
         if (!db.objectStoreNames.contains(BLOB_STORE)) {
           db.createObjectStore(BLOB_STORE, { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains(DOC_CACHE_STORE)) {
+          db.createObjectStore(DOC_CACHE_STORE, { keyPath: 'url' })
         }
       },
     })

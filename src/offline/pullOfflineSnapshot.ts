@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query'
+import api from '@/lib/axios'
 import { offlineSnapshotApi } from '@/api/offlineSnapshotApi'
 import type {
   OfflineSnapshot,
@@ -15,13 +16,25 @@ import { getHttpStatus, snapshotErrorCode } from './getHttpStatus'
 import { hydrateFromSnapshot } from './hydrateFromSnapshot'
 import { applyDelta, getSnapshotMeta, saveSnapshot } from './snapshotStore'
 import { hydraMember, hydraTotalItems } from './asHydra'
+import { collectSnapshotDocuments } from './collectSnapshotDocuments'
+import { clearDocCache } from './docCache'
+import { prefetchSnapshotDocuments } from './prefetchSnapshotDocuments'
+import {
+  PULL_PROGRESS,
+  documentsPullPercent,
+  estimatedSnapshotBytes,
+  modulePullPercent,
+  snapshotDownloadPercent,
+} from './pullProgress'
 
 export interface PullProgress {
-  phase: 'manifest' | 'snapshot' | 'module'
+  phase: 'manifest' | 'snapshot' | 'module' | 'persist' | 'documents'
   module?: OfflineSnapshotModule
   page?: number
   loaded?: number
   total?: number
+  /** Overall 0–100 progress for the UI bar. */
+  percent: number
 }
 
 export type PullSnapshotResult =
@@ -37,8 +50,10 @@ function fail(err: unknown): PullSnapshotResult {
 async function fetchModulePages(
   path: OfflineSnapshotPathModule,
   since: string | undefined,
-  onProgress?: (p: PullProgress) => void,
-  module?: OfflineSnapshotModule,
+  onProgress: ((p: PullProgress) => void) | undefined,
+  module: OfflineSnapshotModule | undefined,
+  moduleIndex: number,
+  moduleCount: number,
 ): Promise<unknown[]> {
   const items: unknown[] = []
   let page = 1
@@ -51,6 +66,14 @@ async function fetchModulePages(
     if (data && typeof data === 'object' && !Array.isArray(data)) {
       const record = data as Record<string, unknown>
       if (Array.isArray(record.categoriesRisque) || Array.isArray(record.installationsEquipements)) {
+        onProgress?.({
+          phase: 'module',
+          module,
+          page,
+          loaded: 1,
+          total: 1,
+          percent: modulePullPercent(moduleIndex, moduleCount, 1, 1),
+        })
         return [data]
       }
     }
@@ -63,6 +86,7 @@ async function fetchModulePages(
       page,
       loaded: items.length,
       total,
+      percent: modulePullPercent(moduleIndex, moduleCount, items.length, total),
     })
     if (member.length === 0 || items.length >= total || member.length < MODULE_PAGE_SIZE) break
     page += 1
@@ -81,9 +105,10 @@ async function pullPaginated(
     since: since ?? null,
   }
 
-  for (const module of modules) {
+  for (let i = 0; i < modules.length; i += 1) {
+    const module = modules[i]
     const path = ENTITY_MODULE_TO_PATH[module]
-    const items = await fetchModulePages(path, since, onProgress, module)
+    const items = await fetchModulePages(path, since, onProgress, module, i, modules.length)
     if (module === 'referentiel') {
       const first = items[0]
       if (first && typeof first === 'object') {
@@ -97,6 +122,39 @@ async function pullPaginated(
   return snapshot
 }
 
+async function prefetchDocumentsForSnapshot(
+  snapshot: OfflineSnapshot,
+  incremental: boolean,
+  onProgress?: (p: PullProgress) => void,
+): Promise<void> {
+  const docs = collectSnapshotDocuments(snapshot)
+  if (!incremental) {
+    await clearDocCache()
+  }
+  if (docs.length === 0) {
+    onProgress?.({
+      phase: 'documents',
+      loaded: 0,
+      total: 0,
+      percent: PULL_PROGRESS.done,
+    })
+    return
+  }
+  await prefetchSnapshotDocuments(docs, {
+    concurrency: 3,
+    onProgress: (p) => {
+      onProgress?.({
+        phase: 'documents',
+        loaded: p.loaded,
+        total: p.total,
+        percent: documentsPullPercent(p.loaded, p.total),
+      })
+    },
+    fetchBlob: (url) =>
+      api.get(url, { responseType: 'blob', _skipOfflineQueue: true }).then((r) => r.data as Blob),
+  })
+}
+
 export async function pullOfflineSnapshot(
   queryClient: QueryClient,
   opts?: {
@@ -107,8 +165,9 @@ export async function pullOfflineSnapshot(
   },
 ): Promise<PullSnapshotResult> {
   const incremental = Boolean(opts?.since)
+  const report = (p: PullProgress) => opts?.onProgress?.(p)
   try {
-    opts?.onProgress?.({ phase: 'manifest' })
+    report({ phase: 'manifest', percent: 1 })
     let manifest: OfflineSnapshotManifest | undefined
     try {
       manifest = await offlineSnapshotApi.getManifest()
@@ -119,30 +178,75 @@ export async function pullOfflineSnapshot(
       // Manifest is optional if the dump itself works
     }
 
+    report({ phase: 'manifest', percent: PULL_PROGRESS.manifestEnd })
+
     const modules =
       opts?.modules ??
       (manifest
         ? (Object.keys(manifest.modules) as OfflineSnapshotModule[])
         : [...SNAPSHOT_ENTITY_MODULES, 'referentiel'])
 
-    opts?.onProgress?.({ phase: 'snapshot' })
+    const estimatedBytes = estimatedSnapshotBytes(manifest?.modules)
+    report({
+      phase: 'snapshot',
+      loaded: 0,
+      total: estimatedBytes || undefined,
+      percent: PULL_PROGRESS.manifestEnd,
+    })
+
     let snapshot: OfflineSnapshot
     try {
       snapshot = await offlineSnapshotApi.getSnapshot({
         since: opts?.since,
         modules,
+        onDownloadProgress: (event) => {
+          const total =
+            event.total && event.total > 0
+              ? event.total
+              : estimatedBytes > 0
+                ? estimatedBytes
+                : 0
+          report({
+            phase: 'snapshot',
+            loaded: event.loaded,
+            total: total || undefined,
+            percent: snapshotDownloadPercent(event.loaded, total),
+          })
+        },
       })
     } catch (err) {
       if (getHttpStatus(err) !== 413) return fail(err)
       snapshot = await pullPaginated(modules, opts?.since, opts?.onProgress)
     }
 
+    report({
+      phase: 'snapshot',
+      loaded: estimatedBytes || undefined,
+      total: estimatedBytes || undefined,
+      percent: PULL_PROGRESS.snapshotEnd,
+    })
+
+    report({ phase: 'persist', percent: PULL_PROGRESS.snapshotEnd + 1 })
     if (incremental) {
       await applyDelta(snapshot)
     } else {
       await saveSnapshot(snapshot)
     }
     hydrateFromSnapshot(queryClient, snapshot)
+    report({ phase: 'persist', percent: PULL_PROGRESS.persistEnd })
+
+    if (!opts?.silent) {
+      await prefetchDocumentsForSnapshot(snapshot, incremental, opts?.onProgress)
+    } else {
+      report({ phase: 'persist', percent: PULL_PROGRESS.done })
+    }
+
+    report({
+      phase: opts?.silent ? 'persist' : 'documents',
+      percent: PULL_PROGRESS.done,
+      loaded: 1,
+      total: 1,
+    })
     return { ok: true, generatedAt: snapshot.generatedAt, incremental }
   } catch (err) {
     if (opts?.silent) return fail(err)

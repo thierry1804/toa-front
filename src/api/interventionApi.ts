@@ -2,6 +2,7 @@ import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList, snapshotNestedHydra } from '@/offline/snapshotRead'
+import { withCachedDocumentBlob } from '@/offline/docCache'
 import type { HydraCollection } from '@/types'
 import type {
   Intervention,
@@ -103,12 +104,12 @@ export const interventionApi = {
       .delete(`/api/suivis-journaliers/${suiviId}/documents/${docId}`)
       .then((r) => r.data),
 
-  getSuiviDocumentBlob: (suiviId: string, docId: string): Promise<Blob> =>
-    api
-      .get(`/api/suivis-journaliers/${suiviId}/documents/${docId}/download`, {
-        responseType: 'blob',
-      })
-      .then((r) => r.data as Blob),
+  getSuiviDocumentBlob: (suiviId: string, docId: string): Promise<Blob> => {
+    const url = `/api/suivis-journaliers/${suiviId}/documents/${docId}/download`
+    return withCachedDocumentBlob(url, () =>
+      api.get(url, { responseType: 'blob' }).then((r) => r.data as Blob),
+    )
+  },
 
   getDashboard: (filters?: InterventionSuiviFilters) => {
     const params: Record<string, string> = {}

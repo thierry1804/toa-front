@@ -43,14 +43,16 @@ export function useOfflineSnapshot() {
   const pull = useCallback(async (): Promise<PullSnapshotResult> => {
     setStatus('loading')
     setErrorCode(null)
+    setProgress({ phase: 'manifest', percent: 0 })
     const result = await pullOfflineSnapshot(queryClient, {
       since: meta?.generatedAt,
       onProgress: setProgress,
     })
-    setProgress(null)
     if (result.ok) {
+      setProgress({ phase: 'documents', percent: 100, loaded: 1, total: 1 })
       setStatus('ready')
     } else {
+      setProgress(null)
       setStatus('error')
       setErrorCode(result.code)
     }

@@ -3,6 +3,7 @@ import { triggerBlobDownload } from '@/lib/downloadBlob'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
+import { withCachedDocumentBlob } from '@/offline/docCache'
 import type { HydraCollection } from '@/types'
 import type {
   PermitTravail,
@@ -69,12 +70,12 @@ export const permitTravailApi = {
       .then((r) => r.data)
   },
 
-  getDocumentBlob: (permitId: string, documentId: string): Promise<Blob> =>
-    api
-      .get(`/api/permits-travail/${permitId}/documents/${documentId}/download`, {
-        responseType: 'blob',
-      })
-      .then((r) => r.data as Blob),
+  getDocumentBlob: (permitId: string, documentId: string): Promise<Blob> => {
+    const url = `/api/permits-travail/${permitId}/documents/${documentId}/download`
+    return withCachedDocumentBlob(url, () =>
+      api.get(url, { responseType: 'blob' }).then((r) => r.data as Blob),
+    )
+  },
 
   downloadDocument: async (permitId: string, documentId: string, filename?: string): Promise<void> => {
     const blob = await permitTravailApi.getDocumentBlob(permitId, documentId)

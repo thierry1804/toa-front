@@ -89,11 +89,29 @@ export function OfflineSnapshotModal({
   const canRetry = isOnline && !isSyncing && failedItems.length > 0
 
   const progressPct =
-    progress?.total && progress.total > 0
-      ? Math.min(100, Math.round(((progress.loaded ?? 0) / progress.total) * 100))
-      : status === 'loading'
-        ? 10
-        : 0
+    status === 'loading' ? Math.max(0, Math.min(100, progress?.percent ?? 0)) : 0
+
+  const progressLabel =
+    progress?.phase === 'documents'
+      ? progress.total && progress.total > 0
+        ? t('offline.snapshot.progressDocuments', {
+            loaded: progress.loaded ?? 0,
+            total: progress.total,
+          })
+        : t('offline.snapshot.progressDocumentsEmpty')
+      : progress?.phase === 'module' && progress.module
+        ? t('offline.snapshot.progressModule', {
+            module: t(`offline.snapshot.modules.${progress.module}`),
+            loaded: progress.loaded ?? 0,
+            total: progress.total ?? 0,
+          })
+        : progress?.phase === 'persist'
+          ? t('offline.snapshot.progressSaving')
+          : progress?.phase === 'manifest'
+            ? t('offline.snapshot.progressManifest')
+            : progress?.phase === 'snapshot'
+              ? t('offline.snapshot.progressSnapshot')
+              : t('offline.snapshot.progress')
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('offline.snapshot.title')} size="md">
@@ -153,10 +171,23 @@ export function OfflineSnapshotModal({
 
       {status === 'loading' && (
         <div className="mt-4">
-          <div className="h-2 overflow-hidden rounded bg-gray-200">
-            <div className="h-full bg-gray-800" style={{ width: `${progressPct}%` }} />
+          <div
+            className="h-2 overflow-hidden rounded bg-gray-200"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progressPct}
+            aria-label={t('offline.snapshot.progress')}
+          >
+            <div
+              className="h-full bg-gray-800 transition-[width] duration-200 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
-          <p className="mt-1 text-xs text-gray-500">{t('offline.snapshot.progress')}</p>
+          <p className="mt-1 text-xs tabular-nums text-gray-500">
+            {progressLabel}
+            {progressPct > 0 ? ` · ${progressPct}%` : null}
+          </p>
         </div>
       )}
 

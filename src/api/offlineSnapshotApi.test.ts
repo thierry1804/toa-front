@@ -27,7 +27,10 @@ describe('offlineSnapshotApi', () => {
   it('GET snapshot without since or modules', async () => {
     await offlineSnapshotApi.getSnapshot()
 
-    expect(mockGet).toHaveBeenCalledWith(SNAPSHOT_PATH, { params: {} })
+    expect(mockGet).toHaveBeenCalledWith(SNAPSHOT_PATH, {
+      params: {},
+      onDownloadProgress: undefined,
+    })
   })
 
   it('passes since and modules as CSV', async () => {
@@ -41,6 +44,17 @@ describe('offlineSnapshotApi', () => {
         since: '2026-08-01T00:00:00Z',
         modules: 'plansPrevention,permitsTravail',
       },
+      onDownloadProgress: undefined,
+    })
+  })
+
+  it('forwards onDownloadProgress to axios', async () => {
+    const onDownloadProgress = vi.fn()
+    await offlineSnapshotApi.getSnapshot({ onDownloadProgress })
+
+    expect(mockGet).toHaveBeenCalledWith(SNAPSHOT_PATH, {
+      params: {},
+      onDownloadProgress,
     })
   })
 
