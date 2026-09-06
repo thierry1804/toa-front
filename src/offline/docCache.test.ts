@@ -98,4 +98,26 @@ describe('withCachedDocumentBlob', () => {
       Object.defineProperty(navigator, 'onLine', { configurable: true, value: previous })
     }
   })
+
+  it('falls back to the Workbox cache when IndexedDB is empty', async () => {
+    const { withCachedDocumentBlob } = await import('./docCache')
+    const swBlob = new Blob(['from-sw'], { type: 'application/pdf' })
+    const match = { ok: true, blob: async () => swBlob }
+    const open = vi.fn(async () => ({
+      match: vi.fn(async () => match),
+    }))
+    vi.stubGlobal('caches', { open })
+
+    const previous = navigator.onLine
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
+    try {
+      const blob = await withCachedDocumentBlob('/api/permits-travail/p1/documents/d1/download', async () => {
+        throw new Error('network')
+      })
+      expect(await blob.text()).toBe('from-sw')
+    } finally {
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: previous })
+      vi.unstubAllGlobals()
+    }
+  })
 })

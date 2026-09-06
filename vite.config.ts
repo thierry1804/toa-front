@@ -28,13 +28,9 @@ export default defineConfig({
           {
             urlPattern: ({ url }: { url: URL }) =>
               /\/(documents\/[^/]+\/download|signature\/download)/.test(url.pathname),
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'toa-doc-cache',
-              // Réduit de 10s à 3s : un réseau qui fonctionne répond
-              // largement dans ce délai, et ça évite de faire attendre
-              // l'utilisateur hors-ligne avant de servir le cache.
-              networkTimeoutSeconds: 3,
               cacheableResponse: { statuses: [200] },
               expiration: {
                 maxEntries: 50,

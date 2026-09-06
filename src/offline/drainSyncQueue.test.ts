@@ -12,6 +12,11 @@ vi.mock('@/offline/syncQueue', () => ({
 vi.mock('@/offline/blobStore', () => ({
   rebuildFormData: vi.fn(),
   deleteBlobsForParts: vi.fn().mockResolvedValue(undefined),
+  getBlob: vi.fn(),
+}))
+
+vi.mock('@/offline/docCache', () => ({
+  putCachedDocument: vi.fn().mockResolvedValue(true),
 }))
 
 vi.mock('@/lib/axios', () => ({
@@ -21,7 +26,8 @@ vi.mock('@/lib/axios', () => ({
 import { drainSyncQueue } from './drainSyncQueue'
 import { syncQueue } from '@/offline/syncQueue'
 import api from '@/lib/axios'
-import { rebuildFormData, deleteBlobsForParts } from '@/offline/blobStore'
+import { rebuildFormData, deleteBlobsForParts, getBlob } from '@/offline/blobStore'
+import { putCachedDocument } from '@/offline/docCache'
 
 type SyncItem = {
   id: string
@@ -165,5 +171,38 @@ describe('drainSyncQueue', () => {
     )
     expect(deleteBlobsForParts).toHaveBeenCalledWith(queued.formParts)
     expect(mockRemove).toHaveBeenCalledWith('doc-1')
+  })
+
+  it('seeds doc-cache from the local blob before deleting it', async () => {
+    const form = new FormData()
+    vi.mocked(rebuildFormData).mockResolvedValue(form)
+    vi.mocked(getBlob).mockResolvedValue({
+      blob: new Blob(['img'], { type: 'image/jpeg' }),
+      filename: 'a.jpg',
+      mimeType: 'image/jpeg',
+      size: 3,
+      id: 'b1',
+      createdAt: 0,
+    })
+
+    const queued = item({
+      id: 'doc-1',
+      url: '/api/permits-travail/1/documents',
+      formParts: [
+        { name: 'type', kind: 'text', value: 'PV' },
+        { name: 'file', kind: 'file', blobId: 'b1', filename: 'a.jpg' },
+      ],
+    })
+    mockGetAll.mockResolvedValue([queued])
+    mockApi.mockResolvedValue({ data: { id: 'doc-99' } })
+
+    await drainSyncQueue(queryClient, addToast)
+
+    expect(putCachedDocument).toHaveBeenCalledWith(
+      '/api/permits-travail/1/documents/doc-99/download',
+      expect.any(Blob),
+      'a.jpg',
+    )
+    expect(deleteBlobsForParts).toHaveBeenCalledWith(queued.formParts)
   })
 })

@@ -17,7 +17,6 @@ import { hydrateFromSnapshot } from './hydrateFromSnapshot'
 import { applyDelta, getSnapshotMeta, saveSnapshot } from './snapshotStore'
 import { hydraMember, hydraTotalItems } from './asHydra'
 import { collectSnapshotDocuments } from './collectSnapshotDocuments'
-import { clearDocCache } from './docCache'
 import { prefetchSnapshotDocuments } from './prefetchSnapshotDocuments'
 import {
   PULL_PROGRESS,
@@ -124,13 +123,11 @@ async function pullPaginated(
 
 async function prefetchDocumentsForSnapshot(
   snapshot: OfflineSnapshot,
-  incremental: boolean,
   onProgress?: (p: PullProgress) => void,
 ): Promise<void> {
   const docs = collectSnapshotDocuments(snapshot)
-  if (!incremental) {
-    await clearDocCache()
-  }
+  // Do not clear the opportunistic cache: docs opened/uploaded earlier must
+  // remain readable offline even if this dump prefetch is skipped or partial.
   if (docs.length === 0) {
     onProgress?.({
       phase: 'documents',
@@ -236,7 +233,7 @@ export async function pullOfflineSnapshot(
     report({ phase: 'persist', percent: PULL_PROGRESS.persistEnd })
 
     if (!opts?.silent) {
-      await prefetchDocumentsForSnapshot(snapshot, incremental, opts?.onProgress)
+      await prefetchDocumentsForSnapshot(snapshot, opts?.onProgress)
     } else {
       report({ phase: 'persist', percent: PULL_PROGRESS.done })
     }

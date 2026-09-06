@@ -3,7 +3,7 @@ import { openBlobInNewTab, triggerBlobDownload } from '@/lib/downloadBlob'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
-import { withCachedDocumentBlob } from '@/offline/docCache'
+import { putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
 import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
@@ -76,7 +76,15 @@ export const planPreventionApi = {
       .post<DocumentPrevention>(`/api/plans-prevention/${id}/documents`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      .then((r) => r.data)
+      .then(async (r) => {
+        const doc = r.data
+        await putCachedDocument(
+          `/api/plans-prevention/${id}/documents/${doc.id}/download`,
+          file,
+          file.name,
+        ).catch(() => false)
+        return doc
+      })
   },
 
   examiner: (id: string, commentaire?: string) =>

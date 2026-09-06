@@ -2,7 +2,7 @@ import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList, snapshotNestedHydra } from '@/offline/snapshotRead'
-import { withCachedDocumentBlob } from '@/offline/docCache'
+import { putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
 import type { HydraCollection } from '@/types'
 import type {
   Intervention,
@@ -96,7 +96,15 @@ export const interventionApi = {
       .post<SuiviJournalierDocument>(`/api/suivis-journaliers/${suiviId}/documents`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      .then((r) => r.data)
+      .then(async (r) => {
+        const doc = r.data
+        await putCachedDocument(
+          `/api/suivis-journaliers/${suiviId}/documents/${doc.id}/download`,
+          file,
+          file.name,
+        ).catch(() => false)
+        return doc
+      })
   },
 
   deleteSuiviDocument: (suiviId: string, docId: string) =>

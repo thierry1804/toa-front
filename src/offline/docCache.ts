@@ -10,6 +10,8 @@ export type CachedDocument = {
   cachedAt: number
 }
 
+const SW_DOC_CACHE = 'toa-doc-cache'
+
 function normalizeUrl(url: string): string {
   try {
     if (/^https?:\/\//i.test(url)) {
@@ -61,6 +63,34 @@ export async function clearDocCache(): Promise<void> {
   await db.clear(DOC_CACHE_STORE)
 }
 
+/** Best-effort read from the Workbox runtime cache (previous online downloads). */
+export async function getDocumentBlobFromSwCache(url: string): Promise<Blob | undefined> {
+  if (typeof caches === 'undefined') return undefined
+  const path = normalizeUrl(url)
+  try {
+    const cache = await caches.open(SW_DOC_CACHE)
+    const candidates = [path]
+    try {
+      const base = import.meta.env.VITE_API_URL as string | undefined
+      if (base) candidates.unshift(new URL(path, base).href)
+    } catch {
+      // ignore invalid base URL
+    }
+    for (const candidate of candidates) {
+      const match = await cache.match(candidate)
+      if (match && match.ok) return match.blob()
+    }
+  } catch {
+    return undefined
+  }
+  return undefined
+}
+
+/**
+ * Serves a document blob for viewing/download.
+ * Offline (or after network failure): IndexedDB first, then Workbox cache.
+ * Online: network, then seed IndexedDB for later offline use (no dump prefetch required).
+ */
 export async function withCachedDocumentBlob(
   url: string,
   network: () => Promise<Blob>,
@@ -69,9 +99,15 @@ export async function withCachedDocumentBlob(
   const key = normalizeUrl(url)
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false
 
-  if (offline) {
+  const fromLocal = async (): Promise<Blob | undefined> => {
     const cached = await getCachedDocument(key)
     if (cached) return cached.blob
+    return getDocumentBlobFromSwCache(key)
+  }
+
+  if (offline) {
+    const local = await fromLocal()
+    if (local) return local
   }
 
   try {
@@ -79,8 +115,8 @@ export async function withCachedDocumentBlob(
     await putCachedDocument(key, blob, opts?.filename).catch(() => false)
     return blob
   } catch (err) {
-    const cached = await getCachedDocument(key)
-    if (cached) return cached.blob
+    const local = await fromLocal()
+    if (local) return local
     throw err
   }
 }

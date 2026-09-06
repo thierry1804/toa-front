@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 
-const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockDelta, mockHydrate, mockClearDocs, mockPrefetch } =
+const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockDelta, mockHydrate, mockPrefetch } =
   vi.hoisted(() => ({
     mockGetManifest: vi.fn(),
     mockGetSnapshot: vi.fn(),
@@ -9,7 +9,6 @@ const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockD
     mockSave: vi.fn().mockResolvedValue(undefined),
     mockDelta: vi.fn().mockResolvedValue(undefined),
     mockHydrate: vi.fn(),
-    mockClearDocs: vi.fn().mockResolvedValue(undefined),
     mockPrefetch: vi.fn().mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 }),
   }))
 
@@ -29,10 +28,6 @@ vi.mock('./snapshotStore', () => ({
 
 vi.mock('./hydrateFromSnapshot', () => ({
   hydrateFromSnapshot: mockHydrate,
-}))
-
-vi.mock('./docCache', () => ({
-  clearDocCache: mockClearDocs,
 }))
 
 vi.mock('./prefetchSnapshotDocuments', () => ({
@@ -57,7 +52,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockSave.mockResolvedValue(undefined)
   mockDelta.mockResolvedValue(undefined)
-  mockClearDocs.mockResolvedValue(undefined)
   mockPrefetch.mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 })
   vi.mocked(collectSnapshotDocuments).mockReturnValue([{ url: '/api/doc', filename: 'a.pdf' }])
 })
@@ -82,7 +76,6 @@ describe('pullOfflineSnapshot', () => {
     expect(mockSave).toHaveBeenCalledWith(snapshot)
     expect(mockDelta).not.toHaveBeenCalled()
     expect(mockHydrate).toHaveBeenCalledWith(qc, snapshot)
-    expect(mockClearDocs).toHaveBeenCalledTimes(1)
     expect(mockPrefetch).toHaveBeenCalled()
   })
 
@@ -96,7 +89,6 @@ describe('pullOfflineSnapshot', () => {
     expect(result.ok).toBe(true)
     expect(mockDelta).toHaveBeenCalledWith(snapshot)
     expect(mockSave).not.toHaveBeenCalled()
-    expect(mockClearDocs).not.toHaveBeenCalled()
     expect(mockPrefetch).toHaveBeenCalled()
   })
 
@@ -107,7 +99,6 @@ describe('pullOfflineSnapshot', () => {
     await pullOfflineSnapshot(qc, { silent: true })
 
     expect(mockPrefetch).not.toHaveBeenCalled()
-    expect(mockClearDocs).not.toHaveBeenCalled()
   })
 
   it('reports overall percent through download and documents', async () => {
