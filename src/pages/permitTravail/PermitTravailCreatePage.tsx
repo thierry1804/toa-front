@@ -198,6 +198,8 @@ export default function PermitTravailCreatePage() {
       }))
   }, [allRisqueRows, showAllRisks, matchingCatNames])
 
+  const excludedRisqueCount = showAllRisks ? 0 : allRisqueRows.length - filteredRisqueRows.length
+
   const filteredSections = useMemo(() => {
     const sections = selectedPlan?.planificationSections ?? []
     if (showAllRisks) return sections
@@ -601,6 +603,16 @@ export default function PermitTravailCreatePage() {
                   <span>
                     Catégories non configurées — tous les risques sont affichés.
                     Configurer dans <strong>Référentiel &gt; Gestion de risques</strong>.
+                  </span>
+                </div>
+              )}
+              {excludedRisqueCount > 0 && (
+                <div className="mb-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    {excludedRisqueCount} risque{excludedRisqueCount > 1 ? 's' : ''} identifié{excludedRisqueCount > 1 ? 's' : ''} du plan de prévention {excludedRisqueCount > 1 ? 'ne sont pas repris' : "n'est pas repris"} ici
+                    (catégorie non liée au type de permis {TYPE_PERMIT_LABELS[typePermis]}).
+                    Consultez le plan de prévention complet pour la liste intégrale, ou créez un permis du type correspondant.
                   </span>
                 </div>
               )}
