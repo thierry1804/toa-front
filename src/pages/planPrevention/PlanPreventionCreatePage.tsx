@@ -774,28 +774,30 @@ export default function PlanPreventionCreatePage({
           <div className="space-y-6">
             {activePlan && <PlanReference reference={activePlan.reference} />}
 
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                Liste des installations et matériels utilisés{" "}
-                <span className="text-red-500 font-normal">
-                  (minimum 1 requis)
-                </span>
-              </h3>
-              {installationsMinError && (
-                <p className="mb-2 text-xs text-red-600">
-                  Ajoutez au moins une installation pour continuer.
-                </p>
-              )}
-              <InstallationsTable
-                value={localInstallations}
-                onChange={(rows) => {
-                  setLocalInstallations(rows);
-                  setInstallationsErrors({});
-                  if (rows.length > 0) setInstallationsMinError(false);
-                }}
-                errors={installationsErrors}
-              />
-            </div>
+            {isNouveauSite && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  Liste des installations et matériels utilisés{" "}
+                  <span className="text-red-500 font-normal">
+                    (minimum 1 requis)
+                  </span>
+                </h3>
+                {installationsMinError && (
+                  <p className="mb-2 text-xs text-red-600">
+                    Ajoutez au moins une installation pour continuer.
+                  </p>
+                )}
+                <InstallationsTable
+                  value={localInstallations}
+                  onChange={(rows) => {
+                    setLocalInstallations(rows);
+                    setInstallationsErrors({});
+                    if (rows.length > 0) setInstallationsMinError(false);
+                  }}
+                  errors={installationsErrors}
+                />
+              </div>
+            )}
 
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-1">
@@ -1047,8 +1049,7 @@ export default function PlanPreventionCreatePage({
     } else if (step === 1) {
       await handleStep1Next();
     } else if (step === 2) {
-      // Skip installations step when not "Nouveau site"
-      setStep(isNouveauSite ? 3 : 4);
+      setStep(3);
     } else if (step === 3) {
       await handleStep4Next();
     } else if (!isLastStep) {
@@ -1145,7 +1146,7 @@ export default function PlanPreventionCreatePage({
       <div className="flex flex-col-reverse sm:flex-row justify-between gap-3">
         <Button
           variant="outline"
-          onClick={() => setStep(step === 4 && !isNouveauSite ? 2 : step - 1)}
+          onClick={() => setStep(step - 1)}
           disabled={step === 0 || isPending}
           size="lg"
         >
