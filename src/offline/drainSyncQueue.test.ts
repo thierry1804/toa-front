@@ -182,7 +182,6 @@ describe('drainSyncQueue', () => {
       mimeType: 'image/jpeg',
       size: 3,
       id: 'b1',
-      createdAt: 0,
     })
 
     const queued = item({

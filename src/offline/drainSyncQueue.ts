@@ -16,7 +16,7 @@ function documentDownloadUrl(uploadUrl: string, docId: string): string | null {
 
 async function seedDocCacheFromSyncedUpload(item: SyncItem, responseData: unknown): Promise<void> {
   if (!item.formParts?.length) return
-  if (item.method !== 'POST' && item.method !== 'post') return
+  if (item.method !== 'POST') return
   const record = responseData && typeof responseData === 'object' ? (responseData as Record<string, unknown>) : null
   const docId =
     record && (typeof record.id === 'string' || typeof record.id === 'number') ? String(record.id) : null
