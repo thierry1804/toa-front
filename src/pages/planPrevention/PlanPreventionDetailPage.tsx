@@ -120,6 +120,7 @@ export default function PlanPreventionDetailPage() {
   const [examinerOpen, setExaminerOpen] = useState(false);
   const [validerOpen, setValiderOpen] = useState(false);
   const [refuserOpen, setRefuserOpen] = useState(false);
+  const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -187,8 +188,6 @@ export default function PlanPreventionDetailPage() {
   }));
 
   const uploadedTypes = new Set((plan.documents ?? []).map((d) => d.type));
-
-  const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null);
 
   const downloadDocument = async (docId: string, filename: string) => {
     await planPreventionApi.downloadDocument(plan.id, docId, filename);
