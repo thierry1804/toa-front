@@ -31,6 +31,7 @@ import ValiderModal from "@/components/planPrevention/ValiderModal";
 import RefuserModal from "@/components/planPrevention/RefuserModal";
 import PdfGenerationButton from "@/components/planPrevention/PdfGenerationButton";
 import PdfStatusBadge from "@/components/planPrevention/PdfStatusBadge";
+import DocumentViewerModal from "@/components/documents/DocumentViewerModal";
 import {
   usePlanPreventionDetail,
   usePlanPrevention,
@@ -186,6 +187,8 @@ export default function PlanPreventionDetailPage() {
   }));
 
   const uploadedTypes = new Set((plan.documents ?? []).map((d) => d.type));
+
+  const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null);
 
   const downloadDocument = async (docId: string, filename: string) => {
     await planPreventionApi.downloadDocument(plan.id, docId, filename);
@@ -434,20 +437,33 @@ export default function PlanPreventionDetailPage() {
                   {TYPES_DOCUMENT_LABELS[type]}
                 </span>
                 {uploaded && doc && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void downloadDocument(
-                        doc.id,
-                        doc.filePath.split("/").at(-1) ?? "document",
-                      );
-                    }}
-                    className="ml-auto flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {t("planPrevention.detail.download")}
-                  </button>
+                  <div className="ml-auto flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewingDoc({ id: doc.id, label: TYPES_DOCUMENT_LABELS[type] });
+                      }}
+                      className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      {t("planPrevention.detail.view")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void downloadDocument(
+                          doc.id,
+                          doc.filePath.split("/").at(-1) ?? "document",
+                        );
+                      }}
+                      className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {t("planPrevention.detail.download")}
+                    </button>
+                  </div>
                 )}
               </li>
             );
@@ -552,6 +568,13 @@ export default function PlanPreventionDetailPage() {
         isRefusing={isRefusing}
         onClose={() => setRefuserOpen(false)}
         onRefuser={refuserPlan}
+      />
+
+      <DocumentViewerModal
+        isOpen={viewingDoc !== null}
+        onClose={() => setViewingDoc(null)}
+        title={viewingDoc?.label ?? ""}
+        blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(plan.id, viewingDoc.id) : null}
       />
     </div>
   );
