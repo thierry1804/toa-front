@@ -270,18 +270,18 @@
   "planning": {
     "project": "Tetikasa",
     "sections": {
-      "ajouter_section": "Manampy fizarana",
-      "supprimer_section": "Fafao ny fizarana",
-      "nom_section": "Anarana ny fizarana",
+      "ajouter_section": "Manampy dingana",
+      "supprimer_section": "Fafao ny dingana",
+      "nom_section": "Anaran'ny dingana",
       "nom_section_mg": "Anarana (Malagasy)",
-      "col_tache": "Asa hatao",
+      "col_tache": "Fomba fiasa",
       "col_materiel": "Fitaovana",
       "col_qui": "Iza ?",
       "ajouter_ligne": "Manampy andalana",
-      "aucune_section": "Tsy misy fizarana",
-      "aucune_tache": "Tsy misy asa",
-      "tache_requise": "Tsy maintsy fenoina ny asa",
-      "title": "Fizarana sy asa"
+      "aucune_section": "Tsy misy dingana",
+      "aucune_tache": "Tsy misy fomba fiasa",
+      "tache_requise": "Tsy maintsy fenoina ny fomba fiasa",
+      "title": "Dingana sy fomba fiasa"
     },
     "title": "Fandrindrana ny hetsika",
     "listTitle": "Lisitry ny fandrindrana ({{count}})",

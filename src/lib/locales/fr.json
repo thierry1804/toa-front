@@ -270,18 +270,18 @@
   "planning": {
     "project": "Projet",
     "sections": {
-      "ajouter_section": "Ajouter une section",
-      "supprimer_section": "Supprimer la section",
-      "nom_section": "Nom de la section",
+      "ajouter_section": "Ajouter une phase",
+      "supprimer_section": "Supprimer la phase",
+      "nom_section": "Nom de la phase",
       "nom_section_mg": "Nom (Malagasy)",
-      "col_tache": "Tâche",
+      "col_tache": "Mode opératoire",
       "col_materiel": "Matériel/Outillage",
       "col_qui": "Qui ?",
       "ajouter_ligne": "Ajouter une ligne",
-      "aucune_section": "Aucune section",
-      "aucune_tache": "Aucune tâche",
-      "tache_requise": "La tâche est obligatoire",
-      "title": "Sections et tâches"
+      "aucune_section": "Aucune phase",
+      "aucune_tache": "Aucun mode opératoire",
+      "tache_requise": "Le mode opératoire est obligatoire",
+      "title": "Phases et modes opératoires"
     },
     "title": "Planification des activités",
     "listTitle": "Liste des planifications ({{count}})",
