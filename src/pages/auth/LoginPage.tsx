@@ -55,7 +55,7 @@ export default function LoginPage() {
       data-pwa={isPwa ? "true" : "false"}
     >
       <img
-        src="/images/login-bg.webp?v=3"
+        src="/images/login-bg.webp?v=4"
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-bottom opacity-90"

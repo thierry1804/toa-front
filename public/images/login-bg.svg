@@ -22,19 +22,19 @@
       <stop offset="0%" stop-color="#4a6344"/>
       <stop offset="100%" stop-color="#2f3f2c"/>
     </linearGradient>
-    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="mast" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#9ca3af"/>
-      <stop offset="45%" stop-color="#6b7280"/>
-      <stop offset="100%" stop-color="#374151"/>
+      <stop offset="50%" stop-color="#6b7280"/>
+      <stop offset="100%" stop-color="#4b5563"/>
     </linearGradient>
-    <filter id="soft" x="-5%" y="-5%" width="110%" height="110%">
-      <feGaussianBlur stdDeviation="0.6"/>
-    </filter>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e5e7eb"/>
+      <stop offset="100%" stop-color="#9ca3af"/>
+    </linearGradient>
   </defs>
 
   <rect width="1920" height="1080" fill="url(#sky)"/>
 
-  <!-- Soft cloud wisps (very light) -->
   <g fill="#dbe4ea" opacity="0.35">
     <ellipse cx="320" cy="210" rx="120" ry="28"/>
     <ellipse cx="400" cy="205" rx="90" ry="22"/>
@@ -42,19 +42,11 @@
     <ellipse cx="1580" cy="175" rx="100" ry="20"/>
   </g>
 
-  <!-- Far mountains -->
   <path fill="url(#far)" opacity="0.5" d="M0 640 L180 560 L340 610 L520 520 L700 590 L900 500 L1100 580 L1280 510 L1500 575 L1700 530 L1920 590 L1920 1080 L0 1080 Z"/>
-
-  <!-- Mid rolling hills -->
   <path fill="url(#mid)" d="M0 760 C160 720 320 745 480 730 C700 710 860 760 1080 735 C1280 715 1480 755 1680 740 C1800 732 1880 745 1920 750 L1920 1080 L0 1080 Z"/>
-
-  <!-- Near hills -->
   <path fill="url(#near)" d="M0 860 C200 825 400 850 620 835 C900 810 1120 860 1400 840 C1620 825 1780 850 1920 845 L1920 1080 L0 1080 Z"/>
-
-  <!-- Foreground meadow -->
   <path fill="url(#ground)" d="M0 960 C280 935 560 955 880 945 C1200 932 1500 960 1920 950 L1920 1080 L0 1080 Z"/>
 
-  <!-- Tree silhouettes (mid distance) -->
   <g fill="#3a4f36" opacity="0.55">
     <path d="M140 790 L155 730 L170 790 Z"/><rect x="150" y="785" width="6" height="18" rx="1"/>
     <path d="M420 805 L438 735 L456 805 Z"/><rect x="433" y="800" width="7" height="20" rx="1"/>
@@ -63,68 +55,79 @@
     <path d="M1820 812 L1835 755 L1850 812 Z"/><rect x="1830" y="808" width="5" height="14" rx="1"/>
   </g>
 
-  <!-- Grass strokes foreground -->
   <g stroke="#2a3828" stroke-width="1.2" stroke-opacity="0.25" fill="none">
     <path d="M40 1000 l4 -14 M70 1010 l-3 -12 M110 998 l5 -15 M160 1015 l-4 -13 M210 1005 l3 -14"/>
     <path d="M1680 1010 l4 -13 M1720 1000 l-3 -14 M1780 1015 l5 -12 M1840 1005 l-4 -15 M1880 1012 l3 -13"/>
   </g>
 
-  <!-- Conductors -->
-  <g fill="none" stroke="#6b7280" stroke-linecap="round" filter="url(#soft)">
-    <path d="M210 455 C520 510 860 470 1160 500 C1400 520 1600 470 1730 430" stroke-width="1.6" stroke-opacity="0.55"/>
-    <path d="M210 470 C520 525 860 485 1160 515 C1400 535 1600 485 1730 445" stroke-width="1.3" stroke-opacity="0.4"/>
-    <path d="M340 455 C600 495 900 455 1200 485 C1450 510 1620 460 1730 430" stroke-width="1.4" stroke-opacity="0.45"/>
+  <!-- Telecom tower LEFT (lattice mast + sector antennas) -->
+  <g opacity="0.92">
+    <!-- legs / lattice body tapering upward -->
+    <path d="M230 955 L262 280" stroke="url(#mast)" stroke-width="2.2" fill="none"/>
+    <path d="M310 955 L278 280" stroke="url(#mast)" stroke-width="2.2" fill="none"/>
+    <path d="M236 900 L304 900 M240 840 L300 840 M244 780 L296 780 M248 720 L292 720 M252 660 L288 660 M256 600 L284 600 M260 540 L280 540 M264 480 L276 480 M266 420 L274 420 M268 360 L272 360" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+    <path d="M236 900 L304 840 M304 900 L236 840 M240 840 L300 780 M300 840 L240 780 M244 780 L296 720 M296 780 L244 720 M248 720 L292 660 M292 720 L248 660 M252 660 L288 600 M288 660 L252 600 M256 600 L284 540 M284 600 L256 540 M260 540 L280 480 M280 540 L260 480" stroke="#6b7280" stroke-width="1.2" fill="none"/>
+    <!-- platform rings -->
+    <ellipse cx="270" cy="360" rx="42" ry="7" fill="none" stroke="#4b5563" stroke-width="2"/>
+    <ellipse cx="270" cy="320" rx="38" ry="6" fill="none" stroke="#4b5563" stroke-width="1.8"/>
+    <ellipse cx="270" cy="285" rx="28" ry="5" fill="none" stroke="#4b5563" stroke-width="1.6"/>
+    <!-- sector antenna panels (3 around top) -->
+    <rect x="228" y="300" width="18" height="48" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1"/>
+    <rect x="294" y="300" width="18" height="48" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1"/>
+    <rect x="255" y="268" width="30" height="14" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1" transform="rotate(-8 270 275)"/>
+    <!-- microwave dishes -->
+    <ellipse cx="220" cy="400" rx="16" ry="16" fill="none" stroke="#6b7280" stroke-width="2.2"/>
+    <ellipse cx="220" cy="400" rx="6" ry="6" fill="#9ca3af" stroke="none"/>
+    <path d="M236 400 L255 400" stroke="#6b7280" stroke-width="2"/>
+    <ellipse cx="320" cy="450" rx="14" ry="14" fill="none" stroke="#6b7280" stroke-width="2"/>
+    <ellipse cx="320" cy="450" rx="5" ry="5" fill="#9ca3af" stroke="none"/>
+    <path d="M285 450 L306 450" stroke="#6b7280" stroke-width="2"/>
+    <!-- tip / lightning rod -->
+    <path d="M270 280 L270 240" stroke="#4b5563" stroke-width="2"/>
+    <circle cx="270" cy="236" r="3" fill="#9ca3af"/>
+    <!-- equipment shelter at base -->
+    <rect x="248" y="930" width="44" height="28" rx="2" fill="#6b7280" opacity="0.75"/>
+    <rect x="252" y="934" width="12" height="10" rx="1" fill="#d1d5db" opacity="0.7"/>
+  </g>
+  <ellipse cx="270" cy="958" rx="70" ry="10" fill="#111827" opacity="0.14"/>
+
+  <!-- Telecom tower MID (farther / smaller) -->
+  <g opacity="0.55">
+    <path d="M1005 870 L1020 520" stroke="#4b5563" stroke-width="1.5" fill="none"/>
+    <path d="M1055 870 L1040 520" stroke="#4b5563" stroke-width="1.5" fill="none"/>
+    <path d="M1008 830 L1052 830 M1010 790 L1050 790 M1012 750 L1048 750 M1014 710 L1046 710 M1016 670 L1044 670 M1018 630 L1042 630 M1020 590 L1040 590 M1022 550 L1038 550" stroke="#4b5563" stroke-width="1" fill="none"/>
+    <ellipse cx="1030" cy="545" rx="22" ry="4" fill="none" stroke="#4b5563" stroke-width="1.3"/>
+    <rect x="1008" y="520" width="10" height="28" rx="1" fill="#c4c9d1" stroke="#4b5563" stroke-width="0.8"/>
+    <rect x="1042" y="520" width="10" height="28" rx="1" fill="#c4c9d1" stroke="#4b5563" stroke-width="0.8"/>
+    <path d="M1030 520 L1030 495" stroke="#4b5563" stroke-width="1.3"/>
   </g>
 
-  <!-- PYLON LEFT -->
-  <g stroke="url(#steel)" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">
-    <path d="M200 955 L250 410" stroke-width="2.4"/>
-    <path d="M340 955 L290 410" stroke-width="2.4"/>
-    <!-- horizontal members -->
-    <path d="M208 900 L332 900 M212 840 L328 840 M218 780 L322 780 M224 720 L316 720 M232 660 L308 660 M240 600 L300 600 M248 540 L292 540 M254 480 L286 480" stroke-width="1.8"/>
-    <!-- X braces -->
-    <path d="M208 900 L332 840 M332 900 L208 840 M212 840 L328 780 M328 840 L212 780 M218 780 L322 720 M322 780 L218 720 M224 720 L316 660 M316 720 L224 660 M232 660 L308 600 M308 660 L232 600 M240 600 L300 540 M300 600 L240 540 M248 540 L292 480 M292 540 L248 480" stroke-width="1.5"/>
-    <!-- waist -->
-    <path d="M235 560 L305 560" stroke-width="2"/>
-    <!-- crossarm -->
-    <path d="M165 430 L375 430 M165 448 L375 448" stroke-width="2.6"/>
-    <path d="M165 430 L165 460 M375 430 L375 460 M250 410 L250 460 M290 410 L290 460" stroke-width="2"/>
-    <!-- peak -->
-    <path d="M250 410 L270 372 L290 410" stroke-width="2.2"/>
-    <!-- insulator strings -->
-    <g stroke="#4b5563" stroke-width="2">
-      <path d="M185 448 L185 478"/><circle cx="185" cy="458" r="3" fill="#9ca3af" stroke="none"/>
-      <path d="M270 448 L270 478"/><circle cx="270" cy="458" r="3" fill="#9ca3af" stroke="none"/>
-      <path d="M355 448 L355 478"/><circle cx="355" cy="458" r="3" fill="#9ca3af" stroke="none"/>
-    </g>
+  <!-- Telecom tower RIGHT -->
+  <g opacity="0.9">
+    <path d="M1600 970 L1640 250" stroke="url(#mast)" stroke-width="2.3" fill="none"/>
+    <path d="M1700 970 L1660 250" stroke="url(#mast)" stroke-width="2.3" fill="none"/>
+    <path d="M1606 910 L1694 910 M1610 850 L1690 850 M1614 790 L1686 790 M1618 730 L1682 730 M1622 670 L1678 670 M1626 610 L1674 610 M1630 550 L1670 550 M1634 490 L1666 490 M1638 430 L1662 430 M1642 370 L1658 370 M1644 310 L1656 310" stroke="#6b7280" stroke-width="1.5" fill="none"/>
+    <path d="M1606 910 L1694 850 M1694 910 L1606 850 M1610 850 L1690 790 M1690 850 L1610 790 M1614 790 L1686 730 M1686 790 L1614 730 M1618 730 L1682 670 M1682 730 L1618 670 M1622 670 L1678 610 M1678 670 L1622 610 M1626 610 L1674 550 M1674 610 L1626 550 M1630 550 L1670 490 M1670 550 L1630 490 M1634 490 L1666 430 M1666 490 L1634 430" stroke="#6b7280" stroke-width="1.2" fill="none"/>
+    <ellipse cx="1650" cy="330" rx="48" ry="8" fill="none" stroke="#4b5563" stroke-width="2"/>
+    <ellipse cx="1650" cy="290" rx="42" ry="7" fill="none" stroke="#4b5563" stroke-width="1.8"/>
+    <ellipse cx="1650" cy="255" rx="30" ry="5" fill="none" stroke="#4b5563" stroke-width="1.6"/>
+    <!-- sector panels -->
+    <rect x="1600" y="268" width="20" height="52" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1"/>
+    <rect x="1680" y="268" width="20" height="52" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1"/>
+    <rect x="1632" y="238" width="36" height="16" rx="2" fill="url(#panel)" stroke="#4b5563" stroke-width="1"/>
+    <!-- dishes -->
+    <ellipse cx="1585" cy="380" rx="18" ry="18" fill="none" stroke="#6b7280" stroke-width="2.3"/>
+    <ellipse cx="1585" cy="380" rx="7" ry="7" fill="#9ca3af" stroke="none"/>
+    <path d="M1603 380 L1625 380" stroke="#6b7280" stroke-width="2"/>
+    <ellipse cx="1715" cy="430" rx="15" ry="15" fill="none" stroke="#6b7280" stroke-width="2.1"/>
+    <ellipse cx="1715" cy="430" rx="5.5" ry="5.5" fill="#9ca3af" stroke="none"/>
+    <path d="M1675 430 L1700 430" stroke="#6b7280" stroke-width="2"/>
+    <!-- tip -->
+    <path d="M1650 250 L1650 205" stroke="#4b5563" stroke-width="2"/>
+    <circle cx="1650" cy="201" r="3.5" fill="#9ca3af"/>
+    <!-- cabin -->
+    <rect x="1625" y="945" width="50" height="30" rx="2" fill="#6b7280" opacity="0.75"/>
+    <rect x="1630" y="950" width="14" height="11" rx="1" fill="#d1d5db" opacity="0.7"/>
   </g>
-  <ellipse cx="270" cy="958" rx="95" ry="11" fill="#111827" opacity="0.14"/>
-
-  <!-- PYLON MID (smaller / farther) -->
-  <g stroke="#4b5563" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
-    <path d="M980 880 L1005 560" stroke-width="1.6"/>
-    <path d="M1060 880 L1035 560" stroke-width="1.6"/>
-    <path d="M984 840 L1056 840 M987 800 L1053 800 M991 760 L1049 760 M996 720 L1044 720 M1000 680 L1040 680 M1004 640 L1036 640 M1008 600 L1032 600" stroke-width="1.2"/>
-    <path d="M984 840 L1056 800 M1056 840 L984 800 M987 800 L1053 760 M1053 800 L987 760 M991 760 L1049 720 M1049 760 L991 720 M996 720 L1044 680 M1044 720 L996 680 M1000 680 L1040 640 M1040 680 L1000 640 M1004 640 L1036 600 M1036 640 L1004 600" stroke-width="1"/>
-    <path d="M960 575 L1080 575 M960 588 L1080 588" stroke-width="1.6"/>
-    <path d="M1005 560 L1020 538 L1035 560" stroke-width="1.4"/>
-  </g>
-
-  <!-- PYLON RIGHT -->
-  <g stroke="url(#steel)" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-    <path d="M1560 970 L1610 360" stroke-width="2.4"/>
-    <path d="M1720 970 L1670 360" stroke-width="2.4"/>
-    <path d="M1568 910 L1712 910 M1572 850 L1708 850 M1578 790 L1702 790 M1586 730 L1694 730 M1594 670 L1686 670 M1602 610 L1678 610 M1608 550 L1672 550 M1614 490 L1666 490 M1618 430 L1662 430" stroke-width="1.8"/>
-    <path d="M1568 910 L1712 850 M1712 910 L1568 850 M1572 850 L1708 790 M1708 850 L1572 790 M1578 790 L1702 730 M1702 790 L1578 730 M1586 730 L1694 670 M1694 730 L1586 670 M1594 670 L1686 610 M1686 670 L1594 610 M1602 610 L1678 550 M1678 610 L1602 550 M1608 550 L1672 490 M1672 550 L1608 490 M1614 490 L1666 430 M1666 490 L1614 430" stroke-width="1.5"/>
-    <path d="M1595 520 L1685 520" stroke-width="2"/>
-    <path d="M1520 385 L1760 385 M1520 404 L1760 404" stroke-width="2.6"/>
-    <path d="M1520 385 L1520 418 M1760 385 L1760 418 M1610 360 L1610 418 M1670 360 L1670 418" stroke-width="2"/>
-    <path d="M1610 360 L1640 318 L1670 360" stroke-width="2.2"/>
-    <g stroke="#4b5563" stroke-width="2">
-      <path d="M1545 404 L1545 438"/><circle cx="1545" cy="416" r="3" fill="#9ca3af" stroke="none"/>
-      <path d="M1640 404 L1640 438"/><circle cx="1640" cy="416" r="3" fill="#9ca3af" stroke="none"/>
-      <path d="M1735 404 L1735 438"/><circle cx="1735" cy="416" r="3" fill="#9ca3af" stroke="none"/>
-    </g>
-  </g>
-  <ellipse cx="1640" cy="975" rx="115" ry="12" fill="#111827" opacity="0.14"/>
+  <ellipse cx="1650" cy="975" rx="85" ry="11" fill="#111827" opacity="0.14"/>
 </svg>
