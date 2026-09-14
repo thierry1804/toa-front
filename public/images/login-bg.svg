@@ -1,40 +1,130 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f1fafe"/>
-      <stop offset="70%" stop-color="#dff3fc"/>
-      <stop offset="100%" stop-color="#bae6f8"/>
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="42%" stop-color="#ffffff"/>
+      <stop offset="68%" stop-color="#f3f6f8"/>
+      <stop offset="100%" stop-color="#e4ebef"/>
     </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b8c5cc"/>
+      <stop offset="100%" stop-color="#8fa0a9"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7d9a72"/>
+      <stop offset="100%" stop-color="#5c7454"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a754f"/>
+      <stop offset="100%" stop-color="#3f5438"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a6344"/>
+      <stop offset="100%" stop-color="#2f3f2c"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9ca3af"/>
+      <stop offset="45%" stop-color="#6b7280"/>
+      <stop offset="100%" stop-color="#374151"/>
+    </linearGradient>
+    <filter id="soft" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="0.6"/>
+    </filter>
   </defs>
-  <rect width="1440" height="900" fill="url(#sky)"/>
-  <path fill="#bae6f8" fill-opacity="0.7" d="M0 420 C180 360 320 380 480 400 C700 430 860 340 1080 380 C1240 410 1360 390 1440 370 L1440 900 L0 900 Z"/>
-  <path fill="#87d3f3" fill-opacity="0.4" d="M0 520 C200 470 360 500 520 530 C740 570 920 480 1140 520 C1280 545 1380 530 1440 520 L1440 900 L0 900 Z"/>
-  <g stroke="#107198" stroke-width="2.5" fill="none" stroke-opacity="0.55">
-    <path d="M220 560 L220 280"/>
-    <path d="M200 330 L240 330 M190 380 L250 380 M185 430 L255 430 M180 480 L260 480"/>
-    <path d="M200 330 L175 280 M240 330 L265 280"/>
-    <path d="M175 280 L265 280"/>
-    <path d="M195 560 L220 480 M245 560 L220 480"/>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+
+  <!-- Soft cloud wisps (very light) -->
+  <g fill="#dbe4ea" opacity="0.35">
+    <ellipse cx="320" cy="210" rx="120" ry="28"/>
+    <ellipse cx="400" cy="205" rx="90" ry="22"/>
+    <ellipse cx="1480" cy="180" rx="140" ry="26"/>
+    <ellipse cx="1580" cy="175" rx="100" ry="20"/>
   </g>
-  <g stroke="#94959a" stroke-width="1.75" fill="none" stroke-opacity="0.6">
-    <path d="M175 280 C110 310 70 360 30 420"/>
-    <path d="M265 280 C360 320 430 390 500 470"/>
+
+  <!-- Far mountains -->
+  <path fill="url(#far)" opacity="0.5" d="M0 640 L180 560 L340 610 L520 520 L700 590 L900 500 L1100 580 L1280 510 L1500 575 L1700 530 L1920 590 L1920 1080 L0 1080 Z"/>
+
+  <!-- Mid rolling hills -->
+  <path fill="url(#mid)" d="M0 760 C160 720 320 745 480 730 C700 710 860 760 1080 735 C1280 715 1480 755 1680 740 C1800 732 1880 745 1920 750 L1920 1080 L0 1080 Z"/>
+
+  <!-- Near hills -->
+  <path fill="url(#near)" d="M0 860 C200 825 400 850 620 835 C900 810 1120 860 1400 840 C1620 825 1780 850 1920 845 L1920 1080 L0 1080 Z"/>
+
+  <!-- Foreground meadow -->
+  <path fill="url(#ground)" d="M0 960 C280 935 560 955 880 945 C1200 932 1500 960 1920 950 L1920 1080 L0 1080 Z"/>
+
+  <!-- Tree silhouettes (mid distance) -->
+  <g fill="#3a4f36" opacity="0.55">
+    <path d="M140 790 L155 730 L170 790 Z"/><rect x="150" y="785" width="6" height="18" rx="1"/>
+    <path d="M420 805 L438 735 L456 805 Z"/><rect x="433" y="800" width="7" height="20" rx="1"/>
+    <path d="M1180 815 L1198 745 L1216 815 Z"/><rect x="1193" y="810" width="7" height="18" rx="1"/>
+    <path d="M1750 800 L1768 728 L1786 800 Z"/><rect x="1763" y="795" width="7" height="20" rx="1"/>
+    <path d="M1820 812 L1835 755 L1850 812 Z"/><rect x="1830" y="808" width="5" height="14" rx="1"/>
   </g>
-  <g stroke="#107198" stroke-width="2" fill="none" stroke-opacity="0.4">
-    <path d="M620 540 L620 360"/>
-    <path d="M605 400 L635 400 M600 450 L640 450 M595 500 L645 500"/>
-    <path d="M605 400 L588 360 M635 400 L652 360"/>
-    <path d="M588 360 L652 360"/>
+
+  <!-- Grass strokes foreground -->
+  <g stroke="#2a3828" stroke-width="1.2" stroke-opacity="0.25" fill="none">
+    <path d="M40 1000 l4 -14 M70 1010 l-3 -12 M110 998 l5 -15 M160 1015 l-4 -13 M210 1005 l3 -14"/>
+    <path d="M1680 1010 l4 -13 M1720 1000 l-3 -14 M1780 1015 l5 -12 M1840 1005 l-4 -15 M1880 1012 l3 -13"/>
   </g>
-  <g stroke="#107198" stroke-width="2.5" fill="none" stroke-opacity="0.55">
-    <path d="M1120 580 L1120 240"/>
-    <path d="M1090 300 L1150 300 M1080 360 L1160 360 M1075 420 L1165 420 M1070 480 L1170 480 M1065 540 L1175 540"/>
-    <path d="M1090 300 L1060 240 M1150 300 L1180 240"/>
-    <path d="M1060 240 L1180 240"/>
-    <path d="M1085 580 L1120 500 M1155 580 L1120 500"/>
+
+  <!-- Conductors -->
+  <g fill="none" stroke="#6b7280" stroke-linecap="round" filter="url(#soft)">
+    <path d="M210 455 C520 510 860 470 1160 500 C1400 520 1600 470 1730 430" stroke-width="1.6" stroke-opacity="0.55"/>
+    <path d="M210 470 C520 525 860 485 1160 515 C1400 535 1600 485 1730 445" stroke-width="1.3" stroke-opacity="0.4"/>
+    <path d="M340 455 C600 495 900 455 1200 485 C1450 510 1620 460 1730 430" stroke-width="1.4" stroke-opacity="0.45"/>
   </g>
-  <g stroke="#94959a" stroke-width="1.75" fill="none" stroke-opacity="0.55">
-    <path d="M1060 240 C940 290 840 380 760 480"/>
-    <path d="M1180 240 C1280 300 1360 380 1420 460"/>
+
+  <!-- PYLON LEFT -->
+  <g stroke="url(#steel)" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">
+    <path d="M200 955 L250 410" stroke-width="2.4"/>
+    <path d="M340 955 L290 410" stroke-width="2.4"/>
+    <!-- horizontal members -->
+    <path d="M208 900 L332 900 M212 840 L328 840 M218 780 L322 780 M224 720 L316 720 M232 660 L308 660 M240 600 L300 600 M248 540 L292 540 M254 480 L286 480" stroke-width="1.8"/>
+    <!-- X braces -->
+    <path d="M208 900 L332 840 M332 900 L208 840 M212 840 L328 780 M328 840 L212 780 M218 780 L322 720 M322 780 L218 720 M224 720 L316 660 M316 720 L224 660 M232 660 L308 600 M308 660 L232 600 M240 600 L300 540 M300 600 L240 540 M248 540 L292 480 M292 540 L248 480" stroke-width="1.5"/>
+    <!-- waist -->
+    <path d="M235 560 L305 560" stroke-width="2"/>
+    <!-- crossarm -->
+    <path d="M165 430 L375 430 M165 448 L375 448" stroke-width="2.6"/>
+    <path d="M165 430 L165 460 M375 430 L375 460 M250 410 L250 460 M290 410 L290 460" stroke-width="2"/>
+    <!-- peak -->
+    <path d="M250 410 L270 372 L290 410" stroke-width="2.2"/>
+    <!-- insulator strings -->
+    <g stroke="#4b5563" stroke-width="2">
+      <path d="M185 448 L185 478"/><circle cx="185" cy="458" r="3" fill="#9ca3af" stroke="none"/>
+      <path d="M270 448 L270 478"/><circle cx="270" cy="458" r="3" fill="#9ca3af" stroke="none"/>
+      <path d="M355 448 L355 478"/><circle cx="355" cy="458" r="3" fill="#9ca3af" stroke="none"/>
+    </g>
   </g>
+  <ellipse cx="270" cy="958" rx="95" ry="11" fill="#111827" opacity="0.14"/>
+
+  <!-- PYLON MID (smaller / farther) -->
+  <g stroke="#4b5563" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+    <path d="M980 880 L1005 560" stroke-width="1.6"/>
+    <path d="M1060 880 L1035 560" stroke-width="1.6"/>
+    <path d="M984 840 L1056 840 M987 800 L1053 800 M991 760 L1049 760 M996 720 L1044 720 M1000 680 L1040 680 M1004 640 L1036 640 M1008 600 L1032 600" stroke-width="1.2"/>
+    <path d="M984 840 L1056 800 M1056 840 L984 800 M987 800 L1053 760 M1053 800 L987 760 M991 760 L1049 720 M1049 760 L991 720 M996 720 L1044 680 M1044 720 L996 680 M1000 680 L1040 640 M1040 680 L1000 640 M1004 640 L1036 600 M1036 640 L1004 600" stroke-width="1"/>
+    <path d="M960 575 L1080 575 M960 588 L1080 588" stroke-width="1.6"/>
+    <path d="M1005 560 L1020 538 L1035 560" stroke-width="1.4"/>
+  </g>
+
+  <!-- PYLON RIGHT -->
+  <g stroke="url(#steel)" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M1560 970 L1610 360" stroke-width="2.4"/>
+    <path d="M1720 970 L1670 360" stroke-width="2.4"/>
+    <path d="M1568 910 L1712 910 M1572 850 L1708 850 M1578 790 L1702 790 M1586 730 L1694 730 M1594 670 L1686 670 M1602 610 L1678 610 M1608 550 L1672 550 M1614 490 L1666 490 M1618 430 L1662 430" stroke-width="1.8"/>
+    <path d="M1568 910 L1712 850 M1712 910 L1568 850 M1572 850 L1708 790 M1708 850 L1572 790 M1578 790 L1702 730 M1702 790 L1578 730 M1586 730 L1694 670 M1694 730 L1586 670 M1594 670 L1686 610 M1686 670 L1594 610 M1602 610 L1678 550 M1678 610 L1602 550 M1608 550 L1672 490 M1672 550 L1608 490 M1614 490 L1666 430 M1666 490 L1614 430" stroke-width="1.5"/>
+    <path d="M1595 520 L1685 520" stroke-width="2"/>
+    <path d="M1520 385 L1760 385 M1520 404 L1760 404" stroke-width="2.6"/>
+    <path d="M1520 385 L1520 418 M1760 385 L1760 418 M1610 360 L1610 418 M1670 360 L1670 418" stroke-width="2"/>
+    <path d="M1610 360 L1640 318 L1670 360" stroke-width="2.2"/>
+    <g stroke="#4b5563" stroke-width="2">
+      <path d="M1545 404 L1545 438"/><circle cx="1545" cy="416" r="3" fill="#9ca3af" stroke="none"/>
+      <path d="M1640 404 L1640 438"/><circle cx="1640" cy="416" r="3" fill="#9ca3af" stroke="none"/>
+      <path d="M1735 404 L1735 438"/><circle cx="1735" cy="416" r="3" fill="#9ca3af" stroke="none"/>
+    </g>
+  </g>
+  <ellipse cx="1640" cy="975" rx="115" ry="12" fill="#111827" opacity="0.14"/>
 </svg>

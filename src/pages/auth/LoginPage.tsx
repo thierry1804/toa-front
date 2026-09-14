@@ -51,14 +51,14 @@ export default function LoginPage() {
 
   return (
     <div
-      className="login-page relative min-h-screen flex flex-col bg-[#f1fafe]"
+      className="login-page relative min-h-screen flex flex-col bg-white"
       data-pwa={isPwa ? "true" : "false"}
     >
       <img
-        src="/images/login-bg.webp"
+        src="/images/login-bg.webp?v=3"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center opacity-80"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-bottom opacity-90"
       />
       <PwaReloadBanner />
       <div className="relative z-10 min-h-0 flex-1 flex items-center justify-center p-4">
