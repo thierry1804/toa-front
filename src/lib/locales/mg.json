@@ -37,6 +37,7 @@
   },
   "auth": {
     "login": "Hiditra",
+    "title": "Fitantanana ny drafitra fisorohana sy ny fahazoan-dàlana",
     "logout": "Hivoaka",
     "logoutConfirmTitle": "Asa tsy mbola voatambatra",
     "logoutConfirmMessage_one": "Asa {{count}} tsy misy tambajotra miandry no ho very raha mivoaka ianao izao. Mbola te hivoaka ihany ?",

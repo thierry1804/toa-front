@@ -37,6 +37,7 @@
   },
   "auth": {
     "login": "Connexion",
+    "title": "Gestion de plan de prévention et permis",
     "logout": "Déconnexion",
     "logoutConfirmTitle": "Actions non synchronisées",
     "logoutConfirmMessage_one": "{{count}} action hors ligne en attente sera perdue si vous vous déconnectez maintenant. Se déconnecter quand même ?",
