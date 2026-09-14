@@ -51,14 +51,35 @@ export default function LoginPage() {
 
   return (
     <div
-      className="login-page min-h-screen flex flex-col bg-white"
+      className="login-page relative min-h-screen flex flex-col bg-[#f1fafe]"
       data-pwa={isPwa ? "true" : "false"}
     >
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat opacity-50"
+        style={{ backgroundImage: "url(/images/login-bg.svg)" }}
+        aria-hidden="true"
+      />
       <PwaReloadBanner />
-      <div className="min-h-0 flex-1 flex items-center justify-center p-4">
+      <div className="relative z-10 min-h-0 flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="flex justify-center mb-4">
-            <img src="/images/TOA.png" alt="TOA" className="h-40 w-auto object-contain" />
+          <div className="mb-4 flex w-max max-w-full flex-nowrap items-center justify-center gap-3 mx-auto">
+            <img
+              src="/images/TOA.png"
+              alt="TOA"
+              className="h-40 w-auto shrink-0 object-contain"
+            />
+            <div className="relative top-9 flex shrink-0 items-center gap-2">
+              <img
+                src="/images/logo-iso-45001.webp"
+                alt="ISO 45001"
+                className="h-12 w-auto object-contain"
+              />
+              <img
+                src="/images/logo-iso-14001.webp"
+                alt="ISO 14001"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <Card className="bg-[#94959a] border-[#94959a]">
@@ -90,6 +111,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   placeholder="exemple@toa.mg"
                   error={errors.email?.message}
+                  className="bg-white"
                   {...register("email")}
                 />
 
@@ -100,6 +122,7 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     placeholder="••••••••"
                     error={errors.password?.message}
+                    className="bg-white"
                     {...register("password")}
                     rightElement={
                       <button
@@ -131,19 +154,6 @@ export default function LoginPage() {
               </form>
             </CardContent>
           </Card>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-6">
-            <img
-              src="/images/logo-iso-45001.webp"
-              alt="ISO 45001"
-              className="h-14 w-auto object-contain"
-            />
-            <img
-              src="/images/logo-iso-14001.webp"
-              alt="ISO 14001"
-              className="h-14 w-auto object-contain"
-            />
-          </div>
         </div>
       </div>
     </div>
