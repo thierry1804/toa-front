@@ -65,18 +65,18 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="mb-4 flex w-max max-w-full flex-nowrap items-center justify-center gap-3 mx-auto">
             <img
-              src="/images/TOA.png"
+              src="/images/toa-logo.webp"
               alt="TOA"
               className="h-40 w-auto shrink-0 object-contain"
             />
             <div className="relative top-9 flex shrink-0 items-center gap-2">
               <img
-                src="/images/logo-iso-45001.webp"
+                src="/images/iso-45001.webp"
                 alt="ISO 45001"
                 className="h-12 w-auto object-contain"
               />
               <img
-                src="/images/logo-iso-14001.webp"
+                src="/images/iso-14001.webp"
                 alt="ISO 14001"
                 className="h-12 w-auto object-contain"
               />
