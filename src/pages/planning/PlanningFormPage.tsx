@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import type { ActivityPlanning, SectionRow } from "@/types";
+import type { ActivityPlanning } from "@/types";
 import { formatUserDisplayName } from "@/utils/format";
 import {
   ArrowLeft,
@@ -22,10 +22,8 @@ import {
   MapPin,
   Building2,
   Clock,
-  ListChecks,
 } from "lucide-react";
 import { STATUS_VALUES } from "@/data/constant/planning";
-import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
 import SiteSelectorBlock from "@/components/planning/SiteSelectorBlock";
 import type { PlanSiteRow } from "@/components/planning/SiteSelectorBlock";
 
@@ -36,8 +34,7 @@ function toLocalDatetimeInput(isoString: string): string {
 }
 
 export default function PlanningFormPage() {
-  const { t, i18n } = useTranslation();
-  const currentLang = (i18n.language?.startsWith('mg') ? 'mg' : 'fr') as 'fr' | 'mg';
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const perms = usePermissions('/planning');
@@ -92,7 +89,6 @@ export default function PlanningFormPage() {
   });
 
   const [planSites, setPlanSites] = useState<PlanSiteRow[]>([]);
-  const [sections, setSections] = useState<SectionRow[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const prestataireOptions = prestataires.map((p) => ({
@@ -125,19 +121,6 @@ export default function PlanningFormPage() {
       if (existing.sites && existing.sites.length > 0) {
         setPlanSites(existing.sites.map((s) => ({ ...s, found: null })))
       }
-      setSections(
-        (existing.sections ?? []).map((s) => ({
-          localId: s.id,
-          libelle: s.libelle,
-          libelleMg: '',
-          taches: s.taches.map((tk) => ({
-            localId: tk.id,
-            tache: tk.tache,
-            materiel: tk.materiel ?? '',
-            qui: tk.qui ?? '',
-          })),
-        }))
-      );
     }
   }, [existing]);
 
@@ -204,17 +187,6 @@ export default function PlanningFormPage() {
       ? formData.siteName.trim()
       : (planSites[0]?.nomSite ?? '')
 
-    const sectionsPayload = sections.map((s, si) => ({
-      libelle: s.libelle,
-      ordre: si,
-      taches: s.taches.map((tk, ti) => ({
-        ordre: ti,
-        tache: tk.tache,
-        materiel: tk.materiel || undefined,
-        qui: tk.qui || undefined,
-      })),
-    }));
-
     const payload = {
       process: formData.process.trim(),
       provider: formData.provider.trim(),
@@ -226,7 +198,6 @@ export default function PlanningFormPage() {
       expectedStartDate: new Date(formData.expectedStartDate).toISOString(),
       expectedEndDate: new Date(formData.expectedEndDate).toISOString(),
       status: formData.status as ActivityPlanning["status"],
-      sections: sectionsPayload,
     };
 
     if (isEditMode && existing) {
@@ -415,22 +386,6 @@ export default function PlanningFormPage() {
                 />
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900">
-              <ListChecks className="h-5 w-5 text-blue-600" />
-              {t('planning.sections.title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PlanningSectionManager
-              value={sections}
-              onChange={setSections}
-              lang={currentLang}
-            />
           </CardContent>
         </Card>
 
