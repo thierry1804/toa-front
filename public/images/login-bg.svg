@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1fafe"/>
+      <stop offset="100%" stop-color="#dff3fc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#sky)"/>
+  <!-- Collines arrière -->
+  <path fill="#bae6f8" fill-opacity="0.55" d="M0 620 C180 560 320 580 480 600 C700 630 860 540 1080 580 C1240 610 1360 590 1440 570 L1440 900 L0 900 Z"/>
+  <!-- Collines avant -->
+  <path fill="#87d3f3" fill-opacity="0.35" d="M0 700 C200 650 360 680 520 710 C740 750 920 660 1140 700 C1280 725 1380 710 1440 700 L1440 900 L0 900 Z"/>
+  <!-- Pylône gauche -->
+  <g stroke="#107198" stroke-width="2" fill="none" stroke-opacity="0.45">
+    <path d="M220 720 L220 480"/>
+    <path d="M200 520 L240 520 M190 560 L250 560 M185 600 L255 600 M180 640 L260 640"/>
+    <path d="M200 520 L180 480 M240 520 L260 480"/>
+    <path d="M180 480 L260 480"/>
+    <path d="M195 720 L220 640 M245 720 L220 640"/>
+  </g>
+  <g stroke="#94959a" stroke-width="1.5" fill="none" stroke-opacity="0.5">
+    <path d="M180 480 C120 500 80 540 40 580"/>
+    <path d="M260 480 C340 510 400 560 460 620"/>
+  </g>
+  <!-- Pylône centre-droit -->
+  <g stroke="#107198" stroke-width="2" fill="none" stroke-opacity="0.4">
+    <path d="M980 740 L980 420"/>
+    <path d="M955 470 L1005 470 M945 520 L1015 520 M940 570 L1020 570 M935 620 L1025 620 M930 670 L1030 670"/>
+    <path d="M955 470 L930 420 M1005 470 L1030 420"/>
+    <path d="M930 420 L1030 420"/>
+    <path d="M950 740 L980 670 M1010 740 L980 670"/>
+  </g>
+  <g stroke="#94959a" stroke-width="1.5" fill="none" stroke-opacity="0.45">
+    <path d="M930 420 C820 460 740 540 680 620"/>
+    <path d="M1030 420 C1140 470 1240 540 1340 600"/>
+  </g>
+  <!-- Petit pylône loin -->
+  <g stroke="#107198" stroke-width="1.5" fill="none" stroke-opacity="0.3">
+    <path d="M620 680 L620 540"/>
+    <path d="M605 570 L635 570 M600 610 L640 610 M595 650 L645 650"/>
+    <path d="M605 570 L590 540 M635 570 L650 540"/>
+    <path d="M590 540 L650 540"/>
+  </g>
+</svg>
