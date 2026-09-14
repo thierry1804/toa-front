@@ -55,7 +55,7 @@ export default function LoginPage() {
       data-pwa={isPwa ? "true" : "false"}
     >
       <div
-        className="pointer-events-none absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat opacity-50"
+        className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60"
         style={{ backgroundImage: "url(/images/login-bg.svg)" }}
         aria-hidden="true"
       />
