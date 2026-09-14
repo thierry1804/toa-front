@@ -64,6 +64,12 @@ export interface PlanPreventionInput {
   installations?: InstallationRow[]
   equipements?: EquipementRow[]
   planificationId?: number | null
+  /** Phases + modes opératoires (même shape que l'ancienne planif) */
+  sections?: {
+    libelle: string
+    ordre: number
+    taches: { ordre: number; tache: string; materiel?: string; qui?: string }[]
+  }[]
 }
 
 export interface RisquePreventionInput {
