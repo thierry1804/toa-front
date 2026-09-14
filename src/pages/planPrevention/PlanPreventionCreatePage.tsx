@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Check, AlertCircle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -16,6 +17,7 @@ import DocumentUploadZone from "@/components/planPrevention/DocumentUploadZone";
 import PlanReference from "@/components/planPrevention/PlanReference";
 import BandeauRefus from "@/components/planPrevention/BandeauRefus";
 import HistoriqueVersions from "@/components/planPrevention/HistoriqueVersions";
+import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
 import {
   usePlanPrevention,
   usePlanPreventionDetail,
@@ -32,6 +34,7 @@ import type {
   EquipementRow,
 } from "@/types/planPrevention";
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from "@/types/planPrevention";
+import type { SectionPayload, SectionRow, SectionPlanifieeItem } from "@/types";
 
 function iriToId(iri: string): string {
   return iri.split("/").pop() ?? iri;
@@ -39,6 +42,56 @@ function iriToId(iri: string): string {
 
 function categorieIdsToIris(ids: string[]): string[] {
   return ids.map((id) => `/api/referentiel/categories-risque/${id}`);
+}
+
+function sectionsToPayload(sections: SectionRow[]): SectionPayload[] {
+  return sections.map((s, si) => ({
+    libelle: s.libelle,
+    ordre: si,
+    taches: s.taches.map((tk, ti) => ({
+      ordre: ti,
+      tache: tk.tache,
+      materiel: tk.materiel || undefined,
+      qui: tk.qui || undefined,
+    })),
+  }));
+}
+
+function apiSectionsToRows(
+  sections: SectionPlanifieeItem[],
+): SectionRow[] {
+  return [...sections]
+    .sort((a, b) => a.ordre - b.ordre)
+    .map((s) => ({
+      localId: s.id,
+      libelle: s.libelle,
+      libelleMg: "",
+      taches: [...(s.taches ?? [])]
+        .sort((a, b) => a.ordre - b.ordre)
+        .map((tk) => ({
+          localId: tk.id,
+          tache: tk.tache,
+          materiel: tk.materiel ?? "",
+          qui: tk.qui ?? "",
+        })),
+    }));
+}
+
+function localSectionsToAnalyse(
+  sections: SectionRow[],
+): SectionPlanifieeItem[] {
+  return sections.map((s, si) => ({
+    id: s.localId,
+    libelle: s.libelle,
+    ordre: si,
+    taches: s.taches.map((tk, ti) => ({
+      id: tk.localId,
+      ordre: ti,
+      tache: tk.tache,
+      materiel: tk.materiel || undefined,
+      qui: tk.qui || undefined,
+    })),
+  }));
 }
 
 // ─── Zod schema for step 0 ────────────────────────────────────────────────────
@@ -62,7 +115,7 @@ type Step0FormData = z.infer<typeof step0Schema>;
 // ─── Step indicator ────────────────────────────────────────────────────────────
 const STEPS = [
   { title: "Informations générales" },
-  { title: "Analyse des risques" },
+  { title: "Phases et risques" },
   { title: "Documents obligatoires" },
   { title: "Installations & Équipements" },
   { title: "Récapitulatif" },
@@ -126,7 +179,11 @@ export default function PlanPreventionCreatePage({
   editPlanId,
 }: PlanPreventionCreatePageProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const isEditMode = mode === "edit";
+  const sectionsLang = (i18n.language?.startsWith("mg") ? "mg" : "fr") as
+    | "fr"
+    | "mg";
 
   const { data: editPlan, isLoading: isLoadingEdit } = usePlanPreventionDetail(
     editPlanId ?? "",
@@ -158,6 +215,7 @@ export default function PlanPreventionCreatePage({
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<PlanPrevention | null>(null);
   const [localRisques, setLocalRisques] = useState<RisqueRow[]>([]);
+  const [localSections, setLocalSections] = useState<SectionRow[]>([]);
   const [isSavingRisques, setIsSavingRisques] = useState(false);
   const [localInstallations, setLocalInstallations] = useState<
     InstallationRow[]
@@ -267,6 +325,7 @@ export default function PlanPreventionCreatePage({
       );
       setLocalInstallations(editPlan.installations ?? []);
       setLocalEquipements(editPlan.equipements ?? []);
+      setLocalSections(apiSectionsToRows(editPlan.planificationSections ?? []));
       setPlan(editPlan);
     }
   }, [editPlan, isEditMode, reset]);
@@ -294,20 +353,52 @@ export default function PlanPreventionCreatePage({
     }
   });
 
-  // ── Step 1: save risques then proceed ────────────────────────────────────────
+  // ── Step 1: save sections then risques, then proceed ─────────────────────────
   const handleStep1Next = async () => {
     if (!activePlan) return;
     setIsSavingRisques(true);
     try {
+      const sectionsPayload = sectionsToPayload(localSections);
+      const updated = await updatePlan(activePlan.id, {
+        sections: sectionsPayload,
+      });
+
+      let risquesForSave = localRisques;
+      const apiSections = updated?.planificationSections;
+      if (apiSections?.length) {
+        const idMap = new Map<string, string>();
+        localSections.forEach((s, si) => {
+          const apiS = apiSections[si];
+          if (!apiS) return;
+          s.taches.forEach((tk, ti) => {
+            const apiT = apiS.taches?.[ti];
+            if (apiT?.id) idMap.set(tk.localId, apiT.id);
+          });
+        });
+        risquesForSave = localRisques.map((r) => ({
+          ...r,
+          tachePlanifieeId: r.tachePlanifieeId
+            ? (idMap.get(r.tachePlanifieeId) ?? r.tachePlanifieeId)
+            : r.tachePlanifieeId,
+        }));
+        setLocalRisques(risquesForSave);
+        setLocalSections(apiSectionsToRows(apiSections));
+        if (!isEditMode) {
+          setPlan((prev) =>
+            prev ? { ...prev, planificationSections: apiSections } : prev,
+          );
+        }
+      }
+
       if (isEditMode) {
         const origIds = originalRisqueIds.current;
-        const currentIds = new Set(localRisques.map((r) => r.localId));
+        const currentIds = new Set(risquesForSave.map((r) => r.localId));
 
         for (const origId of origIds) {
           if (!currentIds.has(origId))
             await deleteRisque(activePlan.id, origId);
         }
-        for (const row of localRisques) {
+        for (const row of risquesForSave) {
           if (!row.description.trim() || !row.mesuresPreventives.trim())
             continue;
           const payload = {
@@ -326,7 +417,7 @@ export default function PlanPreventionCreatePage({
           }
         }
       } else {
-        for (const row of localRisques) {
+        for (const row of risquesForSave) {
           if (!row.description.trim() || !row.mesuresPreventives.trim())
             continue;
           await addRisque(activePlan.id, {
@@ -339,9 +430,7 @@ export default function PlanPreventionCreatePage({
             risqueResiduel: row.risqueResiduel ?? null,
           });
         }
-        // Update local plan state so the recap can display the saved risques.
-        // In edit mode the query auto-refreshes; in create mode we must patch manually.
-        const savedRisques = localRisques
+        const savedRisques = risquesForSave
           .filter((r) => r.description.trim() && r.mesuresPreventives.trim())
           .map((r) => ({
             id: r.localId,
@@ -448,15 +537,21 @@ export default function PlanPreventionCreatePage({
   const currentSites = activePlan?.sites ?? [];
   const currentDocuments = activePlan?.documents ?? [];
 
-  // Sections from the linked planning (create mode: selected planif; edit mode: stored planificationId)
+  // Sections edited locally on the plan (no longer inherited read-only from planning)
   const activePlanifId = isEditMode
     ? (activePlan?.planificationId ?? null)
     : selectedPlanifId;
   const activePlanif = activePlanifId != null
     ? planificationsDisponibles.find((p) => p.id === activePlanifId) ?? null
     : null;
-  const activeSections = activePlanif?.sections ?? []
-
+  const activeSectionsForRisques = useMemo(
+    () => localSectionsToAnalyse(localSections),
+    [localSections],
+  );
+  const recapSections =
+    activePlan?.planificationSections?.length
+      ? activePlan.planificationSections
+      : activeSectionsForRisques;
   // Step 3 (Installations & Équipements) is shown only for "Nouveau site" interventions.
   // If no planning is linked (no planificationId), default to showing it.
   const isNouveauSite =
@@ -703,8 +798,20 @@ export default function PlanPreventionCreatePage({
         return (
           <div className="space-y-4">
             {activePlan && <PlanReference reference={activePlan.reference} />}
+            {canEdit && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {t("planning.sections.title")}
+                </h3>
+                <PlanningSectionManager
+                  value={localSections}
+                  onChange={setLocalSections}
+                  lang={sectionsLang}
+                />
+              </div>
+            )}
             <AnalyseRisquesPlanning
-              sections={activeSections}
+              sections={activeSectionsForRisques}
               rows={localRisques}
               onChange={setLocalRisques}
               categories={allCategories}
@@ -910,9 +1017,9 @@ export default function PlanPreventionCreatePage({
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">
                   Analyse des risques ({activePlan.risques.length})
                 </h3>
-                {activeSections.length > 0 ? (
+                {recapSections.length > 0 ? (
                   <AnalyseRisquesPlanning
-                    sections={activeSections}
+                    sections={recapSections}
                     rows={activePlan.risques.map((r) => ({
                       localId: r.id,
                       tachePlanifieeId: r.tachePlanifieeId ?? null,

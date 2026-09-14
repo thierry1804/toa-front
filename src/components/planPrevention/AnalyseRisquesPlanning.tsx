@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { SectionPlanifieeItem } from '@/types'
 import type { RisqueRow } from '@/types/planPrevention'
 import type { CategorieRisque } from '@/types/referentiel'
@@ -74,6 +75,8 @@ export default function AnalyseRisquesPlanning({
   categories = [],
   disabled = false,
 }: AnalyseRisquesProps) {
+  const { t } = useTranslation()
+
   const handleChange = <K extends keyof RisqueRow>(
     localId: string,
     field: K,
@@ -101,7 +104,7 @@ export default function AnalyseRisquesPlanning({
   if (sections.length === 0) {
     return (
       <p className="py-4 text-center text-sm italic text-gray-400">
-        Aucune tâche disponible dans cette planification.
+        {t('planning.sections.aucune_section')}
       </p>
     )
   }
@@ -109,7 +112,7 @@ export default function AnalyseRisquesPlanning({
   if (allTaches.length === 0) {
     return (
       <p className="py-4 text-center text-sm italic text-gray-400">
-        Aucune tâche dans cette planification.
+        {t('planning.sections.aucune_tache')}
       </p>
     )
   }
@@ -143,7 +146,7 @@ export default function AnalyseRisquesPlanning({
                     <div className="space-y-4">
                       {taskRows.length === 0 && (
                         <p className="text-sm italic text-gray-400">
-                          Aucun risque évalué pour cette tâche.
+                          Aucun risque évalué pour ce mode opératoire.
                         </p>
                       )}
 
