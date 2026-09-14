@@ -63,40 +63,43 @@ export default function LoginPage() {
       <PwaReloadBanner />
       <div className="relative z-10 min-h-0 flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="mb-4 flex w-max max-w-full flex-nowrap items-center justify-center gap-3 mx-auto">
+          <div className="mb-4 flex justify-center">
             <img
               src="/images/toa-logo.webp"
               alt="TOA"
-              className="h-40 w-auto shrink-0 object-contain"
+              className="h-40 w-auto object-contain"
             />
-            <div className="relative top-9 flex shrink-0 items-center gap-2">
-              <img
-                src="/images/iso-45001.webp"
-                alt="ISO 45001"
-                className="h-12 w-auto object-contain"
-              />
-              <img
-                src="/images/iso-14001.webp"
-                alt="ISO 14001"
-                className="h-12 w-auto object-contain"
-              />
-            </div>
           </div>
 
           <Card className="bg-[#94959a] border-[#94959a]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
+            <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+              <CardDescription className="min-w-0 flex-1 text-xl font-semibold leading-snug tracking-tight text-gray-900 sm:text-2xl">
                 {t("auth.title")}
               </CardDescription>
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Globe className="h-5 w-5" />
-                <span className="font-medium">
-                  {i18n.language === "fr" ? "FR" : "MG"}
-                </span>
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <div className="flex items-center gap-1 rounded bg-white px-1.5 py-1">
+                  <img
+                    src="/images/iso-45001.webp"
+                    alt="ISO 45001"
+                    className="h-9 w-auto object-contain"
+                  />
+                  <img
+                    src="/images/iso-14001.webp"
+                    alt="ISO 14001"
+                    className="h-9 w-auto object-contain"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleLanguage}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <Globe className="h-5 w-5" />
+                  <span className="font-medium">
+                    {i18n.language === "fr" ? "FR" : "MG"}
+                  </span>
+                </button>
+              </div>
             </CardHeader>
 
             <CardContent>

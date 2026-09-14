@@ -24,8 +24,9 @@
 
 | Point | Choix |
 |---|---|
-| Emplacement | À droite du logo TOA, au-dessus de la `Card` |
-| Layout | Rangée `items-end` : TOA puis groupe ISO aligné sur la base du logo (mot « toa »), avec léger `mb-2` |
+| Emplacement | Haut du bloc connexion : à gauche du sélecteur de langue (dans le `CardHeader`) |
+| Layout | Titre à gauche ; groupe `[ISO 45001] [ISO 14001] [langue]` à droite |
+| Logo TOA | Centré au-dessus de la carte, seul |
 | Format | Convertir les assets clients en **WebP** (pas de JPG/PNG livrés dans `public/`) |
 | Fichiers publics | `logo-iso-45001.webp`, `logo-iso-14001.webp` |
 | Conversion | Depuis `retours/LOGO ISO 45001.jpg` et `retours/LOGOISO 14001.png` (qualité visuelle équivalente, compression raisonnable) |
