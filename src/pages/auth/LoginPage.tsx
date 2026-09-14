@@ -64,7 +64,7 @@ export default function LoginPage() {
           <Card className="bg-[#94959a] border-[#94959a]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardDescription className="text-2xl font-semibold leading-none tracking-tight text-gray-900">
-                Plateforme de gestion HSE
+                {t("auth.title")}
               </CardDescription>
               <button
                 onClick={toggleLanguage}
@@ -131,6 +131,19 @@ export default function LoginPage() {
               </form>
             </CardContent>
           </Card>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6">
+            <img
+              src="/images/logo-iso-45001.webp"
+              alt="ISO 45001"
+              className="h-14 w-auto object-contain"
+            />
+            <img
+              src="/images/logo-iso-14001.webp"
+              alt="ISO 14001"
+              className="h-14 w-auto object-contain"
+            />
+          </div>
         </div>
       </div>
     </div>
