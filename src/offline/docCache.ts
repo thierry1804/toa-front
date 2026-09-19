@@ -120,3 +120,24 @@ export async function withCachedDocumentBlob(
     throw err
   }
 }
+
+/**
+ * Statut d'un PDF généré déduit du cache local : hors-ligne, le statut serveur est inaccessible ; si le PDF
+ * a été téléchargé ou préchargé, l'écran doit proposer « Télécharger » et non « Générer ».
+ */
+export async function cachedPdfStatus(url: string): Promise<{
+  statut: 'GENERE'
+  jobId: string
+  genereAt: string
+  tailleFichier: number
+} | undefined> {
+  const cached = await getCachedDocument(url)
+  if (!cached) return undefined
+  return {
+    statut: 'GENERE',
+    jobId: 'offline-cache',
+    genereAt: new Date(cached.cachedAt).toISOString(),
+    tailleFichier: cached.size,
+  }
+}
+

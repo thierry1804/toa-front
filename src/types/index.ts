@@ -288,9 +288,10 @@ export interface ActivityPlanning {
 }
 
 export interface SectionPayload {
+  id?: string
   libelle: string
   ordre: number
-  taches: { ordre: number; tache: string; materiel?: string; qui?: string }[]
+  taches: { id?: string; ordre: number; tache: string; materiel?: string; qui?: string }[]
 }
 
 export interface ActivityPlanningCreate {

@@ -1,9 +1,12 @@
 import api from '@/lib/axios'
 import { openBlobInNewTab, triggerBlobDownload } from '@/lib/downloadBlob'
+import { downloadCachedPdf } from '@/lib/downloadPdf'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
-import { putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
+import { asHydra } from '@/offline/asHydra'
+import { getAllFromSnapshot, hasSnapshot } from '@/offline/snapshotStore'
+import { cachedPdfStatus, putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
 import type { ActivityPlanning, HydraCollection } from '@/types'
 import type {
   PlanPrevention,
@@ -68,10 +71,11 @@ export const planPreventionApi = {
       .get<HydraCollection<DocumentPrevention>>(`/api/plans-prevention/${id}/documents`)
       .then((r) => r.data),
 
-  uploadDocument: (id: string, type: string, file: File) => {
+  uploadDocument: (id: string, type: string, file: File, capturedAt?: string) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', type)
+    if (capturedAt) formData.append('capturedAt', capturedAt)
     return api
       .post<DocumentPrevention>(`/api/plans-prevention/${id}/documents`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -86,6 +90,21 @@ export const planPreventionApi = {
         return doc
       })
   },
+
+  deleteDocument: (planId: string, documentId: string) =>
+    api.delete(`/api/plans-prevention/${planId}/documents/${documentId}`).then(() => undefined),
+
+  setDocumentNonApplicable: (planId: string, type: string, nonApplicable: boolean) =>
+    api
+      .post(`/api/plans-prevention/${planId}/documents/non-applicable`, { type, nonApplicable })
+      .then((r) => r.data as DocumentPrevention | undefined),
+
+  consulterDocument: (planId: string, documentId: string) =>
+    api
+      .post<{ documentId: string; consultedAt: string | null; tousDocumentsConsultes: boolean }>(
+        `/api/plans-prevention/${planId}/documents/${documentId}/consulter`,
+      )
+      .then((r) => r.data),
 
   examiner: (id: string, commentaire?: string) =>
     api
@@ -129,9 +148,16 @@ export const planPreventionApi = {
       .then((r) => r.data),
 
   getPdfStatus: (planId: string) =>
-    api
-      .get<PlanPreventionPdfStatus>(`/api/plans-prevention/${planId}/pdf/status`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<PlanPreventionPdfStatus>(`/api/plans-prevention/${planId}/pdf/status`)
+          .then((r) => r.data),
+      () =>
+        cachedPdfStatus(`/api/plans-prevention/${planId}/pdf/download`) as Promise<
+          PlanPreventionPdfStatus | undefined
+        >,
+    ),
 
   getPlansBySite: (codeSite: string): Promise<PlansBySiteResponse> =>
     api
@@ -141,11 +167,22 @@ export const planPreventionApi = {
   // TODO: Backend must expose GET /api/planifications?disponible=true
   // Filter: planifications owned by connected user AND not linked to any PlanPrevention
   listPlanificationsDisponibles: () =>
-    api
-      .get<HydraCollection<ActivityPlanning>>('/api/planifications', {
-        params: { disponible: true },
-      })
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<HydraCollection<ActivityPlanning>>('/api/planifications', {
+            params: { disponible: true },
+          })
+          .then((r) => r.data),
+      async () => {
+        if (!(await hasSnapshot())) return undefined
+        const items = await getAllFromSnapshot<ActivityPlanning & { createdAt?: string }>(
+          'planificationsDisponibles',
+        )
+        const sorted = [...items].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+        return asHydra(sorted) as HydraCollection<ActivityPlanning>
+      },
+    ),
 
   getDocumentBlob: (planId: string, documentId: string): Promise<Blob> => {
     const url = `/api/plans-prevention/${planId}/documents/${documentId}/download`
@@ -164,24 +201,7 @@ export const planPreventionApi = {
     triggerBlobDownload(blob, filename)
   },
 
-  downloadPdf: async (planId: string): Promise<void> => {
-    const token = localStorage.getItem('access_token') ?? ''
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/plans-prevention/${planId}/pdf/download`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-    if (!res.ok) throw new Error('Téléchargement PDF échoué')
-    const blob = await res.blob()
-    const disposition = res.headers.get('Content-Disposition') ?? ''
-    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'plan_prevention.pdf'
-    const blobUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(blobUrl)
-  },
+  downloadPdf: (planId: string): Promise<void> =>
+    downloadCachedPdf(`/api/plans-prevention/${planId}/pdf/download`, 'plan_prevention.pdf'),
 }
 

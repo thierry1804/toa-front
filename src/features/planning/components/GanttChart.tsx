@@ -1,20 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { ActivityPlanning, ActivityPlanningStatus } from '@/types'
+import type { ActivityPlanning } from '@/types'
 import { formatDate } from '@/utils/date'
+import { projectColor } from '@/utils/projectColors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { BarChart2 } from 'lucide-react'
 import { useTranslation } from "react-i18next";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const STATUS_COLORS: Record<ActivityPlanningStatus, string> = {
-  brouillon: 'bg-orange-400',
-  planifie:  'bg-blue-500',
-  en_cours:  'bg-yellow-500',
-  valide:    'bg-green-500',
-  annule:    'bg-red-400',
-  stand_by:  'bg-purple-400',
-}
 
 type ViewMode = 'day' | 'week' | 'month'
 
@@ -122,6 +114,10 @@ export default function GanttChart({ activities }: Props) {
   const valid = activities
     .filter((a) => a.expectedStartDate && a.expectedEndDate)
     .sort((a, b) => new Date(a.expectedStartDate).getTime() - new Date(b.expectedStartDate).getTime())
+
+  const projectTypes = [
+    ...new Set(valid.map((a) => a.typeIntervention?.trim()).filter((v): v is string => !!v)),
+  ].sort((a, b) => a.localeCompare(b))
 
   const safeTs = valid.length > 0
     ? valid.flatMap((a) => [
@@ -305,7 +301,7 @@ export default function GanttChart({ activities }: Props) {
                 {/* Activity bar rows */}
                 {valid.map((a) => {
                   const barStyle  = getBarStyle(a)
-                  const colorCls  = STATUS_COLORS[a.status] ?? 'bg-gray-400'
+                  const colorCls  = projectColor(a.typeIntervention).bar
 
                   return (
                     <div
@@ -333,10 +329,10 @@ export default function GanttChart({ activities }: Props) {
 
         {/* ── Legend ── */}
         <div className="flex flex-wrap gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 border-t border-gray-100 bg-gray-50">
-          {(Object.keys(STATUS_COLORS) as ActivityPlanningStatus[]).map((s) => (
-            <div key={s} className="flex items-center gap-1.5">
-              <span className={`inline-block w-3 h-3 rounded-sm shrink-0 ${STATUS_COLORS[s]}`} />
-              <span className="text-xs text-gray-600 whitespace-nowrap">{t(`planning.status.${s}`)}</span>
+          {projectTypes.map((type) => (
+            <div key={type} className="flex items-center gap-1.5">
+              <span className={`inline-block w-3 h-3 rounded-sm shrink-0 ${projectColor(type).dot}`} />
+              <span className="text-xs text-gray-600 whitespace-nowrap">{type}</span>
             </div>
           ))}
           <div className="flex items-center gap-1.5">

@@ -239,7 +239,7 @@ export default function DashboardKpisPage() {
   const tauxCloture     = global?.tauxCloture !== undefined ? Math.round(global.tauxCloture * 100) : undefined
   const tmpPlan         = global?.tempsMoyenValidationPlan !== undefined ? Math.round(global.tempsMoyenValidationPlan) : undefined
   const tmpPermis       = global?.tempsMoyenValidationPermis !== undefined ? Math.round(global.tempsMoyenValidationPermis) : undefined
-  const tmpPv           = global?.tempsMoyenValidationPv !== undefined ? Math.round(global.tempsMoyenValidationPv) : undefined
+  const nbPermisTotal   = global?.nbPermisTotal
 
   const suffixJ = t('dashboardKpis.kpis.suffixJours')
 
@@ -325,11 +325,10 @@ export default function DashboardKpisPage() {
             suffix={suffixJ}
           />
           <StatCard
-            label={t('dashboardKpis.kpis.delaiPv')}
-            value={tmpPv}
-            icon={Clock}
+            label={t('dashboard.kpis.nbPermis')}
+            value={nbPermisTotal}
+            icon={BarChart2}
             color="bg-purple-100 text-purple-700"
-            suffix={suffixJ}
           />
           <StatCard
             label={t('dashboardKpis.kpis.avancement')}

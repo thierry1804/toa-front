@@ -192,3 +192,80 @@ describe('parseKmzFile', () => {
     expect(sites[0].id).not.toBe(sites[1].id)
   })
 })
+
+describe('parseKmzFile APN/API flags', () => {
+  it('reads APN and API columns as booleans (0/1)', async () => {
+    const file = await makeKmz(
+      kml(
+        placemark({
+          name: 'ANK-001',
+          lng: 47.5,
+          lat: -18.9,
+          extra: '<Data name="APN"><value>1</value></Data><Data name="API"><value>0</value></Data>',
+        }) +
+          placemark({
+            name: 'AMP-002',
+            lng: 47.6,
+            lat: -19,
+            extra: '<Data name="apn"><value>0</value></Data><Data name="api"><value>1</value></Data>',
+          }),
+      ),
+    )
+    const { sites } = await parseKmzFile(file)
+    expect(sites.find((s) => s.nom === 'ANK-001')).toMatchObject({ apn: true, api: false })
+    expect(sites.find((s) => s.nom === 'AMP-002')).toMatchObject({ apn: false, api: true })
+  })
+
+  it('leaves APN/API unknown (not false) when the columns are absent', async () => {
+    const file = await makeKmz(kml(placemark({ name: 'ISO-003', lng: 47.7, lat: -19.1 })))
+    const { sites, metadata } = await parseKmzFile(file)
+    expect(sites[0].apn).toBeUndefined()
+    expect(sites[0].api).toBeUndefined()
+    expect(metadata['ISO-003']).toBeUndefined()
+  })
+
+  it('leaves APN/API unknown when the cells are blank', async () => {
+    const file = await makeKmz(
+      kml(
+        placemark({
+          name: 'ISO-004',
+          lng: 47.8,
+          lat: -19.2,
+          extra: '<Data name="APN"><value></value></Data><Data name="API"><value>  </value></Data>',
+        }),
+      ),
+    )
+    const { sites } = await parseKmzFile(file)
+    expect(sites[0].apn).toBeUndefined()
+    expect(sites[0].api).toBeUndefined()
+  })
+
+  it('keeps an explicit 0 as false and records it in the metadata', async () => {
+    const file = await makeKmz(
+      kml(
+        placemark({
+          name: 'ISO-005',
+          lng: 47.9,
+          lat: -19.3,
+          extra: '<Data name="APN"><value>0</value></Data>',
+        }),
+      ),
+    )
+    const { sites, metadata } = await parseKmzFile(file)
+    expect(sites[0].apn).toBe(false)
+    expect(sites[0].api).toBeUndefined()
+    expect(metadata['ISO-005']).toEqual({ apn: false })
+  })
+
+  it('treats only 1/true/oui/yes as true', async () => {
+    const file = await makeKmz(
+      kml(
+        placemark({ name: 'A', lng: 47, lat: -19, extra: '<Data name="APN"><value>Oui</value></Data>' }) +
+          placemark({ name: 'B', lng: 47, lat: -19, extra: '<Data name="APN"><value>2</value></Data>' }),
+      ),
+    )
+    const { sites } = await parseKmzFile(file)
+    expect(sites.find((s) => s.nom === 'A')?.apn).toBe(true)
+    expect(sites.find((s) => s.nom === 'B')?.apn).toBe(false)
+  })
+})

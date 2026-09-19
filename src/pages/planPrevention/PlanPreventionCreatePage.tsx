@@ -25,7 +25,9 @@ import {
 } from "@/features/planPrevention/hooks/usePlanPrevention";
 import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
+import { useOnline } from "@/hooks/useOnline";
 import { useAuthStore } from "@/store/auth.store";
+import { useMenuStore } from "@/store/menu.store";
 import type {
   PlanPrevention,
   RisqueRow,
@@ -35,6 +37,8 @@ import type {
 } from "@/types/planPrevention";
 import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from "@/types/planPrevention";
 import type { SectionPayload, SectionRow, SectionPlanifieeItem } from "@/types";
+import { ownSections } from "@/utils/planSections";
+import { missingApnApiRiskTypes } from "@/utils/apnApiRisk";
 
 function iriToId(iri: string): string {
   return iri.split("/").pop() ?? iri;
@@ -44,11 +48,13 @@ function categorieIdsToIris(ids: string[]): string[] {
   return ids.map((id) => `/api/referentiel/categories-risque/${id}`);
 }
 
-function sectionsToPayload(sections: SectionRow[]): SectionPayload[] {
+function sectionsToPayload(sections: SectionRow[], serverIds: Set<string>): SectionPayload[] {
   return sections.map((s, si) => ({
+    ...(serverIds.has(s.localId) ? { id: s.localId } : {}),
     libelle: s.libelle,
     ordre: si,
     taches: s.taches.map((tk, ti) => ({
+      ...(serverIds.has(tk.localId) ? { id: tk.localId } : {}),
       ordre: ti,
       tache: tk.tache,
       materiel: tk.materiel || undefined,
@@ -193,8 +199,11 @@ export default function PlanPreventionCreatePage({
   // In edit mode the prestataire is correcting their own refused plan —
   // authorization is enforced by the backend RESOUMETTRE voter, not menu permissions.
   // In create mode, can_edit is irrelevant — gate on can_create (PRESTATAIRE has create but not edit).
-  const canEdit = isEditMode ? true : (perms?.canCreate ?? true);
-  const canSubmit = isEditMode ? true : (perms?.canCreate ?? true);
+  const menuLoaded = useMenuStore((s) => s.loaded);
+  const canEdit = isEditMode ? true : (perms?.canCreate ?? false);
+  const canSubmit = isEditMode ? true : (perms?.canCreate ?? false);
+  const permsLoading = !isEditMode && perms === null && !menuLoaded;
+  const permsDenied = !isEditMode && !permsLoading && !perms?.canCreate;
 
   const {
     createPlan,
@@ -203,6 +212,8 @@ export default function PlanPreventionCreatePage({
     updateRisque,
     deleteRisque,
     uploadDocument,
+    deleteDocument,
+    setDocumentNonApplicable,
     soumettrePlan,
     resoumettreplan,
     missingDocuments,
@@ -231,6 +242,12 @@ export default function PlanPreventionCreatePage({
   const [isSavingInstallations, setIsSavingInstallations] = useState(false);
   const [motif, setMotif] = useState("");
   const originalRisqueIds = useRef<Set<string>>(new Set());
+  const serverSectionIds = useRef<Set<string>>(new Set());
+  const rememberServerSectionIds = (sections: SectionPlanifieeItem[]) => {
+    serverSectionIds.current = new Set(
+      sections.flatMap((sec) => [sec.id, ...(sec.taches ?? []).map((tk) => tk.id)]),
+    );
+  };
   const hasInitialized = useRef(false);
 
   // ── Step 0 form ──────────────────────────────────────────────────────────────
@@ -325,7 +342,9 @@ export default function PlanPreventionCreatePage({
       );
       setLocalInstallations(editPlan.installations ?? []);
       setLocalEquipements(editPlan.equipements ?? []);
-      setLocalSections(apiSectionsToRows(editPlan.planificationSections ?? []));
+      const loadedSections = ownSections(editPlan);
+      rememberServerSectionIds(loadedSections);
+      setLocalSections(apiSectionsToRows(loadedSections));
       setPlan(editPlan);
     }
   }, [editPlan, isEditMode, reset]);
@@ -333,8 +352,15 @@ export default function PlanPreventionCreatePage({
   // In edit mode, use the fresh query data; in create mode, use local state
   const activePlan = isEditMode ? (editPlan ?? null) : plan;
 
+  // Un nouveau plan reçoit sa référence et ses identifiants du serveur (phases, modes opératoires, risques,
+  // pièces en dépendent) : on ne peut pas le démarrer hors ligne sans créer un plan fantôme au retour du réseau.
+  // Les brouillons existants se complètent et se soumettent hors ligne via l'écran d'édition.
+  const isOnline = useOnline();
+  const offlineCreateBlocked = !isEditMode && !plan && !isOnline;
+
   // ── Step 0: create or update ──────────────────────────────────────────────────
   const handleStep0Next = handleSubmit(async (data) => {
+    if (offlineCreateBlocked) return;
     if (isEditMode && activePlan) {
       await updatePlan(activePlan.id, data);
       setStep(1);
@@ -358,34 +384,37 @@ export default function PlanPreventionCreatePage({
     if (!activePlan) return;
     setIsSavingRisques(true);
     try {
-      const sectionsPayload = sectionsToPayload(localSections);
+      const sectionsPayload = sectionsToPayload(localSections, serverSectionIds.current);
       const updated = await updatePlan(activePlan.id, {
         sections: sectionsPayload,
       });
 
       let risquesForSave = localRisques;
-      const apiSections = updated?.planificationSections;
-      if (apiSections?.length) {
-        const idMap = new Map<string, string>();
-        localSections.forEach((s, si) => {
-          const apiS = apiSections[si];
-          if (!apiS) return;
-          s.taches.forEach((tk, ti) => {
-            const apiT = apiS.taches?.[ti];
-            if (apiT?.id) idMap.set(tk.localId, apiT.id);
+      const apiSections = updated?.sections;
+      if (apiSections) {
+        if (apiSections.length) {
+          const idMap = new Map<string, string>();
+          localSections.forEach((s, si) => {
+            const apiS = apiSections[si];
+            if (!apiS) return;
+            s.taches.forEach((tk, ti) => {
+              const apiT = apiS.taches?.[ti];
+              if (apiT?.id) idMap.set(tk.localId, apiT.id);
+            });
           });
-        });
-        risquesForSave = localRisques.map((r) => ({
-          ...r,
-          tachePlanifieeId: r.tachePlanifieeId
-            ? (idMap.get(r.tachePlanifieeId) ?? r.tachePlanifieeId)
-            : r.tachePlanifieeId,
-        }));
-        setLocalRisques(risquesForSave);
+          risquesForSave = localRisques.map((r) => ({
+            ...r,
+            tachePlanifieeId: r.tachePlanifieeId
+              ? (idMap.get(r.tachePlanifieeId) ?? r.tachePlanifieeId)
+              : r.tachePlanifieeId,
+          }));
+          setLocalRisques(risquesForSave);
+        }
+        rememberServerSectionIds(apiSections);
         setLocalSections(apiSectionsToRows(apiSections));
         if (!isEditMode) {
           setPlan((prev) =>
-            prev ? { ...prev, planificationSections: apiSections } : prev,
+            prev ? { ...prev, sections: apiSections } : prev,
           );
         }
       }
@@ -516,17 +545,53 @@ export default function PlanPreventionCreatePage({
   const handleDocumentUpload = async (
     type: TypeDocumentPrevention,
     file: File,
+    capturedAt?: string,
   ) => {
     if (!activePlan) return;
-    const savedDoc = await uploadDocument(activePlan.id, type, file);
+    const savedDoc = await uploadDocument(activePlan.id, type, file, capturedAt);
     if (!isEditMode) {
       setPlan((prev) =>
         prev
           ? {
               ...prev,
               documents: [
-                ...prev.documents.filter((d) => d.type !== type),
+                ...prev.documents.filter(
+                  (d) => !(d.type === type && d.nonApplicable),
+                ),
                 savedDoc,
+              ],
+            }
+          : prev,
+      );
+    }
+  };
+
+  const handleDocumentDelete = async (documentId: string) => {
+    if (!activePlan) return;
+    await deleteDocument(activePlan.id, documentId);
+    if (!isEditMode) {
+      setPlan((prev) =>
+        prev
+          ? { ...prev, documents: prev.documents.filter((d) => d.id !== documentId) }
+          : prev,
+      );
+    }
+  };
+
+  const handleDocumentNotApplicable = async (
+    type: TypeDocumentPrevention,
+    next: boolean,
+  ) => {
+    if (!activePlan) return;
+    const marker = await setDocumentNonApplicable(activePlan.id, type, next);
+    if (!isEditMode) {
+      setPlan((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: [
+                ...prev.documents.filter((d) => d.type !== type || (!next && !d.nonApplicable)),
+                ...(next && marker ? [marker] : []),
               ],
             }
           : prev,
@@ -548,10 +613,9 @@ export default function PlanPreventionCreatePage({
     () => localSectionsToAnalyse(localSections),
     [localSections],
   );
-  const recapSections =
-    activePlan?.planificationSections?.length
-      ? activePlan.planificationSections
-      : activeSectionsForRisques;
+  const recapSections = ownSections(activePlan).length
+    ? ownSections(activePlan)
+    : activeSectionsForRisques;
   // Step 3 (Installations & Équipements) is shown only for "Nouveau site" interventions.
   // If no planning is linked (no planificationId), default to showing it.
   const isNouveauSite =
@@ -798,6 +862,26 @@ export default function PlanPreventionCreatePage({
         return (
           <div className="space-y-4">
             {activePlan && <PlanReference reference={activePlan.reference} />}
+            {hasApnApiSite && (
+              <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+                <div className="text-sm text-amber-900">
+                  <p className="font-semibold">{t("planPrevention.apnApi.alertTitle")}</p>
+                  <p className="mt-0.5">{t("planPrevention.apnApi.alertBody")}</p>
+                  {apnApiSites.length > 0 && (
+                    <ul className="mt-1 list-disc list-inside text-xs">
+                      {apnApiSites.map((s) => (
+                        <li key={s.codeSite}>
+                          {s.codeSite}
+                          {s.nomSite ? ` — ${s.nomSite}` : ""} (
+                          {[s.apn && "APN", s.api && "API"].filter(Boolean).join(" / ")})
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
             {canEdit && (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-gray-800">
@@ -817,7 +901,17 @@ export default function PlanPreventionCreatePage({
               categories={allCategories}
               disabled={!canEdit}
             />
-            {isStep1Invalid && (
+            {isStep1Invalid && apnApiRisqueMissing && (
+              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">
+                  {t("planPrevention.apnApi.risqueRequired", {
+                    types: apnApiMissingTypes.join(" / "),
+                  })}
+                </p>
+              </div>
+            )}
+            {isStep1Invalid && step1PartialRows.length > 0 && (
               <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
                 <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-amber-800">
@@ -855,6 +949,8 @@ export default function PlanPreventionCreatePage({
               planId={activePlan?.id ?? ""}
               uploadedDocuments={currentDocuments}
               onUpload={handleDocumentUpload}
+              onDelete={handleDocumentDelete}
+              onToggleNotApplicable={handleDocumentNotApplicable}
               missingTypes={missingDocuments}
               disabled={!canEdit}
             />
@@ -1178,7 +1274,16 @@ export default function PlanPreventionCreatePage({
   const step1PartialRows = localRisques.filter(
     (r) => !!r.description.trim() && !r.mesuresPreventives.trim(),
   );
-  const isStep1Invalid = step === 1 && step1PartialRows.length > 0;
+  const apnApiSites = activePlan?.sitesApnApi ?? [];
+  const hasApnApiSite = !!activePlan?.hasApnApiSite || apnApiSites.length > 0;
+  const apnApiMissingTypes = missingApnApiRiskTypes(
+    apnApiSites,
+    localRisques,
+    allCategories,
+  );
+  const apnApiRisqueMissing = apnApiMissingTypes.length > 0;
+  const isStep1Invalid =
+    step === 1 && (step1PartialRows.length > 0 || apnApiRisqueMissing);
 
   // Step 2: all 6 document types must be uploaded
   const uploadedDocTypes = new Set(currentDocuments.map((d) => d.type));
@@ -1229,6 +1334,25 @@ export default function PlanPreventionCreatePage({
         </p>
       </div>
 
+      {permsLoading && (
+        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          {t("planPrevention.permissions.loading")}
+        </div>
+      )}
+      {permsDenied && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+          {t("planPrevention.permissions.denied")}
+        </div>
+      )}
+
+      {offlineCreateBlocked && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+          {t("offline.createRequiresNetwork")}
+        </div>
+      )}
+
       {/* Bandeau refus (edit mode, when there is a refuse decision) */}
       {isEditMode && lastRefusDecision && (
         <BandeauRefus decision={lastRefusDecision} />
@@ -1277,6 +1401,7 @@ export default function PlanPreventionCreatePage({
             onClick={handleNext}
             disabled={
               isPending ||
+              (offlineCreateBlocked && step === 0) ||
               (showPlanifSelector && step === 0 && !selectedPlanifId) ||
               (showPlanifSelector &&
                 step === 0 &&

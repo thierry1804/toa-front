@@ -17,6 +17,7 @@ import {
   usePermitTravailDetail,
   usePermitTravailVersions,
   usePermitTravail,
+  usePermitDocumentsRequis,
 } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
@@ -101,7 +102,8 @@ export default function PermitTravailEditPage() {
 
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
   const { data: versions = [] } = usePermitTravailVersions(id ?? '')
-  const { updatePermit, uploadDocument, resoumettrePermit, isResoumitting } = usePermitTravail()
+  const { updatePermit, uploadDocument, deleteDocument, setDocumentNonApplicable, resoumettrePermit, isResoumitting } = usePermitTravail()
+  const { data: requis } = usePermitDocumentsRequis(id ?? '')
 
   const [step, setStep] = useState(0)
   const [engagementChecked, setEngagementChecked] = useState(false)
@@ -173,22 +175,29 @@ export default function PermitTravailEditPage() {
     return null
   }
 
-  const docTypes = getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus)
+  const docTypes = requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus, false)
 
-  const handleDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
+  const handleDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
     if (!permit) return
-    await uploadDocument(permit.id, type, file)
-    setLocalDocs((prev) => [
-      ...prev.filter((d) => d.type !== type),
-      {
-        id: crypto.randomUUID(),
-        type,
-        filePath: '',
-        mimeType: file.type,
-        uploadedAt: new Date().toISOString(),
-      },
-    ])
+    const saved = await uploadDocument(permit.id, type, file, capturedAt)
+    setLocalDocs((prev) => [...prev.filter((d) => !(d.type === type && d.nonApplicable)), saved])
     setMissingDocTypes((prev) => prev.filter((t) => t !== type))
+  }
+
+  const handleDocDelete = async (documentId: string) => {
+    if (!permit) return
+    await deleteDocument(permit.id, documentId)
+    setLocalDocs((prev) => prev.filter((d) => d.id !== documentId))
+  }
+
+  const handleDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+    if (!permit) return
+    const marker = await setDocumentNonApplicable(permit.id, type, next)
+    setLocalDocs((prev) => [
+      ...prev.filter((d) => d.type !== type || (!next && !d.nonApplicable)),
+      ...(next && marker ? [marker] : []),
+    ])
+    if (next) setMissingDocTypes((prev) => prev.filter((t) => t !== type))
   }
 
   const handleStep2Next = handleSubmit(async (data) => {
@@ -327,6 +336,8 @@ export default function PermitTravailEditPage() {
               documentTypes={docTypes}
               uploadedDocuments={localDocs}
               onUpload={handleDocUpload}
+              onDelete={handleDocDelete}
+              onToggleNotApplicable={handleDocNotApplicable}
               allowDownload={true}
             />
           </div>

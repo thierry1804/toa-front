@@ -3,6 +3,7 @@ import api from '@/lib/axios'
 import { offlineSnapshotApi } from '@/api/offlineSnapshotApi'
 import type {
   OfflineSnapshot,
+  OfflineSnapshotExtras,
   OfflineSnapshotManifest,
   OfflineSnapshotModule,
   OfflineSnapshotPathModule,
@@ -13,10 +14,10 @@ import {
   SNAPSHOT_ENTITY_MODULES,
 } from '@/types/offlineSnapshot'
 import { getHttpStatus, snapshotErrorCode } from './getHttpStatus'
-import { hydrateFromSnapshot } from './hydrateFromSnapshot'
-import { applyDelta, getSnapshotMeta, saveSnapshot } from './snapshotStore'
+import { hydrateExtras, hydrateFromSnapshot } from './hydrateFromSnapshot'
+import { applyDelta, getSnapshotMeta, saveExtras, saveSnapshot } from './snapshotStore'
 import { hydraMember, hydraTotalItems } from './asHydra'
-import { collectSnapshotDocuments } from './collectSnapshotDocuments'
+import { collectExtrasPdfs, collectSnapshotDocuments } from './collectSnapshotDocuments'
 import { prefetchSnapshotDocuments } from './prefetchSnapshotDocuments'
 import {
   PULL_PROGRESS,
@@ -121,11 +122,27 @@ async function pullPaginated(
   return snapshot
 }
 
+/**
+ * Pièces requises des permis, planifications disponibles et liste des PDF générés. Non bloquant : si cet
+ * appel échoue, le snapshot principal reste valide (les écrans concernés retombent sur leur cache habituel).
+ */
+async function pullExtras(queryClient: QueryClient): Promise<OfflineSnapshotExtras | undefined> {
+  try {
+    const extras = await offlineSnapshotApi.getExtras()
+    await saveExtras(extras)
+    hydrateExtras(queryClient, extras)
+    return extras
+  } catch {
+    return undefined
+  }
+}
+
 async function prefetchDocumentsForSnapshot(
   snapshot: OfflineSnapshot,
+  extras: OfflineSnapshotExtras | undefined,
   onProgress?: (p: PullProgress) => void,
 ): Promise<void> {
-  const docs = collectSnapshotDocuments(snapshot)
+  const docs = [...collectSnapshotDocuments(snapshot), ...collectExtrasPdfs(extras)]
   // Do not clear the opportunistic cache: docs opened/uploaded earlier must
   // remain readable offline even if this dump prefetch is skipped or partial.
   if (docs.length === 0) {
@@ -230,10 +247,11 @@ export async function pullOfflineSnapshot(
       await saveSnapshot(snapshot)
     }
     hydrateFromSnapshot(queryClient, snapshot)
+    const extras = await pullExtras(queryClient)
     report({ phase: 'persist', percent: PULL_PROGRESS.persistEnd })
 
     if (!opts?.silent) {
-      await prefetchDocumentsForSnapshot(snapshot, opts?.onProgress)
+      await prefetchDocumentsForSnapshot(snapshot, extras, opts?.onProgress)
     } else {
       report({ phase: 'persist', percent: PULL_PROGRESS.done })
     }

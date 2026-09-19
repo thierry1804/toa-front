@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { isOfflineQueued } from '@/offline/offlineError'
+import { capturedAtErrorKey } from '@/utils/capturedAt'
 import { interventionApi } from '@/api/interventionApi'
 import {
   INTERVENTION_KEY,
@@ -169,6 +171,7 @@ export function useIntervention() {
 export function useSuiviJournalier(interventionId: string) {
   const queryClient = useQueryClient()
   const addToast = useUiStore((s) => s.addToast)
+  const { t } = useTranslation()
 
   const suiviKey = [...SUIVI_JOURNALIER_KEY, interventionId]
 
@@ -196,13 +199,14 @@ export function useSuiviJournalier(interventionId: string) {
   })
 
   const uploadDocumentMutation = useMutation({
-    mutationFn: ({ suiviId, file }: { suiviId: string; file: File }) =>
-      interventionApi.uploadSuiviDocument(suiviId, file),
+    mutationFn: ({ suiviId, file, capturedAt }: { suiviId: string; file: File; capturedAt?: string }) =>
+      interventionApi.uploadSuiviDocument(suiviId, file, capturedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: suiviKey })
     },
     onError: (error) => { if (isOfflineQueued(error)) return
-      addToast({ message: 'Erreur lors de l\'upload du document', type: 'error' })
+      const capturedAtKey = capturedAtErrorKey(error)
+      addToast({ message: capturedAtKey ? t(capturedAtKey) : 'Erreur lors de l\'upload du document', type: 'error' })
     },
   })
 
@@ -221,8 +225,8 @@ export function useSuiviJournalier(interventionId: string) {
     createSuivi: (data: SuiviJournalierInput) => createMutation.mutateAsync(data),
     updateSuivi: (id: string, data: SuiviJournalierUpdateInput) =>
       updateMutation.mutateAsync({ id, data }),
-    uploadSuiviDocument: (suiviId: string, file: File) =>
-      uploadDocumentMutation.mutateAsync({ suiviId, file }),
+    uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string) =>
+      uploadDocumentMutation.mutateAsync({ suiviId, file, capturedAt }),
     deleteSuiviDocument: (suiviId: string, docId: string) =>
       deleteDocumentMutation.mutateAsync({ suiviId, docId }),
     isCreating: createMutation.isPending,

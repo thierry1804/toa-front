@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Plus,
-  CheckCircle,
-  XCircle,
   AlertCircle,
   Eye,
   User,
@@ -32,21 +30,27 @@ import RefuserModal from "@/components/planPrevention/RefuserModal";
 import PdfGenerationButton from "@/components/planPrevention/PdfGenerationButton";
 import PdfStatusBadge from "@/components/planPrevention/PdfStatusBadge";
 import DocumentViewerModal from "@/components/documents/DocumentViewerModal";
+import DocumentTypeRow from "@/components/documents/DocumentTypeRow";
 import {
   usePlanPreventionDetail,
   usePlanPrevention,
   usePlanPreventionPdf,
+  useConsulterDocument,
 } from "@/features/planPrevention/hooks/usePlanPrevention";
 import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
-import { usePermission } from "@/features/auth/usePermission";
+import { useHasRole, usePermission } from "@/features/auth/usePermission";
 import { planPreventionApi } from "@/api/planPreventionApi";
 import {
   TYPES_DOCUMENT_LABELS,
   ALL_DOCUMENT_TYPES,
 } from "@/types/planPrevention";
 import type { RisqueRow } from "@/types/planPrevention";
+import { planSections } from "@/utils/planSections";
 
 const STATUTS_EXAMINABLES = ["SOUMIS", "EN_COURS_DE_VALIDATION"] as const;
+
+// Roles for which the back records a document consultation (PlanPreventionDocumentConsulterController).
+const CONSULTATION_ROLES = ["ROLE_CHEF_PROJET", "ROLE_HSE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"] as const;
 
 function SectionCard({
   title,
@@ -100,6 +104,7 @@ export default function PlanPreventionDetailPage() {
   const canExamine = usePermission("plan_prevention.examine");
   const canValiderHse = usePermission("plan_prevention.valider_hse");
   const canRefuserHse = usePermission("plan_prevention.refuser_hse");
+  const hasReviewerRole = useHasRole(...CONSULTATION_ROLES);
   const canCreatePermit = usePermission("permit_travail.create");
 
   const { data: plan, isLoading, isError } = usePlanPreventionDetail(id ?? "");
@@ -121,6 +126,10 @@ export default function PlanPreventionDetailPage() {
   const [validerOpen, setValiderOpen] = useState(false);
   const [refuserOpen, setRefuserOpen] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null);
+  // Une consultation par pièce et par affichage : le visionneur peut se recharger plusieurs fois, et hors-ligne
+  // chaque envoi serait une action de plus en file de synchronisation.
+  const consultationSent = useRef(new Set<string>());
+  const consulter = useConsulterDocument(id ?? "");
 
   if (isLoading) {
     return (
@@ -171,10 +180,29 @@ export default function PlanPreventionDetailPage() {
     );
   }
 
+  const isReviewer =
+    hasReviewerRole && (canExamine || canValiderHse || canRefuserHse);
+  const docsConsulted = !isReviewer || plan.tousDocumentsConsultes !== false;
   const isExaminable =
     canExamine &&
     (STATUTS_EXAMINABLES as readonly string[]).includes(plan.statut);
   const isDecidable = plan.statut === "EXAMINE";
+  const hasPendingReviewAction =
+    isExaminable || (isDecidable && (canValiderHse || canRefuserHse));
+
+  const markConsulted = (docId: string) => {
+    if (!isReviewer || consultationSent.current.has(docId)) return;
+    const doc = plan.documents?.find((d) => d.id === docId);
+    if (!doc || doc.consultedAt) return;
+    consultationSent.current.add(docId);
+    consulter.mutate(docId, { onError: () => consultationSent.current.delete(docId) });
+  };
+
+  // La consultation (R-11) n'est comptée qu'une fois le fichier réellement affiché ou téléchargé : hors-ligne,
+  // une pièce absente du cache ne doit pas être marquée « consultée ».
+  const openDocument = (docId: string, label: string) => {
+    setViewingDoc({ id: docId, label });
+  };
 
   const risqueRows: RisqueRow[] = (plan.risques ?? []).map((r) => ({
     localId: r.id,
@@ -186,8 +214,6 @@ export default function PlanPreventionDetailPage() {
     mesuresPreventives: r.mesuresPreventives,
     risqueResiduel: r.risqueResiduel ?? null,
   }));
-
-  const uploadedTypes = new Set((plan.documents ?? []).map((d) => d.type));
 
   const downloadDocument = async (docId: string, filename: string) => {
     await planPreventionApi.downloadDocument(plan.id, docId, filename);
@@ -216,7 +242,11 @@ export default function PlanPreventionDetailPage() {
               {t("planPrevention.detail.back")}
             </Button>
             {isExaminable && (
-              <Button onClick={() => setExaminerOpen(true)}>
+              <Button
+                onClick={() => setExaminerOpen(true)}
+                disabled={!docsConsulted}
+                title={!docsConsulted ? t("planPrevention.toast.documentsNonConsultes") : undefined}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 {t("planPrevention.detail.examinerBtn")}
               </Button>
@@ -238,6 +268,15 @@ export default function PlanPreventionDetailPage() {
         }
       />
 
+      {isReviewer && !docsConsulted && hasPendingReviewAction && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+          <p className="text-sm text-amber-800">
+            {t("planPrevention.toast.documentsNonConsultes")}
+          </p>
+        </div>
+      )}
+
       {/* Panneau de décision HSE */}
       {isDecidable && (canValiderHse || canRefuserHse) && (
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
@@ -246,18 +285,25 @@ export default function PlanPreventionDetailPage() {
           </p>
           <div className="flex items-center gap-3">
             {canValiderHse && (
-              <Button onClick={() => setValiderOpen(true)}>
+              <Button onClick={() => setValiderOpen(true)} disabled={!docsConsulted}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 {t("planPrevention.list.actions.valider")}
               </Button>
             )}
             {canRefuserHse && (
-              <Button variant="danger" onClick={() => setRefuserOpen(true)}>
+              <Button variant="danger" onClick={() => setRefuserOpen(true)} disabled={!docsConsulted}>
                 <ShieldX className="mr-2 h-4 w-4" />
                 {t("planPrevention.list.actions.refuser")}
               </Button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Actions enregistrées hors-ligne, pas encore confirmées par le serveur */}
+      {plan.pendingSync && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-800">
+          {t("offline.planPending")}
         </div>
       )}
 
@@ -305,6 +351,18 @@ export default function PlanPreventionDetailPage() {
                 </span>
               }
             />
+            {plan.soumisAt && (
+              <InfoRow
+                label={t("planPrevention.detail.fields.soumisAt")}
+                value={new Date(plan.soumisAt).toLocaleString("fr-FR")}
+              />
+            )}
+            {plan.validatedAt && (
+              <InfoRow
+                label={t("planPrevention.detail.fields.validatedAt")}
+                value={new Date(plan.validatedAt).toLocaleString("fr-FR")}
+              />
+            )}
             {plan.chefProjet && (
               <InfoRow
                 label={t("planPrevention.detail.fields.chefProjet")}
@@ -326,9 +384,9 @@ export default function PlanPreventionDetailPage() {
       <SectionCard
         title={`Analyse des risques (${risqueRows.length})`}
       >
-        {(plan.planificationSections?.length ?? 0) > 0 ? (
+        {planSections(plan).length > 0 ? (
           <AnalyseRisquesPlanning
-            sections={plan.planificationSections!}
+            sections={planSections(plan)}
             rows={risqueRows}
             onChange={() => undefined}
             categories={allCategories}
@@ -419,55 +477,39 @@ export default function PlanPreventionDetailPage() {
 
       {/* 5. Documents requis */}
       <SectionCard title={t("planPrevention.detail.sections.documents")}>
-        <ul className="space-y-2.5">
-          {ALL_DOCUMENT_TYPES.map((type) => {
-            const doc = plan.documents?.findLast((d) => d.type === type);
-            const uploaded = uploadedTypes.has(type);
-            return (
-              <li key={type} className="flex items-center gap-3">
-                {uploaded ? (
-                  <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 shrink-0 text-red-400" />
-                )}
-                <span
-                  className={`text-sm ${uploaded ? "text-gray-800" : "text-gray-400 italic"}`}
+        <div className="space-y-3">
+          {ALL_DOCUMENT_TYPES.map((type) => (
+            <DocumentTypeRow
+              key={type}
+              label={TYPES_DOCUMENT_LABELS[type]}
+              docs={(plan.documents ?? []).filter((d) => d.type === type)}
+              pending={[]}
+              missing
+              disabled
+              showConsulted={isReviewer}
+              loadBlob={(docId) => planPreventionApi.getDocumentBlob(plan.id, docId)}
+              onView={(doc) => openDocument(doc.id, TYPES_DOCUMENT_LABELS[type])}
+              onCapture={async () => undefined}
+              renderExtra={(doc) => (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void downloadDocument(
+                      doc.id,
+                      (plan.documents ?? []).find((d) => d.id === doc.id)?.filePath.split("/").at(-1) ?? "document",
+                    )
+                      .then(() => markConsulted(doc.id))
+                      .catch(() => undefined);
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
                 >
-                  {TYPES_DOCUMENT_LABELS[type]}
-                </span>
-                {uploaded && doc && (
-                  <div className="ml-auto flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewingDoc({ id: doc.id, label: TYPES_DOCUMENT_LABELS[type] });
-                      }}
-                      className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                      {t("planPrevention.detail.view")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void downloadDocument(
-                          doc.id,
-                          doc.filePath.split("/").at(-1) ?? "document",
-                        );
-                      }}
-                      className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      {t("planPrevention.detail.download")}
-                    </button>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  <Download className="h-3.5 w-3.5" />
+                  {t("planPrevention.detail.download")}
+                </button>
+              )}
+            />
+          ))}
+        </div>
       </SectionCard>
 
       {/* 6. Historique des examens */}
@@ -574,6 +616,9 @@ export default function PlanPreventionDetailPage() {
         onClose={() => setViewingDoc(null)}
         title={viewingDoc?.label ?? ""}
         blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(plan.id, viewingDoc.id) : null}
+        onLoaded={() => {
+          if (viewingDoc) markConsulted(viewingDoc.id);
+        }}
       />
     </div>
   );

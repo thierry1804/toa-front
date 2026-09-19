@@ -163,6 +163,7 @@ function DashboardPage() {
 
   const superAdminStatItems = [
     { label: t("dashboard.kpis.plansValides"), value: kpis?.nbPlansValides ?? "—", href: "/prevention?statut=valides" },
+    { label: t("dashboard.kpis.nbPermis"), value: kpis?.nbPermisTotal ?? "—", href: "/permits-travail" },
     { label: t("dashboard.kpis.permisValides"), value: kpis?.nbPermisValides ?? "—", href: "/permits-travail?statut=valides" },
     { label: t("dashboard.kpis.permisClotures"), value: kpis?.nbPermisClotures ?? "—", href: "/permits-travail?statut=clotures" },
     {

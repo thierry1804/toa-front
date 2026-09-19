@@ -5,12 +5,14 @@ import { ToastContainer } from '@/components/ui/ToastContainer'
 import { useRefreshPermissions } from '@/features/auth/useAuth'
 import { useLoadMenu } from '@/features/menus/hooks/useLoadMenu'
 import { useSyncOnReconnect } from '@/hooks/useSyncOnReconnect'
+import { useAutoSnapshot } from '@/hooks/useAutoSnapshot'
 import { PwaReloadBanner } from '@/components/layout/PwaReloadBanner'
 
 export function AppShell() {
   useLoadMenu()
   useRefreshPermissions()
   useSyncOnReconnect()
+  useAutoSnapshot()
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">

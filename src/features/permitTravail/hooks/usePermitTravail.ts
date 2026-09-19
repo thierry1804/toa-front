@@ -6,6 +6,7 @@ import { interventionApi } from '@/api/interventionApi'
 import { PERMIT_TRAVAIL_KEY, INTERVENTION_KEY, DASHBOARD_KEY } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
 import { isOfflineQueued } from '@/offline/offlineError'
+import { capturedAtErrorKey } from '@/utils/capturedAt'
 import type {
   PermitTravail,
   PermitTravailInput,
@@ -33,6 +34,16 @@ export function usePermitTravailSuivi(filters?: PermitTravailSuiviFilters) {
     queryFn: () => permitTravailApi.getSuivi(filters),
     staleTime: SUIVI_REFETCH_MS,
     refetchInterval: SUIVI_REFETCH_MS,
+  })
+}
+
+export function usePermitDocumentsRequis(permitId: string) {
+  return useQuery({
+    queryKey: [...PERMIT_TRAVAIL_KEY, permitId, 'documents-requis'],
+    queryFn: () => permitTravailApi.getDocumentsRequis(permitId),
+    enabled: !!permitId,
+    retry: false,
+    staleTime: 60_000,
   })
 }
 
@@ -311,6 +322,8 @@ export function usePermitTravailDetail(id: string) {
     queryKey: [...PERMIT_TRAVAIL_KEY, id],
     queryFn: () => permitTravailApi.getById(id),
     enabled: !!id,
+    // Toujours revalider à l'ouverture : statut, documents et décisions changent côté serveur.
+    staleTime: 0,
   })
 }
 
@@ -379,14 +392,37 @@ export function usePermitTravail() {
   })
 
   const uploadMutation = useMutation({
-    mutationFn: ({ id, type, file }: { id: string; type: string; file: File }) =>
-      permitTravailApi.uploadDocument(id, type, file),
+    mutationFn: ({ id, type, file, capturedAt }: { id: string; type: string; file: File; capturedAt?: string }) =>
+      permitTravailApi.uploadDocument(id, type, file, capturedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
       addToast({ message: 'Document téléversé avec succès', type: 'success' })
     },
     onError: (error) => { if (isOfflineQueued(error)) return
-      addToast({ message: 'Erreur lors du téléversement du document', type: 'error' })
+      const capturedAtKey = capturedAtErrorKey(error)
+      addToast({ message: capturedAtKey ? t(capturedAtKey) : 'Erreur lors du téléversement du document', type: 'error' })
+    },
+  })
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: ({ id, documentId }: { id: string; documentId: string }) =>
+      permitTravailApi.deleteDocument(id, documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: 'Erreur lors de la suppression du document', type: 'error' })
+    },
+  })
+
+  const nonApplicableMutation = useMutation({
+    mutationFn: ({ id, type, nonApplicable }: { id: string; type: string; nonApplicable: boolean }) =>
+      permitTravailApi.setDocumentNonApplicable(id, type, nonApplicable),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PERMIT_TRAVAIL_KEY })
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({ message: 'Erreur lors de la mise à jour du document', type: 'error' })
     },
   })
 
@@ -482,8 +518,16 @@ export function usePermitTravail() {
     return updateMutation.mutateAsync({ id, data })
   }
 
-  const uploadDocument = async (id: string, type: string, file: File) => {
-    return uploadMutation.mutateAsync({ id, type, file })
+  const uploadDocument = async (id: string, type: string, file: File, capturedAt?: string) => {
+    return uploadMutation.mutateAsync({ id, type, file, capturedAt })
+  }
+
+  const deleteDocument = async (id: string, documentId: string) => {
+    return deleteDocumentMutation.mutateAsync({ id, documentId })
+  }
+
+  const setDocumentNonApplicable = async (id: string, type: string, nonApplicable: boolean) => {
+    return nonApplicableMutation.mutateAsync({ id, type, nonApplicable })
   }
 
   const validerPermit = async (id: string, commentaire?: string): Promise<PermitTravail> => {
@@ -530,6 +574,10 @@ export function usePermitTravail() {
         addToast({ message: 'Engagement obligatoire', type: 'error' })
         throw Object.assign(new Error('engagement_required'), { detail })
       }
+      if (detail.includes('general_requis')) {
+        addToast({ message: 'Un permis Général est obligatoire avant ce permis', type: 'error' })
+        throw Object.assign(new Error('general_requis'), { detail })
+      }
       if (detail.includes('2 permis requis') || detail.includes('deux_permis_requis')) {
         addToast({ message: '2 permis requis pour un nouveau site', type: 'error' })
         throw Object.assign(new Error('deux_permis_requis'), { detail })
@@ -544,6 +592,8 @@ export function usePermitTravail() {
     deletePermit,
     updatePermit,
     uploadDocument,
+    deleteDocument,
+    setDocumentNonApplicable,
     soumettrePermit,
     validerPermit,
     refuserPermit,

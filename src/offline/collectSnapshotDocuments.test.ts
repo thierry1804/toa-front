@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { collectSnapshotDocuments } from './collectSnapshotDocuments'
+import { collectExtrasPdfs, collectSnapshotDocuments } from './collectSnapshotDocuments'
 
 describe('collectSnapshotDocuments', () => {
   it('collects plan, permit and suivi document download URLs', () => {
@@ -146,5 +146,35 @@ describe('prefetchSnapshotDocuments', () => {
     )
 
     expect(result).toEqual({ total: 2, cached: 1, skipped: 0, failed: 1 })
+  })
+
+  it('skips « non applicable » markers (no file to download)', () => {
+    const refs = collectSnapshotDocuments({
+      generatedAt: '2026-01-01T00:00:00Z',
+      userId: 1,
+      plansPrevention: [
+        {
+          id: 'pl1',
+          documents: [
+            { id: 'd1', type: 'FDS', filePath: 'plans/fds.pdf', mimeType: 'application/pdf' },
+            { id: 'd2', type: 'LISTE_VEHICULES', filePath: '', mimeType: '', nonApplicable: true },
+          ],
+        },
+      ],
+    })
+
+    expect(refs.map((r) => r.url)).toEqual(['/api/plans-prevention/pl1/documents/d1/download'])
+  })
+
+  it('turns the generated PDFs of the extras into documents to prefetch', () => {
+    expect(collectExtrasPdfs(undefined)).toEqual([])
+    expect(
+      collectExtrasPdfs({
+        generatedAt: 't',
+        permitsDocumentsRequis: [],
+        planificationsDisponibles: [],
+        generatedPdfs: [{ downloadPath: '/api/permits-travail/pt1/pdf/download', nom: 'permit_travail.pdf' }],
+      }),
+    ).toEqual([{ url: '/api/permits-travail/pt1/pdf/download', filename: 'permit_travail.pdf' }])
   })
 })

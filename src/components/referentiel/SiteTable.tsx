@@ -42,6 +42,7 @@ export default function SiteTable({
               <th className="px-4 py-3 text-left font-medium text-gray-600">Fokontany</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Commune</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">District</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">APN / API</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Coordonnées</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Import source</th>
             </tr>
@@ -66,6 +67,15 @@ export default function SiteTable({
                 <td className="px-4 py-3 text-gray-600">{site.fokontany ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-600">{site.commune ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-600">{site.district ?? '—'}</td>
+                <td className="px-4 py-3">
+                  {site.apn || site.api ? (
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                      {[site.apn && 'APN', site.api && 'API'].filter(Boolean).join(' / ')}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-500">
                   {site.latitude.toFixed(5)}, {site.longitude.toFixed(5)}
                 </td>

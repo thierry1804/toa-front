@@ -89,6 +89,7 @@
       "plansValides": "Plans validés",
       "permisValides": "Permis validés",
       "permisClotures": "Permis clôturés",
+      "nbPermis": "Nombre de permis",
       "tauxCloture": "Taux de clôture",
       "permitsToHandle": "Permis à traiter",
       "plansToHandle": "Plans à traiter",
@@ -366,7 +367,6 @@
       "updated": "Planification modifiée avec succès",
       "deleted": "Planification supprimée avec succès",
       "createError": "Erreur lors de la création",
-      "createConflict": "Une planification en conflit existe déjà pour ce site sur cette période. Veuillez vérifier les dates ou le site sélectionné.",
       "updateError": "Erreur lors de la modification",
       "deleteError": "Erreur lors de la suppression",
       "permissionDenied": "Permission refusée"
@@ -584,6 +584,8 @@
         "activitePlanifiee": "Activité planifiée",
         "processus": "Processus",
         "periode": "Période",
+        "soumisAt": "Soumis le",
+        "validatedAt": "Validé le",
         "createdBy": "Créé par",
         "chefProjet": "Chef de projet"
       },
@@ -623,11 +625,22 @@
       "cancel": "Annuler",
       "confirm": "Confirmer le refus"
     },
+    "permissions": {
+      "loading": "Chargement de vos droits d'accès… le formulaire sera modifiable dans un instant.",
+      "denied": "Vous n'avez pas le droit de créer un plan de prévention. Contactez un administrateur si c'est une erreur."
+    },
+    "apnApi": {
+      "alertTitle": "Site en aire protégée (APN / API)",
+      "alertBody": "Au moins un site de ce plan est situé dans une aire protégée nationale (APN) ou internationale (API). Renseignez les risques associés au type de site.",
+      "risqueRequired": "Un risque de catégorie {{types}} est obligatoire pour ce plan : sélectionnez une catégorie de risque de ce type (hors « Autre(s) risque(s) »)."
+    },
     "toast": {
       "refused": "Plan refusé — prestataire notifié",
       "errorValidate": "Erreur lors de la validation HSE du plan",
       "errorRefuse": "Erreur lors du refus HSE du plan",
-      "errorExamine": "Erreur lors de l'examen du plan"
+      "errorExamine": "Erreur lors de l'examen du plan",
+      "documentsNonConsultes": "Consultez toutes les pièces jointes avant d'examiner, valider ou refuser ce plan",
+      "risqueApnApiObligatoire": "Au moins un risque lié à l'APN/API est obligatoire : le plan concerne une aire protégée"
     },
     "components": {
       "planReference": {
@@ -759,10 +772,14 @@
     "pending_one": "{{count}} en attente",
     "pending_other": "{{count}} en attente",
     "queued": "Action sauvegardée hors ligne",
+    "planPending": "Modifications enregistrées hors ligne — en attente de synchronisation avec le serveur.",
+    "createRequiresNetwork": "Un nouveau plan doit être démarré avec une connexion (la référence est attribuée par le serveur). Vous pouvez en revanche compléter et soumettre vos brouillons existants hors ligne.",
     "synced_one": "{{count}} action synchronisée",
     "synced_other": "{{count}} actions synchronisées",
     "dropped_one": "{{count}} action non synchronisée après {{max}} tentatives",
     "dropped_other": "{{count}} actions non synchronisées après {{max}} tentatives",
+    "rejected_one": "{{count}} action refusée par le serveur : l'élément a changé entre-temps (voir « Actions non synchronisées »)",
+    "rejected_other": "{{count}} actions refusées par le serveur : les éléments ont changé entre-temps (voir « Actions non synchronisées »)",
     "syncBadge_one": "{{count}} en attente de synchronisation",
     "syncBadge_other": "{{count}} en attente de synchronisation",
     "syncBadgeFailed_one": "{{count}} action non synchronisée",
@@ -811,6 +828,30 @@
       }
     }
   },
+  "documents": {
+    "takePhoto": "Prendre une photo",
+    "addPhoto": "Ajouter une photo",
+    "importFile": "Importer un fichier",
+    "sending": "Envoi...",
+    "view": "Voir",
+    "delete": "Supprimer la photo",
+    "notApplicable": "N/A",
+    "notApplicableTitle": "Non applicable — aucune pièce requise pour cette ligne",
+    "notApplicableDone": "Non applicable",
+    "photoCount_one": "{{count}} photo",
+    "photoCount_other": "{{count}} photos",
+    "capturedAt": "Prise le {{date}}",
+    "cameraHint": "Photo prise directement depuis l'appareil — plusieurs photos possibles",
+    "consulted": "Consulté",
+    "notConsulted": "À consulter",
+    "uploadErrors": {
+      "capturedAtInvalid": "Date de prise de vue invalide — le fichier n'a pas été envoyé.",
+      "capturedAtInFuture": "La date de prise de vue est dans le futur — vérifiez l'heure de l'appareil.",
+      "capturedAtTooOld": "Fichier refusé : sa date de prise de vue dépasse 30 jours. Prenez une nouvelle photo.",
+      "unsupportedType": "Format non accepté ({{name}}) — utilisez PDF, JPEG, PNG ou WebP.",
+      "tooLarge": "Fichier trop volumineux ({{name}}) — 10 Mo maximum."
+    }
+  },
   "errors": {
     "incorrect_credentials": "Identifiants incorrects",
     "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
@@ -833,7 +874,6 @@
     "expected_end_date_required": "La date de fin prévue est obligatoire",
     "dates_incoherent": "Les dates ne sont pas cohérentes",
     "locked_fields_not_modifiable": "Certains champs ne peuvent pas être modifiés car le planning est verrouillé",
-    "conflict_with_active_interventions": "Conflit avec des interventions en cours",
     "menu_name_required": "Le nom du menu est obligatoire",
     "menu_position_required": "La position du menu est obligatoire",
     "menu_access_menu_required": "Le menu est obligatoire",
@@ -1904,9 +1944,10 @@
     },
     "components": {
       "cloturerModal": {
-        "title": "Clôturer le permis",
+        "title": "PV Environnement",
         "banner": "<strong>Action irréversible.</strong> Le permis passera en statut CLÔTURÉ et un PV de réception sera généré automatiquement.",
         "documentsLabel": "Documents de clôture",
+        "documentsLoading": "Chargement des documents requis… la clôture reste indisponible jusque-là.",
         "commentPlaceholder": "Motif de clôture, remarques de réception…",
         "accordClientLabel": "Accord client obtenu",
         "confirmLabel": "Confirmer la clôture",

@@ -2,11 +2,26 @@ import type { QueryClient } from '@tanstack/react-query'
 import api from '@/lib/axios'
 import i18n from '@/lib/i18n'
 import { syncQueue, type SyncItem } from './syncQueue'
+import { getHttpStatus } from './getHttpStatus'
 import { isOfflineQueued } from './offlineError'
 import { deleteBlobsForParts, getBlob, rebuildFormData } from './blobStore'
 import { putCachedDocument } from './docCache'
+import { planIdsFromQueue, refreshPlansAfterSync } from './refreshPlansAfterSync'
 
 const MAX_RETRIES = 5
+
+// Erreurs 4xx qui peuvent passer d'une tentative à l'autre : session expirée (renouvelée par l'intercepteur),
+// délai d'attente, limitation de débit. Toutes les autres sont des refus définitifs du serveur.
+const TRANSIENT_CLIENT_ERRORS = new Set([401, 408, 425, 429])
+
+/**
+ * Refus définitif : le serveur a compris la requête et la rejette (ex. valider un plan qu'un autre utilisateur
+ * a refusé entre-temps, élément supprimé, règle métier 422). La rejouer donnera la même réponse.
+ */
+export function isRejectedByServer(error: unknown): boolean {
+  const status = getHttpStatus(error)
+  return status !== undefined && status >= 400 && status < 500 && !TRANSIENT_CLIENT_ERRORS.has(status)
+}
 
 function documentDownloadUrl(uploadUrl: string, docId: string): string | null {
   const path = uploadUrl.split('?')[0].replace(/\/$/, '')
@@ -60,6 +75,7 @@ export async function drainSyncQueue(
 
   let synced = 0
   let dropped = 0
+  let rejected = 0
 
   for (const item of items) {
     try {
@@ -70,6 +86,12 @@ export async function drainSyncQueue(
       synced++
     } catch (error) {
       if (isOfflineQueued(error)) continue
+      if (isRejectedByServer(error)) {
+        // Inutile de réessayer 5 fois : on le signale tout de suite et on continue avec les actions suivantes.
+        await syncQueue.moveToFailed(item.id)
+        rejected++
+        continue
+      }
       const retries = await syncQueue.incrementRetries(item.id)
       if (retries >= MAX_RETRIES) {
         await syncQueue.moveToFailed(item.id)
@@ -78,8 +100,18 @@ export async function drainSyncQueue(
     }
   }
 
+  // Les plans touchés reviennent à l'état réel du serveur (efface l'état optimiste, y compris si une action a échoué).
+  await refreshPlansAfterSync(queryClient, planIdsFromQueue(items))
+
   if (synced > 0) {
     void queryClient.invalidateQueries()
+  }
+
+  if (rejected > 0) {
+    addToast({
+      message: i18n.t('offline.rejected', { count: rejected }),
+      type: 'error',
+    })
   }
 
   if (dropped > 0) {

@@ -2,13 +2,14 @@ import { openDB, type IDBPDatabase } from 'idb'
 import { currentUserId } from '@/utils/jwt'
 import type {
   OfflineSnapshot,
+  OfflineSnapshotExtras,
   OfflineSnapshotMeta,
   OfflineSnapshotModule,
   OfflineSnapshotTombstones,
 } from '@/types/offlineSnapshot'
 
 export const SNAPSHOT_DB = 'toa-snapshot'
-export const SNAPSHOT_DB_VER = 2
+export const SNAPSHOT_DB_VER = 3
 
 export const SNAPSHOT_META_STORE = 'meta'
 export const SNAPSHOT_MODULE_STORES = [
@@ -21,6 +22,9 @@ export const SNAPSHOT_MODULE_STORES = [
   'entreprises',
   'categoriesRisque',
   'installationsEquipements',
+  // Extras calculés côté serveur (voir saveExtras)
+  'permitDocumentsRequis',
+  'planificationsDisponibles',
 ] as const
 
 export type SnapshotStoreName = (typeof SNAPSHOT_MODULE_STORES)[number]
@@ -66,7 +70,9 @@ export function resetSnapshotDbForTests(): void {
 }
 
 function storeKey(module: SnapshotStoreName, id: string | number): string | number {
-  if (module === 'activityPlannings' || module === 'users') return Number(id)
+  if (module === 'activityPlannings' || module === 'users' || module === 'planificationsDisponibles') {
+    return Number(id)
+  }
   return String(id)
 }
 
@@ -167,6 +173,22 @@ export async function saveSnapshot(snapshot: OfflineSnapshot): Promise<void> {
     snapshot.referentiel?.installationsEquipements ?? [],
   )
   await writeMeta(snapshot, null)
+  notify()
+}
+
+/** Écrit une entité dans le snapshot local (ex. état optimiste d'une action mise en file hors-ligne). */
+export async function putSnapshotItem(store: SnapshotStoreName, item: unknown): Promise<void> {
+  await putItems(store, [item])
+  notify()
+}
+
+/**
+ * Extras (pièces requises des permis, planifications disponibles) : toujours remplacés en entier,
+ * ils sont recalculés côté serveur à chaque tirage.
+ */
+export async function saveExtras(extras: OfflineSnapshotExtras): Promise<void> {
+  await replaceStore('permitDocumentsRequis', extras.permitsDocumentsRequis ?? [])
+  await replaceStore('planificationsDisponibles', extras.planificationsDisponibles ?? [])
   notify()
 }
 

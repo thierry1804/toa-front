@@ -14,7 +14,7 @@ import {
   USERS_KEY,
   ENTREPRISES_KEY,
 } from '@/data/constant/query'
-import type { OfflineSnapshot } from '@/types/offlineSnapshot'
+import type { OfflineSnapshot, OfflineSnapshotExtras } from '@/types/offlineSnapshot'
 import { asHydra } from './asHydra'
 
 function entityId(item: unknown): string | number | undefined {
@@ -105,4 +105,19 @@ export function hydrateFromSnapshot(queryClient: QueryClient, snapshot: OfflineS
   if (snapshot.entreprises) {
     queryClient.setQueryData(ENTREPRISES_KEY, asHydra(snapshot.entreprises))
   }
+}
+
+export function hydrateExtras(queryClient: QueryClient, extras: OfflineSnapshotExtras): void {
+  for (const permit of extras.permitsDocumentsRequis ?? []) {
+    queryClient.setQueryData([...PERMIT_TRAVAIL_KEY, permit.id, 'documents-requis'], {
+      soumission: permit.soumission,
+      cloture: permit.cloture,
+      apnApi: permit.apnApi,
+    })
+  }
+  const planifications = extras.planificationsDisponibles ?? []
+  queryClient.setQueryData([...PLAN_PREVENTION_KEY, 'planifications-disponibles'], {
+    member: planifications,
+    totalItems: planifications.length,
+  })
 }

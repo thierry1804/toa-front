@@ -156,4 +156,49 @@ describe('snapshotStore', () => {
       expect.objectContaining({ id: 'e1', nom: 'Bouvier SARL' }),
     ])
   })
+
+  it('stores the extras (required documents, available plannings) and replaces them on the next pull', async () => {
+    const { saveSnapshot, saveExtras, getAllFromSnapshot, getByIdFromSnapshot } = await import('./snapshotStore')
+    await saveSnapshot({ generatedAt: '2026-08-30T12:00:00Z', userId: 42 })
+
+    await saveExtras({
+      generatedAt: 't',
+      permitsDocumentsRequis: [
+        { id: 'pt1', soumission: ['TROUSSE_SECOURS'], cloture: ['PHOTO_AVANT_TRAVAUX'], apnApi: true },
+      ],
+      planificationsDisponibles: [{ id: 5 }, { id: 2 }],
+      generatedPdfs: [],
+    })
+
+    expect(await getByIdFromSnapshot('permitDocumentsRequis', 'pt1')).toMatchObject({ apnApi: true })
+    expect(await getByIdFromSnapshot('planificationsDisponibles', 5)).toEqual({ id: 5 })
+    expect(await getAllFromSnapshot('planificationsDisponibles')).toHaveLength(2)
+
+    await saveExtras({
+      generatedAt: 't2',
+      permitsDocumentsRequis: [],
+      planificationsDisponibles: [{ id: 7 }],
+      generatedPdfs: [],
+    })
+
+    expect(await getByIdFromSnapshot('permitDocumentsRequis', 'pt1')).toBeUndefined()
+    expect(await getAllFromSnapshot('planificationsDisponibles')).toEqual([{ id: 7 }])
+  })
+
+  it('writes a single entity into the snapshot (optimistic offline state)', async () => {
+    const { saveSnapshot, putSnapshotItem, getByIdFromSnapshot } = await import('./snapshotStore')
+    await saveSnapshot({
+      generatedAt: '2026-08-30T12:00:00Z',
+      userId: 42,
+      plansPrevention: [{ id: 'pl1', statut: 'EXAMINE' }],
+    })
+
+    await putSnapshotItem('plansPrevention', { id: 'pl1', statut: 'VALIDE_HSE', pendingSync: true })
+
+    expect(await getByIdFromSnapshot('plansPrevention', 'pl1')).toEqual({
+      id: 'pl1',
+      statut: 'VALIDE_HSE',
+      pendingSync: true,
+    })
+  })
 })

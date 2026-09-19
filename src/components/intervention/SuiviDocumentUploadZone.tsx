@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Upload, FileText, X, Loader2, Clock } from 'lucide-react'
+import { FileText, X, Loader2, Clock } from 'lucide-react'
 import type { SuiviJournalierDocument } from '@/types/intervention'
 import { interventionApi } from '@/api/interventionApi'
 import { usePendingUploads } from '@/hooks/usePendingUploads'
 import DocumentViewerModal from '@/components/documents/DocumentViewerModal'
-
-const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
-const ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.pdf'
+import CaptureButtons, { type CapturedFile } from '@/components/documents/CaptureButtons'
+import { isOfflineQueued } from '@/offline/offlineError'
+import { formatCapturedAt } from '@/utils/capturedAt'
 
 interface SuiviDocumentUploadZoneProps {
   suiviId: string
   documents: SuiviJournalierDocument[]
-  onUpload: (file: File) => Promise<unknown>
+  onUpload: (file: File, capturedAt?: string) => Promise<unknown>
   onDelete: (docId: string) => Promise<unknown>
   disabled?: boolean
 }
@@ -73,33 +73,31 @@ export default function SuiviDocumentUploadZone({
   disabled = false,
 }: SuiviDocumentUploadZoneProps) {
   const { t } = useTranslation()
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [dragging, setDragging] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingDoc, setViewingDoc] = useState<SuiviJournalierDocument | null>(null)
   const pendingUploads = usePendingUploads(
     suiviId ? `/api/suivis-journaliers/${suiviId}/documents` : undefined,
   )
 
-  const handleFiles = async (files: FileList | null) => {
-    if (!files || disabled) return
-    for (const file of Array.from(files)) {
-      if (!ACCEPTED_MIME.includes(file.type)) continue
-      setUploading(true)
-      try {
-        await onUpload(file)
-      } finally {
-        setUploading(false)
-      }
+  const handleCapture = async ({ file, capturedAt }: CapturedFile) => {
+    if (disabled) return
+    setUploading(true)
+    try {
+      await onUpload(file, capturedAt)
+    } catch (err) {
+      if (!isOfflineQueued(err)) throw err
+    } finally {
+      setUploading(false)
     }
-    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleDelete = async (docId: string) => {
     setDeletingId(docId)
     try {
       await onDelete(docId)
+    } catch {
+      // already toasted by the delete hook
     } finally {
       setDeletingId(null)
     }
@@ -160,6 +158,11 @@ export default function SuiviDocumentUploadZone({
                 className="flex-1 cursor-pointer truncate text-left text-sm text-gray-700 hover:underline"
               >
                 {doc.nom}
+                {formatCapturedAt(doc.capturedAt, doc.uploadedAt) && (
+                  <span className="block text-xs text-gray-500">
+                    {t('documents.capturedAt', { date: formatCapturedAt(doc.capturedAt, doc.uploadedAt) })}
+                  </span>
+                )}
               </button>
               {!disabled && (
                 <button
@@ -182,49 +185,14 @@ export default function SuiviDocumentUploadZone({
       )}
 
       {!disabled && (
-        <div
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragging(false)
-            void handleFiles(e.dataTransfer.files)
-          }}
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDragging(true)
-          }}
-          onDragLeave={() => setDragging(false)}
-          className={`flex flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 transition-colors ${
-            dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-          }`}
-        >
-          <input
-            type="file"
+        <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-6">
+          <CaptureButtons
+            onCapture={handleCapture}
+            uploading={uploading}
+            hasPhotos={documents.length > 0}
             multiple
-            accept={ACCEPTED_EXTENSIONS}
-            ref={fileInputRef}
-            className="hidden"
-            onChange={(e) => void handleFiles(e.target.files)}
           />
-          {uploading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-          ) : (
-            <Upload className="h-6 w-6 text-gray-400" />
-          )}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50"
-            >
-              {uploading
-                ? t('intervention.components.suiviDocumentUploadZone.uploading')
-                : t('intervention.components.suiviDocumentUploadZone.chooseFiles')}
-            </button>
-            <p className="mt-0.5 text-xs text-gray-500">
-              {t('intervention.components.suiviDocumentUploadZone.dropHint')}
-            </p>
-          </div>
+          <p className="text-xs text-gray-500">{t('documents.cameraHint')}</p>
         </div>
       )}
 
