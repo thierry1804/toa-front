@@ -89,9 +89,10 @@ export const interventionApi = {
       })
       .then((r) => r.data),
 
-  uploadSuiviDocument: (suiviId: string, file: File) => {
+  uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string) => {
     const form = new FormData()
     form.append('file', file)
+    if (capturedAt) form.append('capturedAt', capturedAt)
     return api
       .post<SuiviJournalierDocument>(`/api/suivis-journaliers/${suiviId}/documents`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },

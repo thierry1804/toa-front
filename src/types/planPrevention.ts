@@ -65,11 +65,7 @@ export interface PlanPreventionInput {
   equipements?: EquipementRow[]
   planificationId?: number | null
   /** Phases + modes opératoires (même shape que l'ancienne planif) */
-  sections?: {
-    libelle: string
-    ordre: number
-    taches: { ordre: number; tache: string; materiel?: string; qui?: string }[]
-  }[]
+  sections?: import('@/types').SectionPayload[]
 }
 
 export interface RisquePreventionInput {
@@ -100,6 +96,9 @@ export interface DocumentPrevention {
   filePath: string
   mimeType: string
   uploadedAt: string
+  capturedAt?: string | null
+  nonApplicable?: boolean
+  consultedAt?: string | null
 }
 
 export interface SitePrevention {
@@ -115,6 +114,15 @@ export interface SitePrevention {
   fokontany?: string | null
   commune?: string | null
   district?: string | null
+  apn?: boolean
+  api?: boolean
+}
+
+export interface SiteApnApi {
+  codeSite: string
+  nomSite: string
+  apn: boolean
+  api: boolean
 }
 
 export interface KmzImportResult {
@@ -177,6 +185,14 @@ export interface PlanPrevention {
   process?: string | null
   planificationSites?: { codeSite: string; nomSite: string }[]
   planificationSections?: import('@/types').SectionPlanifieeItem[]
+  sections?: import('@/types').SectionPlanifieeItem[]
+  soumisAt?: string | null
+  validatedAt?: string | null
+  hasApnApiSite?: boolean
+  sitesApnApi?: SiteApnApi[]
+  tousDocumentsConsultes?: boolean
+  /** Local uniquement : une action est en file hors-ligne et n'est pas encore confirmée par le serveur. */
+  pendingSync?: boolean
 }
 
 export interface VehiculeRow {
@@ -206,6 +222,7 @@ export interface PlanBySiteResult {
   permitGeneralId?: string | null
   planificationSites: { codeSite: string; nomSite: string }[]
   planificationSections: import('@/types').SectionPlanifieeItem[]
+  sections?: import('@/types').SectionPlanifieeItem[]
   risques: RisquePrevention[]
   codeSite: string
   localite: string

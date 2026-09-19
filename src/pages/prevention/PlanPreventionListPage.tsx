@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, FileText, AlertCircle, Eye, ShieldCheck, ShieldX, Pencil, Wrench, FileCheck } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Pencil, Wrench, FileCheck } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -27,21 +27,15 @@ import {
   statutApiParam,
   statutMatchesFilter,
 } from '@/features/dashboard/buildProfileKpis'
-import ExaminerModal from '@/components/planPrevention/ExaminerModal'
-import ValiderModal from '@/components/planPrevention/ValiderModal'
-import RefuserModal from '@/components/planPrevention/RefuserModal'
 import {
   usePlanPreventionList,
   PLAN_PREVENTION_PAGE_SIZE,
-  usePlanPrevention,
   usePlanPreventionPdf,
 } from '@/features/planPrevention/hooks/usePlanPrevention'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { usePermission, useHasRole } from '@/features/auth/usePermission'
 import { useAuthStore } from '@/store/auth.store'
 import type { PlanPrevention } from '@/types/planPrevention'
-
-const STATUTS_EXAMINABLES = ['SOUMIS', 'EN_COURS_DE_VALIDATION'] as const
 
 const PLAN_STATUTS = [
   'BROUILLON',
@@ -89,33 +83,19 @@ function PlanPdfCell({ planId }: { planId: string }) {
 
 function PlanRow({
   plan,
-  canExamine,
-  canValiderHse,
-  canRefuserHse,
   canResoumettre,
   isOwnPlan,
   isPrestataire,
   showWorkflowColumns,
-  onExaminerClick,
-  onValiderClick,
-  onRefuserClick,
 }: {
   plan: PlanPrevention
-  canExamine: boolean
-  canValiderHse: boolean
-  canRefuserHse: boolean
   canResoumettre: boolean
   isOwnPlan: boolean
   isPrestataire: boolean
   showWorkflowColumns: boolean
-  onExaminerClick: (plan: PlanPrevention) => void
-  onValiderClick: (plan: PlanPrevention) => void
-  onRefuserClick: (plan: PlanPrevention) => void
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const isExaminable = canExamine && (STATUTS_EXAMINABLES as readonly string[]).includes(plan.statut)
-  const isDecidable = plan.statut === 'EXAMINE'
   const hasRefusDecision = plan.decisionsHse?.some((d) => d.decision === 'REFUSE') ?? false
   const isCorrectible =
     isOwnPlan && isPrestataire && plan.statut === 'BROUILLON' && hasRefusDecision && canResoumettre
@@ -180,32 +160,6 @@ function PlanRow({
               <Wrench className="h-4 w-4" />
             </TableIconButton>
           )}
-          {isExaminable && (
-            <TableIconButton
-              title={t('planPrevention.list.actions.examiner')}
-              onClick={() => onExaminerClick(plan)}
-            >
-              <Eye className="h-4 w-4" />
-            </TableIconButton>
-          )}
-          {isDecidable && canValiderHse && (
-            <TableIconButton
-              title={t('planPrevention.list.actions.valider')}
-              variant="success"
-              onClick={() => onValiderClick(plan)}
-            >
-              <ShieldCheck className="h-4 w-4" />
-            </TableIconButton>
-          )}
-          {isDecidable && canRefuserHse && (
-            <TableIconButton
-              title={t('planPrevention.list.actions.refuser')}
-              variant="danger"
-              onClick={() => onRefuserClick(plan)}
-            >
-              <ShieldX className="h-4 w-4" />
-            </TableIconButton>
-          )}
         </ListTableActions>
       </ListTableCell>
     </ListTableRow>
@@ -244,13 +198,6 @@ export default function PlanPreventionListPage() {
   const plans = sortNewestFirst(collection?.member ?? [])
   const totalItems = collection?.totalItems ?? 0
   const totalPages = Math.max(1, Math.ceil(totalItems / PLAN_PREVENTION_PAGE_SIZE))
-
-  const { examinerPlan, isExamining, validerPlan, isValidating, refuserPlan, isRefusing } =
-    usePlanPrevention()
-
-  const [selectedExaminer, setSelectedExaminer] = useState<PlanPrevention | null>(null)
-  const [selectedValider, setSelectedValider] = useState<PlanPrevention | null>(null)
-  const [selectedRefuser, setSelectedRefuser] = useState<PlanPrevention | null>(null)
 
   const showWorkflowColumns = canExamine || canValiderHse || canRefuserHse
 
@@ -413,16 +360,10 @@ export default function PlanPreventionListPage() {
                       <PlanRow
                         key={plan.id}
                         plan={plan}
-                        canExamine={canExamine}
-                        canValiderHse={canValiderHse}
-                        canRefuserHse={canRefuserHse}
                         canResoumettre={canResoumettre}
                         isOwnPlan={!!currentUserId && String(plan.createdBy.id) === currentUserId}
                         isPrestataire={isPrestataire}
                         showWorkflowColumns={showWorkflowColumns}
-                        onExaminerClick={setSelectedExaminer}
-                        onValiderClick={setSelectedValider}
-                        onRefuserClick={setSelectedRefuser}
                       />
                     ))}
                   </ListTableBody>
@@ -454,39 +395,6 @@ export default function PlanPreventionListPage() {
             )}
           </CardContent>
         </Card>
-      )}
-
-      {selectedExaminer && (
-        <ExaminerModal
-          isOpen
-          planId={selectedExaminer.id}
-          planReference={selectedExaminer.reference}
-          isExamining={isExamining}
-          onClose={() => setSelectedExaminer(null)}
-          onExaminer={examinerPlan}
-        />
-      )}
-
-      {selectedValider && (
-        <ValiderModal
-          isOpen
-          planId={selectedValider.id}
-          planReference={selectedValider.reference}
-          isValidating={isValidating}
-          onClose={() => setSelectedValider(null)}
-          onValider={validerPlan}
-        />
-      )}
-
-      {selectedRefuser && (
-        <RefuserModal
-          isOpen
-          planId={selectedRefuser.id}
-          planReference={selectedRefuser.reference}
-          isRefusing={isRefusing}
-          onClose={() => setSelectedRefuser(null)}
-          onRefuser={refuserPlan}
-        />
       )}
     </div>
   )

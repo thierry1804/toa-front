@@ -14,8 +14,11 @@ interface CloturerModalProps {
   onClose: () => void
   onCloturer: (id: string, commentaire?: string, accordClient?: boolean) => Promise<unknown>
   requiredDocumentTypes: TypeDocumentPermitTravail[]
+  requiredDocumentsLoading?: boolean
   uploadedDocuments: DocumentPermitTravail[]
-  onUploadDocument: (type: TypeDocumentPermitTravail, file: File) => Promise<void>
+  onUploadDocument: (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => Promise<void>
+  onDeleteDocument?: (documentId: string) => Promise<void>
+  onToggleNotApplicable?: (type: TypeDocumentPermitTravail, next: boolean) => Promise<void>
 }
 
 export default function CloturerModal({
@@ -26,8 +29,11 @@ export default function CloturerModal({
   onClose,
   onCloturer,
   requiredDocumentTypes,
+  requiredDocumentsLoading = false,
   uploadedDocuments,
   onUploadDocument,
+  onDeleteDocument,
+  onToggleNotApplicable,
 }: CloturerModalProps) {
   const { t } = useTranslation()
   const [accordClient, setAccordClient] = useState(false)
@@ -57,11 +63,18 @@ export default function CloturerModal({
             <p className="mb-2 text-sm font-medium text-gray-700">
               {t('permitTravail.components.cloturerModal.documentsLabel')}
             </p>
+            {requiredDocumentsLoading && (
+              <p className="mb-2 text-xs text-amber-700">
+                {t('permitTravail.components.cloturerModal.documentsLoading')}
+              </p>
+            )}
             <PermitDocumentUploadZone
               permitId={permitId}
               documentTypes={requiredDocumentTypes}
               uploadedDocuments={uploadedDocuments}
               onUpload={onUploadDocument}
+              onDelete={onDeleteDocument}
+              onToggleNotApplicable={onToggleNotApplicable}
             />
           </div>
           <Checkbox
@@ -75,7 +88,7 @@ export default function CloturerModal({
       confirmLabel={t('permitTravail.components.cloturerModal.confirmLabel')}
       confirmVariant="danger"
       confirmIcon={<Lock className="mr-2 h-4 w-4" />}
-      confirmDisabled={missingTypes.length > 0}
+      confirmDisabled={requiredDocumentsLoading || missingTypes.length > 0}
       isSubmitting={isCloturer}
       onConfirm={async (commentaire) => {
         await onCloturer(permitId, commentaire || undefined, accordClient)

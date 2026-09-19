@@ -10,24 +10,35 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       devOptions: {
-        enabled: true,
+        // Le service worker en dev masque les changements (cache) : activer explicitement avec
+        // VITE_PWA_DEV=true uniquement pour tester le PWA / le hors-ligne.
+        enabled: process.env.VITE_PWA_DEV === 'true',
       },
       includeAssets: ['icons/*.png', 'apple-touch-icon.png', 'images/TOA.png'],
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Stratégie API : les données en ligne doivent toujours être fraîches (statuts, consultations,
+        // documents, PDF). Le hors-ligne est assuré par la persistance React Query, le snapshot IndexedDB
+        // et le cache des documents ; le cache Workbox ci-dessous n'est qu'un dernier recours réseau.
         runtimeCaching: [
           {
-            // Fonction plutôt que regex : Workbox n'exige un match à
-            // l'index 0 que pour les regex, pas pour un matchCallback,
-            // ce qui est nécessaire ici car VITE_API_URL peut pointer
-            // vers une origine distincte de l'app (cross-origin).
-            urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/api/token/'),
+            // Fonctions plutôt que regex : Workbox n'exige un match à l'index 0 que pour les regex,
+            // pas pour un matchCallback, ce qui est nécessaire ici car VITE_API_URL peut pointer vers
+            // une origine distincte de l'app (cross-origin).
+            //
+            // Jamais en cache : authentification, sondage d'état des PDF (doit refléter l'état réel)
+            // et snapshot hors-ligne (volumineux, déjà stocké en IndexedDB).
+            urlPattern: ({ url }: { url: URL }) =>
+              url.pathname.includes('/api/token/') ||
+              url.pathname.includes('/api/login') ||
+              url.pathname.includes('/api/offline/snapshot') ||
+              /\/(pdf|pv)\/status$/.test(url.pathname),
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: ({ url }: { url: URL }) =>
-              /\/(documents\/[^/]+\/download|signature\/download)/.test(url.pathname),
+            // Fichiers de documents (photos, pièces) : le contenu d'un id ne change jamais.
+            urlPattern: ({ url }: { url: URL }) => /\/documents\/[^/]+\/download$/.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'toa-doc-cache',
@@ -39,13 +50,14 @@ export default defineConfig({
             },
           },
           {
+            // Tout le reste de l'API (lectures, PDF générés, signature) : réseau d'abord pour ne jamais
+            // servir un état périmé en ligne ; le cache ne sert qu'en cas d'échec ou de réseau lent
+            // (chantiers à faible couverture).
             urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/api/'),
-            // StaleWhileRevalidate : sert le cache immédiatement (pas
-            // d'attente réseau, contrairement à NetworkFirst) puis
-            // revalide en arrière-plan si le réseau est disponible.
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'toa-api-cache',
+              networkTimeoutSeconds: 5,
               cacheableResponse: { statuses: [200] },
               expiration: { maxAgeSeconds: 24 * 60 * 60, maxEntries: 200 },
             },

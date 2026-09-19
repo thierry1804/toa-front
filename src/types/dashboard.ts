@@ -6,7 +6,6 @@ export interface KpiValues {
   tauxIncidents: number | null
   tempsMoyenValidationPlan: number | null
   tempsMoyenValidationPermis: number | null
-  tempsMoyenValidationPv: number | null
   avancementMoyen: number | null
 }
 
@@ -14,8 +13,8 @@ export interface DashboardKpisGlobal {
   tauxIncidents: number
   tempsMoyenValidationPlan: number
   tempsMoyenValidationPermis: number
-  tempsMoyenValidationPv: number
   avancementMoyen: number
+  nbPermisTotal?: number
   nbPermisValides: number
   nbPermisClotures: number
   nbPlansValides: number

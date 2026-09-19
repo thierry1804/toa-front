@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
@@ -10,6 +10,8 @@ interface DocumentViewerModalProps {
   /** Blob already fetched by the caller, or a function fetching it lazily on open. */
   blob: Blob | (() => Promise<Blob>) | null
   filename?: string
+  /** Appelé une fois le fichier réellement chargé (et non à l'ouverture) : sert à enregistrer une consultation. */
+  onLoaded?: () => void
 }
 
 export default function DocumentViewerModal({
@@ -18,7 +20,11 @@ export default function DocumentViewerModal({
   title,
   blob,
   filename,
+  onLoaded,
 }: DocumentViewerModalProps) {
+  // Référence : la fonction change à chaque rendu du parent et ne doit pas relancer le chargement.
+  const onLoadedRef = useRef(onLoaded)
+  onLoadedRef.current = onLoaded
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [mimeType, setMimeType] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -38,6 +44,7 @@ export default function DocumentViewerModal({
         url = URL.createObjectURL(resolved)
         setObjectUrl(url)
         setMimeType(resolved.type)
+        onLoadedRef.current?.()
       })
       .catch(() => {
         if (!cancelled) setError(true)

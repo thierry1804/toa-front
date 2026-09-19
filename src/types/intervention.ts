@@ -55,6 +55,7 @@ export interface SuiviJournalierDocument {
   mimeType: string
   nom: string
   uploadedAt: string
+  capturedAt?: string | null
 }
 
 export interface SuiviJournalier {

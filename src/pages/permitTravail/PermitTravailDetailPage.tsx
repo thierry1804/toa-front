@@ -14,14 +14,13 @@ import CloturerModal from '@/components/permitTravail/CloturerModal'
 import PvReceptionButton from '@/components/permitTravail/PvReceptionButton'
 import PvValiderModal from '@/components/permitTravail/PvValiderModal'
 import PvRefuserModal from '@/components/permitTravail/PvRefuserModal'
-import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision } from '@/features/permitTravail/hooks/usePermitTravail'
+import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
-  getRequiredDocumentTypes,
-  getRequiredClotureDocumentTypes,
+  resolveDocumentRequirements,
   type TypeDocumentPermitTravail,
 } from '@/types/permitTravail'
 
@@ -38,7 +37,8 @@ export default function PermitTravailDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
-  const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, uploadDocument, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
+  const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, uploadDocument, deleteDocument, setDocumentNonApplicable, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
+  const { data: requis, isLoading: requisLoading } = usePermitDocumentsRequis(id ?? '')
   const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
   const { data: clotureData } = usePermitTravailCloture(
     ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit?.statut ?? '') ? (id ?? '') : '',
@@ -92,8 +92,7 @@ export default function PermitTravailDetailPage() {
     )
   }
 
-  const docTypes = getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus)
-  const clotureDocTypes = getRequiredClotureDocumentTypes(permit.planProcess)
+  const { soumission: docTypes, cloture: clotureDocTypes } = resolveDocumentRequirements(permit, requis)
   const companionPermit = permit.permitsGroupe?.[0]
   const latestDecision = permit.decisionsHse?.at(-1)
   const canCorrigerEtResoumettre =
@@ -101,8 +100,16 @@ export default function PermitTravailDetailPage() {
     canResoumettre &&
     permit.decisionsHse?.some((d) => d.decision === 'REFUSE')
 
-  const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
-    await uploadDocument(permit.id, type, file)
+  const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
+    await uploadDocument(permit.id, type, file, capturedAt)
+  }
+
+  const handleClotureDocDelete = async (documentId: string) => {
+    await deleteDocument(permit.id, documentId)
+  }
+
+  const handleClotureDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+    await setDocumentNonApplicable(permit.id, type, next)
   }
 
   return (
@@ -168,7 +175,13 @@ export default function PermitTravailDetailPage() {
             {permit.soumisAt && (
               <InfoRow
                 label="Soumis le"
-                value={new Date(permit.soumisAt).toLocaleDateString('fr-FR')}
+                value={new Date(permit.soumisAt).toLocaleString('fr-FR')}
+              />
+            )}
+            {permit.validatedAt && (
+              <InfoRow
+                label="Validé le"
+                value={new Date(permit.validatedAt).toLocaleString('fr-FR')}
               />
             )}
             {permit.nomPrestataire && (
@@ -372,7 +385,7 @@ export default function PermitTravailDetailPage() {
               />
               <InfoRow
                 label="Date de décision"
-                value={new Date(latestDecision.decidedAt).toLocaleDateString('fr-FR')}
+                value={new Date(latestDecision.decidedAt).toLocaleString('fr-FR')}
               />
               <InfoRow
                 label="Signature électronique"
@@ -471,7 +484,7 @@ export default function PermitTravailDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold text-gray-800">
               <Lock className="inline mr-2 h-4 w-4 text-gray-400" />
-              Clôture du permis
+              PV Environnement
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -483,7 +496,7 @@ export default function PermitTravailDetailPage() {
               onClick={() => setCloturerOpen(true)}
             >
               <Lock className="mr-2 h-4 w-4" />
-              Clôturer le permis
+              PV Environnement
             </Button>
           </CardContent>
         </Card>
@@ -624,7 +637,7 @@ export default function PermitTravailDetailPage() {
                 />
                 <InfoRow
                   label="Date"
-                  value={new Date(latestPvDecision.decidedAt).toLocaleDateString('fr-FR')}
+                  value={new Date(latestPvDecision.decidedAt).toLocaleString('fr-FR')}
                 />
                 <InfoRow
                   label="Signature électronique"
@@ -682,8 +695,11 @@ export default function PermitTravailDetailPage() {
         onClose={() => setCloturerOpen(false)}
         onCloturer={cloturerPermit}
         requiredDocumentTypes={clotureDocTypes}
+        requiredDocumentsLoading={requisLoading}
         uploadedDocuments={permit.documents}
         onUploadDocument={handleClotureDocUpload}
+        onDeleteDocument={handleClotureDocDelete}
+        onToggleNotApplicable={handleClotureDocNotApplicable}
       />
       <PvValiderModal
         isOpen={pvValiderOpen}

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { isOfflineQueued } from "@/offline/offlineError";
+import { commitOptimisticPlan, type PlanOfflineAction } from "@/offline/optimisticPlan";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { planPreventionApi } from "@/api/planPreventionApi";
 import { PLAN_PREVENTION_KEY } from "@/data/constant/query";
 import { useUiStore } from "@/store/ui.store";
+import { capturedAtErrorKey } from "@/utils/capturedAt";
 import type { ActivityPlanning } from "@/types";
 import type {
   PlanPrevention,
@@ -164,7 +166,6 @@ export function usePlanificationsDisponibles(opts?: { enabled?: boolean }) {
     queryFn: () => planPreventionApi.listPlanificationsDisponibles(),
     select: (data) => data.member,
     enabled: opts?.enabled ?? true,
-    staleTime: 2 * 60 * 1000,
   });
 }
 
@@ -212,7 +213,64 @@ export function usePlanPreventionDetail(id: string) {
     queryKey: [...PLAN_PREVENTION_KEY, id],
     queryFn: () => planPreventionApi.getById(id),
     enabled: !!id,
+    // Toujours revalider à l'ouverture : le statut et les consultations dépendent d'autres utilisateurs.
+    staleTime: 0,
   });
+}
+
+export function useConsulterDocument(planId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      try {
+        return await planPreventionApi.consulterDocument(planId, documentId);
+      } catch (err) {
+        if (!isOfflineQueued(err)) throw err;
+        // Hors-ligne : la consultation est en file ; on la reflète localement pour débloquer Examiner/Valider (R-11).
+        const plan = await commitOptimisticPlan(queryClient, planId, { type: "consulter", documentId });
+        return {
+          documentId,
+          consultedAt: plan?.documents.find((d) => d.id === documentId)?.consultedAt ?? null,
+          tousDocumentsConsultes: plan?.tousDocumentsConsultes ?? false,
+        };
+      }
+    },
+    onSuccess: (result) => {
+      // Retour immédiat à l'écran ; le refetch ci-dessous rend ensuite l'état serveur autoritaire.
+      queryClient.setQueryData<PlanPrevention | undefined>([...PLAN_PREVENTION_KEY, planId], (plan) =>
+        plan
+          ? {
+              ...plan,
+              tousDocumentsConsultes: result.tousDocumentsConsultes,
+              documents: plan.documents?.map((doc) =>
+                doc.id === result.documentId ? { ...doc, consultedAt: result.consultedAt } : doc,
+              ),
+            }
+          : plan,
+      );
+      queryClient.invalidateQueries({ queryKey: [...PLAN_PREVENTION_KEY, planId] });
+    },
+  });
+}
+
+/**
+ * Exécute l'appel ; s'il est mis en file hors-ligne, applique son effet localement et renvoie le plan marqué
+ * `pendingSync` (au lieu d'une erreur alors que l'action est bien sauvegardée).
+ */
+async function runOrQueue(
+  queryClient: ReturnType<typeof useQueryClient>,
+  planId: string,
+  action: PlanOfflineAction,
+  call: () => Promise<PlanPrevention>,
+): Promise<PlanPrevention> {
+  try {
+    return await call();
+  } catch (err) {
+    if (!isOfflineQueued(err)) throw err;
+    const plan = await commitOptimisticPlan(queryClient, planId, action);
+    if (!plan) throw err;
+    return plan;
+  }
 }
 
 export function usePlanPrevention() {
@@ -258,18 +316,58 @@ export function usePlanPrevention() {
       id,
       type,
       file,
+      capturedAt,
     }: {
       id: string;
       type: string;
       file: File;
-    }) => planPreventionApi.uploadDocument(id, type, file),
+      capturedAt?: string;
+    }) => planPreventionApi.uploadDocument(id, type, file, capturedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
       addToast({ message: "Document téléversé avec succès", type: "success" });
     },
     onError: (error) => { if (isOfflineQueued(error)) return
+      const capturedAtKey = capturedAtErrorKey(error);
       addToast({
-        message: "Erreur lors du téléversement du document",
+        message: capturedAtKey
+          ? t(capturedAtKey)
+          : "Erreur lors du téléversement du document",
+        type: "error",
+      });
+    },
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: ({ id, documentId }: { id: string; documentId: string }) =>
+      planPreventionApi.deleteDocument(id, documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({
+        message: "Erreur lors de la suppression du document",
+        type: "error",
+      });
+    },
+  });
+
+  const nonApplicableMutation = useMutation({
+    mutationFn: ({
+      id,
+      type,
+      nonApplicable,
+    }: {
+      id: string;
+      type: string;
+      nonApplicable: boolean;
+    }) => planPreventionApi.setDocumentNonApplicable(id, type, nonApplicable),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
+    },
+    onError: (error) => { if (isOfflineQueued(error)) return
+      addToast({
+        message: "Erreur lors de la mise à jour du document",
         type: "error",
       });
     },
@@ -302,26 +400,35 @@ export function usePlanPrevention() {
   });
 
   const soumettresMutation = useMutation({
-    mutationFn: (id: string) => planPreventionApi.soumettre(id),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      runOrQueue(queryClient, id, { type: "soumettre" }, () => planPreventionApi.soumettre(id)),
+    onSuccess: (plan) => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
       setMissingDocuments([]);
-      addToast({ message: "Plan soumis avec succès", type: "success" });
+      addToast(
+        plan.pendingSync
+          ? { message: t("offline.queued"), type: "info" }
+          : { message: "Plan soumis avec succès", type: "success" },
+      );
     },
   });
 
   const examinerMutation = useMutation({
     mutationFn: ({ id, commentaire }: { id: string; commentaire?: string }) =>
-      planPreventionApi.examiner(id, commentaire),
-    onSuccess: () => {
+      runOrQueue(queryClient, id, { type: "examiner" }, () => planPreventionApi.examiner(id, commentaire)),
+    onSuccess: (plan) => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
-      addToast({ message: "Plan examiné avec succès", type: "success" });
+      addToast(
+        plan.pendingSync
+          ? { message: t("offline.queued"), type: "info" }
+          : { message: "Plan examiné avec succès", type: "success" },
+      );
     },
   });
 
   const validerMutation = useMutation({
     mutationFn: ({ id, commentaire }: { id: string; commentaire?: string }) =>
-      planPreventionApi.valider(id, commentaire),
+      runOrQueue(queryClient, id, { type: "valider" }, () => planPreventionApi.valider(id, commentaire)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
     },
@@ -329,23 +436,28 @@ export function usePlanPrevention() {
 
   const refuserMutation = useMutation({
     mutationFn: ({ id, commentaire }: { id: string; commentaire: string }) =>
-      planPreventionApi.refuser(id, commentaire),
-    onSuccess: () => {
+      runOrQueue(queryClient, id, { type: "refuser" }, () => planPreventionApi.refuser(id, commentaire)),
+    onSuccess: (plan) => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
-      addToast({ message: t("planPrevention.toast.refused"), type: "success" });
+      addToast(
+        plan.pendingSync
+          ? { message: t("offline.queued"), type: "info" }
+          : { message: t("planPrevention.toast.refused"), type: "success" },
+      );
     },
   });
 
   const resoumettresMutation = useMutation({
     mutationFn: ({ id, motif }: { id: string; motif?: string }) =>
-      planPreventionApi.resoumettre(id, motif),
-    onSuccess: () => {
+      runOrQueue(queryClient, id, { type: "resoumettre" }, () => planPreventionApi.resoumettre(id, motif)),
+    onSuccess: (plan) => {
       queryClient.invalidateQueries({ queryKey: PLAN_PREVENTION_KEY });
       setMissingDocuments([]);
-      addToast({
-        message: "Plan resoumis — équipe HSE notifiée",
-        type: "success",
-      });
+      addToast(
+        plan.pendingSync
+          ? { message: t("offline.queued"), type: "info" }
+          : { message: "Plan resoumis — équipe HSE notifiée", type: "success" },
+      );
     },
   });
 
@@ -403,8 +515,25 @@ export function usePlanPrevention() {
     return updateMutation.mutateAsync({ id, data });
   };
 
-  const uploadDocument = async (id: string, type: string, file: File) => {
-    return uploadMutation.mutateAsync({ id, type, file });
+  const uploadDocument = async (
+    id: string,
+    type: string,
+    file: File,
+    capturedAt?: string,
+  ) => {
+    return uploadMutation.mutateAsync({ id, type, file, capturedAt });
+  };
+
+  const deleteDocument = async (id: string, documentId: string) => {
+    return deleteDocumentMutation.mutateAsync({ id, documentId });
+  };
+
+  const setDocumentNonApplicable = async (
+    id: string,
+    type: string,
+    nonApplicable: boolean,
+  ) => {
+    return nonApplicableMutation.mutateAsync({ id, type, nonApplicable });
   };
 
   const importKmz = async (
@@ -438,6 +567,13 @@ export function usePlanPrevention() {
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
           ?.detail ?? "";
+      if (detail.includes("risque_apn_api_obligatoire")) {
+        addToast({
+          message: t("planPrevention.toast.risqueApnApiObligatoire"),
+          type: "error",
+        });
+        throw err;
+      }
       const missing = parseMissingDocuments(detail);
       setMissingDocuments(missing);
       if (missing.length > 0) {
@@ -468,6 +604,10 @@ export function usePlanPrevention() {
       if (detail.includes("Statut invalide")) {
         throw new Error("Statut invalide pour examen");
       }
+      if (detail.includes("documents_non_consultes")) {
+        addToast({ message: t("planPrevention.toast.documentsNonConsultes"), type: "error" });
+        throw err;
+      }
       addToast({ message: "Erreur lors de l'examen du plan", type: "error" });
       throw err;
     }
@@ -485,6 +625,10 @@ export function usePlanPrevention() {
           ?.detail ?? "";
       if (detail.includes("Plan non examiné")) {
         throw new Error("Plan non examiné par Chef de Projet");
+      }
+      if (detail.includes("documents_non_consultes")) {
+        addToast({ message: t("planPrevention.toast.documentsNonConsultes"), type: "error" });
+        throw err;
       }
       if (detail.includes("documents_manquants")) {
         const missing = parseMissingDocuments(detail);
@@ -521,6 +665,13 @@ export function usePlanPrevention() {
           missingDocuments: missing,
         });
       }
+      if (detail.includes("risque_apn_api_obligatoire")) {
+        addToast({
+          message: t("planPrevention.toast.risqueApnApiObligatoire"),
+          type: "error",
+        });
+        throw err;
+      }
       if (
         detail.includes("statut_not_brouillon") ||
         detail.includes("no_previous_refus")
@@ -555,6 +706,10 @@ export function usePlanPrevention() {
       if (detail.includes("Commentaire obligatoire")) {
         throw new Error("Commentaire obligatoire en cas de refus");
       }
+      if (detail.includes("documents_non_consultes")) {
+        addToast({ message: t("planPrevention.toast.documentsNonConsultes"), type: "error" });
+        throw err;
+      }
       addToast({
         message: t("planPrevention.toast.errorRefuse"),
         type: "error",
@@ -583,6 +738,8 @@ export function usePlanPrevention() {
     createPlan,
     updatePlan,
     uploadDocument,
+    deleteDocument,
+    setDocumentNonApplicable,
     importKmz,
     deleteSite,
     soumettrePlan,

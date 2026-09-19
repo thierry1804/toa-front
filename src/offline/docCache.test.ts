@@ -120,4 +120,15 @@ describe('withCachedDocumentBlob', () => {
       vi.unstubAllGlobals()
     }
   })
+
+  it('derives the status of a generated PDF from the local copy (offline « Télécharger » instead of « Générer »)', async () => {
+    const { putCachedDocument, cachedPdfStatus } = await import('./docCache')
+    const url = '/api/permits-travail/pt1/pdf/download'
+
+    expect(await cachedPdfStatus(url)).toBeUndefined()
+
+    await putCachedDocument(url, new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'permit_travail.pdf')
+
+    expect(await cachedPdfStatus(url)).toMatchObject({ statut: 'GENERE', tailleFichier: 8 })
+  })
 })

@@ -353,7 +353,7 @@ export default function PermitTravailSuiviPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">
                         {permit.soumisAt
-                          ? new Date(permit.soumisAt).toLocaleDateString(locale)
+                          ? new Date(permit.soumisAt).toLocaleString(locale)
                           : <span className="text-gray-400">—</span>}
                       </td>
                       {canLogs && (

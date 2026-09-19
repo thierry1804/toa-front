@@ -1,4 +1,4 @@
-import type { OfflineSnapshot } from '@/types/offlineSnapshot'
+import type { OfflineSnapshot, OfflineSnapshotExtras } from '@/types/offlineSnapshot'
 
 export type SnapshotDocRef = {
   url: string
@@ -50,6 +50,8 @@ function pushDocs(
     const doc = asRecord(raw)
     const docId = entityId(doc)
     if (!doc || !docId) continue
+    // Marqueur « non applicable » : aucun fichier à télécharger.
+    if (doc.nonApplicable === true || doc.filePath === '') continue
     const url = `${basePath}/${parentId}/documents/${docId}/download`
     if (out.has(url)) continue
     out.set(url, { url, filename: filenameForDoc(doc, docId) })
@@ -104,4 +106,9 @@ export function collectSnapshotDocuments(snapshot: OfflineSnapshot): SnapshotDoc
   collectFromEntities(out, snapshot.permitsTravail, '/api/permits-travail')
   collectFromInterventions(out, snapshot.interventions)
   return [...out.values()]
+}
+
+/** PDF déjà générés côté serveur (plan, permis, PV) : précharger pour les rendre consultables hors-ligne. */
+export function collectExtrasPdfs(extras: OfflineSnapshotExtras | undefined): SnapshotDocRef[] {
+  return (extras?.generatedPdfs ?? []).map((pdf) => ({ url: pdf.downloadPath, filename: pdf.nom }))
 }

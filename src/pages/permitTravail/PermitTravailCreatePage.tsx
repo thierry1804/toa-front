@@ -23,12 +23,13 @@ import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentU
 import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
-import { usePermitTravail } from '@/features/permitTravail/hooks/usePermitTravail'
+import { usePermitTravail, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
 import { usePermission } from '@/features/auth/usePermission'
 import { useUiStore } from '@/store/ui.store'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import { getPermitCreationTransition } from './permitCreationTransition'
+import { planSections } from '@/utils/planSections'
 import type {
   PermitTravail,
   TypePermit,
@@ -114,8 +115,16 @@ export default function PermitTravailCreatePage() {
   const canSubmit = usePermission('permit_travail.submit')
   const addToast = useUiStore((s) => s.addToast)
 
-  const { createPermit, updatePermit, uploadDocument, soumettrePermit, isCreating, isSubmitting } =
-    usePermitTravail()
+  const {
+    createPermit,
+    updatePermit,
+    uploadDocument,
+    deleteDocument,
+    setDocumentNonApplicable,
+    soumettrePermit,
+    isCreating,
+    isSubmitting,
+  } = usePermitTravail()
 
   // ── Step 0 state ─────────────────────────────────────────────────────────────
   // Pré-remplissage depuis la fiche d'un plan de prévention validé
@@ -134,6 +143,7 @@ export default function PermitTravailCreatePage() {
 
   // ── Step 3 state ─────────────────────────────────────────────────────────────
   const [permit, setPermit] = useState<PermitTravail | null>(null)
+  const { data: requis, isLoading: requisLoading } = usePermitDocumentsRequis(permit?.id ?? '')
   const [companionDocs, setCompanionDocs] = useState<DocumentPermitTravail[]>([])
   const [engagementChecked, setEngagementChecked] = useState(false)
   const [evaluations, setEvaluations] = useState<EvaluationData[]>([emptyEvaluation()])
@@ -156,10 +166,13 @@ export default function PermitTravailCreatePage() {
   const isNouveauSite = selectedPlan?.typeIntervention === 'Nouveau site'
   const generalPermitId = selectedPlan?.permitGeneralId ?? null
   const generalRequisAvant = isNouveauSite && !generalPermitId
+  const generalObligatoireAutres = !!selectedPlan && !isNouveauSite && !generalPermitId && typePermis !== 'GENERAL'
 
-  const typePermisOptions: TypePermit[] = isNouveauSite
-    ? (generalPermitId ? ['ELECTRIQUE', 'HAUTEUR'] : ['GENERAL'])
-    : ['ELECTRIQUE', 'HAUTEUR']
+  const typePermisOptions: TypePermit[] = generalPermitId
+    ? ['ELECTRIQUE', 'HAUTEUR']
+    : isNouveauSite
+      ? ['GENERAL']
+      : ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
 
   const matchingCatNames = useMemo(
     () => new Set(allCategories.filter((c) => c.typePermis === typePermis).map((c) => c.nom)),
@@ -201,7 +214,7 @@ export default function PermitTravailCreatePage() {
   const excludedRisqueCount = showAllRisks ? 0 : allRisqueRows.length - filteredRisqueRows.length
 
   const filteredSections = useMemo(() => {
-    const sections = selectedPlan?.planificationSections ?? []
+    const sections = planSections(selectedPlan)
     if (showAllRisks) return sections
     const matchingTacheIds = new Set(filteredRisqueRows.map((r) => r.tachePlanifieeId).filter(Boolean))
     return sections
@@ -233,30 +246,56 @@ export default function PermitTravailCreatePage() {
   }, [selectedPlan, setValue])
 
   // ── Document upload handlers ──────────────────────────────────────────────────
-  const handleMainDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
+  const withoutMarker = (docs: DocumentPermitTravail[], type: TypeDocumentPermitTravail) =>
+    docs.filter((d) => !(d.type === type && d.nonApplicable))
+
+  const applyNotApplicable = (
+    docs: DocumentPermitTravail[],
+    type: TypeDocumentPermitTravail,
+    next: boolean,
+    marker?: DocumentPermitTravail,
+  ) => [
+    ...docs.filter((d) => d.type !== type || (!next && !d.nonApplicable)),
+    ...(next && marker ? [marker] : []),
+  ]
+
+  const handleMainDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
     if (!permit) return
-    await uploadDocument(permit.id, type, file)
-    setPermit((prev) =>
-      prev
-        ? {
-            ...prev,
-            documents: [
-              ...prev.documents.filter((d) => d.type !== type),
-              { id: crypto.randomUUID(), type, filePath: '', mimeType: file.type, uploadedAt: new Date().toISOString() },
-            ],
-          }
-        : prev,
-    )
+    const saved = await uploadDocument(permit.id, type, file, capturedAt)
+    setPermit((prev) => (prev ? { ...prev, documents: [...withoutMarker(prev.documents, type), saved] } : prev))
   }
 
-  const handleCompanionDocUpload = async (type: TypeDocumentPermitTravail, file: File) => {
+  const handleMainDocDelete = async (documentId: string) => {
+    if (!permit) return
+    await deleteDocument(permit.id, documentId)
+    setPermit((prev) => (prev ? { ...prev, documents: prev.documents.filter((d) => d.id !== documentId) } : prev))
+  }
+
+  const handleMainDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+    if (!permit) return
+    const marker = await setDocumentNonApplicable(permit.id, type, next)
+    setPermit((prev) => (prev ? { ...prev, documents: applyNotApplicable(prev.documents, type, next, marker) } : prev))
+  }
+
+  const handleCompanionDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
     const companionId = permit?.permitsGroupe?.[0]?.id
     if (!companionId) return
-    await uploadDocument(companionId, type, file)
-    setCompanionDocs((prev) => [
-      ...prev.filter((d) => d.type !== type),
-      { id: crypto.randomUUID(), type, filePath: '', mimeType: file.type, uploadedAt: new Date().toISOString() },
-    ])
+    const saved = await uploadDocument(companionId, type, file, capturedAt)
+    setCompanionDocs((prev) => [...withoutMarker(prev, type), saved])
+  }
+
+  const handleCompanionDocDelete = async (documentId: string) => {
+    const companionId = permit?.permitsGroupe?.[0]?.id
+    if (!companionId) return
+    await deleteDocument(companionId, documentId)
+    setCompanionDocs((prev) => prev.filter((d) => d.id !== documentId))
+  }
+
+  const handleCompanionDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+    const companionId = permit?.permitsGroupe?.[0]?.id
+    if (!companionId) return
+    const marker = await setDocumentNonApplicable(companionId, type, next)
+    setCompanionDocs((prev) => applyNotApplicable(prev, type, next, marker))
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────────
@@ -328,8 +367,7 @@ export default function PermitTravailCreatePage() {
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId)
     const plan = suggestedPlans.find((p) => p.id === planId)
-    const nouveauSite = plan?.typeIntervention === 'Nouveau site'
-    setTypePermis(nouveauSite && !plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
+    setTypePermis(!plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
   }
 
   // Une fois le plan pré-rempli chargé, sélection automatique — une seule
@@ -397,12 +435,13 @@ export default function PermitTravailCreatePage() {
     step === 0 ? !!(codeSiteSearched && selectedPlanId) : step < 3
 
   const isPending = isCreating || isSubmitting
+  const apnApi = requis?.apnApi ?? false
   const mainDocTypes = permit
-    ? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus)
+    ? (requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus, apnApi))
     : []
   const companionPermit = permit?.permitsGroupe?.[0]
   const companionDocTypes = companionPermit
-    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE')
+    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE', apnApi)
     : []
   const mainMissingDocTypes = permit
     ? getMissingDocumentTypes(mainDocTypes, permit.documents)
@@ -522,6 +561,15 @@ export default function PermitTravailCreatePage() {
                     <p className="text-xs text-amber-800">
                       Plan Nouveau site — le permis Général doit être demandé en premier. Le permis
                       Électrique ou Hauteur pourra être demandé sur ce même plan une fois le Général créé.
+                    </p>
+                  </div>
+                )}
+                {generalObligatoireAutres && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800">
+                      Le permis Général est obligatoire pour ce processus : il doit être soumis avant tout permis
+                      Électrique ou Hauteur sur ce plan.
                     </p>
                   </div>
                 )}
@@ -720,6 +768,8 @@ export default function PermitTravailCreatePage() {
                     uploadedDocuments={permit.documents}
                     missingTypes={mainMissingDocTypes}
                     onUpload={handleMainDocUpload}
+                    onDelete={handleMainDocDelete}
+                    onToggleNotApplicable={handleMainDocNotApplicable}
                   />
                 </div>
                 <div>
@@ -732,6 +782,8 @@ export default function PermitTravailCreatePage() {
                     uploadedDocuments={companionDocs}
                     missingTypes={companionMissingDocTypes}
                     onUpload={handleCompanionDocUpload}
+                    onDelete={handleCompanionDocDelete}
+                    onToggleNotApplicable={handleCompanionDocNotApplicable}
                   />
                 </div>
               </>
@@ -742,6 +794,8 @@ export default function PermitTravailCreatePage() {
                 uploadedDocuments={permit?.documents ?? []}
                 missingTypes={mainMissingDocTypes}
                 onUpload={handleMainDocUpload}
+                onDelete={handleMainDocDelete}
+                onToggleNotApplicable={handleMainDocNotApplicable}
               />
             )}
 
@@ -807,7 +861,7 @@ export default function PermitTravailCreatePage() {
           canSubmit && (
             <Button
               onClick={handleSoumettre}
-              disabled={isPending || !engagementChecked || hasMissingDocuments}
+              disabled={isPending || !engagementChecked || hasMissingDocuments || requisLoading}
               loading={isSubmitting}
               size="lg"
             >

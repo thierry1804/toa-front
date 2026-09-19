@@ -2,12 +2,14 @@ import api from '@/lib/axios'
 import type { AxiosRequestConfig } from 'axios'
 import type {
   OfflineSnapshot,
+  OfflineSnapshotExtras,
   OfflineSnapshotManifest,
   OfflineSnapshotPathModule,
 } from '@/types/offlineSnapshot'
 
 export const SNAPSHOT_MANIFEST_PATH = '/api/offline/snapshot/manifest'
 export const SNAPSHOT_PATH = '/api/offline/snapshot'
+export const SNAPSHOT_EXTRAS_PATH = '/api/offline/snapshot/extras'
 
 export function snapshotModulePath(module: OfflineSnapshotPathModule): string {
   return `/api/offline/snapshot/${module}`
@@ -16,6 +18,9 @@ export function snapshotModulePath(module: OfflineSnapshotPathModule): string {
 export const offlineSnapshotApi = {
   getManifest: () =>
     api.get<OfflineSnapshotManifest>(SNAPSHOT_MANIFEST_PATH).then((r) => r.data),
+
+  getExtras: () =>
+    api.get<OfflineSnapshotExtras>(SNAPSHOT_EXTRAS_PATH).then((r) => r.data),
 
   getSnapshot: (opts?: {
     since?: string

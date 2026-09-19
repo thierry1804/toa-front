@@ -5,6 +5,13 @@ export interface KmzExtendedData {
   fokontany?: string
   commune?: string
   district?: string
+  apn?: boolean
+  api?: boolean
+}
+
+// APN/API stay undefined ("unknown", the back keeps the current flag) when the column or its cell is absent/blank.
+function parseFlag(value: string): boolean {
+  return ['1', 'true', 'oui', 'yes'].includes(value.trim().toLowerCase())
 }
 
 // querySelector fails on KML default namespace — getElementsByTagName is namespace-agnostic
@@ -47,9 +54,11 @@ export async function parseKmzFile(
       if (key === 'Fokontany') ext.fokontany = val
       else if (key === 'Commune') ext.commune = val
       else if (key === 'District') ext.district = val
+      else if (key.toUpperCase() === 'APN') ext.apn = parseFlag(val)
+      else if (key.toUpperCase() === 'API') ext.api = parseFlag(val)
     })
 
-    if (ext.fokontany || ext.commune || ext.district) {
+    if (ext.fokontany || ext.commune || ext.district || ext.apn !== undefined || ext.api !== undefined) {
       metadata[name] = ext
     }
 
@@ -63,6 +72,8 @@ export async function parseKmzFile(
       fokontany: ext.fokontany ?? null,
       commune: ext.commune ?? null,
       district: ext.district ?? null,
+      apn: ext.apn,
+      api: ext.api,
     })
   })
 

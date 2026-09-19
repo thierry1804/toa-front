@@ -1,14 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 
-const { mockGetManifest, mockGetSnapshot, mockGetSnapshotModule, mockSave, mockDelta, mockHydrate, mockPrefetch } =
+const {
+  mockGetManifest,
+  mockGetSnapshot,
+  mockGetSnapshotModule,
+  mockGetExtras,
+  mockSave,
+  mockSaveExtras,
+  mockDelta,
+  mockHydrate,
+  mockHydrateExtras,
+  mockPrefetch,
+} =
   vi.hoisted(() => ({
     mockGetManifest: vi.fn(),
     mockGetSnapshot: vi.fn(),
     mockGetSnapshotModule: vi.fn(),
+    mockGetExtras: vi.fn(),
     mockSave: vi.fn().mockResolvedValue(undefined),
+    mockSaveExtras: vi.fn().mockResolvedValue(undefined),
     mockDelta: vi.fn().mockResolvedValue(undefined),
     mockHydrate: vi.fn(),
+    mockHydrateExtras: vi.fn(),
     mockPrefetch: vi.fn().mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 }),
   }))
 
@@ -17,17 +31,20 @@ vi.mock('@/api/offlineSnapshotApi', () => ({
     getManifest: mockGetManifest,
     getSnapshot: mockGetSnapshot,
     getSnapshotModule: mockGetSnapshotModule,
+    getExtras: mockGetExtras,
   },
 }))
 
 vi.mock('./snapshotStore', () => ({
   saveSnapshot: mockSave,
+  saveExtras: mockSaveExtras,
   applyDelta: mockDelta,
   getSnapshotMeta: vi.fn(),
 }))
 
 vi.mock('./hydrateFromSnapshot', () => ({
   hydrateFromSnapshot: mockHydrate,
+  hydrateExtras: mockHydrateExtras,
 }))
 
 vi.mock('./prefetchSnapshotDocuments', () => ({
@@ -36,6 +53,9 @@ vi.mock('./prefetchSnapshotDocuments', () => ({
 
 vi.mock('./collectSnapshotDocuments', () => ({
   collectSnapshotDocuments: vi.fn(() => [{ url: '/api/doc', filename: 'a.pdf' }]),
+  collectExtrasPdfs: vi.fn((extras?: { generatedPdfs?: Array<{ downloadPath: string; nom: string }> }) =>
+    (extras?.generatedPdfs ?? []).map((pdf) => ({ url: pdf.downloadPath, filename: pdf.nom })),
+  ),
 }))
 
 vi.mock('@/lib/axios', () => ({
@@ -51,6 +71,13 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
 beforeEach(() => {
   vi.clearAllMocks()
   mockSave.mockResolvedValue(undefined)
+  mockSaveExtras.mockResolvedValue(undefined)
+  mockGetExtras.mockResolvedValue({
+    generatedAt: 't',
+    permitsDocumentsRequis: [],
+    planificationsDisponibles: [],
+    generatedPdfs: [],
+  })
   mockDelta.mockResolvedValue(undefined)
   mockPrefetch.mockResolvedValue({ total: 0, cached: 0, skipped: 0, failed: 0 })
   vi.mocked(collectSnapshotDocuments).mockReturnValue([{ url: '/api/doc', filename: 'a.pdf' }])
@@ -90,6 +117,49 @@ describe('pullOfflineSnapshot', () => {
     expect(mockDelta).toHaveBeenCalledWith(snapshot)
     expect(mockSave).not.toHaveBeenCalled()
     expect(mockPrefetch).toHaveBeenCalled()
+  })
+
+  it('stores and hydrates the extras (required documents, available plannings) and prefetches generated PDFs', async () => {
+    const extras = {
+      generatedAt: 't',
+      permitsDocumentsRequis: [{ id: 'p1', soumission: ['FDS'], cloture: [], apnApi: true }],
+      planificationsDisponibles: [{ id: 5 }],
+      generatedPdfs: [{ downloadPath: '/api/plans-prevention/x/pdf/download', nom: 'plan_prevention.pdf' }],
+    }
+    mockGetExtras.mockResolvedValue(extras)
+    mockGetManifest.mockResolvedValue({ generatedAt: '', userId: 1, modules: {} })
+    mockGetSnapshot.mockResolvedValue({ generatedAt: 't', userId: 1 })
+
+    await pullOfflineSnapshot(qc)
+
+    expect(mockSaveExtras).toHaveBeenCalledWith(extras)
+    expect(mockHydrateExtras).toHaveBeenCalledWith(qc, extras)
+    expect(mockPrefetch.mock.calls[0][0]).toEqual([
+      { url: '/api/doc', filename: 'a.pdf' },
+      { url: '/api/plans-prevention/x/pdf/download', filename: 'plan_prevention.pdf' },
+    ])
+  })
+
+  it('keeps the main snapshot valid when the extras call fails', async () => {
+    mockGetExtras.mockRejectedValue(new Error('boom'))
+    mockGetManifest.mockResolvedValue({ generatedAt: '', userId: 1, modules: {} })
+    mockGetSnapshot.mockResolvedValue({ generatedAt: 't', userId: 1 })
+
+    const result = await pullOfflineSnapshot(qc)
+
+    expect(result.ok).toBe(true)
+    expect(mockSaveExtras).not.toHaveBeenCalled()
+    expect(mockHydrateExtras).not.toHaveBeenCalled()
+    expect(mockPrefetch).toHaveBeenCalled()
+  })
+
+  it('pulls the extras on silent pulls too (cheap, needed by the offline screens)', async () => {
+    mockGetManifest.mockResolvedValue({ generatedAt: '', userId: 1, modules: {} })
+    mockGetSnapshot.mockResolvedValue({ generatedAt: 't', userId: 1 })
+
+    await pullOfflineSnapshot(qc, { silent: true })
+
+    expect(mockSaveExtras).toHaveBeenCalled()
   })
 
   it('skips document prefetch on silent pulls', async () => {

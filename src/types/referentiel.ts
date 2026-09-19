@@ -24,6 +24,8 @@ export interface Site {
   zone: string | null
   typePylone: string | null
   hauteurPylone: number | null
+  apn?: boolean
+  api?: boolean
   sourceKmz: boolean
   createdAt: string
   updatedAt: string
@@ -45,6 +47,7 @@ export interface CategorieRisque {
   id: string
   nom: string
   typePermis?: 'ELECTRIQUE' | 'HAUTEUR' | null
+  typeSite?: 'APN' | 'API' | null
   parentId?: string | null
   parentNom?: string | null
   createdAt: string

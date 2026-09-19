@@ -92,6 +92,27 @@ export interface OfflineSnapshot {
   tombstones?: OfflineSnapshotTombstones
 }
 
+/** Pièces requises d'un permis (GET /permits-travail/{id}/documents-requis), précalculées pour le hors-ligne. */
+export interface OfflineSnapshotPermitDocumentsRequis {
+  id: string
+  soumission: string[]
+  cloture: string[]
+  apnApi: boolean
+}
+
+export interface OfflineSnapshotGeneratedPdf {
+  downloadPath: string
+  nom: string
+}
+
+/** Données calculées côté serveur, hors entités du snapshot (GET /offline/snapshot/extras). */
+export interface OfflineSnapshotExtras {
+  generatedAt: string
+  permitsDocumentsRequis: OfflineSnapshotPermitDocumentsRequis[]
+  planificationsDisponibles: unknown[]
+  generatedPdfs: OfflineSnapshotGeneratedPdf[]
+}
+
 export interface OfflineSnapshotMeta {
   userId: string
   generatedAt: string

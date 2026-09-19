@@ -5,7 +5,9 @@ export const QUERY_NETWORK_MODE = 'offlineFirst' as const
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      // Court : les états métier (statuts, consultations, documents) changent côté serveur. Les données
+      // de référence longues déclarent leur propre staleTime. Hors-ligne, offlineFirst garde le cache.
+      staleTime: 30 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
       networkMode: QUERY_NETWORK_MODE,

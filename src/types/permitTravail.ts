@@ -66,6 +66,25 @@ export type TypeDocumentPermitTravail =
   | 'PV_CLOTURE_ENVIRONNEMENT'
   | 'PV_FIN_TRAVAUX'
   | 'PHOTO_PROPRETE_SITE'
+  | 'PHOTO_AVANT_TRAVAUX'
+  | 'PHOTO_APRES_TRAVAUX'
+  | 'ENV_TRI_DECHETS'
+  | 'ENV_DELIMITATION_SITE'
+  | 'ENV_ACCES_EXISTANT'
+  | 'ENV_AUTORISATION_CEF_DREDD'
+  | 'ENV_FICHE_TOOLBOX'
+  | 'ENV_INVENTAIRE_ESPECES'
+  | 'ENV_MATERIELS_DEVERSEMENT'
+  | 'ENV_MOYENS_URGENCE_POLLUTION'
+  | 'ENV_PROPRETE_AVANT'
+  | 'ENV_PHOTO_GENERATEUR_SUPERSILENT'
+  | 'ENV_LUTTE_EROSION'
+  | 'ENV_REGISTRE_DECHETS'
+  | 'ENV_PROPRETE_SITE'
+  | 'ENV_REGISTRE_PLAINTES'
+  | 'ENV_QUANTITE_DECHETS'
+  | 'ENV_ENLEVEMENT_DECHETS'
+  | 'ENV_PROPRETE_APRES'
 
 export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   TROUSSE_SECOURS:            "Trousse de secours",
@@ -84,6 +103,25 @@ export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   PV_CLOTURE_ENVIRONNEMENT:    "PV clôture Environnement",
   PV_FIN_TRAVAUX:              "PV fin travaux",
   PHOTO_PROPRETE_SITE:         "Photo propreté du site et/ou remise en état",
+  PHOTO_AVANT_TRAVAUX:         "Photo avant travaux",
+  PHOTO_APRES_TRAVAUX:         "Photo après travaux",
+  ENV_TRI_DECHETS:             "Mise en place du tri des déchets",
+  ENV_DELIMITATION_SITE:       "Délimitation du site avant travaux",
+  ENV_ACCES_EXISTANT:          "Accès déjà existant sur site avant chantier",
+  ENV_AUTORISATION_CEF_DREDD:  "Autorisation CEF ou DREDD pour l'ouverture de piste",
+  ENV_FICHE_TOOLBOX:           "Fiche toolbox de sensibilisation (maîtrise sonore, chasse, faune, flore)",
+  ENV_INVENTAIRE_ESPECES:      "Inventaire et suivi des espèces cibles de conservation dans le périmètre du site",
+  ENV_MATERIELS_DEVERSEMENT:   "Matériels utilisés pour la maîtrise des déversements",
+  ENV_MOYENS_URGENCE_POLLUTION: "Moyens de maîtrise en cas d'urgence liée à une pollution",
+  ENV_PROPRETE_AVANT:          "Propreté du site avant intervention",
+  ENV_PHOTO_GENERATEUR_SUPERSILENT: "Photo du générateur supersilent sur site",
+  ENV_LUTTE_EROSION:           "Lutte contre l'érosion (caniveaux de drainage, revégétalisation)",
+  ENV_REGISTRE_DECHETS:        "Registre des déchets",
+  ENV_PROPRETE_SITE:           "Propreté du site",
+  ENV_REGISTRE_PLAINTES:       "Cahier de registre des plaintes (internes et externes)",
+  ENV_QUANTITE_DECHETS:        "Quantité de déchets générés par type",
+  ENV_ENLEVEMENT_DECHETS:      "Enlèvement des déchets",
+  ENV_PROPRETE_APRES:          "Propreté du site après intervention",
 }
 
 /**
@@ -120,14 +158,32 @@ const DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', Record<TypePermit, [Typ
   },
 }
 
+/**
+ * Pièces environnementales exigées uniquement pour les sites APN/API
+ * (permis général / fin de travaux). Synchronisée avec le resolver API.
+ */
+const ENV_DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', { general: TypeDocumentPermitTravail[]; fin: TypeDocumentPermitTravail[] }> = {
+  NOUVEAU_SITE: {
+    general: ['ENV_TRI_DECHETS', 'ENV_DELIMITATION_SITE', 'ENV_ACCES_EXISTANT', 'ENV_AUTORISATION_CEF_DREDD', 'ENV_FICHE_TOOLBOX', 'ENV_INVENTAIRE_ESPECES'],
+    fin: ['ENV_PHOTO_GENERATEUR_SUPERSILENT', 'ENV_LUTTE_EROSION', 'ENV_REGISTRE_DECHETS', 'ENV_PROPRETE_SITE', 'ENV_REGISTRE_PLAINTES'],
+  },
+  AUTRES: {
+    general: ['ENV_MATERIELS_DEVERSEMENT', 'ENV_MOYENS_URGENCE_POLLUTION', 'ENV_PROPRETE_AVANT'],
+    fin: ['ENV_QUANTITE_DECHETS', 'ENV_ENLEVEMENT_DECHETS', 'ENV_PROPRETE_APRES'],
+  },
+}
+
 export function getRequiredDocumentTypes(
   planTypeIntervention: string | null | undefined,
   typePermis: TypePermit,
   processus: ProcessusPermit,
+  apnApi = false,
 ): TypeDocumentPermitTravail[] {
   const bucket = planTypeIntervention === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
   const index = processus === 'RENOUVELLEMENT' ? 1 : 0
-  return DOCUMENT_MATRIX[bucket][typePermis][index]
+  const base = DOCUMENT_MATRIX[bucket][typePermis][index]
+  if (apnApi && typePermis === 'GENERAL') return [...base, ...ENV_DOCUMENT_MATRIX[bucket].general]
+  return base
 }
 
 /**
@@ -142,9 +198,41 @@ const CLOTURE_DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', TypeDocumentPer
 
 export function getRequiredClotureDocumentTypes(
   planTypeIntervention: string | null | undefined,
+  apnApi = false,
+  typePermis?: TypePermit,
 ): TypeDocumentPermitTravail[] {
   const bucket = planTypeIntervention === 'Nouveau site' ? 'NOUVEAU_SITE' : 'AUTRES'
-  return CLOTURE_DOCUMENT_MATRIX[bucket]
+  return [
+    ...CLOTURE_DOCUMENT_MATRIX[bucket],
+    'PHOTO_AVANT_TRAVAUX',
+    'PHOTO_APRES_TRAVAUX',
+    ...(apnApi && typePermis === 'GENERAL' ? ENV_DOCUMENT_MATRIX[bucket].fin : []),
+  ]
+}
+
+export interface ResolvedDocumentRequirements {
+  soumission: TypeDocumentPermitTravail[]
+  cloture: TypeDocumentPermitTravail[]
+  apnApi: boolean
+}
+
+/**
+ * Les listes calculées par l'API (GET documents-requis) font foi ; la matrice locale n'est qu'un repli
+ * (sans pièces APN/API, inconnues tant que le serveur n'a pas répondu) : tant que la requête charge,
+ * les écrans qui bloquent une action sur ces listes doivent attendre.
+ */
+export function resolveDocumentRequirements(
+  permit: { planProcess?: string | null; typePermis: TypePermit; processus: ProcessusPermit },
+  requis: DocumentsRequisResult | undefined,
+): ResolvedDocumentRequirements {
+  if (requis) {
+    return { soumission: requis.soumission, cloture: requis.cloture, apnApi: requis.apnApi }
+  }
+  return {
+    soumission: getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus, false),
+    cloture: getRequiredClotureDocumentTypes(permit.planProcess, false, permit.typePermis),
+    apnApi: false,
+  }
 }
 
 export const PROCESSUS_LABELS: Record<ProcessusPermit, string> = {
@@ -165,6 +253,14 @@ export interface DocumentPermitTravail {
   filePath: string
   mimeType: string
   uploadedAt: string
+  capturedAt?: string | null
+  nonApplicable?: boolean
+}
+
+export interface DocumentsRequisResult {
+  soumission: TypeDocumentPermitTravail[]
+  cloture: TypeDocumentPermitTravail[]
+  apnApi: boolean
 }
 
 export function getMissingDocumentTypes(
@@ -277,6 +373,7 @@ export interface PermitTravail {
   createdBy: { id: number; email: string; name: string; firstname?: string }
   nomPrestataire?: string | null
   soumisAt?: string | null
+  validatedAt?: string | null
   createdAt: string
   documents: DocumentPermitTravail[]
   decisionsHse?: DecisionHsePermitTravail[]

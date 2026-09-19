@@ -1,9 +1,12 @@
 import api from '@/lib/axios'
 import { triggerBlobDownload } from '@/lib/downloadBlob'
+import { downloadCachedPdf } from '@/lib/downloadPdf'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotById, snapshotList } from '@/offline/snapshotRead'
-import { putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
+import { getByIdFromSnapshot } from '@/offline/snapshotStore'
+import type { OfflineSnapshotPermitDocumentsRequis } from '@/types/offlineSnapshot'
+import { cachedPdfStatus, putCachedDocument, withCachedDocumentBlob } from '@/offline/docCache'
 import type { HydraCollection } from '@/types'
 import type {
   PermitTravail,
@@ -20,6 +23,7 @@ import type {
   PvReceptionStatus,
   CloturerPermitResult,
   DecisionCdpPvReception,
+  DocumentsRequisResult,
 } from '@/types/permitTravail'
 
 export const permitTravailApi = {
@@ -59,10 +63,11 @@ export const permitTravailApi = {
   delete: (id: string): Promise<void> =>
     api.delete(`/api/permits-travail/${id}`).then(() => undefined),
 
-  uploadDocument: (id: string, type: string, file: File) => {
+  uploadDocument: (id: string, type: string, file: File, capturedAt?: string) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', type)
+    if (capturedAt) formData.append('capturedAt', capturedAt)
     return api
       .post<DocumentPermitTravail>(`/api/permits-travail/${id}/documents`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -77,6 +82,35 @@ export const permitTravailApi = {
         return doc
       })
   },
+
+  deleteDocument: (permitId: string, documentId: string) =>
+    api.delete(`/api/permits-travail/${permitId}/documents/${documentId}`).then(() => undefined),
+
+  setDocumentNonApplicable: (permitId: string, type: string, nonApplicable: boolean) =>
+    api
+      .post(`/api/permits-travail/${permitId}/documents/non-applicable`, { type, nonApplicable })
+      .then((r) => r.data as DocumentPermitTravail | undefined),
+
+  getDocumentsRequis: (permitId: string) =>
+    withSnapshotFallback(
+      () =>
+        api
+          .get<DocumentsRequisResult>(`/api/permits-travail/${permitId}/documents-requis`)
+          .then((r) => r.data),
+      async (): Promise<DocumentsRequisResult | undefined> => {
+        const row = await getByIdFromSnapshot<OfflineSnapshotPermitDocumentsRequis>(
+          'permitDocumentsRequis',
+          permitId,
+        )
+        return row
+          ? {
+              soumission: row.soumission as DocumentsRequisResult['soumission'],
+              cloture: row.cloture as DocumentsRequisResult['cloture'],
+              apnApi: row.apnApi,
+            }
+          : undefined
+      },
+    ),
 
   getDocumentBlob: (permitId: string, documentId: string): Promise<Blob> => {
     const url = `/api/permits-travail/${permitId}/documents/${documentId}/download`
@@ -117,9 +151,13 @@ export const permitTravailApi = {
       .then((r) => r.data),
 
   getPdfStatus: (id: string) =>
-    api
-      .get<PermitTravailPdfStatus>(`/api/permits-travail/${id}/pdf/status`)
-      .then((r) => r.data),
+    withSnapshotFallback(
+      () =>
+        api
+          .get<PermitTravailPdfStatus>(`/api/permits-travail/${id}/pdf/status`)
+          .then((r) => r.data),
+      () => cachedPdfStatus(`/api/permits-travail/${id}/pdf/download`) as Promise<PermitTravailPdfStatus | undefined>,
+    ),
 
   getSuivi: (filters?: PermitTravailSuiviFilters) => {
     const params: Record<string, string> = {}
@@ -171,45 +209,14 @@ export const permitTravailApi = {
     api.get<DecisionCdpPvReception[]>(`/api/permits-travail/${id}/pv/decision`).then((r) => r.data),
 
   getPvStatus: (id: string) =>
-    api.get<PvReceptionStatus>(`/api/permits-travail/${id}/pv/status`).then((r) => r.data),
+    withSnapshotFallback(
+      () => api.get<PvReceptionStatus>(`/api/permits-travail/${id}/pv/status`).then((r) => r.data),
+      () => cachedPdfStatus(`/api/permits-travail/${id}/pv/download`) as Promise<PvReceptionStatus | undefined>,
+    ),
 
-  downloadPv: async (id: string): Promise<void> => {
-    const token = localStorage.getItem('access_token') ?? ''
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/permits-travail/${id}/pv/download`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-    if (!res.ok) throw new Error('Téléchargement PV échoué')
-    const blob = await res.blob()
-    const disposition = res.headers.get('Content-Disposition') ?? ''
-    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'pv_reception.pdf'
-    const blobUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(blobUrl)
-  },
+  downloadPv: (id: string): Promise<void> =>
+    downloadCachedPdf(`/api/permits-travail/${id}/pv/download`, 'pv_reception.pdf'),
 
-  downloadPdf: async (id: string): Promise<void> => {
-    const token = localStorage.getItem('access_token') ?? ''
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/permits-travail/${id}/pdf/download`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-    if (!res.ok) throw new Error('Téléchargement PDF échoué')
-    const blob = await res.blob()
-    const disposition = res.headers.get('Content-Disposition') ?? ''
-    const filename = disposition.match(/filename="([^"]+)"/)?.[1] ?? 'permit_travail.pdf'
-    const blobUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(blobUrl)
-  },
+  downloadPdf: (id: string): Promise<void> =>
+    downloadCachedPdf(`/api/permits-travail/${id}/pdf/download`, 'permit_travail.pdf'),
 }

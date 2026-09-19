@@ -532,7 +532,7 @@ export default function SuiviJournalierPage() {
                         <SuiviDocumentUploadZone
                           suiviId={suivi.id}
                           documents={suivi.documents}
-                          onUpload={(file) => uploadSuiviDocument(suivi.id, file)}
+                          onUpload={(file, capturedAt) => uploadSuiviDocument(suivi.id, file, capturedAt)}
                           onDelete={(docId) => deleteSuiviDocument(suivi.id, docId)}
                           disabled={!isToday || !canDeleteDoc}
                         />

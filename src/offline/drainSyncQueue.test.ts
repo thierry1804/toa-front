@@ -23,11 +23,17 @@ vi.mock('@/lib/axios', () => ({
   default: vi.fn(),
 }))
 
+vi.mock('@/offline/refreshPlansAfterSync', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/offline/refreshPlansAfterSync')>()),
+  refreshPlansAfterSync: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { drainSyncQueue } from './drainSyncQueue'
 import { syncQueue } from '@/offline/syncQueue'
 import api from '@/lib/axios'
 import { rebuildFormData, deleteBlobsForParts, getBlob } from '@/offline/blobStore'
 import { putCachedDocument } from '@/offline/docCache'
+import { refreshPlansAfterSync } from '@/offline/refreshPlansAfterSync'
 
 type SyncItem = {
   id: string
@@ -205,3 +211,68 @@ describe('drainSyncQueue', () => {
     expect(deleteBlobsForParts).toHaveBeenCalledWith(queued.formParts)
   })
 })
+
+// Une action rejouée après coup peut être refusée par le serveur parce que l'élément a changé entre-temps
+// (ex. un plan validé hors-ligne alors qu'un autre utilisateur l'a refusé) : refus définitif, pas une panne.
+describe('drainSyncQueue — action refusée par le serveur au rejeu', () => {
+  const PLAN = '01a0b9e5-f7ed-77d5-98ec-a890bc1ca175'
+  const rejected = (status: number) => Object.assign(new Error(`HTTP ${status}`), { response: { status } })
+
+  it.each([400, 403, 404, 409, 422])(
+    'un refus HTTP %i va tout de suite dans les actions non synchronisées, sans 5 tentatives',
+    async (status) => {
+      mockGetAll.mockResolvedValue([item({ id: 'valider', url: `/api/plans-prevention/${PLAN}/valider` })])
+      mockApi.mockRejectedValue(rejected(status))
+
+      await drainSyncQueue(queryClient, addToast)
+
+      expect(mockMoveToFailed).toHaveBeenCalledWith('valider')
+      expect(mockIncrementRetries).not.toHaveBeenCalled()
+      expect(mockRemove).not.toHaveBeenCalled()
+    },
+  )
+
+  it("prévient l'utilisateur que l'action a été refusée et rend le plan à l'état du serveur", async () => {
+    mockGetAll.mockResolvedValue([
+      item({ id: 'c1', url: `/api/plans-prevention/${PLAN}/documents/d1/consulter` }),
+      item({ id: 'valider', url: `/api/plans-prevention/${PLAN}/valider` }),
+    ])
+    mockApi.mockResolvedValueOnce({}).mockRejectedValueOnce(rejected(403))
+
+    const synced = await drainSyncQueue(queryClient, addToast)
+
+    expect(synced).toBe(1)
+    expect(addToast).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error', message: expect.stringContaining('refusée par le serveur') }),
+    )
+    expect(refreshPlansAfterSync).toHaveBeenCalledWith(queryClient, [PLAN])
+  })
+
+  it("un refus n'empêche pas de rejouer les actions suivantes", async () => {
+    mockGetAll.mockResolvedValue([
+      item({ id: 'a', url: `/api/plans-prevention/${PLAN}/valider` }),
+      item({ id: 'b', url: '/api/permits-travail/x/soumettre' }),
+    ])
+    mockApi.mockRejectedValueOnce(rejected(403)).mockResolvedValueOnce({})
+
+    const synced = await drainSyncQueue(queryClient, addToast)
+
+    expect(mockMoveToFailed).toHaveBeenCalledWith('a')
+    expect(mockRemove).toHaveBeenCalledWith('b')
+    expect(synced).toBe(1)
+  })
+
+  it.each([401, 408, 425, 429, 500, 502, 503])(
+    'une erreur HTTP %i est temporaire : on réessaie à la prochaine reconnexion',
+    async (status) => {
+      mockGetAll.mockResolvedValue([item({ id: 'later' })])
+      mockApi.mockRejectedValue(rejected(status))
+
+      await drainSyncQueue(queryClient, addToast)
+
+      expect(mockIncrementRetries).toHaveBeenCalledWith('later')
+      expect(mockMoveToFailed).not.toHaveBeenCalled()
+    },
+  )
+})
+
