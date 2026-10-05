@@ -45,7 +45,11 @@ export default function RefuserModal({
       isSubmitting={isRefusing}
       onConfirm={(commentaire) => onRefuser(planId, commentaire)}
       getErrorMessage={(err) => {
-        if (err instanceof Error && err.message === 'Plan non examiné') {
+        const message = err instanceof Error ? err.message : ''
+        if (
+          message === 'Plan non examiné' ||
+          message.includes('statut_invalide_pour_refus')
+        ) {
           return t('planPrevention.refuserModal.errorNotExamined')
         }
         return t('planPrevention.refuserModal.errorGeneric')

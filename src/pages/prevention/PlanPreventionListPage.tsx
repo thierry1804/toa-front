@@ -39,6 +39,7 @@ import type { PlanPrevention } from '@/types/planPrevention'
 
 const PLAN_STATUTS = [
   'BROUILLON',
+  'A_CORRIGER',
   'SOUMIS',
   'EN_COURS_DE_VALIDATION',
   'EXAMINE',
@@ -98,7 +99,11 @@ function PlanRow({
   const { t } = useTranslation()
   const hasRefusDecision = plan.decisionsHse?.some((d) => d.decision === 'REFUSE') ?? false
   const isCorrectible =
-    isOwnPlan && isPrestataire && plan.statut === 'BROUILLON' && hasRefusDecision && canResoumettre
+    isOwnPlan &&
+    isPrestataire &&
+    (plan.statut === 'BROUILLON' || plan.statut === 'A_CORRIGER') &&
+    hasRefusDecision &&
+    canResoumettre
   const isEditable =
     isOwnPlan && isPrestataire && plan.statut === 'BROUILLON' && !hasRefusDecision
   const latestExamen = plan.examens?.at(-1)

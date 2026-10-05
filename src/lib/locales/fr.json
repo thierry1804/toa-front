@@ -512,6 +512,7 @@
   "planPrevention": {
     "statut": {
       "BROUILLON": "Brouillon",
+      "A_CORRIGER": "À corriger",
       "SOUMIS": "Soumis",
       "VALIDE": "Validé",
       "REJETE": "Rejeté",
@@ -620,7 +621,7 @@
       "commentaireRequired": "*",
       "commentairePlaceholder": "Indiquez clairement les raisons du refus...",
       "commentaireError": "Le motif de refus est obligatoire.",
-      "errorNotExamined": "Ce plan n'a pas encore été examiné par le Chef de Projet.",
+      "errorNotExamined": "Ce plan ne peut pas être refusé dans son statut actuel.",
       "errorGeneric": "Une erreur est survenue lors du refus.",
       "cancel": "Annuler",
       "confirm": "Confirmer le refus"

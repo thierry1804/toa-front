@@ -1,5 +1,6 @@
 export type StatutPlanPrevention =
   | 'BROUILLON'
+  | 'A_CORRIGER'
   | 'SOUMIS'
   | 'VALIDE'
   | 'REJETE'

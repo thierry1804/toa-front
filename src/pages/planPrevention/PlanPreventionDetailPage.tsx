@@ -251,6 +251,17 @@ export default function PlanPreventionDetailPage() {
                 {t("planPrevention.detail.examinerBtn")}
               </Button>
             )}
+            {isExaminable && (
+              <Button
+                variant="danger"
+                onClick={() => setRefuserOpen(true)}
+                disabled={!docsConsulted}
+                title={!docsConsulted ? t("planPrevention.toast.documentsNonConsultes") : undefined}
+              >
+                <ShieldX className="mr-2 h-4 w-4" />
+                {t("planPrevention.list.actions.refuser")}
+              </Button>
+            )}
             {canCreatePermit && plan.statut === "VALIDE_HSE" && (
               <Button
                 onClick={() =>

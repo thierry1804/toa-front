@@ -11,6 +11,7 @@ const PERMIT_CLOSED = ['CLOTURE', 'PV_VALIDE'] as const
 
 const PLAN_TODO = [
   'BROUILLON',
+  'A_CORRIGER',
   'SOUMIS',
   'EN_ATTENTE',
   'ENVOYE',
