@@ -512,6 +512,7 @@
   "planPrevention": {
     "statut": {
       "BROUILLON": "Drafitra",
+      "A_CORRIGER": "Tokony hohitsiana",
       "SOUMIS": "Natolotra",
       "VALIDE": "Voamarina",
       "REJETE": "Nolanihanina",
@@ -620,7 +621,7 @@
       "commentaireRequired": "*",
       "commentairePlaceholder": "Hazavao mazava ny antony ny fandavana...",
       "commentaireError": "Ilaina ny antony ny fandavana.",
-      "errorNotExamined": "Ity drafitra ity tsy mbola nojerena nataon'ny Tompon'andraikitra tetikasa.",
+      "errorNotExamined": "Tsy azo lavina ity drafitra ity amin'ny satany ankehitriny.",
       "errorGeneric": "Nisy hadisoana tamin'ny fandavana.",
       "cancel": "Ajanony",
       "confirm": "Hanamafy ny fandavana"

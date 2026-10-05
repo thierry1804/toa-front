@@ -56,11 +56,11 @@ describe('applyPlanAction', () => {
     }
   })
 
-  it('valider : VALIDE_HSE avec validatedAt ; refuser : retour BROUILLON', () => {
+  it('valider : VALIDE_HSE avec validatedAt ; refuser : A_CORRIGER', () => {
     const validated = applyPlanAction(plan(), { type: 'valider' }, NOW)
     expect(validated.statut).toBe('VALIDE_HSE')
     expect(validated.validatedAt).toBe(NOW.toISOString())
-    expect(applyPlanAction(plan(), { type: 'refuser' }, NOW).statut).toBe('BROUILLON')
+    expect(applyPlanAction(plan(), { type: 'refuser' }, NOW).statut).toBe('A_CORRIGER')
   })
 
   it("ne modifie pas le plan d'origine", () => {

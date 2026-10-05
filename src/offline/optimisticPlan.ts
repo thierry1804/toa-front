@@ -61,7 +61,7 @@ export function applyPlanAction(plan: PlanPrevention, action: PlanOfflineAction,
     case 'valider':
       return { ...plan, statut: 'VALIDE_HSE', validatedAt: at, pendingSync: true }
     case 'refuser':
-      return { ...plan, statut: 'BROUILLON', pendingSync: true }
+      return { ...plan, statut: 'A_CORRIGER', pendingSync: true }
   }
 }
 

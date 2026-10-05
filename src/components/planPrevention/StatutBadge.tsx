@@ -9,6 +9,7 @@ type StatutConfig = {
 
 const STATUT_CONFIG: Record<StatutPlanPrevention, StatutConfig> = {
   BROUILLON:              { color: 'bg-gray-100 text-gray-700',     icon: FileText     },
+  A_CORRIGER:             { color: 'bg-amber-100 text-amber-800',   icon: AlertCircle  },
   SOUMIS:                 { color: 'bg-blue-100 text-blue-700',     icon: Clock        },
   VALIDE:                 { color: 'bg-green-100 text-green-700',   icon: CheckCircle  },
   REJETE:                 { color: 'bg-red-100 text-red-700',       icon: XCircle      },
