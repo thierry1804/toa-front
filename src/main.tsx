@@ -1,3 +1,4 @@
+import ChantierNotebookPage from "@/pages/intervention/ChantierNotebookPage";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -142,6 +143,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/interventions/suivis" element={<SuivisJournaliersPage />} />
               <Route path="/interventions/suivi-hse" element={<InterventionSuiviHsePage />} />
               <Route path="/interventions/:id/suivi-hse" element={<InterventionDetailHsePage />} />
+              <Route path="/interventions/:id/carnet" element={<ChantierNotebookPage />} />
               <Route path="/interventions/:id" element={<EvaluationRisquePage />} />
               <Route path="/interventions/:id/suivis" element={<SuiviJournalierPage />} />
             </Route>

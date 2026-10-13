@@ -81,7 +81,7 @@ export default function EvaluationRisquePage() {
   const reevaluesCount = risques.filter((r) => r.estReevalue).length
   const allReevalues = reevaluesCount === totalRisques && totalRisques > 0
   const progressPct = totalRisques > 0 ? Math.round((reevaluesCount / totalRisques) * 100) : 0
-  const isComplete = intervention.statut === 'EVALUATION_COMPLETE'
+  const isComplete = ['EVALUATION_COMPLETE', 'EN_COURS', 'TERMINEE'].includes(intervention.statut)
 
   const handleUpdateRisque = async (risqueId: string, data: EvaluationRisqueInput) => {
     if (!id) return

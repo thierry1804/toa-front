@@ -1,9 +1,12 @@
+import TerrainDashboardPage from "./TerrainDashboardPage";
 import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatStrip } from "@/components/ui/StatStrip";
 import Badge from "@/components/ui/Badge";
+import { useInterventionProgress } from "@/features/intervention/hooks/useInterventionProgress";
+import { interventionDisplayStatus, interventionDates } from "@/features/intervention/presentation";
 import { MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DASHBOARD_EXCERPT_LIMIT, DASHBOARD_KPI_SCAN_LIMIT, quickLinks } from "@/data/constant/dashboard";
@@ -29,13 +32,6 @@ import {
   DashboardExcerptPanel,
   DashboardExcerptRow,
 } from "@/pages/dashboard/DashboardExcerptPanel";
-
-const INTERVENTION_STATUT_I18N: Record<string, string> = {
-  EN_PREPARATION: "planifiee",
-  EVALUATION_COMPLETE: "planifiee",
-  EN_COURS: "en_cours",
-  TERMINEE: "terminee",
-};
 
 function flattenMenu(nodes: MenuNode[]): MenuNode[] {
   const out: MenuNode[] = [];
@@ -63,7 +59,7 @@ function interventionSite(intervention: Intervention): string {
   return "";
 }
 
-function DashboardPage() {
+function OverviewDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const roles = useAuthStore((s) => s.roles);
   const menuItems = useMenuStore((s) => s.items);
@@ -125,6 +121,13 @@ function DashboardPage() {
     enabled: showInterventions,
   });
 
+  const interventionProgress = useInterventionProgress(interventionsData?.member ?? []);
+  const resolvedInterventions = useMemo(() => interventionsData?.member.map((intervention) => ({
+    ...intervention,
+    statut: interventionDisplayStatus(intervention.statut, interventionProgress.progressById.get(intervention.id)) === "en_cours"
+      ? "EN_COURS" as const : intervention.statut,
+  })), [interventionsData?.member, interventionProgress.progressById]);
+
   const {
     data: planningData,
     isLoading: planningLoading,
@@ -146,11 +149,11 @@ function DashboardPage() {
   );
   const recentInterventions = useMemo(
     () =>
-      sortNewestFirst(interventionsData?.member ?? []).slice(
+      sortNewestFirst(resolvedInterventions ?? []).slice(
         0,
         DASHBOARD_EXCERPT_LIMIT,
       ),
-    [interventionsData?.member],
+    [resolvedInterventions],
   );
   const recentPlannings = useMemo(
     () => sortNewestFirst(planningData?.member ?? []).slice(0, DASHBOARD_EXCERPT_LIMIT),
@@ -187,8 +190,8 @@ function DashboardPage() {
           permits: showPermits && !permitsLoading ? permitsData?.member : undefined,
           plans: showPlans && !plansLoading ? plansData?.member : undefined,
           interventions:
-            showInterventions && !interventionsLoading
-              ? interventionsData?.member
+            showInterventions && !interventionsLoading && !interventionProgress.isLoading && !interventionProgress.isError
+              ? resolvedInterventions
               : undefined,
           plannings:
             showPlanning && !planningLoading ? planningData?.member : undefined,
@@ -208,7 +211,9 @@ function DashboardPage() {
       usersLoading,
       permitsData?.member,
       plansData?.member,
-      interventionsData?.member,
+      resolvedInterventions,
+      interventionProgress.isLoading,
+      interventionProgress.isError,
       planningData?.member,
       usersData?.member,
     ],
@@ -401,8 +406,8 @@ function DashboardPage() {
               title={t("dashboard.recentInterventions")}
               seeAllLabel={t("dashboard.seeAll")}
               onSeeAll={() => navigate("/interventions")}
-              loading={interventionsLoading}
-              error={interventionsError}
+              loading={interventionsLoading || interventionProgress.isLoading}
+              error={interventionsError || interventionProgress.isError}
               errorMessage={t("dashboard.excerptLoadError")}
               empty={recentInterventions.length === 0}
               emptyMessage={t("dashboard.noInterventions")}
@@ -410,15 +415,16 @@ function DashboardPage() {
               <ul className="divide-y divide-gray-100">
                 {recentInterventions.map((intervention) => {
                   const site = interventionSite(intervention);
+                  const dates = interventionDates(intervention);
                   const statutKey =
-                    INTERVENTION_STATUT_I18N[intervention.statut] ?? "planifiee";
+                    interventionDisplayStatus(intervention.statut);
                   return (
                     <DashboardExcerptRow
                       key={intervention.id}
                       title={interventionReference(intervention)}
-                      meta={`${site ? `${site} · ` : ""}${formatDay(intervention.createdAt)}`}
+                      meta={`${site ? `${site} · ` : ""}${formatDay(dates.dateDebut)} → ${formatDay(dates.dateFin)}`}
                       badge={
-                        <Badge variant="secondary">
+                        <Badge variant={statutKey === "en_cours" ? "primary" : statutKey === "terminee" ? "success" : "secondary"}>
                           {t(`interventions.list.status.${statutKey}`)}
                         </Badge>
                       }
@@ -497,6 +503,13 @@ function DashboardPage() {
       )}
     </div>
   );
+}
+
+function DashboardPage() {
+  const roles = useAuthStore((state) => state.roles);
+  const isFieldAgent = roles.some((role) => ['ROLE_AGENT_TERRAIN', 'ROLE_COLLABORATEUR'].includes(role))
+    && !roles.some((role) => ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_HSE', 'ROLE_CHEF_PROJET'].includes(role));
+  return isFieldAgent ? <TerrainDashboardPage /> : <OverviewDashboardPage />;
 }
 
 export default DashboardPage;

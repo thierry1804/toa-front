@@ -1,7 +1,7 @@
 import axios from "axios";
 import i18n from "@/lib/i18n";
 import { useUiStore } from "@/store/ui.store";
-import { useAuthStore, derivePermissionsFromRoles } from "@/store/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 import { decodeJwtPayload } from "@/utils/jwt";
 import { OfflineQueuedError } from "@/offline/offlineError";
 import { enqueueOfflineMutation } from "@/offline/enqueueOfflineMutation";
@@ -94,7 +94,7 @@ api.interceptors.response.use(
           const perms =
             Array.isArray(rawPerms) && (rawPerms as unknown[]).length > 0
               ? (rawPerms as string[])
-              : derivePermissionsFromRoles(roles)
+              : []
           useAuthStore.getState().setRoles(roles)
           useAuthStore.getState().setPermissions(perms)
         }

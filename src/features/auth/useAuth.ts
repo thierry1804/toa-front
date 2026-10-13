@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api/authApi'
-import { useAuthStore, derivePermissionsFromRoles } from '@/store/auth.store'
+import { useAuthStore } from '@/store/auth.store'
 import { decodeJwtPayload } from '@/utils/jwt'
 import { useMenuStore } from '@/store/menu.store'
 import { clearOfflineState } from '@/offline/clearOfflineState'
@@ -9,9 +9,7 @@ import { clearOfflineState } from '@/offline/clearOfflineState'
 function resolvePermissions(payload: Record<string, unknown> | null): string[] {
   if (!payload) return []
   const perms = payload.permissions
-  if (Array.isArray(perms) && perms.length > 0) return perms as string[]
-  const roles = Array.isArray(payload.roles) ? (payload.roles as string[]) : []
-  return derivePermissionsFromRoles(roles)
+  return Array.isArray(perms) ? perms.filter((permission): permission is string => typeof permission === 'string') : []
 }
 
 function resolveRoles(payload: Record<string, unknown> | null): string[] {

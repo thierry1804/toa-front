@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -108,7 +108,7 @@ function StepIndicator({ current }: { current: number }) {
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-export default function PermitTravailCreatePage() {
+function PermitTravailCreateForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -872,4 +872,9 @@ export default function PermitTravailCreatePage() {
       </div>
     </div>
   )
+}
+
+export default function PermitTravailCreatePage() {
+  const canCreate = usePermission('permit_travail.create')
+  return canCreate ? <PermitTravailCreateForm /> : <Navigate to="/permits-travail" replace />
 }

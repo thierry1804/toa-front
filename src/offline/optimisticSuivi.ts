@@ -112,6 +112,9 @@ export function buildOptimisticSuivi(
     motifNonRealisation: data.motifNonRealisation ?? null,
     avancementPourcentage: data.avancementPourcentage,
     commentaire: data.commentaire ?? null,
+    phasesAvancement: data.phasesAvancement ?? [],
+    dangersMaitrises: data.dangersMaitrises ?? null,
+    detailsDangers: data.detailsDangers ?? null,
     createdBy: {
       id: Number(user?.id ?? 0) || 0,
       name: user?.nom ?? data.nomResponsable,

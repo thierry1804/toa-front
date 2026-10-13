@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQueries } from '@tanstack/react-query';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { useTranslation } from 'react-i18next';
 import { useInterventionStore, type StoredIntervention } from '@/store/interventionStore';
@@ -32,15 +31,9 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { sortNewestFirst } from '@/lib/listOrder';
-import { SUIVI_JOURNALIER_KEY } from '@/data/constant/query';
+import { useInterventionProgress } from '@/features/intervention/hooks/useInterventionProgress';
+import { interventionDisplayStatus, interventionDates } from '@/features/intervention/presentation';
 import type { InterventionStatus } from '@/types';
-
-const STATUT_MAP: Record<string, string> = {
-  EN_PREPARATION: 'planifiee',
-  EVALUATION_COMPLETE: 'planifiee',
-  EN_COURS: 'en_cours',
-  TERMINEE: 'terminee',
-}
 
 type RawIntervention = Intervention & {
   incidents?: unknown[]
@@ -80,10 +73,9 @@ function mapIntervention(raw: RawIntervention): StoredIntervention {
     codeSite: permit?.codeSite ?? '—',
     nomSite: permit?.codeSite ?? '—',
     description: permit?.descriptionTravaux ?? '',
-    dateDebut: permit?.dateDebutPrevue ?? raw.createdAt,
-    dateFin: permit?.dateFinPrevue ?? raw.createdAt,
+    ...interventionDates(raw),
     prestataire,
-    status: (STATUT_MAP[raw.statut] ?? raw.statut) as InterventionStatus,
+    status: interventionDisplayStatus(raw.statut),
     creerPar: raw.createdBy?.email ?? '',
     zoneEnclavee: false,
     nombreIntervenants: 0,
@@ -106,29 +98,11 @@ export default function InterventionsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  const suiviQueries = useQueries({
-    queries: interventions.map((intervention) => ({
-      queryKey: [...SUIVI_JOURNALIER_KEY, intervention.id],
-      queryFn: () => interventionApi.getSuivis(intervention.id),
-      select: (data: Awaited<ReturnType<typeof interventionApi.getSuivis>>) => {
-        const suivis = [...(data.member ?? [])].sort((a, b) => b.date.localeCompare(a.date));
-        return suivis[0]?.avancementPourcentage ?? 0;
-      },
-    })),
-  });
-  const isLoadingSuivis = suiviQueries.some((query) => query.isLoading);
-  const avancementById = new Map(
-    interventions.map((intervention, index) => [
-      intervention.id,
-      suiviQueries[index]?.data ?? 0,
-    ]),
-  );
-  const displayedInterventions = interventions.map((intervention) => {
-    const avancement = avancementById.get(intervention.id) ?? 0;
-    return intervention.status === 'planifiee' && avancement > 0
-      ? { ...intervention, status: 'en_cours' as const }
-      : intervention;
-  });
+  const { isLoading: isLoadingSuivis, progressById: avancementById } = useInterventionProgress(interventions);
+  const displayedInterventions = interventions.map((intervention) => ({
+    ...intervention,
+    status: interventionDisplayStatus(intervention.status, avancementById.get(intervention.id)),
+  }));
 
   useEffect(() => {
     setPage(1);
@@ -401,7 +375,7 @@ export default function InterventionsListPage() {
                           <td className="px-4 py-4 text-right">
                             <TableIconButton
                               title={t('interventions.list.actions.voir')}
-                              onClick={() => navigate(`/interventions/${intervention.id}`)}
+                              onClick={() => navigate(`/interventions/${intervention.id}/carnet`)}
                             >
                               <Eye className="h-4 w-4" />
                             </TableIconButton>
@@ -428,7 +402,7 @@ export default function InterventionsListPage() {
                             {intervention.reference}
                           </p>
                         </div>
-                        <Link to={`/interventions/${intervention.id}`} className="shrink-0 ml-2">
+                        <Link to={`/interventions/${intervention.id}/carnet`} className="shrink-0 ml-2">
                           <TableIconButton title={t('interventions.list.actions.voir')}>
                             <Eye className="h-4 w-4" />
                           </TableIconButton>

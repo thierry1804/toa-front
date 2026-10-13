@@ -52,7 +52,7 @@ interface MenuState {
   loading: boolean
   loaded: boolean
   error: string | null
-  load: () => Promise<void>
+  load: (force?: boolean) => Promise<void>
   clear: () => void
 }
 
@@ -62,11 +62,11 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   loaded: false,
   error: null,
 
-  load: async () => {
+  load: async (force = false) => {
     if (loadPromise) return loadPromise
 
     const state = get()
-    if (state.loaded && !state.error) return
+    if (!force && state.loaded && !state.error) return
 
     const isInitialLoad = !state.loaded
     if (isInitialLoad) {

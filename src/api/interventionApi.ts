@@ -1,3 +1,4 @@
+import { collectPages } from '@/lib/collectHydraPages'
 import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
@@ -72,10 +73,17 @@ export const interventionApi = {
 
   getSuivis: (interventionId: string) =>
     withSnapshotFallback(
-      () =>
-        api
-          .get<HydraCollection<SuiviJournalier>>(`/api/interventions/${interventionId}/suivis`)
-          .then((r) => r.data),
+      async () => {
+        let collection: HydraCollection<SuiviJournalier> | undefined
+        const member = await collectPages(async (page) => {
+          const { data } = await api.get<HydraCollection<SuiviJournalier>>(`/api/interventions/${interventionId}/suivis`, {
+            params: { page, itemsPerPage: 100 },
+          })
+          collection = data
+          return data
+        })
+        return { ...collection!, member, totalItems: member.length }
+      },
       () => snapshotNestedHydra<SuiviJournalier>(interventionId, ['suivisJournaliers', 'suivis']),
     ),
 
@@ -89,10 +97,11 @@ export const interventionApi = {
       })
       .then((r) => r.data),
 
-  uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string) => {
+  uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string, phaseId?: string) => {
     const form = new FormData()
     form.append('file', file)
     if (capturedAt) form.append('capturedAt', capturedAt)
+    if (phaseId) form.append('phaseId', phaseId)
     return api
       .post<SuiviJournalierDocument>(`/api/suivis-journaliers/${suiviId}/documents`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },

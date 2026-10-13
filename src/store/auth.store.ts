@@ -23,63 +23,6 @@ interface AuthState {
   logout: () => void
 }
 
-const ROLE_PERMISSIONS: Record<string, string[]> = {
-  ROLE_CHEF_PROJET:  ['plan_prevention.examine', 'permit_travail.view', 'permit_travail.pv_valider', 'permit_travail.pv_refuser'],
-  ROLE_HSE:          [
-    'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
-    'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
-    'permit_travail.valider_hse', 'permit_travail.refuser_hse',
-    'permit_travail.generate_pdf', 'permit_travail.cloturer',
-    'permit_travail.suivi', 'permit_travail.logs',
-    'dashboard.kpis.view',
-  ],
-  ROLE_PRESTATAIRE:  [
-    'plan_prevention.resoumettre',
-    'permit_travail.view', 'permit_travail.edit', 'permit_travail.resoumettre', 'permit_travail.cloturer',
-    'intervention.create', 'intervention.view', 'intervention.edit', 'intervention.valider_evaluation',
-    'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
-    'edit_users', 'create_users',
-  ],
-  ROLE_AGENT_TERRAIN: [
-    'permit_travail.view', 'permit_travail.create', 'permit_travail.edit',
-    'intervention.create', 'intervention.view', 'intervention.edit', 'intervention.valider_evaluation',
-    'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
-    'take5_record.create', 'take5_record.view',
-    'controle_journalier.create', 'controle_journalier.view', 'controle_journalier.edit',
-  ],
-  ROLE_ADMIN:        [
-    'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
-    'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
-    'permit_travail.valider_hse', 'permit_travail.refuser_hse',
-    'permit_travail.generate_pdf',
-    'permit_travail.suivi', 'permit_travail.logs',
-    'edit_users', 'create_users',
-    'intervention.view', 'intervention.view_all',
-    'suivi_journalier.view',
-    'dashboard.kpis.view',
-  ],
-  ROLE_SUPER_ADMIN:  [
-    'plan_prevention.examine', 'plan_prevention.valider_hse', 'plan_prevention.refuser_hse',
-    'plan_prevention.generate_pdf', 'plan_prevention.download_pdf',
-    'permit_travail.valider_hse', 'permit_travail.refuser_hse',
-    'permit_travail.generate_pdf', 'permit_travail.cloturer',
-    'permit_travail.pv_valider', 'permit_travail.pv_refuser',
-    'permit_travail.suivi', 'permit_travail.logs',
-    'edit_users', 'create_users',
-    'intervention.view', 'intervention.view_all',
-    'suivi_journalier.create', 'suivi_journalier.view', 'suivi_journalier.edit', 'suivi_journalier.delete_document',
-    'dashboard.kpis.view',
-  ],
-}
-
-function derivePermissionsFromRoles(roles: string[]): string[] {
-  const set = new Set<string>()
-  for (const role of roles) {
-    for (const perm of ROLE_PERMISSIONS[role] ?? []) set.add(perm)
-  }
-  return [...set]
-}
-
 function readTokenPayload(): Record<string, unknown> | null {
   const token = localStorage.getItem('access_token')
   if (!token) return null
@@ -97,8 +40,7 @@ function permissionsFromToken(): string[] {
   const payload = readTokenPayload()
   if (!payload) return []
   const perms = payload.permissions
-  if (Array.isArray(perms) && perms.length > 0) return perms as string[]
-  return derivePermissionsFromRoles(rolesFromToken())
+  return Array.isArray(perms) ? perms.filter((permission): permission is string => typeof permission === 'string') : []
 }
 
 function userFromStorage(): User | null {
@@ -142,5 +84,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, permissions: [], roles: [], isAuthenticated: false })
   },
 }))
-
-export { ROLE_PERMISSIONS, derivePermissionsFromRoles }

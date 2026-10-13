@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
@@ -26,7 +26,11 @@ import { usePermission } from '@/features/auth/usePermission'
 import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
-const TODAY = new Date().toISOString().slice(0, 10)
+import { useToday } from '@/features/terrain/useToday'
+import { PhaseProgressFields } from '@/features/terrain/PhaseProgressFields'
+import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
+import type { SectionPlanifieeItem } from '@/types'
+import type { PhaseAvancement } from '@/types/intervention'
 
 function formatLongDate(dateStr: string, locale: string): string {
   const loc = locale === 'mg' ? 'mg-MG' : 'fr-FR'
@@ -62,9 +66,15 @@ interface SuiviFormProps {
   onCancel: () => void
   isSaving: boolean
   apiError: Error | null
+  sections: SectionPlanifieeItem[]
+  terrainEnabled: boolean
 }
 
-function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, isSaving, apiError }: SuiviFormProps) {
+function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, isSaving, apiError, sections, terrainEnabled }: SuiviFormProps) {
+  const TODAY = useToday()
+  const [phases, setPhases] = useState<PhaseAvancement[]>(editingSuivi?.phasesAvancement ?? [])
+  const [dangers, setDangers] = useState<boolean | null>(editingSuivi?.dangersMaitrises ?? null)
+  const [dangerDetails, setDangerDetails] = useState(editingSuivi?.detailsDangers ?? "")
   const { t, i18n } = useTranslation()
   const currentUser = useAuthStore((s) => s.user)
   const connectedName = currentUser
@@ -111,15 +121,23 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
     form.nomResponsable.trim().length > 0 &&
     (form.realise || form.motifNonRealisation.trim().length > 0) &&
     avancementError === '' &&
+    (!terrainEnabled || (dangers !== null && (dangers || dangerDetails.trim().length > 0))) &&
+    phases.every((phase) => Number.isInteger(phase.avancementPourcentage) && phase.avancementPourcentage >= 0 && phase.avancementPourcentage <= 100) &&
     !isSaving
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
 
+    const terrainFields = terrainEnabled ? {
+      phasesAvancement: phases,
+      dangersMaitrises: dangers,
+      detailsDangers: dangers === false ? dangerDetails.trim() : null,
+    } : {}
     if (isEdit) {
       await onSave(
         {
+          ...terrainFields,
           nomResponsable: form.nomResponsable,
           realise: form.realise,
           motifNonRealisation: form.realise ? null : form.motifNonRealisation,
@@ -130,6 +148,7 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
       )
     } else {
       await onSave({
+        ...terrainFields,
         intervention: interventionIri,
         date: TODAY,
         nomResponsable: form.nomResponsable,
@@ -259,6 +278,16 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
             )}
           </div>
 
+          {terrainEnabled && <>
+            <PhaseProgressFields sections={sections} value={phases} onChange={setPhases} />
+            <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4">
+              <legend className="px-1 text-sm font-semibold">{t('terrain.hazardsQuestion')}</legend>
+              <div className="flex gap-5">{[true, false].map((value) => <label key={String(value)} className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" name="dangersMaitrises" required checked={dangers === value} onChange={() => setDangers(value)} />{t(value ? 'terrain.yes' : 'terrain.no')}</label>)}</div>
+              {dangers === false && <Textarea label={t('terrain.hazardDetails')} required value={dangerDetails} onChange={(e) => setDangerDetails(e.target.value)} rows={3} />}
+            </fieldset>
+          </>}
+          <p className="text-sm text-gray-600">{t('terrain.photosAfterSave')}</p>
+
           <Textarea
             label={t('intervention.pages.suiviJournalier.form.commentaire')}
             value={form.commentaire}
@@ -298,6 +327,8 @@ const STATUT_LABEL_KEYS: Record<string, string> = {
 
 export default function SuiviJournalierPage() {
   const { id } = useParams<{ id: string }>()
+  const TODAY = useToday()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
 
@@ -309,7 +340,8 @@ export default function SuiviJournalierPage() {
   const { data: permit, isLoading: loadingPermit } = usePermitTravailDetail(
     intervention?.permitTravailId ?? '',
   )
-  const { data: suivis = [], isLoading: loadingSuivis } = useInterventionSuivis(id ?? '')
+  const { data: plan } = usePlanPreventionDetail(permit?.planPreventionId ?? '')
+  const { data: suivis = [], isLoading: loadingSuivis, isError: suivisError } = useInterventionSuivis(id ?? '')
   const {
     createSuivi,
     updateSuivi,
@@ -321,12 +353,13 @@ export default function SuiviJournalierPage() {
     updateError,
   } = useSuiviJournalier(id ?? '')
 
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState(searchParams.get('new') === '1')
   const [editingSuivi, setEditingSuivi] = useState<SuiviJournalier | null>(null)
 
   const isLoading = loadingIntervention || loadingPermit || loadingSuivis
 
-  const hasTodaySuivi = suivis.some((s) => s.date === TODAY)
+  const hasTodaySuivi = suivis.some((s) => s.date.slice(0, 10) === TODAY)
+  const formVisible = showForm && (editingSuivi ? canEdit : canCreate && !hasTodaySuivi) && !suivisError
   const interventionIri = intervention ? `/api/interventions/${intervention.id}` : ''
 
   // "Avancement global" = l'avancement du suivi le plus récent, pas une
@@ -406,9 +439,9 @@ export default function SuiviJournalierPage() {
         title={t('intervention.pages.suiviJournalier.title')}
         description={t('intervention.pages.suiviJournalier.description')}
         actions={
-          <Button variant="outline" onClick={() => navigate(`/interventions/${id}`)}>
+          <Button variant="outline" onClick={() => navigate(`/interventions/${id}/carnet`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('intervention.pages.suiviJournalier.backToEvaluation')}
+            {t('terrain.openNotebook')}
           </Button>
         }
       />
@@ -456,7 +489,9 @@ export default function SuiviJournalierPage() {
         </CardContent>
       </Card>
 
-      {canCreate && !hasTodaySuivi && !showForm && (
+      {suivisError && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{t('terrain.followupsUnavailable')}</p>}
+
+      {canCreate && !hasTodaySuivi && !formVisible && !suivisError && (
         <div className="flex justify-end">
           <Button
             onClick={() => {
@@ -470,8 +505,11 @@ export default function SuiviJournalierPage() {
         </div>
       )}
 
-      {showForm && (
+      {formVisible && (
         <SuiviForm
+          key={`${editingSuivi?.id ?? 'new'}-${TODAY}`}
+          sections={plan?.sections ?? plan?.planificationSections ?? []}
+          terrainEnabled={(intervention.suiviTerrainVersion ?? 0) >= 1}
           interventionIri={interventionIri}
           editingSuivi={editingSuivi}
           suivis={suivis}
@@ -488,8 +526,8 @@ export default function SuiviJournalierPage() {
             {t('intervention.pages.suiviJournalier.historyTitle', { count: suivis.length })}
           </CardTitle>
         </CardHeader>
-        <CardContent className={suivis.length === 0 && !showForm ? undefined : 'p-0'}>
-          {suivis.length === 0 && !showForm ? (
+        <CardContent className={suivis.length === 0 && !formVisible ? undefined : 'p-0'}>
+          {suivis.length === 0 && !formVisible ? (
             <div className="py-12 text-center">
               <p className="font-medium text-gray-600">{t('intervention.pages.suiviJournalier.empty.title')}</p>
               <p className="mt-1 text-sm text-gray-500">
@@ -499,7 +537,7 @@ export default function SuiviJournalierPage() {
           ) : (
             <div className="divide-y divide-gray-200">
               {suivis.map((suivi) => {
-                const isToday = suivi.date === TODAY
+                const isToday = suivi.date.slice(0, 10) === TODAY
                 const dateLabel = formatLongDate(suivi.date, i18n.language)
 
                 return (
@@ -544,23 +582,28 @@ export default function SuiviJournalierPage() {
                       </p>
                     )}
 
+                    <div className="mt-2 flex flex-wrap gap-2">{suivi.phasesAvancement?.map((phase) => <span key={phase.phaseId} className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-800">{phase.libelle} · {phase.avancementPourcentage} %</span>)}</div>
+                    {suivi.pendingSync && <p className="mt-2 text-sm text-amber-800">{t('terrain.state.pending')}</p>}
+                    {suivi.dangersMaitrises === false && <p className="mt-2 text-sm text-amber-800">{t('terrain.hazardReported')} : {suivi.detailsDangers}</p>}
                     {suivi.commentaire && (
                       <p className="mt-2 text-sm text-gray-600">{suivi.commentaire}</p>
                     )}
 
-                    {(suivi.documents.length > 0 || (isToday && canEdit)) && (
+                    {((suivi.documents?.length ?? 0) > 0 || (isToday && canEdit)) && (
                       <div className="mt-3">
                         <SuiviDocumentUploadZone
                           suiviId={suivi.id}
-                          documents={suivi.documents}
-                          onUpload={(file, capturedAt) => uploadSuiviDocument(suivi.id, file, capturedAt)}
+                          documents={suivi.documents ?? []}
+                          phases={suivi.phasesAvancement ?? []}
+                          onUpload={(file, capturedAt, phaseId) => uploadSuiviDocument(suivi.id, file, capturedAt, phaseId)}
                           onDelete={(docId) => deleteSuiviDocument(suivi.id, docId)}
-                          disabled={!isToday || !canDeleteDoc}
+                          disabled={!isToday || !canEdit}
+                          canDelete={canDeleteDoc}
                         />
                       </div>
                     )}
 
-                    {isToday && canEdit && !showForm && (
+                    {isToday && canEdit && !formVisible && (
                       <div className="mt-3 flex justify-end">
                         <Button variant="outline" size="sm" onClick={() => openEdit(suivi)}>
                           <Pencil className="mr-1.5 h-3.5 w-3.5" />

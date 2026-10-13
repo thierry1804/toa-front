@@ -218,8 +218,8 @@ export function useSuiviJournalier(interventionId: string) {
   })
 
   const uploadDocumentMutation = useMutation({
-    mutationFn: ({ suiviId, file, capturedAt }: { suiviId: string; file: File; capturedAt?: string }) =>
-      interventionApi.uploadSuiviDocument(suiviId, file, capturedAt),
+    mutationFn: ({ suiviId, file, capturedAt, phaseId }: { suiviId: string; file: File; capturedAt?: string; phaseId?: string }) =>
+      interventionApi.uploadSuiviDocument(suiviId, file, capturedAt, phaseId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: suiviKey })
     },
@@ -244,8 +244,8 @@ export function useSuiviJournalier(interventionId: string) {
     createSuivi: (data: SuiviJournalierInput) => createMutation.mutateAsync(data),
     updateSuivi: (id: string, data: SuiviJournalierUpdateInput) =>
       updateMutation.mutateAsync({ id, data }),
-    uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string) =>
-      uploadDocumentMutation.mutateAsync({ suiviId, file, capturedAt }),
+    uploadSuiviDocument: (suiviId: string, file: File, capturedAt?: string, phaseId?: string) =>
+      uploadDocumentMutation.mutateAsync({ suiviId, file, capturedAt, phaseId }),
     deleteSuiviDocument: (suiviId: string, docId: string) =>
       deleteDocumentMutation.mutateAsync({ suiviId, docId }),
     isCreating: createMutation.isPending,

@@ -12,9 +12,11 @@ import { formatCapturedAt } from '@/utils/capturedAt'
 interface SuiviDocumentUploadZoneProps {
   suiviId: string
   documents: SuiviJournalierDocument[]
-  onUpload: (file: File, capturedAt?: string) => Promise<unknown>
+  onUpload: (file: File, capturedAt?: string, phaseId?: string) => Promise<unknown>
   onDelete: (docId: string) => Promise<unknown>
   disabled?: boolean
+  canDelete?: boolean
+  phases?: { phaseId: string; libelle: string }[]
 }
 
 function SuiviImageThumb({
@@ -71,9 +73,12 @@ export default function SuiviDocumentUploadZone({
   onUpload,
   onDelete,
   disabled = false,
+  canDelete = true,
+  phases = [],
 }: SuiviDocumentUploadZoneProps) {
   const { t } = useTranslation()
   const [uploading, setUploading] = useState(false)
+  const [phaseId, setPhaseId] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingDoc, setViewingDoc] = useState<SuiviJournalierDocument | null>(null)
   const pendingUploads = usePendingUploads(
@@ -84,7 +89,7 @@ export default function SuiviDocumentUploadZone({
     if (disabled) return
     setUploading(true)
     try {
-      await onUpload(file, capturedAt)
+      await onUpload(file, capturedAt, phaseId || undefined)
     } catch (err) {
       if (!isOfflineQueued(err)) throw err
     } finally {
@@ -158,13 +163,14 @@ export default function SuiviDocumentUploadZone({
                 className="flex-1 cursor-pointer truncate text-left text-sm text-gray-700 hover:underline"
               >
                 {doc.nom}
+                {doc.phaseId && <span className="block text-xs text-blue-700">{phases.find((p) => p.phaseId === doc.phaseId)?.libelle ?? t('terrain.phase')}</span>}
                 {formatCapturedAt(doc.capturedAt, doc.uploadedAt) && (
                   <span className="block text-xs text-gray-500">
                     {t('documents.capturedAt', { date: formatCapturedAt(doc.capturedAt, doc.uploadedAt) })}
                   </span>
                 )}
               </button>
-              {!disabled && (
+              {!disabled && canDelete && (
                 <button
                   type="button"
                   onClick={() => void handleDelete(doc.id)}
@@ -186,6 +192,7 @@ export default function SuiviDocumentUploadZone({
 
       {!disabled && (
         <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-6">
+          {phases.length > 0 && <label className="flex w-full flex-wrap items-center gap-2 text-sm">{t('terrain.photoPhase')}<select value={phaseId} onChange={(e) => setPhaseId(e.target.value)} className="min-h-11 max-w-full rounded-lg border border-gray-300 px-3"><option value="">{t('terrain.generalPhoto')}</option>{phases.map((phase) => <option key={phase.phaseId} value={phase.phaseId}>{phase.libelle}</option>)}</select></label>}
           <CaptureButtons
             onCapture={handleCapture}
             uploading={uploading}

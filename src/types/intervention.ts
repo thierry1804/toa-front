@@ -42,6 +42,13 @@ export interface Intervention {
   createdAt: string
   evaluations: EvaluationRisque[]
   suivisJournaliers?: SuiviJournalier[]
+  suiviTerrainVersion?: number
+}
+
+export interface PhaseAvancement {
+  phaseId: string
+  libelle: string
+  avancementPourcentage: number
 }
 
 export interface EvaluationRisqueInput {
@@ -57,6 +64,7 @@ export interface SuiviJournalierDocument {
   nom: string
   uploadedAt: string
   capturedAt?: string | null
+  phaseId?: string | null
 }
 
 export interface SuiviJournalier {
@@ -72,6 +80,9 @@ export interface SuiviJournalier {
   createdAt: string
   documents: SuiviJournalierDocument[]
   pendingSync?: boolean
+  phasesAvancement?: PhaseAvancement[] | null
+  dangersMaitrises?: boolean | null
+  detailsDangers?: string | null
 }
 
 export interface SuiviJournalierInput {
@@ -82,6 +93,9 @@ export interface SuiviJournalierInput {
   motifNonRealisation?: string | null
   avancementPourcentage: number
   commentaire?: string | null
+  phasesAvancement?: PhaseAvancement[]
+  dangersMaitrises?: boolean | null
+  detailsDangers?: string | null
 }
 
 export interface SuiviJournalierUpdateInput {
@@ -90,6 +104,9 @@ export interface SuiviJournalierUpdateInput {
   motifNonRealisation?: string | null
   avancementPourcentage?: number
   commentaire?: string | null
+  phasesAvancement?: PhaseAvancement[]
+  dangersMaitrises?: boolean | null
+  detailsDangers?: string | null
 }
 
 export interface ControleJournalier {

@@ -1,15 +1,16 @@
-import { useAuthStore, derivePermissionsFromRoles } from '@/store/auth.store'
+import { useAuthStore } from '@/store/auth.store'
+import { usePermissions } from '@/features/menus/hooks/usePermissions'
 
 export function usePermission(permission: string): boolean {
-  return useAuthStore((s) => {
-    if (s.permissions.includes(permission)) return true
-    // Fallback: derive from roles (handles old tokens and HMR state issues)
-    return derivePermissionsFromRoles(s.roles).includes(permission)
-  })
+  const actionGranted = useAuthStore((s) => s.permissions.includes(permission))
+  const permitMenu = usePermissions('/permits-travail')
+  // The admin menu matrix is authoritative for permit creation.
+  if (permission === 'permit_travail.create') return permitMenu?.canCreate ?? false
+  return actionGranted
 }
 
 export function useHasPermissions(): boolean {
-  return useAuthStore((s) => s.permissions.length > 0 || s.roles.length > 0)
+  return useAuthStore((s) => s.permissions.length > 0)
 }
 
 export function useRole(): string[] {
