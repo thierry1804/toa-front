@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { isOfflineQueued } from '@/offline/offlineError'
+import {
+  commitOptimisticSuiviCreation,
+  commitOptimisticSuiviUpdate,
+  commitSuiviLocally,
+} from '@/offline/optimisticSuivi'
 import { capturedAtErrorKey } from '@/utils/capturedAt'
 import { interventionApi } from '@/api/interventionApi'
 import {
@@ -11,6 +16,7 @@ import {
   TAKE5_RECORD_KEY,
 } from '@/data/constant/query'
 import { useUiStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
 import type {
   EvaluationRisqueInput,
   Intervention,
@@ -177,11 +183,20 @@ export function useSuiviJournalier(interventionId: string) {
 
   const createMutation = useMutation({
     mutationFn: (data: SuiviJournalierInput) => interventionApi.createSuivi(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: suiviKey })
+    onSuccess: async (created) => {
+      await commitSuiviLocally(queryClient, interventionId, created)
       addToast({ message: 'Suivi journalier enregistré', type: 'success' })
     },
-    onError: (error) => { if (isOfflineQueued(error)) return
+    onError: async (error, data) => {
+      if (isOfflineQueued(error)) {
+        await commitOptimisticSuiviCreation(
+          queryClient,
+          interventionId,
+          data,
+          useAuthStore.getState().user,
+        )
+        return
+      }
       addToast({ message: 'Erreur lors de l\'enregistrement du suivi', type: 'error' })
     },
   })
@@ -189,11 +204,15 @@ export function useSuiviJournalier(interventionId: string) {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: SuiviJournalierUpdateInput }) =>
       interventionApi.updateSuivi(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: suiviKey })
+    onSuccess: async (updated) => {
+      await commitSuiviLocally(queryClient, interventionId, updated)
       addToast({ message: 'Suivi mis à jour', type: 'success' })
     },
-    onError: (error) => { if (isOfflineQueued(error)) return
+    onError: async (error, { id, data }) => {
+      if (isOfflineQueued(error)) {
+        await commitOptimisticSuiviUpdate(queryClient, interventionId, id, data)
+        return
+      }
       addToast({ message: 'Erreur lors de la mise à jour du suivi', type: 'error' })
     },
   })

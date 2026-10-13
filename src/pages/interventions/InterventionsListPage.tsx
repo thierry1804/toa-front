@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQueries } from '@tanstack/react-query';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { useTranslation } from 'react-i18next';
 import { useInterventionStore, type StoredIntervention } from '@/store/interventionStore';
@@ -31,6 +32,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { sortNewestFirst } from '@/lib/listOrder';
+import { SUIVI_JOURNALIER_KEY } from '@/data/constant/query';
 import type { InterventionStatus } from '@/types';
 
 const STATUT_MAP: Record<string, string> = {
@@ -41,7 +43,6 @@ const STATUT_MAP: Record<string, string> = {
 }
 
 type RawIntervention = Intervention & {
-  validationsJournalieres?: unknown[]
   incidents?: unknown[]
 }
 
@@ -59,6 +60,19 @@ function mapIntervention(raw: RawIntervention): StoredIntervention {
     ? `${createdBy.entrepriseName} (${createdBy.firstname ?? ''} ${createdBy.name})`
     : `${createdBy?.firstname ?? ''} ${createdBy?.name ?? ''}`.trim()
 
+  // Le back expose le champ réel sous `suivisJournaliers` (le précédent
+  // `validationsJournalieres` n'existe pas dans la réponse API, calculateAvancement
+  // retombait donc toujours à 0). Trié par date croissante pour que
+  // calculateAvancement (qui prend le dernier élément du tableau) retienne
+  // bien le suivi le plus récent, pas une moyenne.
+  const validationsJournalieres = [...(raw.suivisJournaliers ?? [])]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((s) => ({
+      id: s.id,
+      date: s.date,
+      avancementPourcentage: s.avancementPourcentage,
+    }))
+
   return {
     id: raw.id,
     createdAt: raw.createdAt,
@@ -73,7 +87,7 @@ function mapIntervention(raw: RawIntervention): StoredIntervention {
     creerPar: raw.createdBy?.email ?? '',
     zoneEnclavee: false,
     nombreIntervenants: 0,
-    validationsJournalieres: (raw.validationsJournalieres ?? []) as ValidationInterventionJournaliere[],
+    validationsJournalieres: validationsJournalieres as ValidationInterventionJournaliere[],
     take5Records: [],
     incidents: raw.incidents ?? [],
     documentsProgres: [],
@@ -92,6 +106,30 @@ export default function InterventionsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
 
+  const suiviQueries = useQueries({
+    queries: interventions.map((intervention) => ({
+      queryKey: [...SUIVI_JOURNALIER_KEY, intervention.id],
+      queryFn: () => interventionApi.getSuivis(intervention.id),
+      select: (data: Awaited<ReturnType<typeof interventionApi.getSuivis>>) => {
+        const suivis = [...(data.member ?? [])].sort((a, b) => b.date.localeCompare(a.date));
+        return suivis[0]?.avancementPourcentage ?? 0;
+      },
+    })),
+  });
+  const isLoadingSuivis = suiviQueries.some((query) => query.isLoading);
+  const avancementById = new Map(
+    interventions.map((intervention, index) => [
+      intervention.id,
+      suiviQueries[index]?.data ?? 0,
+    ]),
+  );
+  const displayedInterventions = interventions.map((intervention) => {
+    const avancement = avancementById.get(intervention.id) ?? 0;
+    return intervention.status === 'planifiee' && avancement > 0
+      ? { ...intervention, status: 'en_cours' as const }
+      : intervention;
+  });
+
   useEffect(() => {
     setPage(1);
   }, [statusFilter]);
@@ -109,7 +147,7 @@ export default function InterventionsListPage() {
   }, [setInterventions]);
 
   // Filtrer les interventions (ownership filtré par le backend)
-  const filteredInterventions = interventions.filter((intervention) => {
+  const filteredInterventions = displayedInterventions.filter((intervention) => {
     const matchSearch =
       searchQuery === '' ||
       intervention.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -133,7 +171,7 @@ export default function InterventionsListPage() {
   );
 
   // Extraire les sites uniques pour le filtre
-  const uniqueSites = Array.from(new Set(interventions.map((i) => i.codeSite as string)));
+  const uniqueSites = Array.from(new Set(displayedInterventions.map((i) => i.codeSite as string)));
 
   const getStatusBadge = (status: InterventionStatus) => {
     const statusConfig = {
@@ -209,14 +247,7 @@ export default function InterventionsListPage() {
     zonesEnclavees: filteredInterventions.filter((i) => i.zoneEnclavee).length,
   };
 
-  const calculateAvancement = (intervention: { validationsJournalieres: Array<{ avancementPourcentage?: number }> }) => {
-    if (intervention.validationsJournalieres.length === 0) return 0;
-    const latestValidation =
-      intervention.validationsJournalieres[intervention.validationsJournalieres.length - 1];
-    return latestValidation.avancementPourcentage || 0;
-  };
-
-  if (isLoading) {
+  if (isLoading || isLoadingSuivis) {
     return <ListPageSkeleton />;
   }
 
@@ -252,17 +283,14 @@ export default function InterventionsListPage() {
       <Card>
         <CardContent className={listFiltersContainerClass}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div>
-              <Input
-                placeholder={t('interventions.list.searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full"
-              />
-            </div>
+            <Input
+              placeholder={t('interventions.list.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+            />
             <Select
               options={statusOptions}
               value={statusFilter}
@@ -322,7 +350,7 @@ export default function InterventionsListPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {pagedInterventions.map((intervention) => {
-                      const avancement = calculateAvancement(intervention);
+                      const avancement = avancementById.get(intervention.id) ?? 0;
                       const hasIncidents =
                         intervention.incidents && intervention.incidents.length > 0;
 
@@ -368,9 +396,7 @@ export default function InterventionsListPage() {
                           </td>
                           <td className="px-4 py-4">
                             {getStatusBadge(intervention.status)}
-                            {intervention.status === 'en_cours' && (
-                              <p className="mt-1 text-xs text-gray-500">{avancement}% complété</p>
-                            )}
+                            <p className="mt-1 text-xs text-gray-500">{avancement}% complété</p>
                           </td>
                           <td className="px-4 py-4 text-right">
                             <TableIconButton
@@ -390,9 +416,9 @@ export default function InterventionsListPage() {
               {/* Mobile cards */}
               <div className="lg:hidden space-y-3 p-4">
                 {pagedInterventions.map((intervention) => {
-                  const avancement = calculateAvancement(intervention);
+                  const avancement = avancementById.get(intervention.id) ?? 0;
                   const hasIncidents =
-                    intervention.incidents && intervention.incidents.length > 0;
+                        intervention.incidents && intervention.incidents.length > 0;
 
                   return (
                     <div key={intervention.id} className="border border-gray-200 rounded-lg p-4">
@@ -438,12 +464,10 @@ export default function InterventionsListPage() {
                           <span className="text-gray-400">→</span>
                           <span className="text-gray-900">{formatDate(intervention.dateFin)}</span>
                         </div>
-                        {intervention.status === 'en_cours' && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                            {avancement}% complété
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          {avancement}% complété
+                        </div>
                       </div>
                     </div>
                   );

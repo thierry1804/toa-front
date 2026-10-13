@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Drawer } from '@/components/ui/Drawer'
 import Input from '@/components/ui/Input'
+import { listFilterControlClass } from '@/components/ui/ListTable'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import { usePermitTravailLogs } from '@/features/permitTravail/hooks/usePermitTravail'
 import type { PermitTravail, PermitTravailLog, ActionPermitTravailLog } from '@/types/permitTravail'
@@ -123,6 +124,7 @@ export default function LogsDrawer({ permit, isOpen, onClose }: LogsDrawerProps)
           <Input
             label={t('permitTravail.components.logsDrawer.dateLabel')}
             type="date"
+            className={listFilterControlClass}
             value={date}
             onChange={(e) => { setDate(e.target.value); setVisibleCount(PAGE_SIZE) }}
           />

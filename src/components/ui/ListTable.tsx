@@ -80,8 +80,15 @@ export function ListTableCell({
   )
 }
 
-/** Padding conteneur standard pour barres de filtres */
-export const listFiltersContainerClass = 'px-4 py-2'
+/** Contrôle standard des barres de filtres : hauteur uniforme et surface plate. */
+export const listFilterControlClass = 'h-11 min-h-11 shadow-none'
+
+/** Padding et apparence standard des contrôles dans les barres de filtres. */
+export const listFiltersContainerClass = cn(
+  'px-4 py-2',
+  '[&_input]:h-11 [&_input]:min-h-11 [&_input]:shadow-none',
+  '[&_select]:h-11 [&_select]:min-h-11 [&_select]:shadow-none',
+)
 
 export function ListTableFilters({ children }: { children: ReactNode }) {
   return (

@@ -9,7 +9,7 @@ import type {
 } from '@/types/offlineSnapshot'
 
 export const SNAPSHOT_DB = 'toa-snapshot'
-export const SNAPSHOT_DB_VER = 3
+export const SNAPSHOT_DB_VER = 4
 
 export const SNAPSHOT_META_STORE = 'meta'
 export const SNAPSHOT_MODULE_STORES = [
@@ -50,7 +50,7 @@ let dbPromise: Promise<IDBPDatabase> | null = null
 export function getSnapshotDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
     dbPromise = openDB(SNAPSHOT_DB, SNAPSHOT_DB_VER, {
-      upgrade(db) {
+      upgrade(db, oldVersion, _newVersion, transaction) {
         if (!db.objectStoreNames.contains(SNAPSHOT_META_STORE)) {
           db.createObjectStore(SNAPSHOT_META_STORE)
         }
@@ -58,6 +58,15 @@ export function getSnapshotDb(): Promise<IDBPDatabase> {
           if (!db.objectStoreNames.contains(store)) {
             db.createObjectStore(store, { keyPath: 'id' })
           }
+        }
+        // La version 3 pouvait contenir des plans hors périmètre, car la
+        // collection serveur n'appliquait pas le voter aux agents terrain.
+        // Supprimer le snapshot et ses métadonnées force un nouveau tirage
+        // complet avec le périmètre corrigé, au lieu de conserver ces entrées
+        // lors des synchronisations incrémentales.
+        if (oldVersion > 0 && oldVersion < 4) {
+          transaction.objectStore(SNAPSHOT_META_STORE).clear()
+          transaction.objectStore('plansPrevention').clear()
         }
       },
     })

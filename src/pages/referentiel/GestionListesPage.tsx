@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardSectionHeader } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { listFilterControlClass } from '@/components/ui/ListTable'
 import Modal from '@/components/ui/Modal'
 import { formatDate } from '@/utils/date'
 
@@ -203,7 +204,7 @@ export default function GestionListesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
-                className="pl-9 shadow-none"
+                className={`${listFilterControlClass} pl-9`}
                 placeholder={t('referentiel.shared.searchPlaceholder')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { withSnapshotFallback } from './withSnapshotFallback'
 
 describe('withSnapshotFallback', () => {
@@ -18,6 +18,21 @@ describe('withSnapshotFallback', () => {
       async () => 'cached',
     )
     expect(result).toBe('cached')
+  })
+
+  it.each([401, 403])('never exposes cached data after an HTTP %s refusal', async (status) => {
+    const local = vi.fn(async () => 'cached')
+    const refusal = { response: { status } }
+
+    await expect(
+      withSnapshotFallback(
+        async () => {
+          throw refusal
+        },
+        local,
+      ),
+    ).rejects.toBe(refusal)
+    expect(local).not.toHaveBeenCalled()
   })
 
   it('rethrows when network fails and local is empty', async () => {

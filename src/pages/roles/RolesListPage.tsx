@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { StatStrip } from '@/components/ui/StatStrip'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
+import { listFilterControlClass } from '@/components/ui/ListTable'
 import { Plus, Edit, Trash2, Lock } from 'lucide-react'
 import { formatDate } from '@/utils/date'
 import { sortNewestFirst } from '@/lib/listOrder'
@@ -112,7 +113,7 @@ function RolesListPage() {
             placeholder={t('roles.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="shadow-none"
+            className={listFilterControlClass}
           />
         </CardSectionHeader>
 

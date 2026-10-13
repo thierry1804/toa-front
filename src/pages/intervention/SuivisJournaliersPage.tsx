@@ -9,20 +9,21 @@ import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { StatStrip } from '@/components/ui/StatStrip'
+import { listFilterControlClass } from '@/components/ui/ListTable'
 import { useQuery } from '@tanstack/react-query'
 import { interventionApi } from '@/api/interventionApi'
 import { INTERVENTION_KEY, SUIVI_JOURNALIER_KEY } from '@/data/constant/query'
 import { sortNewestFirst } from '@/lib/listOrder'
 
 function AvancementCell({ interventionId }: { interventionId: string }) {
+  // Dernier avancement enregistré (pas une moyenne des jours, cf. le même
+  // bug déjà corrigé sur l'écran de saisie du suivi journalier).
   const { data } = useQuery({
     queryKey: [...SUIVI_JOURNALIER_KEY, interventionId],
     queryFn: () => interventionApi.getSuivis(interventionId),
     select: (d) => {
-      const items = d.member ?? []
-      if (items.length === 0) return 0
-      const sum = items.reduce((acc, s) => acc + (s.avancementPourcentage ?? 0), 0)
-      return Math.round(sum / items.length)
+      const items = [...(d.member ?? [])].sort((a, b) => b.date.localeCompare(a.date))
+      return items[0]?.avancementPourcentage ?? 0
     },
   })
   return <AvancementBadge pct={data ?? 0} />
@@ -33,11 +34,17 @@ export default function SuivisJournaliersPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
 
+  // Interventions où la saisie du suivi journalier est possible : évaluation
+  // validée (pas encore commencé) ou déjà en cours. Une fois le statut passé
+  // à EN_COURS (premier suivi avec un avancement > 0%), l'intervention doit
+  // rester dans cette liste, pas en disparaître.
   const { data, isLoading } = useQuery({
     queryKey: INTERVENTION_KEY,
     queryFn: () => interventionApi.getAll(),
     select: (d) =>
-      sortNewestFirst((d.member ?? []).filter((i) => i.statut === 'EVALUATION_COMPLETE')),
+      sortNewestFirst(
+        (d.member ?? []).filter((i) => i.statut === 'EVALUATION_COMPLETE' || i.statut === 'EN_COURS'),
+      ),
   })
 
   const filtered = useMemo(() => {
@@ -53,7 +60,7 @@ export default function SuivisJournaliersPage() {
   }, [data, search])
 
   const withSuivi = useMemo(
-    () => filtered.filter((i) => i.statut === 'EVALUATION_COMPLETE').length,
+    () => filtered.filter((i) => i.statut === 'EVALUATION_COMPLETE' || i.statut === 'EN_COURS').length,
     [filtered],
   )
 
@@ -87,7 +94,7 @@ export default function SuivisJournaliersPage() {
             placeholder={t('intervention.pages.suivisJournaliers.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full shadow-none"
+            className={listFilterControlClass}
           />
         </CardHeader>
         <CardContent className={filtered.length === 0 ? undefined : 'p-0'}>

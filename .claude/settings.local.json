@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp_docx_extract)",
+      "Bash(python3 -c \"import docx\")",
+      "Bash(cp \"TOA_Documentation_Technique_Frontend 1.docx\" /tmp_doc.zip)",
+      "Bash(mkdir -p /tmp_doc_extract)",
+      "Bash(unzip -o -q /tmp_doc.zip -d /tmp_doc_extract)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(rtk npm *)",
+      "Bash(rtk curl *)",
+      "Bash(rtk proxy *)",
+      "Bash(git checkout *)",
+      "Skill(impeccable)",
+      "Bash(node *)",
+      "Artifact",
+      "Bash(rtk lint *)",
+      "Bash(rtk npx *)",
+      "Bash(npm test *)",
+      "Bash(git rm *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 /tmp/claude-1000/-media-thr-FCCA9572CA9529C22-TOA-toa-front/e8687963-84fc-4d80-9ea2-2aaefa12a15f/scratchpad/add_keys.py /tmp/claude-1000/-media-thr-FCCA9572CA9529C22-TOA-toa-front/e8687963-84fc-4d80-9ea2-2aaefa12a15f/scratchpad/keys_permit_electrique.py)",
+      "Bash(git diff *)",
+      "Bash(xxd)",
+      "Bash(git check-attr *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object -First 1\")",
+      "Bash(powershell -Command \"Test-NetConnection -ComputerName 172.21.69.129 -Port 8080 -WarningAction SilentlyContinue | Select-Object ComputerName,RemotePort,TcpTestSucceeded\")",
+      "Bash(powershell -Command \"\\(Get-Item 'C:\\\\Users\\\\B88CD~1.RAN\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--TOA-toa-front\\\\1838d965-8adb-44e4-92a1-84ce1124fc91\\\\scratchpad\\\\test-doc.pdf'\\).FullName\")"
+    ]
+  }
+}

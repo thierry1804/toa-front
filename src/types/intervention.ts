@@ -41,6 +41,7 @@ export interface Intervention {
   createdBy: { id: number; email: string; name: string; firstname?: string }
   createdAt: string
   evaluations: EvaluationRisque[]
+  suivisJournaliers?: SuiviJournalier[]
 }
 
 export interface EvaluationRisqueInput {
@@ -70,6 +71,7 @@ export interface SuiviJournalier {
   createdBy: { id: number; name: string; firstname?: string }
   createdAt: string
   documents: SuiviJournalierDocument[]
+  pendingSync?: boolean
 }
 
 export interface SuiviJournalierInput {
