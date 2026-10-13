@@ -315,6 +315,21 @@
     },
     "empty": "Aucune activité trouvée",
     "createAction": "Planifier une activité",
+    "detail": {
+      "title": "Planification",
+      "back": "Retour",
+      "editBtn": "Modifier",
+      "createPreventionBtn": "Créer le plan de prévention",
+      "infoTitle": "Informations",
+      "process": "Procédé",
+      "typeIntervention": "Type d'intervention",
+      "site": "Site",
+      "provider": "Prestataire",
+      "expectedDates": "Dates prévues",
+      "actualDates": "Dates réelles",
+      "permitReference": "Référence permis",
+      "notFound": "Planification introuvable"
+    },
     "deleteConfirm": {
       "title": "Confirmer la suppression",
       "message": "Êtes-vous sûr de vouloir supprimer la planification",

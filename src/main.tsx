@@ -17,6 +17,7 @@ import UsersListPage from "@/pages/users/UsersListPage";
 import UserFormPage from "@/pages/users/UserFormPage";
 import PrestataireEntreprisePage from "@/pages/users/PrestataireEntreprisePage";
 import PlanningListPage from "@/pages/planning/PlanningListPage";
+import PlanningDetailPage from "@/pages/planning/PlanningDetailPage";
 import PlanningFormPage from "@/pages/planning/PlanningFormPage";
 import MenusListPage from "@/pages/menus/MenusListPage";
 import MenuFormPage from "@/pages/menus/MenuFormPage";
@@ -94,6 +95,7 @@ createRoot(document.getElementById("root")!).render(
             <Route element={<RouteGuard menuRoute="/planning" />}>
               <Route path="/planning" element={<PlanningListPage />} />
               <Route path="/planning/new" element={<PlanningFormPage />} />
+              <Route path="/planning/:id" element={<PlanningDetailPage />} />
               <Route path="/planning/:id/edit" element={<PlanningFormPage />} />
             </Route>
 

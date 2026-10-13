@@ -27,6 +27,7 @@ import {
   Calendar,
   Plus,
   Edit,
+  Eye,
   Trash2,
   FileText,
   MapPin,
@@ -288,6 +289,12 @@ export default function PlanningListPage() {
                           </td>
                           <td className="px-4 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              <TableIconButton
+                                title={t("common.view")}
+                                onClick={() => navigate(`/planning/${p.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </TableIconButton>
                               {perms?.canEdit && (
                                 <TableIconButton
                                   title={t("common.edit")}
@@ -340,6 +347,12 @@ export default function PlanningListPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
+                          <TableIconButton
+                            title={t("common.view")}
+                            onClick={() => navigate(`/planning/${p.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </TableIconButton>
                           {perms?.canEdit && (
                             <TableIconButton
                               title={t("common.edit")}

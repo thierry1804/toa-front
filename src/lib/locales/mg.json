@@ -315,6 +315,21 @@
     },
     "empty": "Tsy misy hetsika hita",
     "createAction": "Mandamina hetsika",
+    "detail": {
+      "title": "Fandrindrana",
+      "back": "Miverina",
+      "editBtn": "Hanova",
+      "createPreventionBtn": "Mamorona ny drafitra fisorohana",
+      "infoTitle": "Momba",
+      "process": "Paika",
+      "typeIntervention": "Karazana hetsika",
+      "site": "Toerana",
+      "provider": "Mpiasa",
+      "expectedDates": "Daty kasaina",
+      "actualDates": "Daty marina",
+      "permitReference": "Laharana permis",
+      "notFound": "Tsy hita ny fandrindrana"
+    },
     "deleteConfirm": {
       "title": "Hanamafy ny famafana",
       "message": "Tena ho afa-mamafa ny fandrindrana",
