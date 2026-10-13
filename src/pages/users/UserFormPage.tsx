@@ -145,8 +145,10 @@ export default function UserFormPage() {
   const selectableEntreprises = isPrestataireScoped && scopedEntrepriseIri
     ? entreprises.filter((ent) => ent["@id"] === scopedEntrepriseIri)
     : entreprises;
-  const canHaveEntreprise = (role: string) =>
-    role === "ROLE_PRESTATAIRE" || role === "ROLE_HSE" || role === "ROLE_AGENT_TERRAIN";
+  // R-03 : le bloc Entreprise ne concerne que le rôle Prestataire. Les HSE et
+  // Agent de terrain créés par un prestataire héritent déjà de son entreprise
+  // côté serveur (PrestataireUserScopeProcessor), sans passer par ce bloc.
+  const canHaveEntreprise = (role: string) => role === "ROLE_PRESTATAIRE";
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
