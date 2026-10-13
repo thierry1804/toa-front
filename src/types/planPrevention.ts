@@ -18,6 +18,8 @@ export type TypeDocumentPrevention =
   | 'ATTESTATION_HSE'
   | 'FICHE_CONFORMITE'
   | 'LISTE_VEHICULES'
+  | 'PHOTOS_INSTALLATIONS'
+  | 'PHOTOS_EQUIPEMENTS'
 
 export const TYPES_DOCUMENT_LABELS: Record<TypeDocumentPrevention, string> = {
   PLAN_URGENCE: "Plan d'urgence",
@@ -26,6 +28,8 @@ export const TYPES_DOCUMENT_LABELS: Record<TypeDocumentPrevention, string> = {
   ATTESTATION_HSE: 'Attestation HSE',
   FICHE_CONFORMITE: 'Fiche de conformité',
   LISTE_VEHICULES: 'Liste des véhicules et des chauffeurs',
+  PHOTOS_INSTALLATIONS: 'Photos — installations et matériels utilisés',
+  PHOTOS_EQUIPEMENTS: 'Photos — matériels, équipements et outillages',
 }
 
 export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
@@ -35,6 +39,15 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
   'ATTESTATION_HSE',
   'FICHE_CONFORMITE',
   'LISTE_VEHICULES',
+  'PHOTOS_INSTALLATIONS',
+  'PHOTOS_EQUIPEMENTS',
+]
+
+// R-09 : obligatoires (et non exemptables en N/A, cf. back PlanPreventionDocumentNonApplicableController)
+// uniquement pour le processus "Nouveau site" ; optionnelles et N/A-ables pour les autres processus.
+export const PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE: TypeDocumentPrevention[] = [
+  'PHOTOS_INSTALLATIONS',
+  'PHOTOS_EQUIPEMENTS',
 ]
 
 export interface InstallationRow {

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,6 +13,7 @@ import {
   ShieldX,
   Key,
   Download,
+  ChevronDown,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import Button from "@/components/ui/Button";
@@ -35,10 +36,9 @@ import {
   usePlanPreventionDetail,
   usePlanPrevention,
   usePlanPreventionPdf,
-  useConsulterDocument,
 } from "@/features/planPrevention/hooks/usePlanPrevention";
 import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
-import { useHasRole, usePermission } from "@/features/auth/usePermission";
+import { usePermission } from "@/features/auth/usePermission";
 import { planPreventionApi } from "@/api/planPreventionApi";
 import {
   TYPES_DOCUMENT_LABELS,
@@ -48,9 +48,6 @@ import type { RisqueRow } from "@/types/planPrevention";
 import { planSections } from "@/utils/planSections";
 
 const STATUTS_EXAMINABLES = ["SOUMIS", "EN_COURS_DE_VALIDATION"] as const;
-
-// Roles for which the back records a document consultation (PlanPreventionDocumentConsulterController).
-const CONSULTATION_ROLES = ["ROLE_CHEF_PROJET", "ROLE_HSE", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"] as const;
 
 function SectionCard({
   title,
@@ -104,7 +101,6 @@ export default function PlanPreventionDetailPage() {
   const canExamine = usePermission("plan_prevention.examine");
   const canValiderHse = usePermission("plan_prevention.valider_hse");
   const canRefuserHse = usePermission("plan_prevention.refuser_hse");
-  const hasReviewerRole = useHasRole(...CONSULTATION_ROLES);
   const canCreatePermit = usePermission("permit_travail.create");
 
   const { data: plan, isLoading, isError } = usePlanPreventionDetail(id ?? "");
@@ -126,10 +122,6 @@ export default function PlanPreventionDetailPage() {
   const [validerOpen, setValiderOpen] = useState(false);
   const [refuserOpen, setRefuserOpen] = useState(false);
   const [viewingDoc, setViewingDoc] = useState<{ id: string; label: string } | null>(null);
-  // Une consultation par pièce et par affichage : le visionneur peut se recharger plusieurs fois, et hors-ligne
-  // chaque envoi serait une action de plus en file de synchronisation.
-  const consultationSent = useRef(new Set<string>());
-  const consulter = useConsulterDocument(id ?? "");
 
   if (isLoading) {
     return (
@@ -180,26 +172,11 @@ export default function PlanPreventionDetailPage() {
     );
   }
 
-  const isReviewer =
-    hasReviewerRole && (canExamine || canValiderHse || canRefuserHse);
-  const docsConsulted = !isReviewer || plan.tousDocumentsConsultes !== false;
   const isExaminable =
     canExamine &&
     (STATUTS_EXAMINABLES as readonly string[]).includes(plan.statut);
   const isDecidable = plan.statut === "EXAMINE";
-  const hasPendingReviewAction =
-    isExaminable || (isDecidable && (canValiderHse || canRefuserHse));
 
-  const markConsulted = (docId: string) => {
-    if (!isReviewer || consultationSent.current.has(docId)) return;
-    const doc = plan.documents?.find((d) => d.id === docId);
-    if (!doc || doc.consultedAt) return;
-    consultationSent.current.add(docId);
-    consulter.mutate(docId, { onError: () => consultationSent.current.delete(docId) });
-  };
-
-  // La consultation (R-11) n'est comptée qu'une fois le fichier réellement affiché ou téléchargé : hors-ligne,
-  // une pièce absente du cache ne doit pas être marquée « consultée ».
   const openDocument = (docId: string, label: string) => {
     setViewingDoc({ id: docId, label });
   };
@@ -242,22 +219,13 @@ export default function PlanPreventionDetailPage() {
               {t("planPrevention.detail.back")}
             </Button>
             {isExaminable && (
-              <Button
-                onClick={() => setExaminerOpen(true)}
-                disabled={!docsConsulted}
-                title={!docsConsulted ? t("planPrevention.toast.documentsNonConsultes") : undefined}
-              >
+              <Button onClick={() => setExaminerOpen(true)}>
                 <Eye className="mr-2 h-4 w-4" />
                 {t("planPrevention.detail.examinerBtn")}
               </Button>
             )}
             {isExaminable && (
-              <Button
-                variant="danger"
-                onClick={() => setRefuserOpen(true)}
-                disabled={!docsConsulted}
-                title={!docsConsulted ? t("planPrevention.toast.documentsNonConsultes") : undefined}
-              >
+              <Button variant="danger" onClick={() => setRefuserOpen(true)}>
                 <ShieldX className="mr-2 h-4 w-4" />
                 {t("planPrevention.list.actions.refuser")}
               </Button>
@@ -279,15 +247,6 @@ export default function PlanPreventionDetailPage() {
         }
       />
 
-      {isReviewer && !docsConsulted && hasPendingReviewAction && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-          <p className="text-sm text-amber-800">
-            {t("planPrevention.toast.documentsNonConsultes")}
-          </p>
-        </div>
-      )}
-
       {/* Panneau de décision HSE */}
       {isDecidable && (canValiderHse || canRefuserHse) && (
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
@@ -296,13 +255,13 @@ export default function PlanPreventionDetailPage() {
           </p>
           <div className="flex items-center gap-3">
             {canValiderHse && (
-              <Button onClick={() => setValiderOpen(true)} disabled={!docsConsulted}>
+              <Button onClick={() => setValiderOpen(true)}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 {t("planPrevention.list.actions.valider")}
               </Button>
             )}
             {canRefuserHse && (
-              <Button variant="danger" onClick={() => setRefuserOpen(true)} disabled={!docsConsulted}>
+              <Button variant="danger" onClick={() => setRefuserOpen(true)}>
                 <ShieldX className="mr-2 h-4 w-4" />
                 {t("planPrevention.list.actions.refuser")}
               </Button>
@@ -391,22 +350,57 @@ export default function PlanPreventionDetailPage() {
         </div>
       </SectionCard>
 
-      {/* 2. Analyse des risques */}
-      <SectionCard
-        title={`Analyse des risques (${risqueRows.length})`}
-      >
-        {planSections(plan).length > 0 ? (
-          <AnalyseRisquesPlanning
-            sections={planSections(plan)}
-            rows={risqueRows}
-            onChange={() => undefined}
-            categories={allCategories}
-            disabled
-          />
+      {/* 2. Modes opératoires (risques masqués par défaut, cf. bloc dépliable ci-dessous) */}
+      <SectionCard title="Modes opératoires">
+        {planSections(plan).length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Aucun mode opératoire renseigné.</p>
         ) : (
-          <RisqueMatrice rows={risqueRows} onChange={() => undefined} disabled />
+          <div className="space-y-5">
+            {planSections(plan).map((section) => {
+              const taches = section.taches ?? [];
+              if (taches.length === 0) return null;
+              return (
+                <div key={section.id} className="space-y-2">
+                  <h4 className="text-sm font-semibold text-gray-800">{section.libelle}</h4>
+                  <div className="divide-y divide-gray-100 rounded-lg border border-gray-200">
+                    {taches.map((tache) => (
+                      <div key={tache.id} className="px-4 py-3">
+                        <p className="text-sm font-medium text-gray-900">{tache.tache}</p>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {[tache.materiel, tache.qui].filter(Boolean).join(" · ") || "—"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </SectionCard>
+
+      {/* Risques identifiés — masqués par défaut (R-06), dépliables à la demande */}
+      <details className="group rounded-xl border border-gray-200 bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4">
+          <span className="text-base font-semibold text-gray-800">
+            Risques identifiés ({risqueRows.length})
+          </span>
+          <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="border-t border-gray-100 px-5 py-4">
+          {planSections(plan).length > 0 ? (
+            <AnalyseRisquesPlanning
+              sections={planSections(plan)}
+              rows={risqueRows}
+              onChange={() => undefined}
+              categories={allCategories}
+              disabled
+            />
+          ) : (
+            <RisqueMatrice rows={risqueRows} onChange={() => undefined} disabled />
+          )}
+        </div>
+      </details>
 
       {/* 3. Sites concernés (depuis la planification liée) */}
       {(() => {
@@ -497,7 +491,6 @@ export default function PlanPreventionDetailPage() {
               pending={[]}
               missing
               disabled
-              showConsulted={isReviewer}
               loadBlob={(docId) => planPreventionApi.getDocumentBlob(plan.id, docId)}
               onView={(doc) => openDocument(doc.id, TYPES_DOCUMENT_LABELS[type])}
               onCapture={async () => undefined}
@@ -508,9 +501,7 @@ export default function PlanPreventionDetailPage() {
                     void downloadDocument(
                       doc.id,
                       (plan.documents ?? []).find((d) => d.id === doc.id)?.filePath.split("/").at(-1) ?? "document",
-                    )
-                      .then(() => markConsulted(doc.id))
-                      .catch(() => undefined);
+                    ).catch(() => undefined);
                   }}
                   className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
                 >
@@ -627,9 +618,6 @@ export default function PlanPreventionDetailPage() {
         onClose={() => setViewingDoc(null)}
         title={viewingDoc?.label ?? ""}
         blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(plan.id, viewingDoc.id) : null}
-        onLoaded={() => {
-          if (viewingDoc) markConsulted(viewingDoc.id);
-        }}
       />
     </div>
   );

@@ -28,7 +28,7 @@ export default function ExaminerModal({
           utilisateurs HSE concernés seront notifiés pour validation.
         </>
       }
-      commentPlaceholder="Ajoutez un commentaire sur votre examen..."
+      showComment={false}
       confirmLabel="Confirmer l'examen"
       isSubmitting={isExamining}
       onConfirm={(commentaire) => onExaminer(planId, commentaire || undefined)}

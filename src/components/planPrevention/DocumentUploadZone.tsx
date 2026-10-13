@@ -15,6 +15,8 @@ interface DocumentUploadZoneProps {
   onToggleNotApplicable?: (type: TypeDocumentPrevention, next: boolean) => Promise<void>
   missingTypes?: string[]
   disabled?: boolean
+  // Types pour lesquels le marquage "N/A" n'est pas autorisé (ex. photos obligatoires pour "Nouveau site").
+  nonApplicableDisabledTypes?: TypeDocumentPrevention[]
 }
 
 export default function DocumentUploadZone({
@@ -25,6 +27,7 @@ export default function DocumentUploadZone({
   onToggleNotApplicable,
   missingTypes = [],
   disabled = false,
+  nonApplicableDisabledTypes = [],
 }: DocumentUploadZoneProps) {
   const { t } = useTranslation()
   const pendingUploads = usePendingUploads(
@@ -50,7 +53,9 @@ export default function DocumentUploadZone({
             onCapture={({ file, capturedAt }) => onUpload(type, file, capturedAt)}
             onDelete={onDelete}
             onToggleNotApplicable={
-              onToggleNotApplicable ? (next) => onToggleNotApplicable(type, next) : undefined
+              onToggleNotApplicable && !nonApplicableDisabledTypes.includes(type)
+                ? (next) => onToggleNotApplicable(type, next)
+                : undefined
             }
           />
         )

@@ -35,7 +35,11 @@ import type {
   InstallationRow,
   EquipementRow,
 } from "@/types/planPrevention";
-import { TYPES_DOCUMENT_LABELS, ALL_DOCUMENT_TYPES } from "@/types/planPrevention";
+import {
+  TYPES_DOCUMENT_LABELS,
+  ALL_DOCUMENT_TYPES,
+  PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE,
+} from "@/types/planPrevention";
 import type { SectionPayload, SectionRow, SectionPlanifieeItem } from "@/types";
 import { ownSections } from "@/utils/planSections";
 import { missingApnApiRiskTypes } from "@/utils/apnApiRisk";
@@ -953,6 +957,9 @@ export default function PlanPreventionCreatePage({
               onToggleNotApplicable={handleDocumentNotApplicable}
               missingTypes={missingDocuments}
               disabled={!canEdit}
+              nonApplicableDisabledTypes={
+                isNouveauSite ? PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE : []
+              }
             />
             {isStep2Invalid && (
               <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
@@ -1285,9 +1292,15 @@ export default function PlanPreventionCreatePage({
   const isStep1Invalid =
     step === 1 && (step1PartialRows.length > 0 || apnApiRisqueMissing);
 
-  // Step 2: all 6 document types must be uploaded
+  // Step 2: all document types must be uploaded — les photos installations/équipements (R-09)
+  // ne sont obligatoires que pour le processus "Nouveau site".
   const uploadedDocTypes = new Set(currentDocuments.map((d) => d.type));
-  const missingUploadedDocs = ALL_DOCUMENT_TYPES.filter((t) => !uploadedDocTypes.has(t));
+  const requiredDocTypes = isNouveauSite
+    ? ALL_DOCUMENT_TYPES
+    : ALL_DOCUMENT_TYPES.filter(
+        (t) => !PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE.includes(t),
+      );
+  const missingUploadedDocs = requiredDocTypes.filter((t) => !uploadedDocTypes.has(t));
   const isStep2Invalid = step === 2 && missingUploadedDocs.length > 0;
 
   // ── Loading state for edit mode ───────────────────────────────────────────────
