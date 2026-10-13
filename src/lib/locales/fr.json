@@ -709,6 +709,7 @@
     "super_admin": "Super Admin",
     "admin": "Administrateur",
     "chef_projet": "Chef de projet",
+    "chef_projet_prestataire": "Chef de projet Prestataire",
     "hse": "HSE",
     "prestataire": "Prestataire",
     "agent_terrain": "Agent de terrain",

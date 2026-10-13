@@ -78,14 +78,12 @@ export default function UserFormPage() {
     entrepriseName: scopedEntrepriseName,
   } = usePrestataireEntrepriseScope();
   // GET /api/roles exige ROLE_SUPER_ADMIN : un prestataire scoped reçoit un
-  // 403, allRoles reste vide. Il peut cependant attribuer l'un des rôles de
-  // son équipe terrain (Prestataire, HSE, Agent de terrain) — la liste
-  // complète des rôles de la plateforme n'est pas nécessaire ici, et le
-  // backend (PrestataireUserScopeProcessor) refuse de toute façon tout rôle
-  // hors de cet ensemble.
+  // 403, allRoles reste vide. Il peut cependant attribuer Chef de projet
+  // Prestataire ou Agent de terrain à son équipe, à l'exclusion de tout
+  // autre rôle (arbitrage D1) — le backend (PrestataireUserScopeProcessor)
+  // refuse de toute façon tout rôle hors de cet ensemble.
   const PRESTATAIRE_ASSIGNABLE_ROLES = [
-    { value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") },
-    { value: "ROLE_HSE", label: t("roles.hse") },
+    { value: "ROLE_CHEF_PROJET_PRESTATAIRE", label: t("roles.chef_projet_prestataire") },
     { value: "ROLE_AGENT_TERRAIN", label: t("roles.agent_terrain") },
   ];
   const dynamicRoleOptions = isPrestataireScoped
@@ -235,6 +233,19 @@ export default function UserFormPage() {
     addToast,
     t,
   ]);
+
+  // La valeur initiale du formulaire ("ROLE_PRESTATAIRE") n'est plus un choix
+  // valide pour un prestataire créant un subordonné (arbitrage D1) : bascule
+  // sur le premier rôle réellement assignable, une fois le scope connu.
+  useEffect(() => {
+    if (isEditMode || isPrestataireProfileLoading || !isPrestataireScoped) return;
+    setFormData((prev) =>
+      prev.role === "ROLE_PRESTATAIRE"
+        ? { ...prev, role: PRESTATAIRE_ASSIGNABLE_ROLES[0].value }
+        : prev,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, isPrestataireProfileLoading, isPrestataireScoped]);
 
   useEffect(() => {
     if (!isPrestataireScoped || isPrestataireProfileLoading || isEditMode) return;

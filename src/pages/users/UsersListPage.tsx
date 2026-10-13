@@ -105,9 +105,12 @@ export default function UsersListPage() {
     toa: visibleUsers.filter((u) => !u.roles.includes("ROLE_PRESTATAIRE")).length,
   };
 
+  // HSE reste listé pour filtrer d'éventuels comptes créés avant l'arbitrage
+  // D1, même si un prestataire ne peut plus en attribuer de nouveaux.
   const prestataireRoleOptions = [
     { value: "all", label: t("users.filters.allRoles") },
     { value: "ROLE_PRESTATAIRE", label: t("roles.prestataire") },
+    { value: "ROLE_CHEF_PROJET_PRESTATAIRE", label: t("roles.chef_projet_prestataire") },
     { value: "ROLE_HSE", label: t("roles.hse") },
     { value: "ROLE_AGENT_TERRAIN", label: t("roles.agent_terrain") },
   ];
