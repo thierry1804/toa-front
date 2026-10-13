@@ -48,17 +48,6 @@ export function useUpdateUser() {
   })
 }
 
-export function useDeleteUser() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (id: number) => usersApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USERS_KEY })
-    },
-  })
-}
-
 export function useUploadSignature() {
   const queryClient = useQueryClient()
 
@@ -75,9 +64,8 @@ export function useToggleUserStatus() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, actif }: { id: number; actif: boolean }) => {
-      return usersApi.patch(id, { roles: undefined, ...(actif ? {} : {}) })
-    },
+    mutationFn: ({ id, actif }: { id: number; actif: boolean }) =>
+      usersApi.patch(id, { isActive: actif }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_KEY })
     },

@@ -184,19 +184,24 @@
       "allRoles": "Ny andra rehetra"
     },
     "you": "Ianao",
-    "cannotDeleteSelf": "Tsy afaka mamafa ny kaontinao manokana ianao",
+    "cannotToggleSelf": "Tsy afaka manova ny satanao manokana ianao",
     "status": {
       "active": "Mavitrika",
       "inactive": "Tsy mavitrika"
+    },
+    "action": {
+      "activate": "Alefa",
+      "deactivate": "Ajanony"
     },
     "iso": {
       "title": "Fanamarinana ISO 14001",
       "body": "TowerCo of Africa dia manana fanamarinana ISO 14001 (fitantanana ny tontolo iainana) sy ISO 45001 (fiarovana ara-pahasalamana). Ny fitantanana mpampiasa sy fidirana dia ampahany amin'ny rafitra fitantanana ny loza HSE."
     },
-    "deleteConfirm": {
-      "title": "Hanamafy ny famafana",
-      "message": "Fafao ny mpampiasa",
-      "irreversible": "Ity hetsika ity tsy azo averina."
+    "toggleConfirm": {
+      "title": "Hanamafy ny fampitsaharana",
+      "message": "Ajanony ny mpampiasa",
+      "note": "Tsy ho afa-miditra intsony ilay kaonty. Azonao alefa indray rahatrizay.",
+      "confirm": "Ajanony"
     },
     "form": {
       "editTitle": "Hanova ny mpampiasa",
@@ -259,10 +264,12 @@
     "toast": {
       "created": "Mpampiasa noforonina soa aman-tsara",
       "updated": "Mpampiasa novana soa aman-tsara",
-      "deleted": "Mpampiasa voafafa soa aman-tsara",
+      "activated": "Mpampiasa nalefa",
+      "deactivated": "Mpampiasa najanona",
       "createError": "Hadisoana tamin'ny famoronana",
       "updateError": "Hadisoana tamin'ny fanovana",
-      "deleteError": "Hadisoana tamin'ny famafana",
+      "toggleError": "Hadisoana tamin'ny fanovana ny sata",
+      "lastHseCannotDeactivate": "Tsy azo ajanona ity kaonty ity: izy no HSE farany mavitrika ao amin'ny ekipanao. Alefaso ny iray hafa aloha.",
       "permissionDenied": "Tsy nahazo alalana",
       "signatureUploaded": "Sonia voatahiry soa aman-tsara",
       "signatureError": "Hadisoana tamin'ny fitahirizana ny sonia"

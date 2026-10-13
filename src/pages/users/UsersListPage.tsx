@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSearchParamState } from "@/hooks/useSearchParamState";
 import { useAuthStore } from "@/store/auth.store";
-import { useUsers, useDeleteUser } from "@/features/users/hooks/useUsers";
+import { useUsers, useToggleUserStatus } from "@/features/users/hooks/useUsers";
 import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
 import { useUiStore } from "@/store/ui.store";
 import { usePermissions } from "@/features/menus/hooks/usePermissions";
@@ -22,7 +22,6 @@ import {
   Users,
   Plus,
   Edit,
-  Trash2,
   UserCheck,
   UserX,
   Shield,
@@ -41,7 +40,7 @@ export default function UsersListPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuthStore();
   const addToast = useUiStore((s) => s.addToast);
-  const { mutate: deleteUser } = useDeleteUser();
+  const { mutate: toggleUserStatus } = useToggleUserStatus();
   const perms = usePermissions("/users");
   const {
     isScoped: isPrestataireScoped,
@@ -59,7 +58,7 @@ export default function UsersListPage() {
   useEffect(() => {
     setPage(1);
   }, [statusFilter]);
-  const [deleteTarget, setDeleteTarget] = useState<{
+  const [deactivateTarget, setDeactivateTarget] = useState<{
     id: number;
     name: string;
   } | null>(null);
@@ -113,26 +112,50 @@ export default function UsersListPage() {
     { value: "ROLE_AGENT_TERRAIN", label: t("roles.agent_terrain") },
   ];
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    const targetUser = visibleUsers.find((u) => u.id === deleteTarget.id);
+  const runToggleStatus = (id: number, nextActive: boolean) => {
+    toggleUserStatus(
+      { id, actif: nextActive },
+      {
+        onSuccess: () => {
+          addToast({
+            message: t(nextActive ? "users.toast.activated" : "users.toast.deactivated"),
+            type: "success",
+          });
+          setDeactivateTarget(null);
+        },
+        onError: (error: unknown) => {
+          const detail =
+            (error as { response?: { data?: { detail?: string } } })?.response
+              ?.data?.detail ?? "";
+          if (detail.includes("user.last_hse_cannot_deactivate")) {
+            addToast({ message: t("users.toast.lastHseCannotDeactivate"), type: "error" });
+          } else {
+            addToast({ message: t("users.toast.toggleError"), type: "error" });
+          }
+          setDeactivateTarget(null);
+        },
+      },
+    );
+  };
+
+  const handleToggleStatus = (user: { id: number; isActive: boolean }) => {
+    const targetUser = visibleUsers.find((u) => u.id === user.id);
     if (!targetUser || !matchesEntreprise(targetUser)) {
       addToast({ message: t("users.toast.permissionDenied"), type: "error" });
-      setDeleteTarget(null);
       return;
     }
-    deleteUser(deleteTarget.id, {
-      onSuccess: () => {
-        addToast({
-          message: t("users.toast.deleted"),
-          type: "success",
-        });
-        setDeleteTarget(null);
-      },
-      onError: () => {
-        addToast({ message: t("users.toast.deleteError"), type: "error" });
-      },
-    });
+    if (user.isActive) {
+      // Deactivating locks someone out: confirm first.
+      setDeactivateTarget({ id: user.id, name: formatUserDisplayName(targetUser) });
+      return;
+    }
+    // Reactivating is harmless and instant.
+    runToggleStatus(user.id, true);
+  };
+
+  const confirmDeactivate = () => {
+    if (!deactivateTarget) return;
+    runToggleStatus(deactivateTarget.id, false);
   };
 
   const renderRoleBadge = (role: string) => {
@@ -368,23 +391,22 @@ export default function UsersListPage() {
                                 <Edit className="h-4 w-4" />
                               </TableIconButton>
                             )}
-                            {perms?.canDelete && (
+                            {perms?.canEdit && (
                               <TableIconButton
                                 title={
                                   String(user.id) === currentUser?.id
-                                    ? t("users.cannotDeleteSelf")
-                                    : t("common.delete")
+                                    ? t("users.cannotToggleSelf")
+                                    : t(user.isActive ? "users.action.deactivate" : "users.action.activate")
                                 }
-                                variant="danger"
+                                variant={user.isActive ? "danger" : "success"}
                                 disabled={String(user.id) === currentUser?.id}
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    id: user.id,
-                                    name: formatUserDisplayName(user),
-                                  })
-                                }
+                                onClick={() => handleToggleStatus(user)}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                {user.isActive ? (
+                                  <UserX className="h-4 w-4" />
+                                ) : (
+                                  <UserCheck className="h-4 w-4" />
+                                )}
                               </TableIconButton>
                             )}
                           </div>
@@ -435,19 +457,22 @@ export default function UsersListPage() {
                                 <Edit className="h-4 w-4" />
                               </TableIconButton>
                             )}
-                            {perms?.canDelete && (
+                            {perms?.canEdit && (
                               <TableIconButton
-                                title={t("common.delete")}
-                                variant="danger"
-                                disabled={String(user.id) === currentUser?.id}
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    id: user.id,
-                                    name: formatUserDisplayName(user),
-                                  })
+                                title={
+                                  String(user.id) === currentUser?.id
+                                    ? t("users.cannotToggleSelf")
+                                    : t(user.isActive ? "users.action.deactivate" : "users.action.activate")
                                 }
+                                variant={user.isActive ? "danger" : "success"}
+                                disabled={String(user.id) === currentUser?.id}
+                                onClick={() => handleToggleStatus(user)}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                {user.isActive ? (
+                                  <UserX className="h-4 w-4" />
+                                ) : (
+                                  <UserCheck className="h-4 w-4" />
+                                )}
                               </TableIconButton>
                             )}
                           </div>
@@ -514,22 +539,22 @@ export default function UsersListPage() {
       </div>
 
       <Modal
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        title={t("users.deleteConfirm.title")}
+        isOpen={!!deactivateTarget}
+        onClose={() => setDeactivateTarget(null)}
+        title={t("users.toggleConfirm.title")}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            {t("users.deleteConfirm.message")}{" "}
-            <strong>{deleteTarget?.name}</strong>.{" "}
-            {t("users.deleteConfirm.irreversible")}
+            {t("users.toggleConfirm.message")}{" "}
+            <strong>{deactivateTarget?.name}</strong>.{" "}
+            {t("users.toggleConfirm.note")}
           </p>
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
+            <Button variant="secondary" onClick={() => setDeactivateTarget(null)}>
               {t("common.cancel")}
             </Button>
-            <Button variant="danger" onClick={handleDelete}>
-              {t("common.delete")}
+            <Button variant="danger" onClick={confirmDeactivate}>
+              {t("users.toggleConfirm.confirm")}
             </Button>
           </div>
         </div>

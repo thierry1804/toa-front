@@ -184,19 +184,24 @@
       "allRoles": "Tous les rôles"
     },
     "you": "Vous",
-    "cannotDeleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+    "cannotToggleSelf": "Vous ne pouvez pas modifier votre propre statut",
     "status": {
       "active": "Actif",
       "inactive": "Inactif"
+    },
+    "action": {
+      "activate": "Activer",
+      "deactivate": "Désactiver"
     },
     "iso": {
       "title": "Certification ISO 14001",
       "body": "TowerCo of Africa est certifiée ISO 14001 (management environnemental) et ISO 45001 (santé et sécurité au travail). La gestion des utilisateurs et des accès fait partie du système de maîtrise des risques HSE."
     },
-    "deleteConfirm": {
-      "title": "Confirmer la suppression",
-      "message": "Supprimer l'utilisateur",
-      "irreversible": "Cette action est irréversible."
+    "toggleConfirm": {
+      "title": "Confirmer la désactivation",
+      "message": "Désactiver l'utilisateur",
+      "note": "Le compte ne pourra plus se connecter. Vous pourrez le réactiver à tout moment.",
+      "confirm": "Désactiver"
     },
     "form": {
       "editTitle": "Modifier l'utilisateur",
@@ -259,10 +264,12 @@
     "toast": {
       "created": "Utilisateur créé avec succès",
       "updated": "Utilisateur modifié avec succès",
-      "deleted": "Utilisateur supprimé avec succès",
+      "activated": "Utilisateur activé",
+      "deactivated": "Utilisateur désactivé",
       "createError": "Erreur lors de la création",
       "updateError": "Erreur lors de la modification",
-      "deleteError": "Erreur lors de la suppression",
+      "toggleError": "Erreur lors du changement de statut",
+      "lastHseCannotDeactivate": "Impossible de désactiver ce compte : c'est le dernier HSE actif de votre équipe. Activez-en un autre d'abord.",
       "permissionDenied": "Permission refusée",
       "signatureUploaded": "Signature enregistrée avec succès",
       "signatureError": "Erreur lors de l'enregistrement de la signature"
