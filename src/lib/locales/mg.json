@@ -2156,6 +2156,8 @@
           "motifPlaceholder": "Ohatra : toetr'andro, tsy tonga ny mpiasa…",
           "avancement": "Fandrosoana",
           "avancementError": "Ny sanda dia eo anelanelan'ny 0 sy 100",
+          "avancementMinError": "Tsy azo ambany noho ny fandrosoana efa voarakitra ({{min}}%)",
+          "avancementMinHint": "Tsy azo ambany noho ny {{min}}% (fandrosoana efa voarakitra).",
           "commentaire": "Commentaire",
           "commentairePlaceholder": "Fanamarihana, remarques…",
           "cancel": "Aoka",

@@ -10,6 +10,7 @@ import {
   Loader2,
   AlertTriangle,
 } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -56,14 +57,25 @@ const EMPTY_FORM: FormState = {
 interface SuiviFormProps {
   interventionIri: string
   editingSuivi: SuiviJournalier | null
+  suivis: SuiviJournalier[]
   onSave: (data: SuiviJournalierInput | SuiviJournalierUpdateInput, editingId?: string) => Promise<void>
   onCancel: () => void
   isSaving: boolean
   apiError: Error | null
 }
 
-function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, apiError }: SuiviFormProps) {
+function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, isSaving, apiError }: SuiviFormProps) {
   const { t, i18n } = useTranslation()
+  const currentUser = useAuthStore((s) => s.user)
+  const connectedName = currentUser
+    ? [currentUser.prenom, currentUser.nom].filter(Boolean).join(' ')
+    : ''
+  // L'avancement ne doit jamais régresser : plancher = l'avancement global
+  // actuel (le suivi le plus récent, hors celui en cours d'édition). `suivis`
+  // arrive déjà trié par date décroissante depuis useInterventionSuivis.
+  const priorSuivis = suivis.filter((s) => s.id !== editingSuivi?.id)
+  const minAvancement = priorSuivis[0]?.avancementPourcentage ?? 0
+
   const [form, setForm] = useState<FormState>(
     editingSuivi
       ? {
@@ -73,7 +85,7 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
           avancementPourcentage: editingSuivi.avancementPourcentage,
           commentaire: editingSuivi.commentaire ?? '',
         }
-      : EMPTY_FORM,
+      : { ...EMPTY_FORM, nomResponsable: connectedName, avancementPourcentage: minAvancement },
   )
   const [avancementError, setAvancementError] = useState('')
 
@@ -87,6 +99,8 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
     const n = parseInt(val, 10)
     if (isNaN(n) || n < 0 || n > 100) {
       setAvancementError(t('intervention.pages.suiviJournalier.form.avancementError'))
+    } else if (n < minAvancement) {
+      setAvancementError(t('intervention.pages.suiviJournalier.form.avancementMinError', { min: minAvancement }))
     } else {
       setAvancementError('')
     }
@@ -163,8 +177,8 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
             required
             type="text"
             value={form.nomResponsable}
-            onChange={(e) => set({ nomResponsable: e.target.value })}
-            placeholder={t('intervention.pages.suiviJournalier.form.responsablePlaceholder')}
+            disabled
+            readOnly
             maxLength={150}
           />
 
@@ -220,7 +234,7 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
               <div className="w-24">
                 <Input
                   type="number"
-                  min={0}
+                  min={minAvancement}
                   max={100}
                   value={form.avancementPourcentage}
                   onChange={(e) => handleAvancement(e.target.value)}
@@ -230,7 +244,7 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
               <span className="text-sm text-gray-500">%</span>
               <input
                 type="range"
-                min={0}
+                min={minAvancement}
                 max={100}
                 value={form.avancementPourcentage}
                 onChange={(e) => handleAvancement(e.target.value)}
@@ -238,6 +252,11 @@ function SuiviForm({ interventionIri, editingSuivi, onSave, onCancel, isSaving, 
               />
               <AvancementBadge pct={form.avancementPourcentage} />
             </div>
+            {minAvancement > 0 && !avancementError && (
+              <p className="mt-1 text-xs text-gray-400">
+                {t('intervention.pages.suiviJournalier.form.avancementMinHint', { min: minAvancement })}
+              </p>
+            )}
           </div>
 
           <Textarea
@@ -310,10 +329,11 @@ export default function SuiviJournalierPage() {
   const hasTodaySuivi = suivis.some((s) => s.date === TODAY)
   const interventionIri = intervention ? `/api/interventions/${intervention.id}` : ''
 
-  const avgAvancement =
-    suivis.length > 0
-      ? Math.round(suivis.reduce((acc, s) => acc + s.avancementPourcentage, 0) / suivis.length)
-      : 0
+  // "Avancement global" = l'avancement du suivi le plus récent, pas une
+  // moyenne des jours (une moyenne diluait la progression réelle : 2% puis
+  // 21% affichait 12%, trompeur). `suivis` est trié par date décroissante
+  // par useInterventionSuivis, donc le premier élément est le plus récent.
+  const globalAvancement = suivis[0]?.avancementPourcentage ?? 0
 
   const handleSave = async (
     data: SuiviJournalierInput | SuiviJournalierUpdateInput,
@@ -423,11 +443,11 @@ export default function SuiviJournalierPage() {
                 {t('intervention.pages.suiviJournalier.summary.globalProgress')}
               </dt>
               <dd className="mt-1 space-y-1">
-                <AvancementBadge pct={avgAvancement} />
+                <AvancementBadge pct={globalAvancement} />
                 <div className="h-1.5 w-full rounded-full bg-gray-200">
                   <div
                     className="h-1.5 rounded-full bg-blue-600 transition-all"
-                    style={{ width: `${avgAvancement}%` }}
+                    style={{ width: `${globalAvancement}%` }}
                   />
                 </div>
               </dd>
@@ -454,6 +474,7 @@ export default function SuiviJournalierPage() {
         <SuiviForm
           interventionIri={interventionIri}
           editingSuivi={editingSuivi}
+          suivis={suivis}
           onSave={handleSave}
           onCancel={closeForm}
           isSaving={isCreating || isUpdating}
