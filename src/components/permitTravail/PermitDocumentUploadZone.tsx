@@ -72,7 +72,7 @@ export default function PermitDocumentUploadZone({
                       }
                       title={t('permitTravail.components.documentUploadZone.downloadButton')}
                       aria-label={t('permitTravail.components.documentUploadZone.downloadButton')}
-                      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                      className="flex items-center justify-center text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
                     >
                       <Download className="h-[18px] w-[18px]" aria-hidden />
                     </button>

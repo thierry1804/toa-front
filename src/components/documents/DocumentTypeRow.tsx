@@ -180,38 +180,40 @@ export default function DocumentTypeRow({
               const when = formatCaptureParts(doc.capturedAt, doc.uploadedAt, locale)
               return (
                 <li key={doc.id}>
-                  {/* Toute la ligne ouvre le document (pas de bouton « Voir ») ; Télécharger et Supprimer
-                      gardent leur propre zone et n'ouvrent pas le document. */}
-                  <PressableCard
-                    onOpen={() => onView(doc)}
-                    label={`${t('documents.view')} — ${label}`}
-                    chevron={false}
-                    className="-mx-2 items-center rounded-lg border-0 bg-transparent p-2 hover:bg-gray-50"
-                  >
-                    {/* Trois zones : vignette | métadonnées | actions d'icônes à l'extrême droite. La ligne entière ouvre
-                        le document ; les icônes (télécharger, supprimer) ont leur propre cible de 44 px. */}
-                    <div className="flex items-center gap-3.5">
-                      <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-16 w-16 sm:h-[72px] sm:w-[72px]" openHint />
-                      <div className="min-w-0 flex-1">
-                        {when && (
-                          <>
-                            <p className="text-[15px] font-medium leading-tight text-gray-900">
-                              <span className="sm:hidden">{when.dayShort}</span>
-                              <span className="hidden sm:inline">{when.day}</span>
+                  {/* Carte à deux zones : à gauche la vignette et la date (toute cette zone ouvre le document), à droite
+                      un rail d'actions séparé par un filet — Télécharger, et Supprimer en édition — en icônes sans contour. */}
+                  <div className="flex items-stretch overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    <PressableCard
+                      onOpen={() => onView(doc)}
+                      label={`${t('documents.view')} — ${label}`}
+                      chevron={false}
+                      className="min-w-0 flex-1 items-center rounded-none border-0 py-3 pl-3 pr-2"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-16 w-16" openHint />
+                        <div className="min-w-0 flex-1">
+                          {when && (
+                            <>
+                              <p className="text-[15px] font-medium leading-tight text-gray-900">
+                                <span className="sm:hidden">{when.dayShort}</span>
+                                <span className="hidden sm:inline">{when.day}</span>
+                              </p>
+                              <p className="mt-0.5 text-sm text-gray-500">
+                                {t(when.captured ? 'documents.capturedAtTime' : 'documents.uploadedAtTime', { time: when.time })}
+                              </p>
+                            </>
+                          )}
+                          {showConsulted && (
+                            <p className={`text-xs ${doc.consultedAt ? 'text-green-600' : 'text-amber-600'}`}>
+                              {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
                             </p>
-                            <p className="mt-0.5 text-sm text-gray-500">
-                              {t(when.captured ? 'documents.capturedAtTime' : 'documents.uploadedAtTime', { time: when.time })}
-                            </p>
-                          </>
-                        )}
-                        {showConsulted && (
-                          <p className={`text-xs ${doc.consultedAt ? 'text-green-600' : 'text-amber-600'}`}>
-                            {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
-                          </p>
-                        )}
+                          )}
+                        </div>
                       </div>
-                      <div className="-mr-2 flex flex-shrink-0 items-center">
-                        {renderExtra?.(doc)}
+                    </PressableCard>
+                    {(renderExtra || (!disabled && onDelete)) && (
+                      <div className="flex w-12 flex-shrink-0 flex-col divide-y divide-gray-200 border-l border-gray-200 bg-gray-50">
+                        {renderExtra && <div className="flex min-h-11 flex-1 [&>*]:flex-1">{renderExtra(doc)}</div>}
                         {!disabled && onDelete && (
                           <button
                             type="button"
@@ -219,14 +221,14 @@ export default function DocumentTypeRow({
                             disabled={busyId === doc.id}
                             title={t('documents.delete')}
                             aria-label={t('documents.delete')}
-                            className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                            className="flex min-h-11 flex-1 items-center justify-center text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                           >
                             {busyId === doc.id ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Trash2 className="h-[18px] w-[18px]" />}
                           </button>
                         )}
                       </div>
-                    </div>
-                  </PressableCard>
+                    )}
+                  </div>
                 </li>
               )
             })}
