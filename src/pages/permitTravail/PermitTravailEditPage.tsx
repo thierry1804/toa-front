@@ -95,7 +95,7 @@ export default function PermitTravailEditPage() {
 
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
   const { data: versions = [] } = usePermitTravailVersions(id ?? '')
-  const { updatePermit, uploadDocument, deleteDocument, setDocumentNonApplicable, resoumettrePermit, isResoumitting } = usePermitTravail()
+  const { updatePermit, uploadDocument, deleteDocument, setDocumentNonApplicable, resoumettrePermit, soumettrePermit, isSubmitting, isResoumitting } = usePermitTravail()
   const { data: requis } = usePermitDocumentsRequis(id ?? '')
 
   const [step, setStep] = useState(0)
@@ -195,6 +195,32 @@ export default function PermitTravailEditPage() {
     })
     setStep(3)
   })
+
+  // R-24 : un renouvellement est créé en brouillon ; sa première soumission passe par ici.
+  const handleSoumettreBrouillon = async () => {
+    if (!permit) return
+    setInlineError(null)
+    try {
+      const dangers = evaluations.filter((e) => e.dangers || e.moyensMaitrise || e.evaluationPreliminaire || e.evaluationFinale)
+      await updatePermit(permit.id, { engagementAccepte: true, dangers: dangers.length > 0 ? dangers : null })
+      await soumettrePermit(permit.id)
+      navigate('/permits-travail')
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      if (detail.includes('documents_manquants')) {
+        const raw = detail.replace('documents_manquants:', '').trim()
+        setMissingDocTypes(raw.split(',').map((s: string) => s.trim()) as TypeDocumentPermitTravail[])
+        setStep(3)
+      } else if (detail.includes('evaluation_sans_reduction')) {
+        setInlineError("L'évaluation finale doit réduire le niveau de risque par rapport à l'évaluation préliminaire.")
+      } else if (detail.includes('general_requis')) {
+        setInlineError("Le permis Général doit avoir été créé pour ce site.")
+      } else {
+        setInlineError("La soumission du permis a échoué.")
+      }
+    }
+  }
 
   const handleResoumettre = async () => {
     if (!permit) return
@@ -412,7 +438,16 @@ export default function PermitTravailEditPage() {
           Précédent
         </Button>
 
-        {isLastStep ? (
+        {isLastStep && permit.statut === 'BROUILLON' ? (
+          <Button
+            onClick={() => void handleSoumettreBrouillon()}
+            disabled={isSubmitting || !engagementChecked}
+            loading={isSubmitting}
+            size="lg"
+          >
+            Soumettre le permis
+          </Button>
+        ) : isLastStep ? (
           canResoumettre && (
             <Button
               onClick={() => void handleResoumettre()}

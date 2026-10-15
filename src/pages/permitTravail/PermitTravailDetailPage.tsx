@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil, RefreshCw } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { permitTravailApi } from '@/api/permitTravailApi'
+import { useUiStore } from '@/store/ui.store'
 import Button from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
@@ -51,6 +53,9 @@ export default function PermitTravailDetailPage() {
   const canRefuser = usePermission('permit_travail.refuser_hse')
   const canResoumettre = usePermission('permit_travail.resoumettre')
   const canCloturer = usePermission('permit_travail.cloturer')
+  const canCreatePermit = usePermission('permit_travail.create')
+  const addToast = useUiStore((s) => s.addToast)
+  const [isRenewing, setIsRenewing] = useState(false)
   const canValiderPv = usePermission('permit_travail.pv_valider')
   const canRefuserPv = usePermission('permit_travail.pv_refuser')
   const canStartIntervention = usePermission('intervention.create')
@@ -112,6 +117,31 @@ export default function PermitTravailDetailPage() {
     await setDocumentNonApplicable(permit.id, type, next)
   }
 
+  // R-24 : renouvellement d'un permis Hauteur/Électrique encore valide (nouveau permis lié à l'origine).
+  const canRenouveler =
+    canCreatePermit &&
+    ['HAUTEUR', 'ELECTRIQUE'].includes(permit.typePermis) &&
+    ['VALIDE_HSE', 'EN_COURS', 'VALIDE'].includes(permit.statut)
+
+  const handleRenouveler = async () => {
+    setIsRenewing(true)
+    try {
+      const created = await permitTravailApi.renouveler(permit.id)
+      addToast({ message: `Renouvellement ${created.reference} créé : complétez les documents puis soumettez-le.`, type: 'success' })
+      navigate(`/permits-travail/${created.id}/edit`)
+    } catch (error) {
+      const detail = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      addToast({
+        message: detail.includes('renouvellement_en_cours')
+          ? 'Un renouvellement est déjà en cours pour ce permis.'
+          : 'Impossible de créer le renouvellement.',
+        type: 'error',
+      })
+    } finally {
+      setIsRenewing(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -128,6 +158,12 @@ export default function PermitTravailDetailPage() {
         description={`${TYPE_PERMIT_LABELS[permit.typePermis]} — ${PROCESSUS_LABELS[permit.processus]}`}
         actions={
           <div className="flex items-center gap-2">
+            {canRenouveler && (
+              <Button variant="primary" onClick={handleRenouveler} loading={isRenewing}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Renouveler le permis
+              </Button>
+            )}
             {canCorrigerEtResoumettre && (
               <Button
                 variant="primary"
@@ -156,6 +192,16 @@ export default function PermitTravailDetailPage() {
         <CardContent>
           <dl className="space-y-3">
             <InfoRow label="Référence" value={<span className="font-mono font-semibold text-blue-700">{permit.reference}</span>} />
+            {permit.permisOrigineId && (
+              <InfoRow
+                label="Renouvellement de"
+                value={
+                  <Link to={`/permits-travail/${permit.permisOrigineId}`} className="text-blue-700 hover:underline">
+                    Permis d'origine (renouvellement R{permit.numeroRenouvellement ?? ''})
+                  </Link>
+                }
+              />
+            )}
             <InfoRow label="Type de permis" value={TYPE_PERMIT_LABELS[permit.typePermis]} />
             <InfoRow label="Processus" value={PROCESSUS_LABELS[permit.processus]} />
             <InfoRow label="Code site" value={permit.codeSite} />

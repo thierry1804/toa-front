@@ -63,6 +63,10 @@ export const permitTravailApi = {
   delete: (id: string): Promise<void> =>
     api.delete(`/api/permits-travail/${id}`).then(() => undefined),
 
+  /** R-24 : crée le renouvellement (brouillon lié à l'origine, référence suffixée R1, R2…). */
+  renouveler: (id: string) =>
+    api.post<{ id: string; reference: string }>(`/api/permits-travail/${id}/renouveler`).then((r) => r.data),
+
   uploadDocument: (id: string, type: string, file: File, capturedAt?: string) => {
     const formData = new FormData()
     formData.append('file', file)

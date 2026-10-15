@@ -382,6 +382,9 @@ export interface PermitTravail {
   documents: DocumentPermitTravail[]
   decisionsHse?: DecisionHsePermitTravail[]
   groupeId?: string | null
+  /** R-24 : permis renouvelé (si ce permis est un renouvellement) et rang du renouvellement (R1 → 1). */
+  permisOrigineId?: string | null
+  numeroRenouvellement?: number | null
   permitsGroupe?: {
     id: string
     reference: string
