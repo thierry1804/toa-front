@@ -169,7 +169,62 @@ async function prefetchDocumentsForSnapshot(
   })
 }
 
-export async function pullOfflineSnapshot(
+/**
+ * Le serveur n'accepte qu'un tirage de snapshot par fenêtre de 5 minutes. Au démarrage, le tirage automatique et la
+ * reprise de réseau s'enchaînent presque simultanément : sans garde, le second recevait un 429 (bruit en console).
+ * Les tirages silencieux sont donc dédoublonnés (même requête en vol) et espacés d'une fenêtre serveur.
+ */
+const SERVER_WINDOW_MS = 5 * 60 * 1000
+const LAST_SILENT_PULL_KEY = 'toa:snapshot:lastSilentPull'
+let silentInFlight: Promise<PullSnapshotResult> | null = null
+
+function lastSilentPullAt(): number {
+  try {
+    return Number(localStorage.getItem(LAST_SILENT_PULL_KEY)) || 0
+  } catch {
+    return 0
+  }
+}
+
+function markSilentPull(): void {
+  try {
+    localStorage.setItem(LAST_SILENT_PULL_KEY, String(Date.now()))
+  } catch {
+    /* stockage indisponible : on retombe sur la seule déduplication en mémoire */
+  }
+}
+
+export function resetSilentPullGuard(): void {
+  silentInFlight = null
+  try {
+    localStorage.removeItem(LAST_SILENT_PULL_KEY)
+  } catch {
+    /* idem */
+  }
+}
+
+export function pullOfflineSnapshot(
+  queryClient: QueryClient,
+  opts?: {
+    since?: string
+    modules?: OfflineSnapshotModule[]
+    silent?: boolean
+    onProgress?: (p: PullProgress) => void
+  },
+): Promise<PullSnapshotResult> {
+  if (!opts?.silent) return performPull(queryClient, opts)
+  if (silentInFlight) return silentInFlight
+  if (Date.now() - lastSilentPullAt() < SERVER_WINDOW_MS) {
+    return Promise.resolve({ ok: false, code: 'rateLimited' } as PullSnapshotResult)
+  }
+  markSilentPull()
+  silentInFlight = performPull(queryClient, opts).finally(() => {
+    silentInFlight = null
+  })
+  return silentInFlight
+}
+
+async function performPull(
   queryClient: QueryClient,
   opts?: {
     since?: string

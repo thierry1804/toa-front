@@ -62,7 +62,7 @@ vi.mock('@/lib/axios', () => ({
   default: { get: vi.fn() },
 }))
 
-import { pullOfflineSnapshot } from './pullOfflineSnapshot'
+import { pullOfflineSnapshot, resetSilentPullGuard } from './pullOfflineSnapshot'
 import { getSnapshotMeta } from './snapshotStore'
 import { collectSnapshotDocuments } from './collectSnapshotDocuments'
 
@@ -70,6 +70,7 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 0 } } })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  resetSilentPullGuard()
   mockSave.mockResolvedValue(undefined)
   mockSaveExtras.mockResolvedValue(undefined)
   mockGetExtras.mockResolvedValue({
@@ -240,6 +241,30 @@ describe('pullOfflineSnapshot', () => {
     const result = await pullOfflineSnapshot(qc)
 
     expect(result).toEqual({ ok: false, code: 'rateLimited' })
+  })
+})
+
+describe('silent pulls respect the server window (1 snapshot / 5 min)', () => {
+  it('shares one request between simultaneous callers and spaces the next ones', async () => {
+    mockGetManifest.mockRejectedValue({ response: { status: 500 } })
+
+    const [first, second] = await Promise.all([
+      pullOfflineSnapshot(qc, { silent: true }),
+      pullOfflineSnapshot(qc, { silent: true }),
+    ])
+    expect(mockGetManifest).toHaveBeenCalledTimes(1)
+    expect(second).toBe(first)
+
+    const third = await pullOfflineSnapshot(qc, { silent: true })
+    expect(third).toEqual({ ok: false, code: 'rateLimited' })
+    expect(mockGetManifest).toHaveBeenCalledTimes(1)
+  })
+
+  it('never throttles an explicit pull started by the user', async () => {
+    mockGetManifest.mockRejectedValue({ response: { status: 500 } })
+    await pullOfflineSnapshot(qc, { silent: true })
+    await pullOfflineSnapshot(qc)
+    expect(mockGetManifest).toHaveBeenCalledTimes(2)
   })
 })
 
