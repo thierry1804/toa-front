@@ -5,7 +5,9 @@ import { cn } from '@/lib/utils'
 
 interface ClickableCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onClick' | 'role'> {
   /** Destination ouverte au toucher de la carte. */
-  to: string
+  to?: string
+  /** Action exécutée au toucher quand la carte n'ouvre pas une page (ex. filtrer une vue). */
+  onOpen?: () => void
   /** Libellé lu par les lecteurs d'écran (ex. la référence du dossier). */
   label: string
   children: ReactNode
@@ -19,19 +21,24 @@ const INTERACTIVE = 'a,button,input,select,textarea,label,[data-no-card-nav]'
  * Carte entièrement cliquable (liste mobile) : toute la surface ouvre le dossier, comme une ligne de tableau.
  * Les boutons d'action placés dans la carte gardent leur propre comportement (le toucher ne navigue pas).
  */
-export function ClickableCard({ to, label, children, className, chevron = true, ...rest }: ClickableCardProps) {
+export function ClickableCard({ to, onOpen, label, children, className, chevron = true, ...rest }: ClickableCardProps) {
   const navigate = useNavigate()
 
   const open = (event: MouseEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest(INTERACTIVE)) return
-    navigate(to)
+    go()
+  }
+
+  const go = () => {
+    if (onOpen) onOpen()
+    else if (to) navigate(to)
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      navigate(to)
+      go()
     }
   }
 
