@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chantierKey, collectPages, dayState, localDay, permitAction } from './model'
+import { chantierKey, collectPages, dayState, groupTasks, localDay, permitAction, taskTarget } from './model'
 import type { Intervention, SuiviJournalier } from '@/types/intervention'
 import type { PermitTravail } from '@/types/permitTravail'
 import type { HydraCollection } from '@/types'
@@ -48,5 +48,23 @@ describe('complete collections', () => {
   })
   it('reports an incomplete collection instead of an infinite loop or false totals', async () => {
     await expect(collectPages(async () => collection(['1'], 2))).rejects.toThrow('Incomplete collection')
+  })
+})
+
+describe('field task list', () => {
+  it('puts what is to do first, hides closed work and folds what is done', () => {
+    const rows = ['done', 'todo', 'closed', 'prepare', 'pending', 'review', 'future'].map((state) => ({ state: state as never }))
+    const groups = groupTasks(rows)
+    expect(groups.todo).toHaveLength(1)
+    expect(groups.done).toHaveLength(2)
+    expect(groups.waiting).toHaveLength(3)
+  })
+  it('offers a single next gesture per state', () => {
+    expect(taskTarget('todo', intervention, true)).toBe('enter')
+    expect(taskTarget('done', intervention, true)).toBe('complete')
+    expect(taskTarget('prepare', { ...intervention, statut: 'EN_PREPARATION' }, true)).toBe('intervention')
+    expect(taskTarget('prepare', intervention, true)).toBe('permit')
+    expect(taskTarget('review', intervention, false)).toBe('notebook')
+    expect(taskTarget('future', intervention, true)).toBeNull()
   })
 })

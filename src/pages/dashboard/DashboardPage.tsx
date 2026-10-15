@@ -1,4 +1,5 @@
 import TerrainDashboardPage from "./TerrainDashboardPage";
+import { useIsFieldAgent } from "@/features/terrain/useIsFieldAgent";
 import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { useMenuStore } from "@/store/menu.store";
@@ -506,9 +507,7 @@ function OverviewDashboardPage() {
 }
 
 function DashboardPage() {
-  const roles = useAuthStore((state) => state.roles);
-  const isFieldAgent = roles.some((role) => ['ROLE_AGENT_TERRAIN', 'ROLE_COLLABORATEUR'].includes(role))
-    && !roles.some((role) => ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_HSE', 'ROLE_CHEF_PROJET'].includes(role));
+  const isFieldAgent = useIsFieldAgent();
   return isFieldAgent ? <TerrainDashboardPage /> : <OverviewDashboardPage />;
 }
 

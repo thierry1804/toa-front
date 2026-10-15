@@ -24,6 +24,36 @@ export function dayState(intervention: Intervention, permit: PermitTravail | und
   return 'todo'
 }
 
+export type TaskGroups<T extends { state: DayState }> = { todo: T[]; waiting: T[]; done: T[] }
+
+/** Tâches de la journée : à faire d'abord, puis ce qui bloque ou attend, puis ce qui est déjà fait (les terminées disparaissent). */
+export function groupTasks<T extends { state: DayState }>(rows: T[]): TaskGroups<T> {
+  const groups: TaskGroups<T> = { todo: [], waiting: [], done: [] }
+  for (const row of rows) {
+    if (row.state === 'closed') continue
+    if (row.state === 'todo') groups.todo.push(row)
+    else if (row.state === 'done' || row.state === 'pending') groups.done.push(row)
+    else groups.waiting.push(row)
+  }
+  return groups
+}
+
+export type TaskTarget = 'enter' | 'complete' | 'intervention' | 'permit' | 'notebook' | null
+
+/** Geste unique proposé à l'agent pour une tâche, selon son état. */
+export function taskTarget(state: DayState, intervention: Intervention, hasPermit: boolean): TaskTarget {
+  switch (state) {
+    case 'todo': return 'enter'
+    case 'done':
+    case 'pending': return 'complete'
+    case 'prepare':
+      return !['EVALUATION_COMPLETE', 'EN_COURS'].includes(intervention.statut) ? 'intervention' : hasPermit ? 'permit' : 'notebook'
+    case 'review': return hasPermit ? 'permit' : 'notebook'
+    case 'unknown': return hasPermit ? 'permit' : 'notebook'
+    default: return null
+  }
+}
+
 export function permitAction(permit: PermitTravail, today: string): 'draft' | 'correct' | 'closure' | 'expiry' | null {
   if (permit.statut === 'BROUILLON') return 'draft'
   if (['REJETE', 'REFUSE_HSE'].includes(permit.statut)) return 'correct'

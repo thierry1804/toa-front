@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -9,6 +9,7 @@ import {
   Pencil,
   Loader2,
   AlertTriangle,
+  ChevronDown,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -29,6 +30,8 @@ import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
 import { useToday } from '@/features/terrain/useToday'
+import { useIsFieldAgent } from '@/features/terrain/useIsFieldAgent'
+import { clearSuiviDraft, readSuiviDraft, writeSuiviDraft } from '@/features/terrain/suiviDraft'
 import { PhaseProgressFields } from '@/features/terrain/PhaseProgressFields'
 import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
 import type { SectionPlanifieeItem } from '@/types'
@@ -105,6 +108,10 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
   const priorSuivis = suivis.filter((s) => s.id !== editingSuivi?.id)
   const minAvancement = priorSuivis[0]?.avancementPourcentage ?? 0
 
+  const isEdit = !!editingSuivi
+  const isFieldAgent = useIsFieldAgent()
+  const draft = editingSuivi ? null : readSuiviDraft(interventionIri, TODAY)
+
   const [form, setForm] = useState<FormState>(
     editingSuivi
       ? {
@@ -114,13 +121,29 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
           avancementPourcentage: editingSuivi.avancementPourcentage,
           commentaire: editingSuivi.commentaire ?? '',
         }
-      : { ...EMPTY_FORM, nomResponsable: connectedName, avancementPourcentage: minAvancement },
+      : {
+          ...EMPTY_FORM,
+          nomResponsable: connectedName,
+          realise: draft?.realise ?? true,
+          motifNonRealisation: draft?.motifNonRealisation ?? '',
+          commentaire: draft?.commentaire ?? '',
+          avancementPourcentage: Math.max(minAvancement, draft?.avancementPourcentage ?? 0),
+        },
   )
+
+  useEffect(() => {
+    if (isEdit) return
+    writeSuiviDraft(interventionIri, TODAY, {
+      realise: form.realise,
+      motifNonRealisation: form.motifNonRealisation,
+      avancementPourcentage: form.avancementPourcentage,
+      commentaire: form.commentaire,
+    })
+  }, [isEdit, interventionIri, TODAY, form.realise, form.motifNonRealisation, form.avancementPourcentage, form.commentaire])
   const [avancementError, setAvancementError] = useState('')
 
   const set = (partial: Partial<FormState>) => setForm((f) => ({ ...f, ...partial }))
 
-  const isEdit = !!editingSuivi
   const todayLabel = formatLongDate(TODAY, i18n.language)
   const editDateLabel = editingSuivi ? formatLongDate(editingSuivi.date, i18n.language) : todayLabel
 
@@ -221,19 +244,21 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          {!isEdit && (
-            <Input label={t('intervention.pages.suiviJournalier.form.date')} type="date" value={TODAY} disabled />
+          {connectedName ? (
+            <p className="text-sm text-gray-600">
+              {t('intervention.pages.suiviJournalier.form.responsable')} : <span className="font-semibold text-gray-900">{form.nomResponsable}</span>
+            </p>
+          ) : (
+            <Input
+              label={t('intervention.pages.suiviJournalier.form.responsable')}
+              required
+              type="text"
+              value={form.nomResponsable}
+              onChange={(e) => set({ nomResponsable: e.target.value })}
+              placeholder={t('intervention.pages.suiviJournalier.form.responsablePlaceholder')}
+              maxLength={150}
+            />
           )}
-
-          <Input
-            label={t('intervention.pages.suiviJournalier.form.responsable')}
-            required
-            type="text"
-            value={form.nomResponsable}
-            disabled
-            readOnly
-            maxLength={150}
-          />
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -317,6 +342,25 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
               </div>
               <AvancementBadge pct={form.avancementPourcentage} />
             </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[5, 10].map((step) => (
+                <button
+                  key={step}
+                  type="button"
+                  onClick={() => handleAvancement(String(Math.min(100, form.avancementPourcentage + step)))}
+                  className="min-h-11 min-w-16 rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                >
+                  +{step} %
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => handleAvancement('100')}
+                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+              >
+                100 %
+              </button>
+            </div>
             {minAvancement > 0 && !avancementError && (
               <p className="mt-1 text-xs text-gray-400">
                 {t('intervention.pages.suiviJournalier.form.avancementMinHint', { min: minAvancement })}
@@ -357,8 +401,15 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
           </div>
 
           {/* R-29 : questionnaire des risques, au format de celui du permis */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700">{t('intervention.pages.suiviJournalier.form.risquesTitle')}</h3>
+          <details open={risquesRenseignes.length > 0} className="group rounded-lg border border-gray-200">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-semibold text-gray-800">
+              <span>
+                {t('intervention.pages.suiviJournalier.form.risquesTitle')}{' '}
+                <span className="font-normal text-gray-500">({t('intervention.pages.suiviJournalier.form.facultatif')})</span>
+              </span>
+              <ChevronDown className="h-4 w-4 text-gray-500 transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="border-t border-gray-100 p-3">
             <EngagementSection
               checked={false}
               onChange={() => {}}
@@ -368,7 +419,8 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
               hideSaveButton
               evaluationError={risquesIssue ? t('intervention.pages.suiviJournalier.form.risquesIssue') : null}
             />
-          </div>
+            </div>
+          </details>
 
           {resolvedApiError && (
             <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -377,11 +429,15 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-2">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+          <div
+            className={`sticky z-20 flex items-center justify-end gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm ${
+              isFieldAgent ? 'bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0' : 'bottom-0'
+            }`}
+          >
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving} className="min-h-12">
               {t('intervention.pages.suiviJournalier.form.cancel')}
             </Button>
-            <Button type="submit" disabled={!canSubmit}>
+            <Button type="submit" disabled={!canSubmit} className="min-h-12 px-6">
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('intervention.pages.suiviJournalier.form.save')}
             </Button>
@@ -429,6 +485,7 @@ export default function SuiviJournalierPage() {
 
   const [showForm, setShowForm] = useState(searchParams.get('new') === '1')
   const [editingSuivi, setEditingSuivi] = useState<SuiviJournalier | null>(null)
+  const [justSaved, setJustSaved] = useState(false)
 
   const isLoading = loadingIntervention || loadingPermit || loadingSuivis
 
@@ -458,13 +515,17 @@ export default function SuiviJournalierPage() {
       // comme en cas de succès, l'action a bien été capturée. Une vraie
       // erreur réseau/API reste affichée via createError/updateError.
       if (isOfflineQueued(error)) {
+        if (!editingId) clearSuiviDraft(interventionIri, TODAY)
         setShowForm(false)
         setEditingSuivi(null)
+        setJustSaved(true)
       }
       return
     }
+    if (!editingId) clearSuiviDraft(interventionIri, TODAY)
     setShowForm(false)
     setEditingSuivi(null)
+    setJustSaved(true)
   }
 
   const openEdit = (suivi: SuiviJournalier) => {
@@ -562,6 +623,13 @@ export default function SuiviJournalierPage() {
           </dl>
         </CardContent>
       </Card>
+
+      {justSaved && !formVisible && (
+        <p role="status" className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-900">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          {t('terrain.savedAddPhotos')}
+        </p>
+      )}
 
       {suivisError && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{t('terrain.followupsUnavailable')}</p>}
 

@@ -9,6 +9,7 @@ import { LogOut, ChevronDown, Menu, WifiOff } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import { useIsFieldAgent } from "@/features/terrain/useIsFieldAgent";
 import { OfflineSnapshotButton } from "@/components/layout/OfflineSnapshotButton";
 
 const FlagFR = () => (
@@ -45,6 +46,7 @@ export function TopBar() {
     .join(", ");
 
   const { mutate: logout } = useLogout();
+  const isFieldAgent = useIsFieldAgent();
   const isOnline = useOnline();
   const pendingSyncCount = usePendingSyncCount();
   const { t, i18n } = useTranslation();
@@ -86,13 +88,16 @@ export function TopBar() {
     >
       <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-4 lg:px-6">
         <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-          <button
-            onClick={toggleSidebar}
-            aria-label={t("nav.openMenu")}
-            className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-blue-100/60 lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {/* Le profil terrain navigue par la barre d'onglets du bas, pas par le menu latéral. */}
+          {!isFieldAgent && (
+            <button
+              onClick={toggleSidebar}
+              aria-label={t("nav.openMenu")}
+              className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-blue-100/60 lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
           <img
             src="/images/TOA.png"
             alt="TOA"
