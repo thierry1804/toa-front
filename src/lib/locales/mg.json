@@ -862,6 +862,7 @@
     "notApplicable": "N/A",
     "notApplicableTitle": "Tsy ampiharina — tsy ilaina ny antontan-taratasy ho an'ity andalana ity",
     "notApplicableDone": "Tsy ampiharina",
+    "missing": "Tsy mbola misy",
     "photoCount_one": "{{count}} sary",
     "photoCount_other": "{{count}} sary",
     "capturedAt": "Nalaina tamin'ny {{date}}",

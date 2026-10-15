@@ -862,6 +862,7 @@
     "notApplicable": "N/A",
     "notApplicableTitle": "Non applicable — aucune pièce requise pour cette ligne",
     "notApplicableDone": "Non applicable",
+    "missing": "Pièce manquante",
     "photoCount_one": "{{count}} photo",
     "photoCount_other": "{{count}} photos",
     "capturedAt": "Prise le {{date}}",

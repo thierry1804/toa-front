@@ -39,6 +39,7 @@ export default function PermitDocumentUploadZone({
 
   return (
     <div className="space-y-3">
+      <div className="divide-y divide-gray-200 border-y border-gray-200">
       {documentTypes.map((type) => {
         const pending = pendingUploads.filter((item) => item.type === type)
         const label = DOCUMENT_TYPE_LABELS[type]
@@ -80,6 +81,7 @@ export default function PermitDocumentUploadZone({
           />
         )
       })}
+      </div>
       <p className="text-xs text-gray-400">
         {t('permitTravail.components.documentUploadZone.footerNote')}
       </p>

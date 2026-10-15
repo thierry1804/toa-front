@@ -52,7 +52,7 @@ export default function CaptureButtons({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-1">
       <input
         type="file"
         accept="image/*"
@@ -73,16 +73,16 @@ export default function CaptureButtons({
         type="button"
         onClick={() => cameraRef.current?.click()}
         disabled={uploading}
-        className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-9"
       >
-        {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
         {uploading ? t('documents.sending') : hasPhotos ? t('documents.addPhoto') : t('documents.takePhoto')}
       </button>
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
         disabled={uploading}
-        className="text-xs text-gray-500 underline hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm text-gray-600 underline-offset-2 hover:text-gray-900 hover:underline disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-9"
       >
         {t('documents.importFile')}
       </button>
