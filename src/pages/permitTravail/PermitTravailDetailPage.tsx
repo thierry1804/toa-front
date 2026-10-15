@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil, RefreshCw } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { InfoItem, InfoList } from '@/components/ui/InfoList'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { useUiStore } from '@/store/ui.store'
 import Button from '@/components/ui/Button'
@@ -26,13 +27,8 @@ import {
   type TypeDocumentPermitTravail,
 } from '@/types/permitTravail'
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
-      <dt className="w-48 shrink-0 text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-900">{value ?? '—'}</dd>
-    </div>
-  )
+function InfoRow({ label, value, wide }: { label: string; value: React.ReactNode; wide?: boolean }) {
+  return <InfoItem label={label} value={value} wide={wide} />
 }
 
 export default function PermitTravailDetailPage() {
@@ -190,7 +186,7 @@ export default function PermitTravailDetailPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="space-y-3">
+          <InfoList>
             <InfoRow label="Référence" value={<span className="font-mono font-semibold text-blue-700">{permit.reference}</span>} />
             {permit.permisOrigineId && (
               <InfoRow
@@ -205,7 +201,7 @@ export default function PermitTravailDetailPage() {
             <InfoRow label="Type de permis" value={TYPE_PERMIT_LABELS[permit.typePermis]} />
             <InfoRow label="Processus" value={PROCESSUS_LABELS[permit.processus]} />
             <InfoRow label="Code site" value={permit.codeSite} />
-            <InfoRow label="Description travaux" value={permit.descriptionTravaux} />
+            <InfoRow label="Description travaux" value={permit.descriptionTravaux} wide />
             {/* R-19 : dates réelles, non saisissables — début = validation, fin = clôture effective */}
             <InfoRow
               label="Date de début réelle"
@@ -259,7 +255,7 @@ export default function PermitTravailDetailPage() {
                 }
               />
             )}
-          </dl>
+          </InfoList>
         </CardContent>
       </Card>
 
@@ -420,7 +416,7 @@ export default function PermitTravailDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <dl className="space-y-3">
+            <InfoList>
               <InfoRow
                 label="Décision"
                 value={
@@ -468,7 +464,7 @@ export default function PermitTravailDetailPage() {
                   }
                 />
               )}
-            </dl>
+            </InfoList>
           </CardContent>
         </Card>
       )}
@@ -574,7 +570,7 @@ export default function PermitTravailDetailPage() {
               </div>
             )}
             {clotureData && (
-              <dl className="space-y-3">
+              <InfoList>
                 <InfoRow
                   label="Type de clôture"
                   value={
@@ -622,7 +618,7 @@ export default function PermitTravailDetailPage() {
                     }
                   />
                 )}
-              </dl>
+              </InfoList>
             )}
             <div>
               <p className="mb-2 text-xs font-medium text-gray-500">PV de réception</p>
@@ -662,7 +658,7 @@ export default function PermitTravailDetailPage() {
               </div>
             )}
             {latestPvDecision ? (
-              <dl className="space-y-3">
+              <InfoList>
                 <InfoRow
                   label="Décision"
                   value={
@@ -714,7 +710,7 @@ export default function PermitTravailDetailPage() {
                     }
                   />
                 )}
-              </dl>
+              </InfoList>
             ) : (
               permit.statut === 'CLOTURE' && !canValiderPv && !canRefuserPv && (
                 <p className="text-sm text-gray-500">En attente de validation par le Chef de Projet.</p>

@@ -1,3 +1,4 @@
+import { InfoItem, InfoList } from "@/components/ui/InfoList";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useActivityPlanning } from "@/features/planning/hooks/useActivityPlanning";
@@ -11,13 +12,8 @@ import { ArrowLeft, Edit, Plus, MapPin, AlertTriangle } from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { STATUS_CONFIG } from "@/data/constant/planning";
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
-      <dt className="w-48 shrink-0 text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-900">{value}</dd>
-    </div>
-  );
+function InfoRow({ label, value, wide }: { label: string; value: React.ReactNode; wide?: boolean }) {
+  return <InfoItem label={label} value={value} wide={wide} />;
 }
 
 export default function PlanningDetailPage() {
@@ -95,7 +91,7 @@ export default function PlanningDetailPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="space-y-3">
+          <InfoList>
             <InfoRow label={t("planning.detail.process")} value={plan.process} />
             {plan.typeIntervention && (
               <InfoRow
@@ -134,7 +130,7 @@ export default function PlanningDetailPage() {
                 value={plan.permitReference}
               />
             )}
-          </dl>
+          </InfoList>
         </CardContent>
       </Card>
     </div>

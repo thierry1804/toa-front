@@ -16,6 +16,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { InfoItem, InfoList } from "@/components/ui/InfoList";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import PlanReference from "@/components/planPrevention/PlanReference";
@@ -72,15 +73,8 @@ function SectionCard({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
-      <dt className="w-48 shrink-0 text-sm font-medium text-gray-500">
-        {label}
-      </dt>
-      <dd className="text-sm text-gray-900">{value}</dd>
-    </div>
-  );
+function InfoRow({ label, value, wide }: { label: string; value: React.ReactNode; wide?: boolean }) {
+  return <InfoItem label={label} value={value} wide={wide} />;
 }
 
 function DecisionBadge({ decision }: { decision: "VALIDE" | "REFUSE" }) {
@@ -280,14 +274,15 @@ export default function PlanPreventionDetailPage() {
       {/* 1. Informations générales */}
       <SectionCard title={t("planPrevention.detail.sections.generalInfo")}>
         <div className="space-y-4">
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
             <PlanReference reference={plan.reference} />
-            <StatutBadge statut={plan.statut} className="mt-0.5" />
+            <StatutBadge statut={plan.statut} className="self-start sm:mt-0.5" />
           </div>
-          <dl className="space-y-3">
+          <InfoList>
             <InfoRow
               label={t("planPrevention.detail.fields.activitePlanifiee")}
               value={plan.activitePlanifiee}
+              wide
             />
             <InfoRow
               label={t("planPrevention.detail.fields.processus")}
@@ -295,6 +290,7 @@ export default function PlanPreventionDetailPage() {
             />
             <InfoRow
               label={t("planPrevention.detail.fields.periode")}
+              wide
               value={
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-gray-400" />
@@ -336,7 +332,7 @@ export default function PlanPreventionDetailPage() {
                 }
               />
             )}
-          </dl>
+          </InfoList>
         </div>
       </SectionCard>
 
