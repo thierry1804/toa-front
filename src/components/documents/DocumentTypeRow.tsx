@@ -188,12 +188,17 @@ export default function DocumentTypeRow({
                     chevron={false}
                     className="-mx-2 items-center rounded-lg border-0 bg-transparent p-2 hover:bg-gray-50"
                   >
-                    <div className="flex items-start gap-3.5">
-                      <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-[72px] w-[72px]" openHint />
-                      <div className="min-w-0 flex-1 self-center">
+                    {/* Trois zones : vignette | métadonnées | actions d'icônes à l'extrême droite. La ligne entière ouvre
+                        le document ; les icônes (télécharger, supprimer) ont leur propre cible de 44 px. */}
+                    <div className="flex items-center gap-3.5">
+                      <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-16 w-16 sm:h-[72px] sm:w-[72px]" openHint />
+                      <div className="min-w-0 flex-1">
                         {when && (
                           <>
-                            <p className="text-[15px] font-medium leading-tight text-gray-900">{when.day}</p>
+                            <p className="text-[15px] font-medium leading-tight text-gray-900">
+                              <span className="sm:hidden">{when.dayShort}</span>
+                              <span className="hidden sm:inline">{when.day}</span>
+                            </p>
                             <p className="mt-0.5 text-sm text-gray-500">
                               {t(when.captured ? 'documents.capturedAtTime' : 'documents.uploadedAtTime', { time: when.time })}
                             </p>
@@ -204,20 +209,22 @@ export default function DocumentTypeRow({
                             {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
                           </p>
                         )}
-                        {renderExtra && <div className="mt-2 flex flex-wrap items-center gap-2">{renderExtra(doc)}</div>}
                       </div>
-                      {!disabled && onDelete && (
-                        <button
-                          type="button"
-                          onClick={() => void handleDelete(doc.id)}
-                          disabled={busyId === doc.id}
-                          title={t('documents.delete')}
-                          aria-label={t('documents.delete')}
-                          className="-mr-1.5 -mt-1.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                        >
-                          {busyId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                        </button>
-                      )}
+                      <div className="-mr-2 flex flex-shrink-0 items-center">
+                        {renderExtra?.(doc)}
+                        {!disabled && onDelete && (
+                          <button
+                            type="button"
+                            onClick={() => void handleDelete(doc.id)}
+                            disabled={busyId === doc.id}
+                            title={t('documents.delete')}
+                            aria-label={t('documents.delete')}
+                            className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                          >
+                            {busyId === doc.id ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Trash2 className="h-[18px] w-[18px]" />}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </PressableCard>
                 </li>

@@ -17,6 +17,8 @@ export function formatCapturedAt(capturedAt?: string | null, uploadedAt?: string
 export interface CaptureParts {
   /** Jour en toutes lettres, ex. « 2 octobre 2026 ». */
   day: string
+  /** Jour abrégé pour les écrans étroits, ex. « 2 oct. 2026 ». */
+  dayShort: string
   /** Heure et minutes, ex. « 16:49 ». */
   time: string
   /** Vrai si l'horodatage vient de la prise de vue, faux s'il s'agit de la date d'ajout du fichier. */
@@ -31,6 +33,7 @@ export function formatCaptureParts(capturedAt?: string | null, uploadedAt?: stri
   if (Number.isNaN(d.getTime())) return null
   return {
     day: d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+    dayShort: d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }),
     time: d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
     captured: Boolean(capturedAt),
   }

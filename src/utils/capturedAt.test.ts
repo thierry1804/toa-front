@@ -71,6 +71,7 @@ describe('formatCaptureParts', () => {
     const { formatCaptureParts } = await import('./capturedAt')
     const captured = formatCaptureParts('2026-10-02T13:49:32.000Z', null, 'fr-FR')
     expect(captured?.day).toBe('2 octobre 2026')
+    expect(captured?.dayShort).toMatch(/^2 oct/)
     expect(captured?.time).toMatch(/^\d{2}:\d{2}$/)
     expect(captured?.captured).toBe(true)
     expect(formatCaptureParts(null, '2026-10-02T13:49:32.000Z', 'fr-FR')?.captured).toBe(false)

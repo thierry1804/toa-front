@@ -55,10 +55,10 @@ describe('DocumentTypeRow', () => {
     const onView = vi.fn()
     const onDelete = vi.fn().mockResolvedValue(undefined)
     const { container } = await render(
-      <DocumentTypeRow {...baseProps} onView={onView} onDelete={onDelete} docs={[doc('1')]} renderExtra={() => <button type="button">Télécharger</button>} />,
+      <DocumentTypeRow {...baseProps} onView={onView} onDelete={onDelete} docs={[doc('1')]} renderExtra={() => <button type="button" aria-label="Télécharger">dl</button>} />,
     )
 
-    await click([...container.querySelectorAll('button')].find((b) => b.textContent === 'Télécharger')!)
+    await click([...container.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Télécharger')!)
     await click(container.querySelector('button[title="documents.delete"]')!)
     expect(onView).not.toHaveBeenCalled()
     expect(onDelete).toHaveBeenCalledWith('1')

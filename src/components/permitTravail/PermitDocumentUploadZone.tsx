@@ -70,10 +70,11 @@ export default function PermitDocumentUploadZone({
                           `${type}.${doc.mimeType === 'application/pdf' ? 'pdf' : 'jpg'}`,
                         )
                       }
-                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 text-sm font-medium text-gray-800 transition-colors hover:border-gray-400 hover:bg-gray-50 sm:min-h-10"
+                      title={t('permitTravail.components.documentUploadZone.downloadButton')}
+                      aria-label={t('permitTravail.components.documentUploadZone.downloadButton')}
+                      className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
                     >
-                      <Download className="h-4 w-4 text-blue-600" aria-hidden />
-                      {t('permitTravail.components.documentUploadZone.downloadButton')}
+                      <Download className="h-[18px] w-[18px]" aria-hidden />
                     </button>
                   )
                 : undefined
