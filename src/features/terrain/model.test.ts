@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chantierKey, collectPages, dayState, groupTasks, localDay, permitAction, taskTarget } from './model'
+import { chantierKey, collectPages, dayState, groupTasks, localDay, permitAction, permitClosureNote, taskTarget } from './model'
 import type { Intervention, SuiviJournalier } from '@/types/intervention'
 import type { PermitTravail } from '@/types/permitTravail'
 import type { HydraCollection } from '@/types'
@@ -14,18 +14,23 @@ describe('field workday', () => {
     expect(dayState(intervention, permit, [suivi], today)).toBe('done')
     expect(dayState(intervention, permit, [{ ...suivi, pendingSync: true }], today)).toBe('pending')
   })
-  it('does not present missing data, future, expired, or unvalidated permits as actionable', () => {
-    expect(dayState(intervention, permit, undefined, today)).toBe('unknown')
-    expect(dayState(intervention, undefined, [], today)).toBe('unknown')
-    expect(dayState(intervention, { ...permit, dateDebutPrevue: '2026-11-01' }, [], today)).toBe('future')
-    expect(dayState(intervention, { ...permit, dateFinPrevue: '2026-10-07' }, [], today)).toBe('review')
-    expect(dayState(intervention, { ...permit, statut: 'SOUMIS' }, [], today)).toBe('prepare')
+  it('follows the intervention, like the server and the follow-ups list, not the permit status', () => {
+    expect(dayState(intervention, undefined, undefined, today)).toBe('unknown')
+    expect(dayState(intervention, undefined, [], today)).toBe('todo')
+    expect(dayState({ ...intervention, statut: 'EVALUATION_COMPLETE' }, permit, [], today)).toBe('todo')
     expect(dayState({ ...intervention, statut: 'EN_PREPARATION' }, permit, [], today)).toBe('prepare')
     expect(dayState({ ...intervention, statut: 'TERMINEE' }, permit, [], today)).toBe('closed')
-    expect(dayState(intervention, { ...permit, statut: 'PV_VALIDE' }, [], today)).toBe('closed')
-    // Clôture soumise ou refusée : le dossier reste visible, il n'est pas masqué (le suivi ne doit pas disparaître).
-    expect(dayState(intervention, { ...permit, statut: 'CLOTURE' }, [], today)).toBe('closing')
-    expect(dayState(intervention, { ...permit, statut: 'PV_REFUSE' }, [], today)).toBe('closing')
+    // Permis clôturé ou expiré : la saisie reste proposée tant que l'intervention est en cours.
+    for (const statut of ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE', 'SOUMIS'] as const) {
+      expect(dayState(intervention, { ...permit, statut }, [], today)).toBe('todo')
+    }
+    expect(dayState(intervention, { ...permit, dateFinPrevue: '2026-10-07' }, [], today)).toBe('todo')
+  })
+  it('flags a closed permit without blocking the entry', () => {
+    expect(permitClosureNote({ ...permit, statut: 'CLOTURE' })).toBe(true)
+    expect(permitClosureNote({ ...permit, statut: 'PV_VALIDE' })).toBe(true)
+    expect(permitClosureNote(permit)).toBe(false)
+    expect(permitClosureNote(undefined)).toBe(false)
   })
   it('does not merge unrelated projects at the same site or multi-site projects', () => {
     expect(chantierKey(permit)).toBe(chantierKey({ ...permit, id: 'renewal' }))
@@ -57,18 +62,17 @@ describe('complete collections', () => {
 
 describe('field task list', () => {
   it('puts what is to do first, hides closed work and folds what is done', () => {
-    const rows = ['done', 'todo', 'closed', 'prepare', 'pending', 'review', 'future', 'closing'].map((state) => ({ state: state as never }))
+    const rows = ['done', 'todo', 'closed', 'prepare', 'pending', 'unknown'].map((state) => ({ state: state as never }))
     const groups = groupTasks(rows)
     expect(groups.todo).toHaveLength(1)
     expect(groups.done).toHaveLength(2)
-    expect(groups.waiting).toHaveLength(4)
+    expect(groups.waiting).toHaveLength(2)
   })
   it('offers a single next gesture per state', () => {
     expect(taskTarget('todo', intervention, true)).toBe('enter')
     expect(taskTarget('done', intervention, true)).toBe('complete')
     expect(taskTarget('prepare', { ...intervention, statut: 'EN_PREPARATION' }, true)).toBe('intervention')
-    expect(taskTarget('prepare', intervention, true)).toBe('permit')
-    expect(taskTarget('review', intervention, false)).toBe('notebook')
-    expect(taskTarget('future', intervention, true)).toBeNull()
+    expect(taskTarget('unknown', intervention, true)).toBe('permit')
+    expect(taskTarget('unknown', intervention, false)).toBe('notebook')
   })
 })

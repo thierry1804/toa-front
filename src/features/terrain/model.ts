@@ -10,21 +10,25 @@ export function chantierKey(permit: PermitTravail): string {
   return JSON.stringify([permit.codeSite, permit.planPreventionId || `permit:${permit.id}`])
 }
 
-export type DayState = 'todo' | 'done' | 'pending' | 'prepare' | 'future' | 'review' | 'closing' | 'closed' | 'unknown'
-export function dayState(intervention: Intervention, permit: PermitTravail | undefined, suivis: SuiviJournalier[] | undefined, today: string): DayState {
+export type DayState = 'todo' | 'done' | 'pending' | 'prepare' | 'closed' | 'unknown'
+
+/**
+ * État du suivi du jour d'une intervention. Même règle que le serveur et que la liste « Suivis journaliers » :
+ * seule l'intervention compte (évaluation validée ou en cours) — l'état du permis n'empêche pas la saisie,
+ * il est seulement signalé sur la carte.
+ */
+export function dayState(intervention: Intervention, _permit: PermitTravail | undefined, suivis: SuiviJournalier[] | undefined, today: string): DayState {
   if (!suivis) return 'unknown'
   const entry = suivis.find((suivi) => suivi.date.slice(0, 10) === today)
   if (entry) return entry.pendingSync ? 'pending' : 'done'
-  // Terminé pour de bon : intervention terminée ou clôture du permis validée.
-  if (intervention.statut === 'TERMINEE' || permit?.statut === 'PV_VALIDE') return 'closed'
-  if (!permit) return 'unknown'
-  // Clôture soumise (en attente de validation) ou refusée : le dossier reste visible, sans nouvelle saisie.
-  if (['CLOTURE', 'PV_REFUSE'].includes(permit.statut)) return 'closing'
-  if (permit.dateDebutPrevue && permit.dateDebutPrevue.slice(0, 10) > today) return 'future'
-  if (permit.dateFinPrevue && permit.dateFinPrevue.slice(0, 10) < today) return 'review'
-  if (!['VALIDE', 'VALIDE_HSE', 'EN_COURS'].includes(permit.statut)) return 'prepare'
+  if (intervention.statut === 'TERMINEE') return 'closed'
   if (!['EVALUATION_COMPLETE', 'EN_COURS'].includes(intervention.statut)) return 'prepare'
   return 'todo'
+}
+
+/** Le permis lié est clôturé ou sa clôture est en cours de traitement : à signaler à l'agent, sans bloquer la saisie. */
+export function permitClosureNote(permit: PermitTravail | undefined): boolean {
+  return !!permit && ['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut)
 }
 
 export type TaskGroups<T extends { state: DayState }> = { todo: T[]; waiting: T[]; done: T[] }
@@ -49,10 +53,7 @@ export function taskTarget(state: DayState, intervention: Intervention, hasPermi
     case 'todo': return 'enter'
     case 'done':
     case 'pending': return 'complete'
-    case 'prepare':
-      return !['EVALUATION_COMPLETE', 'EN_COURS'].includes(intervention.statut) ? 'intervention' : hasPermit ? 'permit' : 'notebook'
-    case 'review':
-    case 'closing': return hasPermit ? 'permit' : 'notebook'
+    case 'prepare': return 'intervention'
     case 'unknown': return hasPermit ? 'permit' : 'notebook'
     default: return null
   }

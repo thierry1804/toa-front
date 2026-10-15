@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { usePermission } from '@/features/auth/usePermission'
 import { useTerrainData } from '@/features/terrain/useTerrainData'
-import { dayState, groupTasks, permitAction, taskTarget, type DayState } from '@/features/terrain/model'
+import { dayState, groupTasks, permitClosureNote, taskTarget, type DayState } from '@/features/terrain/model'
 import { useToday } from '@/features/terrain/useToday'
 import { TerrainSyncStatus } from '@/features/terrain/TerrainSyncStatus'
 import { latestInterventionProgress } from '@/features/intervention/presentation'
@@ -29,10 +29,7 @@ const BADGE_VARIANT: Record<DayState, 'success' | 'primary' | 'warning' | 'secon
   todo: 'primary',
   pending: 'warning',
   prepare: 'warning',
-  review: 'warning',
-  closing: 'warning',
   unknown: 'warning',
-  future: 'secondary',
   closed: 'secondary',
 }
 
@@ -96,10 +93,17 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
             : t('terrain.noReport')}
       </p>
 
-      {['prepare', 'review', 'closing', 'unknown'].includes(state) && (
+      {['prepare', 'unknown'].includes(state) && (
         <p className="mt-2 flex items-start gap-2 text-sm text-amber-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           {t(`terrain.hint.${state}`)}
+        </p>
+      )}
+
+      {permitClosureNote(permit) && (
+        <p className="mt-2 flex items-start gap-2 text-sm text-amber-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          {t('terrain.permitClosedNote')}
         </p>
       )}
 
@@ -163,7 +167,6 @@ export default function TerrainDashboardPage() {
   const allGroups = groupTasks(open)
   const todoCount = allGroups.todo.length
   const doneCount = allGroups.done.length
-  const actions = data.permits.map((permit) => ({ permit, action: permitAction(permit, today) })).filter((item) => item.action)
   const locale = i18n.language === 'mg' ? 'mg-MG' : 'fr-FR'
 
   return (
@@ -187,25 +190,6 @@ export default function TerrainDashboardPage() {
           <div className="mt-3"><Progress value={Math.round((doneCount / (todoCount + doneCount)) * 100)} /></div>
         )}
       </div>
-
-      {actions.length > 0 && (
-        <section aria-label={t('terrain.permitActions')} className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="flex items-center gap-2 font-semibold text-amber-900">
-            <AlertTriangle className="h-4 w-4" aria-hidden />
-            {t('terrain.permitBanner', { count: actions.length })}
-          </p>
-          <ul className="mt-2 divide-y divide-amber-200">
-            {actions.map(({ permit, action }) => (
-              <li key={permit.id}>
-                <Link to={`/permits-travail/${permit.id}`} className="flex min-h-11 items-center justify-between gap-3 text-sm text-amber-950">
-                  <span><span className="font-medium">{permit.codeSite}</span> · {t(`terrain.permitAction.${action}`)}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {open.length > SEARCH_THRESHOLD && (
         <label className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3">
