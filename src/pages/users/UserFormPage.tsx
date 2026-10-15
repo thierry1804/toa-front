@@ -31,6 +31,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { parseApiFieldErrors } from "@/lib/apiErrors";
 import { useRoles } from "@/features/roles/hooks/useRoles";
+import { INTERVENTION_TYPES } from "@/data/constant/planning";
 import { useEntreprises } from "@/features/referentiel/hooks/useEntreprises";
 import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
 import { isOfflineQueued } from "@/offline/offlineError";
@@ -134,6 +135,7 @@ export default function UserFormPage() {
     numeroRegistreCommerce: "",
     siegeSocial: "",
     qualiteRepresentant: "",
+    processus: [] as string[],
     actif: true,
     plainPassword: "",
     confirmPassword: "",
@@ -194,6 +196,7 @@ export default function UserFormPage() {
         numeroRegistreCommerce: existingUser.numeroRegistreCommerce ?? "",
         siegeSocial: existingUser.siegeSocial ?? "",
         qualiteRepresentant: existingUser.qualiteRepresentant ?? "",
+        processus: existingUser.processus ?? [],
         actif: existingUser.isActive,
         plainPassword: "",
         confirmPassword: "",
@@ -337,6 +340,8 @@ export default function UserFormPage() {
     }
 
     const roles = [formData.role];
+    // R-30 : le rattachement à un ou plusieurs processus ne concerne que le chef de projet TOA.
+    const processus = formData.role === "ROLE_CHEF_PROJET" ? formData.processus : [];
 
     const hasEntreprise = canHaveEntreprise(formData.role);
     const entrepriseName = hasEntreprise
@@ -367,6 +372,7 @@ export default function UserFormPage() {
             name: formData.name.trim(),
             firstname: formData.firstname.trim(),
             roles,
+            processus,
             isActive: formData.actif,
             entrepriseName,
             entreprise,
@@ -395,6 +401,7 @@ export default function UserFormPage() {
           firstname: formData.firstname.trim(),
           plainPassword: formData.plainPassword,
           roles,
+          processus,
           isActive: formData.actif,
           entrepriseName,
           entreprise,
@@ -529,6 +536,36 @@ export default function UserFormPage() {
               required
               disabled={!isPrestataireScoped && rolesLoading}
             />
+
+            {formData.role === "ROLE_CHEF_PROJET" && (
+              <fieldset className="rounded-lg border border-gray-200 p-4">
+                <legend className="px-1 text-sm font-medium text-gray-700">Processus pris en charge</legend>
+                <p className="mb-3 text-xs text-gray-500">
+                  Le chef de projet est titulaire des dossiers de ces processus (plans, permis, suivis). Plusieurs
+                  titulaires peuvent couvrir un même processus.
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {INTERVENTION_TYPES.map((processus) => (
+                    <label key={processus} className="flex min-h-9 items-center gap-2 text-sm text-gray-800">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                        checked={formData.processus.includes(processus)}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            processus: e.target.checked
+                              ? [...formData.processus, processus]
+                              : formData.processus.filter((p) => p !== processus),
+                          })
+                        }
+                      />
+                      {processus}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             {isPrestataireScoped && scopedEntrepriseName && (
               <p className="text-sm text-gray-600">

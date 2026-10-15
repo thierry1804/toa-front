@@ -49,6 +49,8 @@ export interface User {
   qualiteRepresentant?: string | null
   signaturePath?: string | null
   roles: string[]
+  /** R-30 : processus pris en charge par un chef de projet TOA. */
+  processus?: string[]
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -60,6 +62,7 @@ export interface UserCreate {
   firstname: string
   plainPassword: string
   roles: string[]
+  processus?: string[]
   isActive: boolean
   entrepriseName?: string | null
   entreprise?: string | null
@@ -74,6 +77,7 @@ export interface UserUpdate {
   firstname?: string
   plainPassword?: string
   roles?: string[]
+  processus?: string[]
   isActive?: boolean
   entrepriseName?: string | null
   entreprise?: string | null
