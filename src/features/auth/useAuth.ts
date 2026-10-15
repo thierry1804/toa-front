@@ -19,7 +19,6 @@ function resolveRoles(payload: Record<string, unknown> | null): string[] {
 }
 
 export function useLogin() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const setUser = useAuthStore((s) => s.setUser)
   const setPermissions = useAuthStore((s) => s.setPermissions)
@@ -44,7 +43,6 @@ export function useLogin() {
       setPermissions(resolvePermissions(payload))
       // force fresh DB permissions on next AppShell render
       void queryClient.invalidateQueries({ queryKey: ['me', 'permissions'] })
-      navigate('/dashboard')
     },
   })
 }

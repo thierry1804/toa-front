@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Globe, Eye, EyeOff } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -20,6 +20,7 @@ import { usePwaDisplay } from "../../../app/hooks/use-pwa-display";
 export default function LoginPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: login, isPending } = useLogin();
@@ -36,7 +37,16 @@ export default function LoginPage() {
   const onSubmit = (data: LoginFormData) => {
     setApiError(null);
     login(data, {
-      onSuccess: () => navigate("/dashboard"),
+      onSuccess: () => {
+        // Retour vers la page demandée avant l'authentification (lien e-mail)
+        const from = (location.state as { from?: { pathname: string; search?: string; hash?: string } } | null)?.from;
+        navigate(
+          from && from.pathname !== "/login"
+            ? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+            : "/dashboard",
+          { replace: true },
+        );
+      },
       onError: (error: unknown) => {
         const err = error as { response?: { data?: { message?: string } } };
         const key = err?.response?.data?.message ?? "incorrect_credentials";

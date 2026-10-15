@@ -72,7 +72,7 @@ export default function PlanningDetailPage() {
               </Link>
             )}
             {permsPrevention?.canCreate && (
-              <Link to="/prevention/new">
+              <Link to={`/prevention/new?planificationId=${plan.id}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   {t("planning.detail.createPreventionBtn")}

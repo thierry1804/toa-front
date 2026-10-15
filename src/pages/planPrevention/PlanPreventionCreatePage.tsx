@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -189,6 +189,7 @@ export default function PlanPreventionCreatePage({
   editPlanId,
 }: PlanPreventionCreatePageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const isEditMode = mode === "edit";
   const sectionsLang = (i18n.language?.startsWith("mg") ? "mg" : "fr") as
@@ -317,6 +318,20 @@ export default function PlanPreventionCreatePage({
     setAutofillValues(fills);
     setAutofillSource(planif.process);
   };
+
+  // Lien direct depuis la fiche de planification : présélectionne la planification
+  const requestedPlanifId = Number(searchParams.get("planificationId")) || null;
+  useEffect(() => {
+    if (
+      !showPlanifSelector ||
+      requestedPlanifId === null ||
+      selectedPlanifId !== null ||
+      !planificationsDisponibles.some((p) => p.id === requestedPlanifId)
+    )
+      return;
+    handlePlanifSelect(requestedPlanifId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPlanifSelector, requestedPlanifId, planificationsDisponibles]);
 
   // ── Pre-fill form in edit mode once plan loads ───────────────────────────────
   useEffect(() => {
@@ -1012,7 +1027,13 @@ export default function PlanPreventionCreatePage({
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-1">
                 Liste des matériels, équipements et outillages{" "}
-                <span className="text-gray-400 font-normal">(optionnel)</span>
+                {isNouveauSite ? (
+                  <span className="text-red-500 font-normal">
+                    (photos obligatoires à l'étape Documents)
+                  </span>
+                ) : (
+                  <span className="text-gray-400 font-normal">(optionnel)</span>
+                )}
               </h3>
               <EquipementsTable
                 value={localEquipements}
