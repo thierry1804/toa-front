@@ -14,6 +14,28 @@ export function formatCapturedAt(capturedAt?: string | null, uploadedAt?: string
   return d.toLocaleString('fr-FR')
 }
 
+export interface CaptureParts {
+  /** Jour en toutes lettres, ex. « 2 octobre 2026 ». */
+  day: string
+  /** Heure et minutes, ex. « 16:49 ». */
+  time: string
+  /** Vrai si l'horodatage vient de la prise de vue, faux s'il s'agit de la date d'ajout du fichier. */
+  captured: boolean
+}
+
+/** Date lisible d'un document en deux parties (jour, heure), pour un affichage soigné plutôt qu'un horodatage brut. */
+export function formatCaptureParts(capturedAt?: string | null, uploadedAt?: string | null, locale = 'fr-FR'): CaptureParts | null {
+  const value = capturedAt ?? uploadedAt
+  if (!value) return null
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  return {
+    day: d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+    time: d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+    captured: Boolean(capturedAt),
+  }
+}
+
 const CAPTURED_AT_ERROR_KEYS: Record<string, string> = {
   captured_at_invalid: 'documents.uploadErrors.capturedAtInvalid',
   captured_at_in_future: 'documents.uploadErrors.capturedAtInFuture',

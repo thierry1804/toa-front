@@ -6,7 +6,7 @@ import CaptureButtons, { type CapturedFile } from '@/components/documents/Captur
 import DocumentThumb from '@/components/documents/DocumentThumb'
 import { isOfflineQueued } from '@/offline/offlineError'
 import type { PendingUpload } from '@/hooks/usePendingUploads'
-import { formatCapturedAt } from '@/utils/capturedAt'
+import { formatCaptureParts } from '@/utils/capturedAt'
 
 export interface TypedDocument {
   id: string
@@ -48,7 +48,8 @@ export default function DocumentTypeRow({
   renderExtra,
   footnote,
 }: DocumentTypeRowProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n?.language?.startsWith('mg') ? 'mg-MG' : 'fr-FR'
   const [uploading, setUploading] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
@@ -176,7 +177,7 @@ export default function DocumentTypeRow({
               </li>
             ))}
             {photos.map((doc) => {
-              const when = formatCapturedAt(doc.capturedAt, doc.uploadedAt)
+              const when = formatCaptureParts(doc.capturedAt, doc.uploadedAt, locale)
               return (
                 <li key={doc.id}>
                   {/* Toute la ligne ouvre le document (pas de bouton « Voir ») ; Télécharger et Supprimer
@@ -187,16 +188,23 @@ export default function DocumentTypeRow({
                     chevron={false}
                     className="-mx-2 items-center rounded-lg border-0 bg-transparent p-2 hover:bg-gray-50"
                   >
-                    <div className="flex items-center gap-3">
-                      <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-14 w-14" />
-                      <div className="min-w-0 flex-1">
-                        {when && <p className="text-sm text-gray-700">{t('documents.capturedAt', { date: when })}</p>}
+                    <div className="flex items-start gap-3.5">
+                      <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-[72px] w-[72px]" openHint />
+                      <div className="min-w-0 flex-1 self-center">
+                        {when && (
+                          <>
+                            <p className="text-[15px] font-medium leading-tight text-gray-900">{when.day}</p>
+                            <p className="mt-0.5 text-sm text-gray-500">
+                              {t(when.captured ? 'documents.capturedAtTime' : 'documents.uploadedAtTime', { time: when.time })}
+                            </p>
+                          </>
+                        )}
                         {showConsulted && (
                           <p className={`text-xs ${doc.consultedAt ? 'text-green-600' : 'text-amber-600'}`}>
                             {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
                           </p>
                         )}
-                        {renderExtra && <div className="mt-1.5 flex flex-wrap items-center gap-2">{renderExtra(doc)}</div>}
+                        {renderExtra && <div className="mt-2 flex flex-wrap items-center gap-2">{renderExtra(doc)}</div>}
                       </div>
                       {!disabled && onDelete && (
                         <button
@@ -205,7 +213,7 @@ export default function DocumentTypeRow({
                           disabled={busyId === doc.id}
                           title={t('documents.delete')}
                           aria-label={t('documents.delete')}
-                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                          className="-mr-1.5 -mt-1.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                         >
                           {busyId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                         </button>

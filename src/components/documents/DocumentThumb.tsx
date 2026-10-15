@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { FileText } from 'lucide-react'
+import { FileText, Maximize2 } from 'lucide-react'
 
 interface DocumentThumbProps {
   mimeType: string
   loadBlob: () => Promise<Blob>
   /** Classes de taille (défaut : 48 px). */
   sizeClass?: string
+  /** Affiche une pastille « agrandir » sur la vignette : elle ouvre le document. */
+  openHint?: boolean
 }
 
-export default function DocumentThumb({ mimeType, loadBlob, sizeClass = 'h-12 w-12' }: DocumentThumbProps) {
+export default function DocumentThumb({ mimeType, loadBlob, sizeClass = 'h-12 w-12', openHint = false }: DocumentThumbProps) {
   const [src, setSrc] = useState<string | null>(null)
   const isImage = mimeType.startsWith('image/')
 
@@ -32,12 +34,22 @@ export default function DocumentThumb({ mimeType, loadBlob, sizeClass = 'h-12 w-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isImage])
 
-  if (isImage && src) {
-    return <img src={src} alt="" className={`${sizeClass} flex-shrink-0 rounded-md object-cover`} />
-  }
   return (
-    <div className={`flex ${sizeClass} flex-shrink-0 items-center justify-center rounded-md bg-gray-100`}>
-      <FileText className="h-5 w-5 text-gray-400" />
+    <div className={`relative ${sizeClass} flex-shrink-0 overflow-hidden rounded-lg bg-gray-100`}>
+      {isImage && src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <FileText className="h-6 w-6 text-gray-400" aria-hidden />
+        </div>
+      )}
+      {/* Liseré intérieur : détache la photo du fond sans ajouter de cadre. */}
+      <span className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-black/10" aria-hidden />
+      {openHint && (
+        <span className="pointer-events-none absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md bg-gray-900/70 text-white" aria-hidden>
+          <Maximize2 className="h-3 w-3" />
+        </span>
+      )}
     </div>
   )
 }
