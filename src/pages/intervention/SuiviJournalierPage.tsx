@@ -295,14 +295,26 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
                 />
               </div>
               <span className="text-sm text-gray-500">%</span>
-              <input
-                type="range"
-                min={minAvancement}
-                max={100}
-                value={form.avancementPourcentage}
-                onChange={(e) => handleAvancement(e.target.value)}
-                className="flex-1 accent-blue-600 min-h-[44px]"
-              />
+              {/* L'échelle reste 0–100 pour refléter le taux réel ; le curseur ne descend pas sous l'avancement déjà enregistré. */}
+              <div className="relative flex-1">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={form.avancementPourcentage}
+                  onChange={(e) => handleAvancement(String(Math.max(minAvancement, Number(e.target.value))))}
+                  aria-valuemin={minAvancement}
+                  className="w-full accent-blue-600 min-h-[44px]"
+                />
+                {minAvancement > 0 && (
+                  <span
+                    aria-hidden
+                    title={`${minAvancement}%`}
+                    className="pointer-events-none absolute top-1/2 h-4 w-0.5 -translate-y-1/2 bg-gray-700"
+                    style={{ left: `calc(${minAvancement}% + ${(50 - minAvancement) * 0.16}px)` }}
+                  />
+                )}
+              </div>
               <AvancementBadge pct={form.avancementPourcentage} />
             </div>
             {minAvancement > 0 && !avancementError && (
