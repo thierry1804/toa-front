@@ -19,3 +19,10 @@ export function currentUserId(): string | null {
   if (id == null || id === '') return null
   return String(id)
 }
+
+/** Vrai si le jeton expire dans `skewMs` (défaut 30 s) ou est illisible/sans date d'expiration connue → on ne force rien. */
+export function isTokenExpiring(token: string, skewMs = 30_000, now = Date.now()): boolean {
+  const exp = decodeJwtPayload(token)?.exp
+  if (typeof exp !== 'number') return false
+  return exp * 1000 - now <= skewMs
+}
