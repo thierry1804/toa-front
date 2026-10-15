@@ -3,9 +3,13 @@ import { usePermissions } from '@/features/menus/hooks/usePermissions'
 
 export function usePermission(permission: string): boolean {
   const actionGranted = useAuthStore((s) => s.permissions.includes(permission))
+  const roles = useAuthStore((s) => s.roles)
   const permitMenu = usePermissions('/permits-travail')
-  // The admin menu matrix is authoritative for permit creation.
-  if (permission === 'permit_travail.create') return permitMenu?.canCreate ?? false
+  // R-14 : la création d'un permis est réservée au seul rôle Agent de terrain,
+  // sans exception ; la matrice de menus d'administration reste requise en plus.
+  if (permission === 'permit_travail.create') {
+    return roles.includes('ROLE_AGENT_TERRAIN') && (permitMenu?.canCreate ?? false)
+  }
   return actionGranted
 }
 

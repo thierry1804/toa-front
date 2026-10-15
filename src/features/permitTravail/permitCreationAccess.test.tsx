@@ -23,8 +23,8 @@ describe('permit creation follows the admin menu matrix', () => {
     const { container } = await render(<CreateAction />)
     expect(container.querySelector('button')).toBeNull()
   })
-  it('grants creation from the matrix without a separate role action', async () => {
-    useAuthStore.setState({ roles: ['ROLE_CUSTOM'], permissions: [] })
+  it('grants creation to the field agent from the matrix without a separate role action', async () => {
+    useAuthStore.setState({ roles: ['ROLE_AGENT_TERRAIN'], permissions: [] })
     setMatrix(true)
     const { container } = await render(<CreateAction />)
     expect(container.querySelector('button')).not.toBeNull()
@@ -34,7 +34,17 @@ describe('permit creation follows the admin menu matrix', () => {
     const { container } = await render(<CreateAction />)
     expect(container.querySelector('button')).toBeNull()
   })
+  it.each(['ROLE_PRESTATAIRE', 'ROLE_CHEF_PROJET_PRESTATAIRE', 'ROLE_HSE', 'ROLE_SUPER_ADMIN', 'ROLE_CHEF_PROJET'])(
+    'denies creation to %s even when the matrix allows it (R-14)',
+    async (role) => {
+      useAuthStore.setState({ roles: [role], permissions: ['permit_travail.create'] })
+      setMatrix(true)
+      const { container } = await render(<CreateAction />)
+      expect(container.querySelector('button')).toBeNull()
+    },
+  )
   it('reacts to matrix permission revocation', async () => {
+    useAuthStore.setState({ roles: ['ROLE_AGENT_TERRAIN'], permissions: [] })
     setMatrix(true)
     const { container } = await render(<CreateAction />)
     expect(container.querySelector('button')).not.toBeNull()
