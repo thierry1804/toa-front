@@ -30,6 +30,7 @@ const BADGE_VARIANT: Record<DayState, 'success' | 'primary' | 'warning' | 'secon
   pending: 'warning',
   prepare: 'warning',
   review: 'warning',
+  closing: 'warning',
   unknown: 'warning',
   future: 'secondary',
   closed: 'secondary',
@@ -95,7 +96,7 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
             : t('terrain.noReport')}
       </p>
 
-      {['prepare', 'review', 'unknown'].includes(state) && (
+      {['prepare', 'review', 'closing', 'unknown'].includes(state) && (
         <p className="mt-2 flex items-start gap-2 text-sm text-amber-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           {t(`terrain.hint.${state}`)}

@@ -22,6 +22,10 @@ describe('field workday', () => {
     expect(dayState(intervention, { ...permit, statut: 'SOUMIS' }, [], today)).toBe('prepare')
     expect(dayState({ ...intervention, statut: 'EN_PREPARATION' }, permit, [], today)).toBe('prepare')
     expect(dayState({ ...intervention, statut: 'TERMINEE' }, permit, [], today)).toBe('closed')
+    expect(dayState(intervention, { ...permit, statut: 'PV_VALIDE' }, [], today)).toBe('closed')
+    // Clôture soumise ou refusée : le dossier reste visible, il n'est pas masqué (le suivi ne doit pas disparaître).
+    expect(dayState(intervention, { ...permit, statut: 'CLOTURE' }, [], today)).toBe('closing')
+    expect(dayState(intervention, { ...permit, statut: 'PV_REFUSE' }, [], today)).toBe('closing')
   })
   it('does not merge unrelated projects at the same site or multi-site projects', () => {
     expect(chantierKey(permit)).toBe(chantierKey({ ...permit, id: 'renewal' }))
@@ -53,11 +57,11 @@ describe('complete collections', () => {
 
 describe('field task list', () => {
   it('puts what is to do first, hides closed work and folds what is done', () => {
-    const rows = ['done', 'todo', 'closed', 'prepare', 'pending', 'review', 'future'].map((state) => ({ state: state as never }))
+    const rows = ['done', 'todo', 'closed', 'prepare', 'pending', 'review', 'future', 'closing'].map((state) => ({ state: state as never }))
     const groups = groupTasks(rows)
     expect(groups.todo).toHaveLength(1)
     expect(groups.done).toHaveLength(2)
-    expect(groups.waiting).toHaveLength(3)
+    expect(groups.waiting).toHaveLength(4)
   })
   it('offers a single next gesture per state', () => {
     expect(taskTarget('todo', intervention, true)).toBe('enter')

@@ -2702,12 +2702,14 @@
       "prepare": "Prérequis à vérifier",
       "future": "À venir",
       "review": "Période à vérifier",
+      "closing": "Clôture en cours",
       "closed": "Terminé",
       "unknown": "Données à vérifier"
     },
     "hint": {
       "prepare": "Consultez le permis et l’évaluation avant de commencer la saisie.",
       "review": "La période prévue est dépassée. Vérifiez le permis et son renouvellement.",
+      "closing": "La clôture du permis est soumise à validation du chef de projet. Aucune nouvelle saisie tant qu’elle n’est pas traitée.",
       "unknown": "Les données nécessaires au suivi ne sont pas disponibles."
     },
     "permitAction": {

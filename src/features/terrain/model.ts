@@ -10,13 +10,16 @@ export function chantierKey(permit: PermitTravail): string {
   return JSON.stringify([permit.codeSite, permit.planPreventionId || `permit:${permit.id}`])
 }
 
-export type DayState = 'todo' | 'done' | 'pending' | 'prepare' | 'future' | 'review' | 'closed' | 'unknown'
+export type DayState = 'todo' | 'done' | 'pending' | 'prepare' | 'future' | 'review' | 'closing' | 'closed' | 'unknown'
 export function dayState(intervention: Intervention, permit: PermitTravail | undefined, suivis: SuiviJournalier[] | undefined, today: string): DayState {
   if (!suivis) return 'unknown'
   const entry = suivis.find((suivi) => suivi.date.slice(0, 10) === today)
   if (entry) return entry.pendingSync ? 'pending' : 'done'
-  if (intervention.statut === 'TERMINEE' || (permit && ['CLOTURE', 'PV_VALIDE'].includes(permit.statut))) return 'closed'
+  // Terminé pour de bon : intervention terminée ou clôture du permis validée.
+  if (intervention.statut === 'TERMINEE' || permit?.statut === 'PV_VALIDE') return 'closed'
   if (!permit) return 'unknown'
+  // Clôture soumise (en attente de validation) ou refusée : le dossier reste visible, sans nouvelle saisie.
+  if (['CLOTURE', 'PV_REFUSE'].includes(permit.statut)) return 'closing'
   if (permit.dateDebutPrevue && permit.dateDebutPrevue.slice(0, 10) > today) return 'future'
   if (permit.dateFinPrevue && permit.dateFinPrevue.slice(0, 10) < today) return 'review'
   if (!['VALIDE', 'VALIDE_HSE', 'EN_COURS'].includes(permit.statut)) return 'prepare'
@@ -48,7 +51,8 @@ export function taskTarget(state: DayState, intervention: Intervention, hasPermi
     case 'pending': return 'complete'
     case 'prepare':
       return !['EVALUATION_COMPLETE', 'EN_COURS'].includes(intervention.statut) ? 'intervention' : hasPermit ? 'permit' : 'notebook'
-    case 'review': return hasPermit ? 'permit' : 'notebook'
+    case 'review':
+    case 'closing': return hasPermit ? 'permit' : 'notebook'
     case 'unknown': return hasPermit ? 'permit' : 'notebook'
     default: return null
   }

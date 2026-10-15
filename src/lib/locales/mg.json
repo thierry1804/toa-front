@@ -2702,12 +2702,14 @@
       "prepare": "Fepetra hojerena",
       "future": "Ho avy",
       "review": "Fe-potoana hojerena",
+      "closing": "Eo am-pamaranana",
       "closed": "Vita",
       "unknown": "Angona hojerena"
     },
     "hint": {
       "prepare": "Jereo ny fahazoan-dalana sy fanombanana alohan’ny hamenoana.",
       "review": "Efa lasa ny fe-potoana. Jereo ny fahazoan-dalana sy ny fanavaozana.",
+      "closing": "Miandry ny fankatoavan’ny lehiben’ny tetikasa ny fanakatonana. Aza mameno tatitra vaovao mandra-pitsarana azy.",
       "unknown": "Tsy azo ny angona ilaina amin’ny tatitra."
     },
     "permitAction": {
