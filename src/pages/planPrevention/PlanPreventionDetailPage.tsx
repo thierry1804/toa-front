@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -24,6 +24,10 @@ import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPl
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
+import StatutPermitBadge from "@/components/permitTravail/StatutPermitBadge";
+import { usePermitsTravail } from "@/features/permitTravail/hooks/usePermitTravail";
+import { usePermitTravailLabels } from "@/features/permitTravail/usePermitTravailLabels";
+import { formatDate } from "@/utils/date";
 import Badge from "@/components/ui/Badge";
 import ExaminerModal from "@/components/planPrevention/ExaminerModal";
 import ValiderModal from "@/components/planPrevention/ValiderModal";
@@ -116,6 +120,15 @@ export default function PlanPreventionDetailPage() {
     enabled: plan?.statut === "VALIDE_HSE",
   });
   const { data: categoriesData } = useCategoriesRisqueAll();
+  const { typeLabel: permitTypeLabel } = usePermitTravailLabels();
+  // R-13 : permis rattachés au plan (filtre serveur + garde-fou hors-ligne)
+  const { data: permitsData, isLoading: isLoadingPermits } = usePermitsTravail(
+    { planPrevention: `/api/plans-prevention/${id ?? ""}`, itemsPerPage: "100" },
+    { enabled: !!id },
+  );
+  const planPermits = (permitsData?.member ?? []).filter(
+    (p) => !p.planPreventionId || p.planPreventionId === id,
+  );
   const allCategories = categoriesData?.member ?? [];
 
   const [examinerOpen, setExaminerOpen] = useState(false);
@@ -246,29 +259,6 @@ export default function PlanPreventionDetailPage() {
           </div>
         }
       />
-
-      {/* Panneau de décision HSE */}
-      {isDecidable && (canValiderHse || canRefuserHse) && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-          <p className="mb-3 text-sm font-semibold text-blue-800">
-            {t("planPrevention.detail.decisionPanel")}
-          </p>
-          <div className="flex items-center gap-3">
-            {canValiderHse && (
-              <Button onClick={() => setValiderOpen(true)}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                {t("planPrevention.list.actions.valider")}
-              </Button>
-            )}
-            {canRefuserHse && (
-              <Button variant="danger" onClick={() => setRefuserOpen(true)}>
-                <ShieldX className="mr-2 h-4 w-4" />
-                {t("planPrevention.list.actions.refuser")}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Actions enregistrées hors-ligne, pas encore confirmées par le serveur */}
       {plan.pendingSync && (
@@ -586,6 +576,50 @@ export default function PlanPreventionDetailPage() {
         )}
       </SectionCard>
 
+      {/* R-13 : permis associés au plan */}
+      <SectionCard title={`Permis associés (${planPermits.length})`}>
+        {isLoadingPermits ? (
+          <p className="text-sm text-gray-500">Chargement…</p>
+        ) : planPermits.length === 0 ? (
+          <p className="text-sm text-gray-500">Aucun permis rattaché à ce plan.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-left text-xs uppercase text-gray-500">
+                  <th className="py-2 pr-4 font-medium">Référence</th>
+                  <th className="py-2 pr-4 font-medium">Type</th>
+                  <th className="py-2 pr-4 font-medium">Statut</th>
+                  <th className="py-2 pr-4 font-medium">Début prévu</th>
+                  <th className="py-2 pr-4 font-medium">Fin prévue</th>
+                  <th className="py-2 font-medium" />
+                </tr>
+              </thead>
+              <tbody>
+                {planPermits.map((permit) => (
+                  <tr key={permit.id} className="border-b border-gray-100 last:border-0">
+                    <td className="py-2 pr-4 font-mono text-xs text-gray-800">
+                      <Link to={`/permits-travail/${permit.id}`} className="text-blue-700 hover:underline">
+                        {permit.reference}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-4 text-gray-700">{permitTypeLabel(permit.typePermis)}</td>
+                    <td className="py-2 pr-4"><StatutPermitBadge statut={permit.statut} /></td>
+                    <td className="py-2 pr-4 text-gray-600">{formatDate(permit.dateDebutPrevue)}</td>
+                    <td className="py-2 pr-4 text-gray-600">{formatDate(permit.dateFinPrevue)}</td>
+                    <td className="py-2 text-right">
+                      <Link to={`/permits-travail/${permit.id}`} className="text-sm font-medium text-blue-700 hover:underline">
+                        Voir
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
+
       <ExaminerModal
         isOpen={examinerOpen}
         planId={plan.id}
@@ -619,6 +653,31 @@ export default function PlanPreventionDetailPage() {
         title={viewingDoc?.label ?? ""}
         blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(plan.id, viewingDoc.id) : null}
       />
+      {/* Barre de décision HSE — toujours visible en bas d'écran (R-12) */}
+      {isDecidable && (canValiderHse || canRefuserHse) && (
+        <div className="sticky bottom-0 z-30 -mx-3 -mb-3 sm:-mx-4 sm:-mb-4 lg:-mx-5 lg:-mb-5 border-t border-blue-200 bg-blue-50/95 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-blue-800">
+              {t("planPrevention.detail.decisionPanel")}
+            </p>
+            <div className="flex items-center gap-3">
+              {canValiderHse && (
+                <Button onClick={() => setValiderOpen(true)}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  {t("planPrevention.list.actions.valider")}
+                </Button>
+              )}
+              {canRefuserHse && (
+                <Button variant="danger" onClick={() => setRefuserOpen(true)}>
+                  <ShieldX className="mr-2 h-4 w-4" />
+                  {t("planPrevention.list.actions.refuser")}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
