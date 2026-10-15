@@ -2633,7 +2633,10 @@
     "dailyFollowups": "Le suivi du jour",
     "dayHint": "Retrouvez les saisies à faire et celles déjà renseignées par votre équipe.",
     "search": "Rechercher un site, des travaux ou un permis…",
-    "emptyDay": "Aucune intervention ne correspond à cette vue.",
+    "emptyDay": "Aucun suivi à saisir pour le moment.",
+    "emptyDayHelp": "Un suivi journalier apparaît dès qu’un permis est validé et que son intervention est démarrée.",
+    "myPermits": "Mes permis",
+    "myInterventions": "Mes interventions",
     "works": "Travaux sur site",
     "progress": "Avancement global",
     "reportedBy": "Renseigné par {{name}}",
@@ -2708,10 +2711,10 @@
       "unknown": "Les données nécessaires au suivi ne sont pas disponibles."
     },
     "permitAction": {
-      "draft": "Brouillon · préparé par HSE",
-      "correct": "Correction attendue de HSE",
-      "closure": "Revoir la clôture",
-      "expiry": "Échéance à signaler à HSE"
+      "draft": "Brouillon à compléter et soumettre",
+      "correct": "À corriger et resoumettre",
+      "closure": "Clôture à corriger",
+      "expiry": "Échéance proche : renouveler si besoin"
     },
     "permitType": {
       "GENERAL": "Permis général",

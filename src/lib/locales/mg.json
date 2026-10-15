@@ -2633,7 +2633,10 @@
     "dailyFollowups": "Fanaraha-maso androany",
     "dayHint": "Jereo ny tatitra mbola hofenoina sy izay efa nofenoin’ny ekipa.",
     "search": "Hitady toerana, asa na fahazoan-dalana…",
-    "emptyDay": "Tsy misy asa mifanaraka amin’ity fijery ity.",
+    "emptyDay": "Tsy misy tatitra hofenoina amin’izao.",
+    "emptyDayHelp": "Miseho ny tatitra isan’andro rehefa nekena ny alalana ary natomboka ny asa.",
+    "myPermits": "Ny alalana",
+    "myInterventions": "Ny asa",
     "works": "Asa eny an-toerana",
     "progress": "Fandrosoana ankapobeny",
     "reportedBy": "Nofenoin’i {{name}}",
@@ -2708,10 +2711,10 @@
       "unknown": "Tsy azo ny angona ilaina amin’ny tatitra."
     },
     "permitAction": {
-      "draft": "Volavola · karakarain’ny HSE",
-      "correct": "Fanitsiana andrasana amin’ny HSE",
-      "closure": "Hijery ny famaranana",
-      "expiry": "Daty tokony hampahafantarina ny HSE"
+      "draft": "Volavola : fenoy ary alefaso",
+      "correct": "Hotsaraina ary halefa indray",
+      "closure": "Hotsaraina ny famaranana",
+      "expiry": "Antomotra ny daty : havaozy raha ilaina"
     },
     "permitType": {
       "GENERAL": "Fahazoan-dalana ankapobeny",

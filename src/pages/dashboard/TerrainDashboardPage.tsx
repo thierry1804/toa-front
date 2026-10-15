@@ -219,7 +219,16 @@ export default function TerrainDashboardPage() {
         </label>
       )}
 
-      {open.length === 0 && <p className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">{t('terrain.emptyDay')}</p>}
+      {open.length === 0 && (
+        <section className="rounded-lg border border-gray-200 bg-white p-5">
+          <p className="font-semibold text-gray-900">{t('terrain.emptyDay')}</p>
+          <p className="mt-1 text-sm text-gray-600">{t('terrain.emptyDayHelp')}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link to="/permits-travail" className="inline-flex min-h-12 items-center rounded-lg bg-blue-600 px-5 text-base font-semibold text-white hover:bg-blue-700">{t('terrain.myPermits')}</Link>
+            <Link to="/interventions" className="inline-flex min-h-12 items-center rounded-lg border border-gray-300 bg-white px-5 text-base font-semibold text-gray-800 hover:bg-gray-50">{t('terrain.myInterventions')}</Link>
+          </div>
+        </section>
+      )}
       {open.length > 0 && todoCount === 0 && waiting.length === 0 && <p className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-800">{t('terrain.allDone')}</p>}
 
       {todo.length > 0 && (
