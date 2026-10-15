@@ -10,6 +10,7 @@ import {
   Loader2,
   AlertTriangle,
   ChevronDown,
+  X,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -242,16 +243,32 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
     : ''
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    // Mobile : feuille plein écran entre l'en-tête et la barre d'onglets — le titre et « Annuler » en haut, les champs
+    // qui défilent au milieu, « Enregistrer » fixe en bas. Les boutons sont toujours visibles et ne recouvrent aucun
+    // champ, puisqu'ils ne sont plus superposés au contenu. Ordinateur : carte classique dans la page.
+    <Card
+      className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-30 flex flex-col max-lg:mb-0 overflow-hidden rounded-none border-0 lg:static lg:z-auto lg:block lg:overflow-visible lg:rounded-lg lg:border ${
+        isFieldAgent ? 'bottom-[calc(4rem+env(safe-area-inset-bottom))]' : 'bottom-0'
+      }`}
+    >
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-3 space-y-0 border-b border-gray-100 pb-3 lg:border-0">
         <CardTitle className="text-base">
           {isEdit
             ? t('intervention.pages.suiviJournalier.form.editTitle', { date: editDateLabel })
             : t('intervention.pages.suiviJournalier.form.createTitle', { date: todayLabel })}
         </CardTitle>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isSaving}
+          aria-label={t('intervention.pages.suiviJournalier.form.cancel')}
+          className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 lg:hidden"
+        >
+          <X className="h-5 w-5" aria-hidden />
+        </button>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <CardContent className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 lg:overflow-visible lg:pt-0">
+        <form id="suivi-form" onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           {connectedName ? (
             <p className="text-sm text-gray-600">
               {t('intervention.pages.suiviJournalier.form.responsable')} : <span className="font-semibold text-gray-900">{form.nomResponsable}</span>
@@ -437,37 +454,31 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
             </div>
           )}
 
-          {/* Barre d'actions toujours visible mais discrète : une seule ligne plate collée au bord (juste au-dessus des
-              onglets sur mobile), « Annuler » en texte à gauche, « Enregistrer » qui prend la place restante. Elle ne
-              recouvre que sa propre hauteur ; à la fin du formulaire elle reprend sa place dans le flux. Ordinateur :
-              dans le flux, alignée à droite. */}
-          <div
-            className={`sticky z-20 -mx-4 -mb-4 rounded-b-lg border-t border-gray-200 bg-white px-4 pb-2 pt-2 lg:static lg:mx-0 lg:mb-0 lg:rounded-none lg:border-gray-100 lg:px-0 lg:pb-0 lg:pt-5 ${
-              isFieldAgent ? 'bottom-[calc(4rem+env(safe-area-inset-bottom))]' : 'bottom-0'
-            }`}
-          >
-            {blockers.length > 0 && (
-              <p role="status" className="mb-1 truncate text-xs text-amber-800">
-                {t('intervention.pages.suiviJournalier.form.toComplete', { fields: blockers.join(', ') })}
-              </p>
-            )}
-            <div className="flex items-center gap-2 lg:flex-row-reverse lg:justify-start lg:gap-3">
-              <Button type="submit" disabled={!canSubmit} className="min-h-12 flex-1 text-base lg:flex-none lg:px-8">
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t('intervention.pages.suiviJournalier.form.save')}
-              </Button>
-              <button
-                type="button"
-                onClick={onCancel}
-                disabled={isSaving}
-                className="min-h-12 shrink-0 rounded-lg px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 lg:border lg:border-gray-300 lg:bg-white lg:text-gray-700"
-              >
-                {t('intervention.pages.suiviJournalier.form.cancel')}
-              </button>
-            </div>
-          </div>
         </form>
       </CardContent>
+
+      {/* Pied d'action : hors de la zone qui défile, donc toujours visible et jamais superposé aux champs. */}
+      <div className="shrink-0 border-t border-gray-200 bg-white px-4 pb-3 pt-2 lg:border-gray-100 lg:pb-4 lg:pt-4">
+        {blockers.length > 0 && (
+          <p role="status" className="mb-1.5 text-xs text-amber-800">
+            {t('intervention.pages.suiviJournalier.form.toComplete', { fields: blockers.join(', ') })}
+          </p>
+        )}
+        <div className="flex items-center gap-2 lg:flex-row-reverse lg:justify-start lg:gap-3">
+          <Button type="submit" form="suivi-form" disabled={!canSubmit} className="min-h-12 flex-1 text-base lg:flex-none lg:px-8">
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t('intervention.pages.suiviJournalier.form.save')}
+          </Button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSaving}
+            className="hidden min-h-12 shrink-0 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 lg:block"
+          >
+            {t('intervention.pages.suiviJournalier.form.cancel')}
+          </button>
+        </div>
+      </div>
     </Card>
   )
 }
