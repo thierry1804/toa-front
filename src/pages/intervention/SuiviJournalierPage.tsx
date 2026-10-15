@@ -30,6 +30,7 @@ import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
 import { useToday } from '@/features/terrain/useToday'
+import { useIsFieldAgent } from '@/features/terrain/useIsFieldAgent'
 import { clearSuiviDraft, readSuiviDraft, writeSuiviDraft } from '@/features/terrain/suiviDraft'
 import { PhaseProgressFields } from '@/features/terrain/PhaseProgressFields'
 import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
@@ -108,6 +109,7 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
   const minAvancement = priorSuivis[0]?.avancementPourcentage ?? 0
 
   const isEdit = !!editingSuivi
+  const isFieldAgent = useIsFieldAgent()
   const draft = editingSuivi ? null : readSuiviDraft(interventionIri, TODAY)
 
   const [form, setForm] = useState<FormState>(
@@ -435,16 +437,22 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
             </div>
           )}
 
-          {/* Actions en fin de formulaire, dans le flux : rien ne flotte au-dessus des champs. Mobile : un seul gros
-              bouton, « Annuler » discret dessous ; ordinateur : les deux boutons alignés à droite. */}
-          <div className="space-y-3 border-t border-gray-100 pt-5">
+          {/* Barre d'actions toujours visible mais discrète : une seule ligne plate collée au bord (juste au-dessus des
+              onglets sur mobile), « Annuler » en texte à gauche, « Enregistrer » qui prend la place restante. Elle ne
+              recouvre que sa propre hauteur ; à la fin du formulaire elle reprend sa place dans le flux. Ordinateur :
+              dans le flux, alignée à droite. */}
+          <div
+            className={`sticky z-20 -mx-4 -mb-4 rounded-b-lg border-t border-gray-200 bg-white px-4 pb-2 pt-2 lg:static lg:mx-0 lg:mb-0 lg:rounded-none lg:border-gray-100 lg:px-0 lg:pb-0 lg:pt-5 ${
+              isFieldAgent ? 'bottom-[calc(4rem+env(safe-area-inset-bottom))]' : 'bottom-0'
+            }`}
+          >
             {blockers.length > 0 && (
-              <p role="status" className="text-sm text-amber-800">
+              <p role="status" className="mb-1 truncate text-xs text-amber-800">
                 {t('intervention.pages.suiviJournalier.form.toComplete', { fields: blockers.join(', ') })}
               </p>
             )}
-            <div className="flex flex-col items-stretch gap-1 lg:flex-row-reverse lg:items-center lg:justify-start lg:gap-3">
-              <Button type="submit" disabled={!canSubmit} className="min-h-12 w-full text-base lg:w-auto lg:px-8">
+            <div className="flex items-center gap-2 lg:flex-row-reverse lg:justify-start lg:gap-3">
+              <Button type="submit" disabled={!canSubmit} className="min-h-12 flex-1 text-base lg:flex-none lg:px-8">
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t('intervention.pages.suiviJournalier.form.save')}
               </Button>
@@ -452,7 +460,7 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
                 type="button"
                 onClick={onCancel}
                 disabled={isSaving}
-                className="min-h-11 rounded-lg px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 lg:border lg:border-gray-300 lg:bg-white lg:text-gray-700"
+                className="min-h-12 shrink-0 rounded-lg px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 lg:border lg:border-gray-300 lg:bg-white lg:text-gray-700"
               >
                 {t('intervention.pages.suiviJournalier.form.cancel')}
               </button>
