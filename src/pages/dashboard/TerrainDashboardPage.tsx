@@ -15,7 +15,6 @@ import { latestInterventionProgress } from '@/features/intervention/presentation
 import type { Intervention, SuiviJournalier } from '@/types/intervention'
 import type { PermitTravail } from '@/types/permitTravail'
 
-const SEARCH_THRESHOLD = 8
 
 interface TaskRow {
   intervention: Intervention
@@ -160,8 +159,10 @@ export default function TerrainDashboardPage() {
   })
   const open = rows.filter((row) => row.state !== 'closed')
   const q = search.trim().toLocaleLowerCase()
+  // Recherche par code site (et, par commodité, référence du permis ou intitulé des travaux).
+  const siteOf = (row: TaskRow) => row.permit?.codeSite ?? (typeof row.intervention.permitTravail === 'object' ? row.intervention.permitTravail.codeSite : '')
   const visible = q
-    ? open.filter((row) => [row.permit?.codeSite, row.permit?.reference, row.permit?.descriptionTravaux].join(' ').toLocaleLowerCase().includes(q))
+    ? open.filter((row) => [siteOf(row), row.permit?.reference, row.permit?.descriptionTravaux].join(' ').toLocaleLowerCase().includes(q))
     : open
   const { todo, waiting, done } = groupTasks(visible)
   const allGroups = groupTasks(open)
@@ -185,13 +186,13 @@ export default function TerrainDashboardPage() {
       )}
 
       <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <p className="text-base font-semibold text-gray-900">{t('terrain.summary', { todo: todoCount, done: doneCount })}</p>
+        <p className="text-base font-semibold text-gray-900">{t('terrain.summaryTodo', { count: todoCount })} · {t('terrain.summaryDone', { count: doneCount })}</p>
         {todoCount + doneCount > 0 && (
           <div className="mt-3"><Progress value={Math.round((doneCount / (todoCount + doneCount)) * 100)} /></div>
         )}
       </div>
 
-      {open.length > SEARCH_THRESHOLD && (
+      {open.length > 0 && (
         <label className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3">
           <Search className="h-4 w-4 text-gray-500" aria-hidden />
           <input
@@ -202,6 +203,10 @@ export default function TerrainDashboardPage() {
             className="min-h-11 w-full bg-transparent text-sm outline-none"
           />
         </label>
+      )}
+
+      {open.length > 0 && visible.length === 0 && (
+        <p role="status" className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">{t('terrain.noSiteMatch', { query: search.trim() })}</p>
       )}
 
       {open.length === 0 && (
