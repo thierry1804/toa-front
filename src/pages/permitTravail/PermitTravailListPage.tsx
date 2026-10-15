@@ -13,6 +13,7 @@ import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { ListTableFilters, ListTable, ListTableActions, ListTableBody, ListTableCell, ListTableHead, ListTableHeadCell, ListTableRow } from '@/components/ui/ListTable'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
+import { ClickableCard } from '@/components/ui/ClickableCard'
 import { sortNewestFirst } from '@/lib/listOrder'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import {
@@ -176,6 +177,24 @@ function PermitRow({
 
 const HSE_STATUTS: string[] = ['SOUMIS', 'EN_COURS', 'VALIDE', 'VALIDE_HSE', 'REFUSE_HSE']
 const ITEMS_PER_PAGE = 10
+
+/** Carte mobile d'un permis : tout le bloc ouvre la fiche (les actions de validation sont sur la fiche). */
+function PermitCard({ permit }: { permit: PermitTravail }) {
+  const { t } = useTranslation()
+  const { typeLabel } = usePermitTravailLabels()
+  const active = ['VALIDE_HSE', 'EN_COURS', 'VALIDE'].includes(permit.statut) && !!permit.dateFinPrevue
+  return (
+    <ClickableCard to={`/permits-travail/${permit.id}`} label={`${t('permitTravail.list.actions.voir')} ${permit.reference}`}>
+      <div className="flex items-start justify-between gap-2">
+        <p className="truncate font-mono text-sm font-semibold text-gray-900">{permit.reference}</p>
+        <StatutPermitBadge statut={permit.statut} />
+      </div>
+      <p className="mt-1 text-sm text-gray-800">{typeLabel(permit.typePermis)} · {permit.codeSite}</p>
+      {permit.descriptionTravaux && <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{permit.descriptionTravaux}</p>}
+      {active && <div className="mt-2"><ExpirationBadge expiresAt={permit.dateFinPrevue} /></div>}
+    </ClickableCard>
+  )
+}
 
 function PermitTravailListPage() {
   const { t } = useTranslation()
@@ -393,6 +412,12 @@ function PermitTravailListPage() {
 
           {!isLoading && !isError && filteredPermits.length > 0 && (
             <>
+              <div className="space-y-3 p-3 lg:hidden">
+                {filteredPermits.map((permit) => (
+                  <PermitCard key={permit.id} permit={permit} />
+                ))}
+              </div>
+              <div className="hidden lg:block">
               <ListTable>
                 <ListTableHead>
                   <tr>
@@ -430,6 +455,7 @@ function PermitTravailListPage() {
                   ))}
                 </ListTableBody>
               </ListTable>
+              </div>
               {totalPages > 1 && (
                 <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
                   <p className="text-sm text-gray-600">

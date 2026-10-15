@@ -10,6 +10,7 @@ import type { ValidationInterventionJournaliere } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { TableIconButton } from '@/components/ui/TableIconButton';
+import { ClickableCard } from '@/components/ui/ClickableCard';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
@@ -395,18 +396,17 @@ export default function InterventionsListPage() {
                         intervention.incidents && intervention.incidents.length > 0;
 
                   return (
-                    <div key={intervention.id} className="border border-gray-200 rounded-lg p-4">
+                    <ClickableCard
+                      key={intervention.id}
+                      to={`/interventions/${intervention.id}/carnet`}
+                      label={`${t('interventions.list.actions.voir')} ${intervention.reference}`}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-gray-900 truncate">
                             {intervention.reference}
                           </p>
                         </div>
-                        <Link to={`/interventions/${intervention.id}/carnet`} className="shrink-0 ml-2">
-                          <TableIconButton title={t('interventions.list.actions.voir')}>
-                            <Eye className="h-4 w-4" />
-                          </TableIconButton>
-                        </Link>
                       </div>
                       <div className="mb-2 flex flex-wrap items-center gap-1">
                         {getStatusBadge(intervention.status)}
@@ -443,7 +443,7 @@ export default function InterventionsListPage() {
                           {avancement}% complété
                         </div>
                       </div>
-                    </div>
+                    </ClickableCard>
                   );
                 })}
               </div>

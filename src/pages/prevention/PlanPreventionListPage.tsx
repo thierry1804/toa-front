@@ -20,6 +20,7 @@ import {
   ListTableRow,
 } from '@/components/ui/ListTable'
 import StatutBadge from '@/components/planPrevention/StatutBadge'
+import { ClickableCard } from '@/components/ui/ClickableCard'
 import { sortNewestFirst } from '@/lib/listOrder'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import {
@@ -340,6 +341,19 @@ export default function PlanPreventionListPage() {
 
             {!isError && filteredPlans.length > 0 && (
               <>
+                <div className="space-y-3 p-3 lg:hidden">
+                  {filteredPlans.map((plan) => (
+                    <ClickableCard key={plan.id} to={`/prevention/${plan.id}`} label={`${t('common.view')} ${plan.reference}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate font-mono text-sm font-semibold text-blue-700">{plan.reference}</p>
+                        <StatutBadge statut={plan.statut} />
+                      </div>
+                      <p className="mt-1 text-sm text-gray-800">{plan.codeSite}{plan.typeIntervention ? ` · ${plan.typeIntervention}` : ''}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{plan.activitePlanifiee}</p>
+                    </ClickableCard>
+                  ))}
+                </div>
+                <div className="hidden lg:block">
                 <ListTable>
                   <ListTableHead>
                     <tr>
@@ -373,6 +387,7 @@ export default function PlanPreventionListPage() {
                     ))}
                   </ListTableBody>
                 </ListTable>
+                </div>
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
                     <p className="text-sm text-gray-600">

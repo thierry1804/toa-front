@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRight, BookOpen, Check, ChevronDown, MapPin, Search } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
+import { ClickableCard } from '@/components/ui/ClickableCard'
 import Badge from '@/components/ui/Badge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { usePermission } from '@/features/auth/usePermission'
@@ -69,7 +70,7 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
             : null
 
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4">
+    <ClickableCard to={cta?.to ?? `/interventions/${intervention.id}/carnet`} label={`${site} — ${reference}`} chevron={false} className="block">
       <div className="flex items-start justify-between gap-3">
         <h3 className="flex min-w-0 items-center gap-2 text-lg font-semibold text-gray-900">
           <MapPin className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
@@ -123,7 +124,7 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
           {t('terrain.openNotebook')}
         </Link>
       </div>
-    </article>
+    </ClickableCard>
   )
 }
 

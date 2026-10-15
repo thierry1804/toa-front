@@ -5,6 +5,7 @@ import { ArrowRight, MapPin } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { TableIconButton } from '@/components/ui/TableIconButton'
+import { ClickableCard } from '@/components/ui/ClickableCard'
 import Input from '@/components/ui/Input'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
@@ -167,7 +168,7 @@ export default function SuivisJournaliersPage() {
                 </table>
               </div>
 
-              <div className="divide-y divide-gray-200 lg:hidden">
+              <div className="space-y-3 p-3 lg:hidden">
                 {filtered.map((intervention) => {
                   const permit =
                     typeof intervention.permitTravail === 'object' ? intervention.permitTravail : null
@@ -175,24 +176,20 @@ export default function SuivisJournaliersPage() {
                   const site = permit?.codeSite ?? '—'
 
                   return (
-                    <div key={intervention.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium font-mono text-gray-900">{ref}</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{site}</span>
-                        </p>
-                        <div className="mt-2">
-                          <AvancementCell interventionId={intervention.id} />
-                        </div>
+                    <ClickableCard
+                      key={intervention.id}
+                      to={`/interventions/${intervention.id}/suivis`}
+                      label={`${t('intervention.pages.suivisJournaliers.viewButton')} ${ref}`}
+                    >
+                      <p className="truncate text-sm font-semibold font-mono text-gray-900">{ref}</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-600">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{site}</span>
+                      </p>
+                      <div className="mt-2">
+                        <AvancementCell interventionId={intervention.id} />
                       </div>
-                      <TableIconButton
-                        title={t('intervention.pages.suivisJournaliers.viewButton')}
-                        onClick={() => navigate(`/interventions/${intervention.id}/suivis`)}
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </TableIconButton>
-                    </div>
+                    </ClickableCard>
                   )
                 })}
               </div>

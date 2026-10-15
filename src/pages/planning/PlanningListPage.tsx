@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { TableIconButton } from "@/components/ui/TableIconButton";
+import { ClickableCard } from "@/components/ui/ClickableCard";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
@@ -331,9 +332,10 @@ export default function PlanningListPage() {
                 {plannings.map((p) => {
                   const config = STATUS_CONFIG[p.status];
                   return (
-                    <div
+                    <ClickableCard
                       key={p.id}
-                      className="border border-gray-200 rounded-lg p-4"
+                      to={`/planning/${p.id}`}
+                      label={`${t("common.view")} ${p.process}`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -347,12 +349,6 @@ export default function PlanningListPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">
-                          <TableIconButton
-                            title={t("common.view")}
-                            onClick={() => navigate(`/planning/${p.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </TableIconButton>
                           {perms?.canEdit && (
                             <TableIconButton
                               title={t("common.edit")}
@@ -405,7 +401,7 @@ export default function PlanningListPage() {
                           <Badge>{p.status}</Badge>
                         )}
                       </div>
-                    </div>
+                    </ClickableCard>
                   );
                 })}
               </div>
