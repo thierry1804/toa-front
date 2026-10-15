@@ -4,27 +4,36 @@ import { Trash2, FileArchive } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { Modal, ModalFooter } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
-import type { ImportKmzSite } from '@/types/referentiel'
 
-interface ImportKmzHistoryDrawerProps {
+export interface ImportHistoryEntry {
+  id: string
+  nomFichier: string
+  originalFilename: string | null
+  importedAt: string
+  nombreSites: number
+}
+
+interface ImportHistoryDrawerProps {
   isOpen: boolean
   onClose: () => void
-  imports: ImportKmzSite[]
+  title: string
+  imports: ImportHistoryEntry[]
   isLoading: boolean
   isDeleting: boolean
   onDelete: (id: string) => void
 }
 
-export default function ImportKmzHistoryDrawer({
+export default function ImportHistoryDrawer({
   isOpen,
   onClose,
+  title,
   imports,
   isLoading,
   isDeleting,
   onDelete,
-}: ImportKmzHistoryDrawerProps) {
+}: ImportHistoryDrawerProps) {
   const { t, i18n } = useTranslation()
-  const [deleteTarget, setDeleteTarget] = useState<ImportKmzSite | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<ImportHistoryEntry | null>(null)
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString(i18n.language === 'mg' ? 'mg-MG' : 'fr-FR', {
@@ -42,13 +51,7 @@ export default function ImportKmzHistoryDrawer({
 
   return (
     <>
-      <Drawer
-        isOpen={isOpen}
-        onClose={onClose}
-        title={t('referentiel.sites.historyTitle')}
-        subtitle={subtitle}
-        width="max-w-md"
-      >
+      <Drawer isOpen={isOpen} onClose={onClose} title={title} subtitle={subtitle} width="max-w-md">
         {isLoading ? (
           <p className="py-8 text-center text-sm text-gray-500">
             {t('referentiel.shared.loading')}

@@ -2,16 +2,26 @@ import api from '@/lib/axios'
 import { withNewestFirst } from '@/lib/listOrder'
 import { withSnapshotFallback } from '@/offline/withSnapshotFallback'
 import { snapshotList, snapshotSitesGeoJson, snapshotSiteByCode, snapshotSiteSearch } from '@/offline/snapshotRead'
-import type { Site, ImportKmzSite, KmzImportResponse, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse, InstallationEquipement, InstallationEquipementInput, InstallationEquipementListResponse } from '@/types/referentiel'
+import type { Site, ImportKmzSite, ImportSpreadsheetSite, SiteImportResponse, SiteImportPreview, SiteGeoJsonFeature, CategorieRisque, CategorieRisqueInput, CategorieRisqueListResponse, InstallationEquipement, InstallationEquipementInput, InstallationEquipementListResponse } from '@/types/referentiel'
 import type { HydraCollection } from '@/types'
 import type { FeatureCollection, Point } from 'geojson'
 
 export const referentielApi = {
-  importKmzSites: (file: File): Promise<KmzImportResponse> => {
+  importKmzSites: (file: File): Promise<SiteImportResponse> => {
     const formData = new FormData()
     formData.append('file', file)
     return api
-      .post<KmzImportResponse>('/api/referentiel/sites/import-kmz', formData, {
+      .post<SiteImportResponse>('/api/referentiel/sites/import-kmz', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+
+  previewKmzImport: (file: File): Promise<SiteImportPreview> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api
+      .post<SiteImportPreview>('/api/referentiel/sites/import-kmz/preview', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then((r) => r.data)
@@ -22,6 +32,32 @@ export const referentielApi = {
 
   deleteImportKmz: (id: string): Promise<void> =>
     api.delete(`/api/referentiel/import-kmz/${id}`).then((r) => r.data),
+
+  importSpreadsheetSites: (file: File): Promise<SiteImportResponse> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api
+      .post<SiteImportResponse>('/api/referentiel/sites/import-spreadsheet', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+
+  previewSpreadsheetImport: (file: File): Promise<SiteImportPreview> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api
+      .post<SiteImportPreview>('/api/referentiel/sites/import-spreadsheet/preview', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+
+  listImportSpreadsheet: (): Promise<{ member: ImportSpreadsheetSite[]; totalItems: number }> =>
+    api.get('/api/referentiel/import-spreadsheet').then((r) => r.data),
+
+  deleteImportSpreadsheet: (id: string): Promise<void> =>
+    api.delete(`/api/referentiel/import-spreadsheet/${id}`).then((r) => r.data),
 
   listSites: (page = 1): Promise<HydraCollection<Site>> =>
     withSnapshotFallback(

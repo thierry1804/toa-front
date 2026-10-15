@@ -1,0 +1,2 @@
+codeSite,nomSite,latitude,longitude,altitude,description,fokontany,commune,district,typeSite,zone,typePylone,hauteurPylone,apn,api,couleurMarqueur
+SITE-001,Ankazobe,-18.9,47.5,1200,Exemple de description,Fokontany A,Commune A,District A,Pylone,Zone 1,Treillis,30,1,0,#FF0000

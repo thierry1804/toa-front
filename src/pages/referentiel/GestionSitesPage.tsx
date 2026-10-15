@@ -4,13 +4,19 @@ import { useTranslation } from 'react-i18next'
 import { useUiStore } from '@/store/ui.store'
 import {
   useImportKmzList,
+  usePreviewKmzImport,
   useImportKmz,
   useDeleteImportKmz,
+  useImportSpreadsheetList,
+  usePreviewSpreadsheetImport,
+  useImportSpreadsheet,
+  useDeleteImportSpreadsheet,
   useSiteList,
   useSitesGeoJson,
 } from '@/features/referentiel/hooks/useReferentiel'
 import KmzImportSection from '@/components/referentiel/KmzImportSection'
-import ImportKmzHistoryDrawer from '@/components/referentiel/ImportKmzHistoryDrawer'
+import SpreadsheetImportSection from '@/components/referentiel/SpreadsheetImportSection'
+import ImportHistoryDrawer from '@/components/referentiel/ImportHistoryDrawer'
 import SiteTable from '@/components/referentiel/SiteTable'
 import ReferentielSitesMap from '@/components/referentiel/ReferentielSitesMap'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -23,18 +29,29 @@ export default function GestionSitesPage() {
   const { t } = useTranslation()
   const addToast = useUiStore((s) => s.addToast)
   const [page, setPage] = useState(1)
-  const [historyOpen, setHistoryOpen] = useState(false)
+  const [kmzHistoryOpen, setKmzHistoryOpen] = useState(false)
+  const [spreadsheetHistoryOpen, setSpreadsheetHistoryOpen] = useState(false)
 
-  const { data: imports = [], isLoading: loadingImports } = useImportKmzList()
+  const { data: kmzImports = [], isLoading: loadingKmzImports } = useImportKmzList()
+  const { data: spreadsheetImports = [], isLoading: loadingSpreadsheetImports } =
+    useImportSpreadsheetList()
   const { data: sitesData, isLoading: loadingSites } = useSiteList(page)
   const { data: sitesGeoJson } = useSitesGeoJson()
-  const { mutateAsync: importKmz, isPending: importing } = useImportKmz()
-  const { mutate: deleteImport, isPending: deleting } = useDeleteImportKmz()
+
+  const { mutateAsync: previewKmz, isPending: previewingKmz } = usePreviewKmzImport()
+  const { mutateAsync: importKmz, isPending: importingKmz } = useImportKmz()
+  const { mutate: deleteKmzImport, isPending: deletingKmzImport } = useDeleteImportKmz()
+
+  const { mutateAsync: previewSpreadsheet, isPending: previewingSpreadsheet } =
+    usePreviewSpreadsheetImport()
+  const { mutateAsync: importSpreadsheet, isPending: importingSpreadsheet } = useImportSpreadsheet()
+  const { mutate: deleteSpreadsheetImport, isPending: deletingSpreadsheetImport } =
+    useDeleteImportSpreadsheet()
 
   const sites = sitesData?.member ?? []
   const totalItems = sitesData?.totalItems ?? 0
 
-  const handleImport = async (file: File) => {
+  const handleImportKmz = async (file: File) => {
     const result = await importKmz(file)
     addToast({
       type: 'success',
@@ -44,8 +61,28 @@ export default function GestionSitesPage() {
     return result
   }
 
-  const handleDelete = (id: string) => {
-    deleteImport(id, {
+  const handleImportSpreadsheet = async (file: File) => {
+    const result = await importSpreadsheet(file)
+    addToast({
+      type: 'success',
+      message: t('referentiel.sites.importSpreadsheet.success', { count: result.nombreSites }),
+    })
+    setPage(1)
+    return result
+  }
+
+  const handleDeleteKmzImport = (id: string) => {
+    deleteKmzImport(id, {
+      onSuccess: () => {
+        addToast({ type: 'success', message: t('referentiel.sites.deleteSuccess') })
+        setPage(1)
+      },
+      onError: () => addToast({ type: 'error', message: t('referentiel.sites.deleteError') }),
+    })
+  }
+
+  const handleDeleteSpreadsheetImport = (id: string) => {
+    deleteSpreadsheetImport(id, {
       onSuccess: () => {
         addToast({ type: 'success', message: t('referentiel.sites.deleteSuccess') })
         setPage(1)
@@ -61,13 +98,33 @@ export default function GestionSitesPage() {
         description={t('referentiel.sites.description')}
         actions={
           <div className="flex flex-wrap items-start gap-2">
-            <KmzImportSection onImport={handleImport} isLoading={importing} />
-            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+            <KmzImportSection
+              onPreview={previewKmz}
+              onImport={handleImportKmz}
+              isPreviewing={previewingKmz}
+              isImporting={importingKmz}
+            />
+            <SpreadsheetImportSection
+              onPreview={previewSpreadsheet}
+              onImport={handleImportSpreadsheet}
+              isPreviewing={previewingSpreadsheet}
+              isImporting={importingSpreadsheet}
+            />
+            <Button variant="outline" size="sm" onClick={() => setKmzHistoryOpen(true)}>
               <History className="mr-1.5 h-4 w-4" />
               {t('referentiel.sites.historyTitle')}
-              {imports.length > 0 && (
+              {kmzImports.length > 0 && (
                 <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">
-                  {imports.length}
+                  {kmzImports.length}
+                </span>
+              )}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setSpreadsheetHistoryOpen(true)}>
+              <History className="mr-1.5 h-4 w-4" />
+              {t('referentiel.sites.importSpreadsheet.historyTitle')}
+              {spreadsheetImports.length > 0 && (
+                <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">
+                  {spreadsheetImports.length}
                 </span>
               )}
             </Button>
@@ -75,13 +132,24 @@ export default function GestionSitesPage() {
         }
       />
 
-      <ImportKmzHistoryDrawer
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        imports={imports}
-        isLoading={loadingImports}
-        isDeleting={deleting}
-        onDelete={handleDelete}
+      <ImportHistoryDrawer
+        isOpen={kmzHistoryOpen}
+        onClose={() => setKmzHistoryOpen(false)}
+        title={t('referentiel.sites.historyTitle')}
+        imports={kmzImports}
+        isLoading={loadingKmzImports}
+        isDeleting={deletingKmzImport}
+        onDelete={handleDeleteKmzImport}
+      />
+
+      <ImportHistoryDrawer
+        isOpen={spreadsheetHistoryOpen}
+        onClose={() => setSpreadsheetHistoryOpen(false)}
+        title={t('referentiel.sites.importSpreadsheet.historyTitle')}
+        imports={spreadsheetImports}
+        isLoading={loadingSpreadsheetImports}
+        isDeleting={deletingSpreadsheetImport}
+        onDelete={handleDeleteSpreadsheetImport}
       />
 
       <Card>

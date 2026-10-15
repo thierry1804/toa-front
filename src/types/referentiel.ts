@@ -6,6 +6,14 @@ export interface ImportKmzSite {
   nombreSites: number
 }
 
+export interface ImportSpreadsheetSite {
+  id: string
+  nomFichier: string
+  originalFilename: string | null
+  importedAt: string
+  nombreSites: number
+}
+
 export interface Site {
   id: string
   codeSite: string
@@ -82,11 +90,13 @@ export interface CategorieRisqueListResponse {
   totalItems: number
 }
 
-export interface KmzImportResponse {
+export interface SiteImportResponse {
   importId: string
   nomFichier: string
   nombreSites: number
   sitesIgnores: number
+  ignored?: SiteImportError[]
+  errors?: SiteImportError[]
   sites: Array<{
     id: string
     codeSite: string
@@ -103,4 +113,27 @@ export interface KmzImportResponse {
     typePylone: string | null
     hauteurPylone: number | null
   }>
+}
+
+export type KmzImportResponse = SiteImportResponse
+
+export interface SiteImportError {
+  line?: number
+  name?: string | null
+  codeSite?: string | null
+  nomSite?: string | null
+  reason: string
+}
+
+export interface SiteImportPreviewRow {
+  codeSite: string
+  nomSite: string
+  commune: string | null
+  district: string | null
+}
+
+export interface SiteImportPreview {
+  toCreate: SiteImportPreviewRow[]
+  toUpdate: SiteImportPreviewRow[]
+  errors: SiteImportError[]
 }

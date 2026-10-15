@@ -934,6 +934,38 @@
         "error": "Erreur lors de l'import du fichier KMZ",
         "formatError": "Format KMZ requis (.kmz)"
       },
+      "importSpreadsheet": {
+        "button": "Importer un fichier CSV/Excel",
+        "loading": "Analyse en cours...",
+        "hint": "Formats acceptés : .csv, .xlsx — max 20 MB",
+        "success": "{{count}} site(s) importé(s) avec succès",
+        "error": "Erreur lors de l'import du fichier",
+        "formatError": "Format CSV ou XLSX requis (.csv, .xlsx)",
+        "template": "Télécharger le modèle",
+        "historyTitle": "Historique des imports CSV/Excel"
+      },
+      "preview": {
+        "title": "Aperçu de l'import",
+        "toCreate": "{{count}} site(s) à créer",
+        "toUpdate": "{{count}} site(s) à mettre à jour",
+        "errors": "{{count}} ligne(s) en erreur",
+        "empty": "Aucune ligne détectée dans le fichier.",
+        "confirm": "Confirmer l'import",
+        "cancel": "Annuler",
+        "lineLabel": "Ligne",
+        "codeSiteLabel": "Code site",
+        "nomSiteLabel": "Nom",
+        "reasonLabel": "Raison",
+        "reason": {
+          "coordinates_missing": "Coordonnées manquantes",
+          "coordinates_invalid": "Coordonnées invalides",
+          "code_site_required": "Code site manquant",
+          "nom_site_required": "Nom du site manquant",
+          "latitude_invalid": "Latitude invalide",
+          "longitude_invalid": "Longitude invalide",
+          "duplicate_code_site": "Code site dupliqué dans le fichier"
+        }
+      },
       "table": {
         "fichier": "Fichier",
         "date": "Date d'import",

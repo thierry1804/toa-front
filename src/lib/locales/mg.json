@@ -934,6 +934,38 @@
         "error": "Nisy olana tamin'ny fampidirana",
         "formatError": "Format KMZ ilaina (.kmz)"
       },
+      "importSpreadsheet": {
+        "button": "Hampiditra fichier CSV/Excel",
+        "loading": "Famakafakana ...",
+        "hint": "Format ekena : .csv, .xlsx — max 20 MB",
+        "success": "{{count}} toerana nampidirina",
+        "error": "Nisy olana tamin'ny fampidirana",
+        "formatError": "Format CSV na XLSX ilaina (.csv, .xlsx)",
+        "template": "Alao ny maodely",
+        "historyTitle": "Tantaran'ny fampidirana CSV/Excel"
+      },
+      "preview": {
+        "title": "Topimaso alohan'ny fampidirana",
+        "toCreate": "{{count}} toerana havaozina",
+        "toUpdate": "{{count}} toerana havaozina",
+        "errors": "{{count}} andalana misy olana",
+        "empty": "Tsy misy andalana hita amin'ny rakitra.",
+        "confirm": "Hanamafy ny fampidirana",
+        "cancel": "Hanafoana",
+        "lineLabel": "Andalana",
+        "codeSiteLabel": "Kaody toerana",
+        "nomSiteLabel": "Anarana",
+        "reasonLabel": "Antony",
+        "reason": {
+          "coordinates_missing": "Tsy misy coordinates",
+          "coordinates_invalid": "Coordinates diso",
+          "code_site_required": "Tsy misy kaody toerana",
+          "nom_site_required": "Tsy misy anaran'ny toerana",
+          "latitude_invalid": "Latitude diso",
+          "longitude_invalid": "Longitude diso",
+          "duplicate_code_site": "Kaody toerana miverimberina amin'ny rakitra"
+        }
+      },
       "table": {
         "fichier": "Fichier",
         "date": "Datin'ny fampidirana",

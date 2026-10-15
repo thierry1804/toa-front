@@ -3,6 +3,7 @@ import { referentielApi } from '@/api/referentielApi'
 import { sortByDateDesc } from '@/lib/listOrder'
 import {
   REFERENTIEL_IMPORT_KMZ_KEY,
+  REFERENTIEL_IMPORT_SPREADSHEET_KEY,
   REFERENTIEL_SITES_KEY,
   REFERENTIEL_SITES_GEOJSON_KEY,
 } from '@/data/constant/query'
@@ -12,6 +13,12 @@ export function useImportKmzList() {
     queryKey: REFERENTIEL_IMPORT_KMZ_KEY,
     queryFn: referentielApi.listImportKmz,
     select: (data) => sortByDateDesc(data.member, (item) => item.importedAt),
+  })
+}
+
+export function usePreviewKmzImport() {
+  return useMutation({
+    mutationFn: (file: File) => referentielApi.previewKmzImport(file),
   })
 }
 
@@ -33,6 +40,44 @@ export function useDeleteImportKmz() {
     mutationFn: (id: string) => referentielApi.deleteImportKmz(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: REFERENTIEL_IMPORT_KMZ_KEY })
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_KEY })
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_GEOJSON_KEY })
+    },
+  })
+}
+
+export function useImportSpreadsheetList() {
+  return useQuery({
+    queryKey: REFERENTIEL_IMPORT_SPREADSHEET_KEY,
+    queryFn: referentielApi.listImportSpreadsheet,
+    select: (data) => sortByDateDesc(data.member, (item) => item.importedAt),
+  })
+}
+
+export function usePreviewSpreadsheetImport() {
+  return useMutation({
+    mutationFn: (file: File) => referentielApi.previewSpreadsheetImport(file),
+  })
+}
+
+export function useImportSpreadsheet() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => referentielApi.importSpreadsheetSites(file),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_IMPORT_SPREADSHEET_KEY })
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_KEY })
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_GEOJSON_KEY })
+    },
+  })
+}
+
+export function useDeleteImportSpreadsheet() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => referentielApi.deleteImportSpreadsheet(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: REFERENTIEL_IMPORT_SPREADSHEET_KEY })
       void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_KEY })
       void queryClient.invalidateQueries({ queryKey: REFERENTIEL_SITES_GEOJSON_KEY })
     },
