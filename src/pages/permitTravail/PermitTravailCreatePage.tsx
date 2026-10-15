@@ -1,8 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, Navigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,24 +9,21 @@ import {
   Info,
   MapPin,
   CalendarDays,
-  ShieldAlert,
   Wrench,
 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
-import AnalyseRisquesPlanning from '@/components/planPrevention/AnalyseRisquesPlanning'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import { usePermitTravail, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
-import { usePermission } from '@/features/auth/usePermission'
+import { usePermission, useHasRole } from '@/features/auth/usePermission'
 import { useUiStore } from '@/store/ui.store'
 import { planPreventionApi } from '@/api/planPreventionApi'
 import { getPermitCreationTransition } from './permitCreationTransition'
-import { planSections } from '@/utils/planSections'
+import { getDangersFormIssue } from '@/features/permitTravail/utils/dangersEvaluation'
 import type {
   PermitTravail,
   TypePermit,
@@ -43,26 +37,20 @@ import {
   getRequiredDocumentTypes,
 } from '@/types/permitTravail'
 
-// ─── Step 2 schema ────────────────────────────────────────────────────────────
-const step2Schema = z
-  .object({
-    dateDebutPrevue: z.string().min(1, 'Date de début requise'),
-    dateFinPrevue: z.string().min(1, 'Date de fin requise'),
-  })
-  .refine((d) => !d.dateDebutPrevue || !d.dateFinPrevue || d.dateFinPrevue >= d.dateDebutPrevue, {
-    message: 'La date de fin doit être ≥ à la date de début',
-    path: ['dateFinPrevue'],
-  })
-
-type Step2Data = z.infer<typeof step2Schema>
-
 // ─── Steps ────────────────────────────────────────────────────────────────────
+// R-18 : l'aperçu du plan est la dernière étape, juste avant la soumission.
 const STEPS = [
   { title: 'Site & Plan' },
-  { title: 'Aperçu plan' },
   { title: 'Informations travaux' },
   { title: 'Documents & Engagements' },
+  { title: 'Aperçu du plan' },
 ]
+
+const DANGERS_ISSUE_MESSAGES = {
+  empty: "Renseignez au moins un danger pour pouvoir soumettre la demande.",
+  incomplete: "Complétez tous les champs du formulaire : dangers, évaluation préliminaire, moyens de maîtrise et évaluation finale.",
+  no_reduction: "L'évaluation finale doit traduire une réduction du niveau de risque par rapport à l'évaluation préliminaire.",
+} as const
 
 // ─── StepIndicator ────────────────────────────────────────────────────────────
 function StepIndicator({ current }: { current: number }) {
@@ -112,7 +100,10 @@ function PermitTravailCreateForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
-  const canSubmit = usePermission('permit_travail.submit')
+  // R-23 : l'agent de terrain crée, soumet et clôture ses permis.
+  const canSubmitByAction = usePermission('permit_travail.submit')
+  const isAgentTerrain = useHasRole('ROLE_AGENT_TERRAIN')
+  const canSubmit = canSubmitByAction || isAgentTerrain
   const addToast = useUiStore((s) => s.addToast)
 
   const {
@@ -147,6 +138,8 @@ function PermitTravailCreateForm() {
   const [companionDocs, setCompanionDocs] = useState<DocumentPermitTravail[]>([])
   const [engagementChecked, setEngagementChecked] = useState(false)
   const [evaluations, setEvaluations] = useState<EvaluationData[]>([emptyEvaluation()])
+  // R-22 : « Les dangers sont-ils efficacement maîtrisés ? »
+  const [dangersMaitrises, setDangersMaitrises] = useState<'oui' | 'non' | null>(null)
 
   // ── Plans by site ─────────────────────────────────────────────────────────────
   const { data: plansBySiteData, isLoading: isLoadingPlans } = useQuery({
@@ -180,7 +173,6 @@ function PermitTravailCreateForm() {
   )
 
   const showAllRisks = isNouveauSite || typePermis === 'GENERAL' || matchingCatNames.size === 0
-  const unconfiguredWarning = !isNouveauSite && typePermis !== 'GENERAL' && matchingCatNames.size === 0
 
   const allRisqueRows = useMemo((): RisqueRow[] =>
     (selectedPlan?.risques ?? []).map((r) => ({
@@ -211,17 +203,6 @@ function PermitTravailCreateForm() {
       }))
   }, [allRisqueRows, showAllRisks, matchingCatNames])
 
-  const excludedRisqueCount = showAllRisks ? 0 : allRisqueRows.length - filteredRisqueRows.length
-
-  const filteredSections = useMemo(() => {
-    const sections = planSections(selectedPlan)
-    if (showAllRisks) return sections
-    const matchingTacheIds = new Set(filteredRisqueRows.map((r) => r.tachePlanifieeId).filter(Boolean))
-    return sections
-      .map((s) => ({ ...s, taches: s.taches.filter((t) => matchingTacheIds.has(t.id)) }))
-      .filter((s) => s.taches.length > 0)
-  }, [selectedPlan, showAllRisks, filteredRisqueRows])
-
   const siteInfo = useMemo(
     () =>
       selectedPlan?.planificationSites.find((s) => s.codeSite === codeSiteSearched) ?? {
@@ -230,20 +211,6 @@ function PermitTravailCreateForm() {
       },
     [selectedPlan, codeSiteSearched],
   )
-
-  // ── Step 2 form ───────────────────────────────────────────────────────────────
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<Step2Data>({ resolver: zodResolver(step2Schema) })
-
-  useEffect(() => {
-    if (!selectedPlan) return
-    setValue('dateDebutPrevue', selectedPlan.dateDebut?.slice(0, 10) ?? '')
-    setValue('dateFinPrevue', selectedPlan.dateFin?.slice(0, 10) ?? '')
-  }, [selectedPlan, setValue])
 
   // ── Document upload handlers ──────────────────────────────────────────────────
   const withoutMarker = (docs: DocumentPermitTravail[], type: TypeDocumentPermitTravail) =>
@@ -304,6 +271,7 @@ function PermitTravailCreateForm() {
     setCompanionDocs([])
     setEngagementChecked(false)
     setEvaluations([emptyEvaluation()])
+    setDangersMaitrises(null)
   }
 
   const nonEmptyEvaluations = (list: EvaluationData[]) =>
@@ -311,7 +279,8 @@ function PermitTravailCreateForm() {
 
   const handleSoumettre = async () => {
     if (!permit) return
-    const dangers = nonEmptyEvaluations(evaluations)
+    // R-22 : « Oui » → aucune saisie complémentaire ; « Non » → formulaire d'évaluation renseigné.
+    const dangers = dangersMaitrises === 'non' ? nonEmptyEvaluations(evaluations) : []
     await updatePermit(permit.id, {
       engagementAccepte: true,
       dangers: dangers.length > 0 ? dangers : null,
@@ -388,20 +357,25 @@ function PermitTravailCreateForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledPlanId, suggestedPlans])
 
-  // ── Step 2 → 3: create permit ────────────────────────────────────────────────
-  const handleStep2Next = handleSubmit(async (data) => {
+  // ── Step 1 → 2: create permit ────────────────────────────────────────────────
+  const handleCreatePermit = async () => {
+    // Retour depuis l'étape suivante : le permis existe déjà, rien à recréer.
+    if (permit) {
+      setStep(2)
+      return
+    }
     // NOUVEAU_SITE pour un plan "Nouveau site", MAINTENANCE pour les 4 autres
     // processus — RENOUVELLEMENT est réservé au renouvellement d'un permis
     // existant (pas encore de flux dédié dans l'assistant de création).
     const processus = isNouveauSite ? 'NOUVEAU_SITE' : 'MAINTENANCE'
+    // R-19 : les dates sont réelles et non saisissables — début = validation
+    // du permis, fin = clôture effective — elles sont posées par le serveur.
     const created = await createPermit({
       processus,
       typePermis,
       planPreventionId: selectedPlanId,
       codeSite: codeSiteSearched,
       descriptionTravaux: selectedPlan?.activitePlanifiee ?? '',
-      dateDebutPrevue: data.dateDebutPrevue,
-      dateFinPrevue: data.dateFinPrevue,
     })
 
     const transition = getPermitCreationTransition(processus, typePermis)
@@ -418,21 +392,21 @@ function PermitTravailCreateForm() {
       setEvaluations((prev) => [{ ...prev[0], dangers: risqueSummary }, ...prev.slice(1)])
     }
     setStep(transition.step)
-  })
+  }
 
   // ── Navigation ────────────────────────────────────────────────────────────────
   const handleNext = async () => {
     if (step === 0) {
-      if (codeSiteSearched && selectedPlanId) setStep(1)
+      if (codeSiteSearched && selectedPlanId && !generalObligatoireAutres) setStep(1)
     } else if (step === 1) {
-      setStep(2)
+      await handleCreatePermit()
     } else if (step === 2) {
-      await handleStep2Next()
+      setStep(3)
     }
   }
 
   const canGoNext =
-    step === 0 ? !!(codeSiteSearched && selectedPlanId) : step < 3
+    step === 0 ? !!(codeSiteSearched && selectedPlanId && !generalObligatoireAutres) : step < 3
 
   const isPending = isCreating || isSubmitting
   const apnApi = requis?.apnApi ?? false
@@ -450,6 +424,11 @@ function PermitTravailCreateForm() {
     ? getMissingDocumentTypes(companionDocTypes, companionDocs)
     : []
   const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0
+  const dangersIssue = dangersMaitrises === 'non' ? getDangersFormIssue(evaluations) : null
+  const canSoumettre =
+    engagementChecked && !hasMissingDocuments && !requisLoading && dangersMaitrises !== null && dangersIssue === null
+  const isGeneralNouveauSiteSansBinome =
+    permit?.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionPermit
 
   // ── Render steps ──────────────────────────────────────────────────────────────
   const renderStep = () => {
@@ -568,8 +547,8 @@ function PermitTravailCreateForm() {
                   <div className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
                     <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-800">
-                      Le permis Général est obligatoire pour ce processus : il doit être soumis avant tout permis
-                      Électrique ou Hauteur sur ce plan.
+                      Le permis Général doit avoir été créé pour ce site avant tout permis Électrique ou Hauteur.
+                      Il n'est pas nécessaire d'attendre sa validation : chaque permis suit ensuite son propre circuit.
                     </p>
                   </div>
                 )}
@@ -586,141 +565,8 @@ function PermitTravailCreateForm() {
           </div>
         )
 
-      // ── Step 1: Aperçu plan ─────────────────────────────────────────────────
+      // ── Step 1: Informations travaux ────────────────────────────────────────
       case 1:
-        return (
-          <div className="space-y-5">
-            {/* Plan header */}
-            <div className="rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-blue-900">{selectedPlan?.reference}</p>
-                <p className="text-sm text-blue-700 mt-0.5">{selectedPlan?.activitePlanifiee}</p>
-                <p className="text-xs text-blue-500 mt-1">
-                  {selectedPlan?.dateDebut} → {selectedPlan?.dateFin}
-                </p>
-              </div>
-            </div>
-
-            {/* Type de permis */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">Type sélectionné :</span>
-              <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">
-                {TYPE_PERMIT_LABELS[typePermis]}
-              </span>
-              {selectedPlan?.typeIntervention && (
-                <>
-                  <span className="text-sm text-gray-600 ml-2">Processus :</span>
-                  <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5">
-                    {selectedPlan.typeIntervention}
-                  </span>
-                </>
-              )}
-            </div>
-
-            {/* Site concerné */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <h3 className="text-sm font-semibold text-gray-700">Site concerné</h3>
-              </div>
-              <div className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm">
-                <span className="font-medium text-gray-900">{siteInfo.codeSite}</span>
-                {siteInfo.nomSite && (
-                  <span className="text-gray-500 ml-2">— {siteInfo.nomSite}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Risques */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldAlert className="h-4 w-4 text-gray-500" />
-                <h3 className="text-sm font-semibold text-gray-700">
-                  Analyse des risques
-                  {!isNouveauSite && typePermis !== 'GENERAL' && !unconfiguredWarning && (
-                    <span className="ml-1 text-xs font-normal text-gray-400">
-                      (filtrés : {TYPE_PERMIT_LABELS[typePermis]})
-                    </span>
-                  )}
-                </h3>
-              </div>
-              {unconfiguredWarning && (
-                <div className="mb-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <span>
-                    Catégories non configurées — tous les risques sont affichés.
-                    Configurer dans <strong>Référentiel &gt; Gestion de risques</strong>.
-                  </span>
-                </div>
-              )}
-              {excludedRisqueCount > 0 && (
-                <div className="mb-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <span>
-                    {excludedRisqueCount} risque{excludedRisqueCount > 1 ? 's' : ''} identifié{excludedRisqueCount > 1 ? 's' : ''} du plan de prévention {excludedRisqueCount > 1 ? 'ne sont pas repris' : "n'est pas repris"} ici
-                    (catégorie non liée au type de permis {TYPE_PERMIT_LABELS[typePermis]}).
-                    Consultez le plan de prévention complet pour la liste intégrale, ou créez un permis du type correspondant.
-                  </span>
-                </div>
-              )}
-              <AnalyseRisquesPlanning
-                sections={filteredSections}
-                rows={filteredRisqueRows}
-                onChange={() => {}}
-                categories={[]}
-                disabled={true}
-              />
-            </div>
-
-            {/* Installations */}
-            {(selectedPlan?.installations ?? []).length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Wrench className="h-4 w-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-700">Installations et matériels</h3>
-                </div>
-                <ul className="space-y-1">
-                  {selectedPlan!.installations.map((inst, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                      <span className="font-medium">{inst.description}</span>
-                      {inst.conditionsUtilisation && (
-                        <span className="text-gray-500">— {inst.conditionsUtilisation}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Matériels, équipements et outillages */}
-            {(selectedPlan?.equipements ?? []).length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Wrench className="h-4 w-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    Matériels, équipements et outillages
-                  </h3>
-                </div>
-                <ul className="space-y-1">
-                  {selectedPlan!.equipements.map((eq, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                      <span className="font-medium">{eq.description}</span>
-                      {eq.conditionsUtilisation && (
-                        <span className="text-gray-500">— {eq.conditionsUtilisation}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )
-
-      // ── Step 2: Informations travaux ────────────────────────────────────────
-      case 2:
         return (
           <div className="space-y-4">
             <div className="flex items-start gap-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3">
@@ -734,25 +580,22 @@ function PermitTravailCreateForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Date de début prévue *"
-                type="date"
-                {...register('dateDebutPrevue')}
-                error={errors.dateDebutPrevue?.message}
-              />
-              <Input
-                label="Date de fin prévue *"
-                type="date"
-                {...register('dateFinPrevue')}
-                error={errors.dateFinPrevue?.message}
-              />
+            <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 space-y-1">
+              <p>
+                <span className="text-gray-500">Travaux :</span>{' '}
+                <span className="font-medium text-gray-900">{selectedPlan?.activitePlanifiee ?? '—'}</span>
+              </p>
+              <p className="text-xs text-gray-500">
+                Les dates ne sont pas saisissables : la date de début réelle est la date de validation du permis,
+                la date de fin réelle est celle de sa clôture effective. Le permis est valable{' '}
+                {isNouveauSite ? '7 jours' : '3 jours'} à compter de sa validation.
+              </p>
             </div>
           </div>
         )
 
-      // ── Step 3: Documents + Engagements ────────────────────────────────────
-      case 3:
+      // ── Step 2: Documents + Engagements ────────────────────────────────────
+      case 2:
         return (
           <div className="space-y-6">
             {/* Documents */}
@@ -806,12 +649,172 @@ function PermitTravailCreateForm() {
               statut={permit?.statut}
               evaluations={evaluations}
               onEvaluationsChange={setEvaluations}
-              onSaveEvaluation={async () => {
-                if (!permit) return
-                const dangers = nonEmptyEvaluations(evaluations)
-                await updatePermit(permit.id, { dangers: dangers.length > 0 ? dangers : null })
-              }}
+              showEvaluation={false}
             />
+          </div>
+        )
+
+      // ── Step 3: Aperçu du plan (dernière étape)  ─────────────────────────────────────────────────
+      case 3:
+        return (
+          <div className="space-y-5">
+            {/* Plan header */}
+            <div className="rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-900">{selectedPlan?.reference}</p>
+                <p className="text-sm text-blue-700 mt-0.5">{selectedPlan?.activitePlanifiee}</p>
+                <p className="text-xs text-blue-500 mt-1">
+                  {selectedPlan?.dateDebut} → {selectedPlan?.dateFin}
+                </p>
+              </div>
+            </div>
+
+            {/* Type de permis */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Type sélectionné :</span>
+              <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">
+                {TYPE_PERMIT_LABELS[typePermis]}
+              </span>
+              {selectedPlan?.typeIntervention && (
+                <>
+                  <span className="text-sm text-gray-600 ml-2">Processus :</span>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5">
+                    {selectedPlan.typeIntervention}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Site concerné */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-700">Site concerné</h3>
+              </div>
+              <div className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm">
+                <span className="font-medium text-gray-900">{siteInfo.codeSite}</span>
+                {siteInfo.nomSite && (
+                  <span className="text-gray-500 ml-2">— {siteInfo.nomSite}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Installations */}
+            {(selectedPlan?.installations ?? []).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Wrench className="h-4 w-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-700">Installations et matériels</h3>
+                </div>
+                <ul className="space-y-1">
+                  {selectedPlan!.installations.map((inst, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <span className="font-medium">{inst.description}</span>
+                      {inst.conditionsUtilisation && (
+                        <span className="text-gray-500">— {inst.conditionsUtilisation}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Matériels, équipements et outillages */}
+            {(selectedPlan?.equipements ?? []).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Wrench className="h-4 w-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Matériels, équipements et outillages
+                  </h3>
+                </div>
+                <ul className="space-y-1">
+                  {selectedPlan!.equipements.map((eq, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                      <span className="font-medium">{eq.description}</span>
+                      {eq.conditionsUtilisation && (
+                        <span className="text-gray-500">— {eq.conditionsUtilisation}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Récapitulatif de la demande (R-22) */}
+            <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+              <h3 className="mb-2 text-sm font-semibold text-gray-700">Récapitulatif de la demande</h3>
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                <div className="flex gap-2"><dt className="text-gray-500">Permis :</dt><dd className="font-medium text-gray-900">{TYPE_PERMIT_LABELS[typePermis]}{permit?.reference ? ` (${permit.reference})` : ''}</dd></div>
+                <div className="flex gap-2"><dt className="text-gray-500">Site :</dt><dd className="font-medium text-gray-900">{codeSiteSearched}</dd></div>
+                <div className="flex gap-2"><dt className="text-gray-500">Plan :</dt><dd className="font-medium text-gray-900">{selectedPlan?.reference}</dd></div>
+                <div className="flex gap-2"><dt className="text-gray-500">Processus :</dt><dd className="font-medium text-gray-900">{selectedPlan?.typeIntervention ?? '—'}</dd></div>
+                <div className="flex gap-2 sm:col-span-2"><dt className="text-gray-500">Travaux :</dt><dd className="font-medium text-gray-900">{selectedPlan?.activitePlanifiee ?? '—'}</dd></div>
+                <div className="flex gap-2 sm:col-span-2"><dt className="text-gray-500">Documents joints :</dt><dd className="font-medium text-gray-900">{permit?.documents.filter((d) => !d.nonApplicable).length ?? 0}</dd></div>
+              </dl>
+            </div>
+
+            {/* Question de contrôle avant soumission (R-22) */}
+            <div className="rounded-lg border-2 border-blue-200 bg-blue-50/40 px-4 py-4">
+              <p className="mb-3 text-sm font-semibold text-gray-900">Les dangers sont-ils efficacement maîtrisés ?</p>
+              <div className="flex gap-3">
+                {(['oui', 'non'] as const).map((answer) => (
+                  <button
+                    key={answer}
+                    type="button"
+                    aria-pressed={dangersMaitrises === answer}
+                    onClick={() => setDangersMaitrises(answer)}
+                    className={`min-w-24 rounded-lg border px-5 py-2 text-sm font-medium transition-colors ${
+                      dangersMaitrises === answer
+                        ? answer === 'oui'
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-red-500 bg-red-500 text-white'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    {answer === 'oui' ? 'Oui' : 'Non'}
+                  </button>
+                ))}
+              </div>
+              {dangersMaitrises === 'oui' && (
+                <p className="mt-3 text-xs text-gray-600">Aucune saisie complémentaire : vous pouvez soumettre directement la demande.</p>
+              )}
+            </div>
+
+            {/* Formulaire d'évaluation des dangers — réponse « Non » (R-22) */}
+            {dangersMaitrises === 'non' && (
+              <EngagementSection
+                checked={engagementChecked}
+                onChange={setEngagementChecked}
+                statut={permit?.statut}
+                evaluations={evaluations}
+                onEvaluationsChange={setEvaluations}
+                showCertification={false}
+                evaluationError={dangersIssue ? DANGERS_ISSUE_MESSAGES[dangersIssue] : null}
+                onSaveEvaluation={async () => {
+                  if (!permit) return
+                  const dangers = nonEmptyEvaluations(evaluations)
+                  await updatePermit(permit.id, { dangers: dangers.length > 0 ? dangers : null })
+                }}
+                evaluationExtra={
+                  permit ? (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Insérer image</p>
+                      <PermitDocumentUploadZone
+                        permitId={permit.id}
+                        documentTypes={['PHOTO_DANGERS']}
+                        uploadedDocuments={permit.documents}
+                        onUpload={handleMainDocUpload}
+                        onDelete={handleMainDocDelete}
+                      />
+                    </div>
+                  ) : null
+                }
+              />
+            )}
           </div>
         )
 
@@ -840,7 +843,8 @@ function PermitTravailCreateForm() {
         <Button
           variant="outline"
           onClick={() => setStep(step - 1)}
-          disabled={step === 0 || step === 3 || isPending}
+          // Une fois le permis créé, on ne revient pas changer le site ni le plan.
+          disabled={step === 0 || (step === 1 && !!permit) || isPending}
           size="lg"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
@@ -861,11 +865,11 @@ function PermitTravailCreateForm() {
           canSubmit && (
             <Button
               onClick={handleSoumettre}
-              disabled={isPending || !engagementChecked || hasMissingDocuments || requisLoading}
+              disabled={isPending || !canSoumettre}
               loading={isSubmitting}
               size="lg"
             >
-              Soumettre le permis
+              {isGeneralNouveauSiteSansBinome ? 'Enregistrer et créer le second permis' : 'Soumettre le permis'}
             </Button>
           )
         )}

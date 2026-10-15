@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
@@ -20,6 +20,14 @@ interface EngagementSectionProps {
   evaluations: EvaluationData[]
   onEvaluationsChange: (data: EvaluationData[]) => void
   onSaveEvaluation?: () => Promise<void>
+  /** Affiche le formulaire d'évaluation des dangers (défaut : oui). */
+  showEvaluation?: boolean
+  /** Affiche la case d'engagement du représentant (défaut : oui). */
+  showCertification?: boolean
+  /** Contenu inséré sous le formulaire d'évaluation (ex. images jointes, R-22). */
+  evaluationExtra?: ReactNode
+  /** Message d'erreur de validation du formulaire d'évaluation. */
+  evaluationError?: string | null
 }
 
 const getNiveauOptions = (
@@ -81,6 +89,10 @@ export default function EngagementSection({
   evaluations,
   onEvaluationsChange,
   onSaveEvaluation,
+  showEvaluation = true,
+  showCertification = true,
+  evaluationExtra,
+  evaluationError,
 }: EngagementSectionProps) {
   const { t } = useTranslation()
   const readonly = statut !== undefined && statut !== 'BROUILLON'
@@ -127,6 +139,7 @@ export default function EngagementSection({
     <div className="space-y-4">
 
       {/* ── Questionnaire évaluation (répéteur) ── */}
+      {showEvaluation && (
       <div className="space-y-3">
         {evaluations.map((evaluation, index) => (
           <div key={index} className="rounded-lg border border-red-300 bg-white p-4 space-y-1">
@@ -228,9 +241,17 @@ export default function EngagementSection({
             </div>
           </div>
         )}
+
+        {evaluationExtra}
+
+        {evaluationError && (
+          <p className="text-xs font-medium text-red-600" role="alert">{evaluationError}</p>
+        )}
       </div>
+      )}
 
       {/* ── Checkbox engagement ── */}
+      {showCertification && (
       <div
         className={`flex items-start gap-3 rounded-lg border-2 p-4 transition-colors ${
           readonly
@@ -261,6 +282,7 @@ export default function EngagementSection({
           {t('permitTravail.components.engagementSection.certifySuffix')}
         </label>
       </div>
+      )}
 
     </div>
   )

@@ -68,6 +68,7 @@ export type TypeDocumentPermitTravail =
   | 'PHOTO_PROPRETE_SITE'
   | 'PHOTO_AVANT_TRAVAUX'
   | 'PHOTO_APRES_TRAVAUX'
+  | 'PHOTO_DANGERS'
   | 'ENV_TRI_DECHETS'
   | 'ENV_DELIMITATION_SITE'
   | 'ENV_ACCES_EXISTANT'
@@ -105,6 +106,7 @@ export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   PHOTO_PROPRETE_SITE:         "Photo propreté du site et/ou remise en état",
   PHOTO_AVANT_TRAVAUX:         "Photo avant travaux",
   PHOTO_APRES_TRAVAUX:         "Photo après travaux",
+  PHOTO_DANGERS:               "Photos des dangers",
   ENV_TRI_DECHETS:             "Mise en place du tri des déchets",
   ENV_DELIMITATION_SITE:       "Délimitation du site avant travaux",
   ENV_ACCES_EXISTANT:          "Accès déjà existant sur site avant chantier",
@@ -192,8 +194,8 @@ export function getRequiredDocumentTypes(
  * rester synchronisée avec PermitDocumentRequirementResolver côté API.
  */
 const CLOTURE_DOCUMENT_MATRIX: Record<'NOUVEAU_SITE' | 'AUTRES', TypeDocumentPermitTravail[]> = {
-  NOUVEAU_SITE: ['PV_CLOTURE_ENVIRONNEMENT', 'PV_FIN_TRAVAUX'],
-  AUTRES: ['PHOTO_PROPRETE_SITE', 'PV_FIN_TRAVAUX'],
+  NOUVEAU_SITE: ['PV_CLOTURE_ENVIRONNEMENT'],
+  AUTRES: ['PHOTO_PROPRETE_SITE'],
 }
 
 export function getRequiredClotureDocumentTypes(
@@ -295,8 +297,8 @@ export interface PermitTravailInput {
   planPreventionId?: string
   codeSite: string
   descriptionTravaux?: string
-  dateDebutPrevue: string
-  dateFinPrevue: string
+  dateDebutPrevue?: string
+  dateFinPrevue?: string
   engagementAccepte?: boolean
   dangers?: DangerEntry[] | null
 }
@@ -365,8 +367,10 @@ export interface PermitTravail {
   interventionId?: string | null
   codeSite: string
   descriptionTravaux: string
-  dateDebutPrevue: string
-  dateFinPrevue: string
+  /** Date de début réelle = date de validation du permis (posée par le serveur, R-19). */
+  dateDebutPrevue?: string | null
+  /** Échéance de validité : validation + 7 jours (Nouveau site) ou 3 jours (autres processus), R-20. */
+  dateFinPrevue?: string | null
   statut: StatutPermitTravail
   engagementAccepte: boolean
   dangers?: DangerEntry[] | null

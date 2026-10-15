@@ -6,7 +6,7 @@ import { getPermitCreationTransition } from './permitCreationTransition'
 describe('getPermitCreationTransition', () => {
   it('shows documents and engagements after creating the General permit for a new site', () => {
     expect(getPermitCreationTransition('NOUVEAU_SITE', 'GENERAL')).toEqual({
-      step: 3,
+      step: 2,
       typePermis: 'GENERAL',
       resetDraft: false,
     })
@@ -14,7 +14,7 @@ describe('getPermitCreationTransition', () => {
 
   it('keeps the document step for an ordinary permit creation', () => {
     expect(getPermitCreationTransition('MAINTENANCE', 'ELECTRIQUE')).toEqual({
-      step: 3,
+      step: 2,
       typePermis: 'ELECTRIQUE',
       resetDraft: false,
     })
@@ -24,7 +24,7 @@ describe('getPermitCreationTransition', () => {
     'shows documents and engagements after creating the %s companion permit for a new site',
     (typePermis) => {
       expect(getPermitCreationTransition('NOUVEAU_SITE', typePermis)).toEqual({
-        step: 3,
+        step: 2,
         typePermis,
         resetDraft: false,
       })

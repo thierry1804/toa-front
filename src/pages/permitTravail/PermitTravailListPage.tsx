@@ -70,7 +70,6 @@ function PermitRow({
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const { typeLabel, processusLabel } = usePermitTravailLabels()
-  const latestDecision = permit.decisionsHse?.at(-1)
   const locale = i18n.language === 'mg' ? 'mg-MG' : 'fr-FR'
 
   return (
@@ -116,8 +115,8 @@ function PermitRow({
       </ListTableCell>
       {showHseColumns && (
         <ListTableCell compact>
-          {permit.statut === 'VALIDE_HSE' && latestDecision ? (
-            <ExpirationBadge decidedAt={latestDecision.decidedAt} typePermis={permit.typePermis} />
+          {['VALIDE_HSE', 'EN_COURS', 'VALIDE'].includes(permit.statut) && permit.dateFinPrevue ? (
+            <ExpirationBadge expiresAt={permit.dateFinPrevue} />
           ) : (
             <span className="text-gray-400 text-sm">—</span>
           )}
@@ -188,7 +187,8 @@ function PermitTravailListPage() {
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
   const canResoumettre = usePermission('permit_travail.resoumettre')
-  const showHseColumns = canValider || canRefuser
+  // R-25 : le compte à rebours de validité est visible pour tous les profils.
+  const showHseColumns = true
 
   const [hseView, setHseView] = useState(false)
   const [page, setPage] = useState(1)

@@ -327,7 +327,6 @@ export default function PermitTravailSuiviPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {sorted.map((permit) => {
-                  const latestDecision = permit.decisionsHse?.at(-1)
                   return (
                     <tr
                       key={permit.id}
@@ -345,8 +344,8 @@ export default function PermitTravailSuiviPage() {
                         <StatutPermitBadge statut={permit.statut} />
                       </td>
                       <td className="px-4 py-3">
-                        {permit.statut === 'VALIDE_HSE' && latestDecision ? (
-                          <ExpirationBadge decidedAt={latestDecision.decidedAt} typePermis={permit.typePermis} />
+                        {permit.statut === 'VALIDE_HSE' && permit.dateFinPrevue ? (
+                          <ExpirationBadge expiresAt={permit.dateFinPrevue} />
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}

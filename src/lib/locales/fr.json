@@ -1968,13 +1968,13 @@
     },
     "components": {
       "cloturerModal": {
-        "title": "PV Environnement",
-        "banner": "<strong>Action irréversible.</strong> Le permis passera en statut CLÔTURÉ et un PV de réception sera généré automatiquement.",
+        "title": "Clôture du permis",
+        "banner": "<strong>Demande de clôture.</strong> Elle est soumise à la validation du chef de projet TOA, avant le terme de la validité du permis.",
         "documentsLabel": "Documents de clôture",
         "documentsLoading": "Chargement des documents requis… la clôture reste indisponible jusque-là.",
         "commentPlaceholder": "Motif de clôture, remarques de réception…",
         "accordClientLabel": "Accord client obtenu",
-        "confirmLabel": "Confirmer la clôture",
+        "confirmLabel": "Soumettre la clôture",
         "errorMessage": "Erreur lors de la clôture — vérifiez les droits ou le statut du permis."
       },
       "refuserModal": {

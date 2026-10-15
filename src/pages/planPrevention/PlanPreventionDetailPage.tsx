@@ -590,8 +590,8 @@ export default function PlanPreventionDetailPage() {
                   <th className="py-2 pr-4 font-medium">Référence</th>
                   <th className="py-2 pr-4 font-medium">Type</th>
                   <th className="py-2 pr-4 font-medium">Statut</th>
-                  <th className="py-2 pr-4 font-medium">Début prévu</th>
-                  <th className="py-2 pr-4 font-medium">Fin prévue</th>
+                  <th className="py-2 pr-4 font-medium">Début réel</th>
+                  <th className="py-2 pr-4 font-medium">Échéance</th>
                   <th className="py-2 font-medium" />
                 </tr>
               </thead>
@@ -605,8 +605,8 @@ export default function PlanPreventionDetailPage() {
                     </td>
                     <td className="py-2 pr-4 text-gray-700">{permitTypeLabel(permit.typePermis)}</td>
                     <td className="py-2 pr-4"><StatutPermitBadge statut={permit.statut} /></td>
-                    <td className="py-2 pr-4 text-gray-600">{formatDate(permit.dateDebutPrevue)}</td>
-                    <td className="py-2 pr-4 text-gray-600">{formatDate(permit.dateFinPrevue)}</td>
+                    <td className="py-2 pr-4 text-gray-600">{permit.dateDebutPrevue ? formatDate(permit.dateDebutPrevue) : "—"}</td>
+                    <td className="py-2 pr-4 text-gray-600">{permit.dateFinPrevue ? formatDate(permit.dateFinPrevue) : "—"}</td>
                     <td className="py-2 text-right">
                       <Link to={`/permits-travail/${permit.id}`} className="text-sm font-medium text-blue-700 hover:underline">
                         Voir

@@ -6,7 +6,6 @@ import { z } from 'zod'
 import { ChevronLeft, ChevronRight, Check, AlertCircle, FileText } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
@@ -32,12 +31,6 @@ const step2Schema = z
   .object({
     codeSite: z.string().min(1, 'Code site requis'),
     descriptionTravaux: z.string().min(3, 'Description requise (min 3 caractères)'),
-    dateDebutPrevue: z.string().min(1, 'Date de début requise'),
-    dateFinPrevue: z.string().min(1, 'Date de fin requise'),
-  })
-  .refine((d) => !d.dateDebutPrevue || !d.dateFinPrevue || d.dateFinPrevue >= d.dateDebutPrevue, {
-    message: 'La date de fin doit être postérieure ou égale à la date de début',
-    path: ['dateFinPrevue'],
   })
 
 type Step2FormData = z.infer<typeof step2Schema>
@@ -130,12 +123,6 @@ export default function PermitTravailEditPage() {
     reset({
       codeSite: permit.codeSite,
       descriptionTravaux: permit.descriptionTravaux,
-      dateDebutPrevue: permit.dateDebutPrevue
-        ? permit.dateDebutPrevue.split('T')[0]
-        : '',
-      dateFinPrevue: permit.dateFinPrevue
-        ? permit.dateFinPrevue.split('T')[0]
-        : '',
     })
     setEngagementChecked(permit.engagementAccepte ?? false)
     setLocalDocs(permit.documents ?? [])
@@ -205,8 +192,6 @@ export default function PermitTravailEditPage() {
     await updatePermit(permit.id, {
       codeSite: data.codeSite,
       descriptionTravaux: data.descriptionTravaux,
-      dateDebutPrevue: data.dateDebutPrevue,
-      dateFinPrevue: data.dateFinPrevue,
     })
     setStep(3)
   })
@@ -298,22 +283,9 @@ export default function PermitTravailEditPage() {
                 <p className="mt-1 text-xs text-red-600">{errors.descriptionTravaux.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Date de début prévue *"
-                type="date"
-                {...register('dateDebutPrevue')}
-                error={errors.dateDebutPrevue?.message}
-                disabled={!canEdit}
-              />
-              <Input
-                label="Date de fin prévue *"
-                type="date"
-                {...register('dateFinPrevue')}
-                error={errors.dateFinPrevue?.message}
-                disabled={!canEdit}
-              />
-            </div>
+            <p className="text-xs text-gray-500">
+              Les dates sont réelles et non saisissables : début à la validation du permis, fin à sa clôture effective.
+            </p>
           </div>
         )
 

@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { AlertTriangle, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
-import Checkbox from '@/components/ui/Checkbox'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 
@@ -12,7 +10,7 @@ interface CloturerModalProps {
   permitReference: string
   isCloturer: boolean
   onClose: () => void
-  onCloturer: (id: string, commentaire?: string, accordClient?: boolean) => Promise<unknown>
+  onCloturer: (id: string, commentaire?: string) => Promise<unknown>
   requiredDocumentTypes: TypeDocumentPermitTravail[]
   requiredDocumentsLoading?: boolean
   uploadedDocuments: DocumentPermitTravail[]
@@ -36,8 +34,6 @@ export default function CloturerModal({
   onToggleNotApplicable,
 }: CloturerModalProps) {
   const { t } = useTranslation()
-  const [accordClient, setAccordClient] = useState(false)
-
   const uploadedTypes = new Set(uploadedDocuments.map((d) => d.type))
   const missingTypes = requiredDocumentTypes.filter((type) => !uploadedTypes.has(type))
 
@@ -77,12 +73,6 @@ export default function CloturerModal({
               onToggleNotApplicable={onToggleNotApplicable}
             />
           </div>
-          <Checkbox
-            label={t('permitTravail.components.cloturerModal.accordClientLabel')}
-            checked={accordClient}
-            onChange={(e) => setAccordClient(e.target.checked)}
-            disabled={isCloturer}
-          />
         </div>
       }
       confirmLabel={t('permitTravail.components.cloturerModal.confirmLabel')}
@@ -91,7 +81,7 @@ export default function CloturerModal({
       confirmDisabled={requiredDocumentsLoading || missingTypes.length > 0}
       isSubmitting={isCloturer}
       onConfirm={async (commentaire) => {
-        await onCloturer(permitId, commentaire || undefined, accordClient)
+        await onCloturer(permitId, commentaire || undefined)
       }}
       errorMessage={t('permitTravail.components.cloturerModal.errorMessage')}
     />

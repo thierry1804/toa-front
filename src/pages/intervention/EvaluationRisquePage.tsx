@@ -147,9 +147,9 @@ export default function EvaluationRisquePage() {
                 label={t('intervention.pages.evaluationRisque.permitSummary.period')}
                 value={
                   <span>
-                    {new Date(permit.dateDebutPrevue).toLocaleDateString('fr-FR')}
+                    {permit.dateDebutPrevue ? new Date(permit.dateDebutPrevue).toLocaleDateString('fr-FR') : '—'}
                     {' → '}
-                    {new Date(permit.dateFinPrevue).toLocaleDateString('fr-FR')}
+                    {permit.dateFinPrevue ? new Date(permit.dateFinPrevue).toLocaleDateString('fr-FR') : '—'}
                   </span>
                 }
               />

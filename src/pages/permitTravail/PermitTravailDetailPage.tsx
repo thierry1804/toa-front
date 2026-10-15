@@ -160,17 +160,30 @@ export default function PermitTravailDetailPage() {
             <InfoRow label="Processus" value={PROCESSUS_LABELS[permit.processus]} />
             <InfoRow label="Code site" value={permit.codeSite} />
             <InfoRow label="Description travaux" value={permit.descriptionTravaux} />
+            {/* R-19 : dates réelles, non saisissables — début = validation, fin = clôture effective */}
             <InfoRow
-              label="Période"
+              label="Date de début réelle"
               value={
                 <span className="inline-flex items-center gap-2">
                   <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                  {new Date(permit.dateDebutPrevue).toLocaleDateString('fr-FR')}
-                  {' → '}
-                  {new Date(permit.dateFinPrevue).toLocaleDateString('fr-FR')}
+                  {permit.validatedAt ? new Date(permit.validatedAt).toLocaleDateString('fr-FR') : '—'}
                 </span>
               }
             />
+            <InfoRow
+              label="Date de fin réelle"
+              value={
+                clotureData?.dateClotureEffective
+                  ? new Date(clotureData.dateClotureEffective).toLocaleDateString('fr-FR')
+                  : '—'
+              }
+            />
+            {permit.dateFinPrevue && !['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
+              <InfoRow
+                label="Validité restante"
+                value={<ExpirationBadge expiresAt={permit.dateFinPrevue} />}
+              />
+            )}
             <InfoRow label="Statut" value={<StatutPermitBadge statut={permit.statut} />} />
             {permit.soumisAt && (
               <InfoRow
@@ -395,12 +408,6 @@ export default function PermitTravailDetailPage() {
                   </span>
                 }
               />
-              {latestDecision.decision === 'VALIDE' && (
-                <InfoRow
-                  label="Expiration"
-                  value={<ExpirationBadge decidedAt={latestDecision.decidedAt} typePermis={permit.typePermis} />}
-                />
-              )}
               {latestDecision.commentaire && (
                 <InfoRow
                   label={latestDecision.decision === 'REFUSE' ? 'Motif du refus' : 'Commentaire'}
@@ -484,19 +491,19 @@ export default function PermitTravailDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold text-gray-800">
               <Lock className="inline mr-2 h-4 w-4 text-gray-400" />
-              PV Environnement
+              Clôture du permis
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-3 text-sm text-gray-500">
-              Clôturer ce permis génère automatiquement un PV de réception et archive le dossier.
+              La demande de clôture est soumise à la validation du chef de projet TOA.
             </p>
             <Button
               className="bg-gray-800 text-white hover:bg-gray-900"
               onClick={() => setCloturerOpen(true)}
             >
               <Lock className="mr-2 h-4 w-4" />
-              PV Environnement
+              Soumettre la clôture
             </Button>
           </CardContent>
         </Card>

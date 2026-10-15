@@ -17,8 +17,8 @@ export function dayState(intervention: Intervention, permit: PermitTravail | und
   if (entry) return entry.pendingSync ? 'pending' : 'done'
   if (intervention.statut === 'TERMINEE' || (permit && ['CLOTURE', 'PV_VALIDE'].includes(permit.statut))) return 'closed'
   if (!permit) return 'unknown'
-  if (permit.dateDebutPrevue?.slice(0, 10) > today) return 'future'
-  if (permit.dateFinPrevue?.slice(0, 10) < today) return 'review'
+  if (permit.dateDebutPrevue && permit.dateDebutPrevue.slice(0, 10) > today) return 'future'
+  if (permit.dateFinPrevue && permit.dateFinPrevue.slice(0, 10) < today) return 'review'
   if (!['VALIDE', 'VALIDE_HSE', 'EN_COURS'].includes(permit.statut)) return 'prepare'
   if (!['EVALUATION_COMPLETE', 'EN_COURS'].includes(intervention.statut)) return 'prepare'
   return 'todo'
@@ -31,7 +31,7 @@ export function permitAction(permit: PermitTravail, today: string): 'draft' | 'c
   if (['VALIDE', 'VALIDE_HSE', 'EN_COURS'].includes(permit.statut)) {
     const tomorrow = new Date(`${today}T12:00:00`)
     tomorrow.setDate(tomorrow.getDate() + 1)
-    if (permit.dateFinPrevue?.slice(0, 10) <= localDay(tomorrow)) return 'expiry'
+    if (permit.dateFinPrevue && permit.dateFinPrevue.slice(0, 10) <= localDay(tomorrow)) return 'expiry'
   }
   return null
 }
