@@ -2206,8 +2206,11 @@
           "avancementError": "Valeur entre 0 et 100",
           "avancementMinError": "Ne peut pas être inférieur à l'avancement déjà enregistré ({{min}}%)",
           "avancementMinHint": "Ne peut pas descendre en dessous de {{min}}% (avancement déjà enregistré).",
-          "commentaire": "Commentaire",
-          "commentairePlaceholder": "Observations, remarques…",
+          "commentaire": "Étape des travaux",
+          "commentairePlaceholder": "Ex. : coulage, fouille… ou choisissez une étape ci-dessus",
+          "etapesExemples": "Exemples d'étapes",
+          "risquesTitle": "Questionnaire des risques",
+          "risquesIssue": "Complétez les quatre champs de chaque danger, et l'évaluation finale doit réduire le niveau de risque.",
           "cancel": "Annuler",
           "save": "Enregistrer"
         },

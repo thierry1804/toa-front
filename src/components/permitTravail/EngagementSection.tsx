@@ -28,6 +28,8 @@ interface EngagementSectionProps {
   evaluationExtra?: ReactNode
   /** Message d'erreur de validation du formulaire d'évaluation. */
   evaluationError?: string | null
+  /** Masque le bouton ENREGISTRER quand le formulaire hôte enregistre lui-même. */
+  hideSaveButton?: boolean
 }
 
 const getNiveauOptions = (
@@ -93,6 +95,7 @@ export default function EngagementSection({
   showCertification = true,
   evaluationExtra,
   evaluationError,
+  hideSaveButton = false,
 }: EngagementSectionProps) {
   const { t } = useTranslation()
   const readonly = statut !== undefined && statut !== 'BROUILLON'
@@ -212,6 +215,7 @@ export default function EngagementSection({
               Ajouter un danger
             </button>
 
+            {!hideSaveButton && (
             <div className="flex flex-col items-center gap-1">
               <button
                 type="button"
@@ -239,6 +243,7 @@ export default function EngagementSection({
                 </p>
               )}
             </div>
+            )}
           </div>
         )}
 

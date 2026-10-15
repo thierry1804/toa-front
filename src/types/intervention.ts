@@ -1,3 +1,5 @@
+import type { DangerEntry } from '@/types/permitTravail'
+
 export type StatutIntervention =
   | 'EN_PREPARATION'
   | 'EVALUATION_COMPLETE'
@@ -83,6 +85,8 @@ export interface SuiviJournalier {
   phasesAvancement?: PhaseAvancement[] | null
   dangersMaitrises?: boolean | null
   detailsDangers?: string | null
+  /** R-29 : questionnaire des risques, même format que celui du permis. */
+  evaluationRisques?: DangerEntry[] | null
 }
 
 export interface SuiviJournalierInput {
@@ -96,6 +100,7 @@ export interface SuiviJournalierInput {
   phasesAvancement?: PhaseAvancement[]
   dangersMaitrises?: boolean | null
   detailsDangers?: string | null
+  evaluationRisques?: DangerEntry[] | null
 }
 
 export interface SuiviJournalierUpdateInput {
@@ -107,6 +112,7 @@ export interface SuiviJournalierUpdateInput {
   phasesAvancement?: PhaseAvancement[]
   dangersMaitrises?: boolean | null
   detailsDangers?: string | null
+  evaluationRisques?: DangerEntry[] | null
 }
 
 export interface ControleJournalier {

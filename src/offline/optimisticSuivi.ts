@@ -115,6 +115,7 @@ export function buildOptimisticSuivi(
     phasesAvancement: data.phasesAvancement ?? [],
     dangersMaitrises: data.dangersMaitrises ?? null,
     detailsDangers: data.detailsDangers ?? null,
+    evaluationRisques: data.evaluationRisques ?? null,
     createdBy: {
       id: Number(user?.id ?? 0) || 0,
       name: user?.nom ?? data.nomResponsable,

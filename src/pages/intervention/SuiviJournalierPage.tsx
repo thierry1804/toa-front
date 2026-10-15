@@ -18,6 +18,8 @@ import Textarea from '@/components/ui/Textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import AvancementBadge from '@/components/intervention/AvancementBadge'
 import SuiviDocumentUploadZone from '@/components/intervention/SuiviDocumentUploadZone'
+import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
+import { getDangersFormIssue } from '@/features/permitTravail/utils/dangersEvaluation'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { useInterventionDetail } from '@/features/intervention/hooks/useIntervention'
 import { useInterventionSuivis, useSuiviJournalier } from '@/features/intervention/hooks/useIntervention'
@@ -41,6 +43,20 @@ function formatLongDate(dateStr: string, locale: string): string {
     day: 'numeric',
   })
 }
+
+// R-29 : exemples d'étapes pour faciliter la saisie
+const ETAPES_EXEMPLES = [
+  'Fouille',
+  'Terrassement',
+  'Ferraillage',
+  'Coffrage',
+  'Coulage',
+  'Remblaiement',
+  'Montage pylône',
+  'Installation des équipements',
+  'Tirage de câbles',
+  'Finitions',
+]
 
 interface FormState {
   nomResponsable: string
@@ -75,6 +91,9 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
   const [phases, setPhases] = useState<PhaseAvancement[]>(editingSuivi?.phasesAvancement ?? [])
   const [dangers, setDangers] = useState<boolean | null>(editingSuivi?.dangersMaitrises ?? null)
   const [dangerDetails, setDangerDetails] = useState(editingSuivi?.detailsDangers ?? "")
+  const [risques, setRisques] = useState<EvaluationData[]>(
+    editingSuivi?.evaluationRisques?.length ? editingSuivi.evaluationRisques : [emptyEvaluation()],
+  )
   const { t, i18n } = useTranslation()
   const currentUser = useAuthStore((s) => s.user)
   const connectedName = currentUser
@@ -117,7 +136,20 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
     set({ avancementPourcentage: isNaN(n) ? 0 : n })
   }
 
+  // Questionnaire facultatif : s'il est entamé, il doit être complet et cohérent.
+  const risquesRenseignes = risques.filter(
+    (e) => e.dangers.trim() || e.moyensMaitrise.trim() || e.evaluationPreliminaire || e.evaluationFinale,
+  )
+  const risquesIssue = risquesRenseignes.length > 0 ? getDangersFormIssue(risques) : null
+
+  const addEtape = (etape: string) => {
+    const current = form.commentaire.trim()
+    if (current.split(/,\s*/).includes(etape)) return
+    set({ commentaire: current ? `${current}, ${etape}` : etape })
+  }
+
   const canSubmit =
+    risquesIssue === null &&
     form.nomResponsable.trim().length > 0 &&
     (form.realise || form.motifNonRealisation.trim().length > 0) &&
     avancementError === '' &&
@@ -143,6 +175,7 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
           motifNonRealisation: form.realise ? null : form.motifNonRealisation,
           avancementPourcentage: form.avancementPourcentage,
           commentaire: form.commentaire || null,
+          evaluationRisques: risquesRenseignes.length > 0 ? risquesRenseignes : null,
         } satisfies SuiviJournalierUpdateInput,
         editingSuivi.id,
       )
@@ -156,6 +189,7 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
         motifNonRealisation: form.realise ? null : form.motifNonRealisation,
         avancementPourcentage: form.avancementPourcentage,
         commentaire: form.commentaire || null,
+        evaluationRisques: risquesRenseignes.length > 0 ? risquesRenseignes : null,
       } satisfies SuiviJournalierInput)
     }
   }
@@ -288,13 +322,41 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
           </>}
           <p className="text-sm text-gray-600">{t('terrain.photosAfterSave')}</p>
 
-          <Textarea
-            label={t('intervention.pages.suiviJournalier.form.commentaire')}
-            value={form.commentaire}
-            onChange={(e) => set({ commentaire: e.target.value })}
-            placeholder={t('intervention.pages.suiviJournalier.form.commentairePlaceholder')}
-            rows={3}
-          />
+          <div className="space-y-2">
+            <Textarea
+              label={t('intervention.pages.suiviJournalier.form.commentaire')}
+              value={form.commentaire}
+              onChange={(e) => set({ commentaire: e.target.value })}
+              placeholder={t('intervention.pages.suiviJournalier.form.commentairePlaceholder')}
+              rows={3}
+            />
+            <div className="flex flex-wrap items-center gap-2" aria-label={t('intervention.pages.suiviJournalier.form.etapesExemples')}>
+              {ETAPES_EXEMPLES.map((etape) => (
+                <button
+                  key={etape}
+                  type="button"
+                  onClick={() => addEtape(etape)}
+                  className="min-h-8 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:border-blue-400 hover:text-blue-700"
+                >
+                  {etape}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* R-29 : questionnaire des risques, au format de celui du permis */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">{t('intervention.pages.suiviJournalier.form.risquesTitle')}</h3>
+            <EngagementSection
+              checked={false}
+              onChange={() => {}}
+              evaluations={risques}
+              onEvaluationsChange={setRisques}
+              showCertification={false}
+              hideSaveButton
+              evaluationError={risquesIssue ? t('intervention.pages.suiviJournalier.form.risquesIssue') : null}
+            />
+          </div>
 
           {resolvedApiError && (
             <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

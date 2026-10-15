@@ -2206,8 +2206,11 @@
           "avancementError": "Ny sanda dia eo anelanelan'ny 0 sy 100",
           "avancementMinError": "Tsy azo ambany noho ny fandrosoana efa voarakitra ({{min}}%)",
           "avancementMinHint": "Tsy azo ambany noho ny {{min}}% (fandrosoana efa voarakitra).",
-          "commentaire": "Commentaire",
-          "commentairePlaceholder": "Fanamarihana, remarques…",
+          "commentaire": "Dingana amin'ny asa",
+          "commentairePlaceholder": "Ohatra : fanaromanana, fitrandrahana… na safidio dingana eo ambony",
+          "etapesExemples": "Ohatra dingana",
+          "risquesTitle": "Fanontaniana momba ny loza",
+          "risquesIssue": "Fenoy ny saha efatra amin'ny loza tsirairay, ary tsy maintsy mihena ny haavon'ny risika ny fanombanana farany.",
           "cancel": "Aoka",
           "save": "Tehirizo"
         },
