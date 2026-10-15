@@ -2211,6 +2211,7 @@
           "etapesExemples": "Ohatra dingana",
           "risquesTitle": "Hanondro loza",
           "facultatif": "tsy voatery",
+          "toComplete": "Mbola hofenoina : {{fields}}",
           "risquesIssue": "Fenoy ny saha efatra amin'ny loza tsirairay, ary tsy maintsy mihena ny haavon'ny risika ny fanombanana farany.",
           "cancel": "Aoka",
           "save": "Tehirizo"

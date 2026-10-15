@@ -30,7 +30,6 @@ import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
 import { useToday } from '@/features/terrain/useToday'
-import { useIsFieldAgent } from '@/features/terrain/useIsFieldAgent'
 import { clearSuiviDraft, readSuiviDraft, writeSuiviDraft } from '@/features/terrain/suiviDraft'
 import { PhaseProgressFields } from '@/features/terrain/PhaseProgressFields'
 import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
@@ -109,7 +108,6 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
   const minAvancement = priorSuivis[0]?.avancementPourcentage ?? 0
 
   const isEdit = !!editingSuivi
-  const isFieldAgent = useIsFieldAgent()
   const draft = editingSuivi ? null : readSuiviDraft(interventionIri, TODAY)
 
   const [form, setForm] = useState<FormState>(
@@ -170,6 +168,14 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
     if (current.split(/,\s*/).includes(etape)) return
     set({ commentaire: current ? `${current}, ${etape}` : etape })
   }
+
+  // Ce qui empêche d'enregistrer, dit à l'agent à côté du bouton plutôt qu'un bouton grisé muet.
+  const blockers: string[] = []
+  if (form.nomResponsable.trim().length === 0) blockers.push(t('intervention.pages.suiviJournalier.form.responsable'))
+  if (!form.realise && form.motifNonRealisation.trim().length === 0) blockers.push(t('intervention.pages.suiviJournalier.form.motif'))
+  if (avancementError !== '') blockers.push(t('intervention.pages.suiviJournalier.form.avancement'))
+  if (risquesIssue !== null) blockers.push(t('intervention.pages.suiviJournalier.form.risquesTitle'))
+  if (terrainEnabled && (dangers === null || (!dangers && dangerDetails.trim().length === 0))) blockers.push(t('terrain.hazardsQuestion'))
 
   const canSubmit =
     risquesIssue === null &&
@@ -429,18 +435,28 @@ function SuiviForm({ interventionIri, editingSuivi, suivis, onSave, onCancel, is
             </div>
           )}
 
-          <div
-            className={`sticky z-20 flex items-center justify-end gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm ${
-              isFieldAgent ? 'bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0' : 'bottom-0'
-            }`}
-          >
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving} className="min-h-12">
-              {t('intervention.pages.suiviJournalier.form.cancel')}
-            </Button>
-            <Button type="submit" disabled={!canSubmit} className="min-h-12 px-6">
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('intervention.pages.suiviJournalier.form.save')}
-            </Button>
+          {/* Actions en fin de formulaire, dans le flux : rien ne flotte au-dessus des champs. Mobile : un seul gros
+              bouton, « Annuler » discret dessous ; ordinateur : les deux boutons alignés à droite. */}
+          <div className="space-y-3 border-t border-gray-100 pt-5">
+            {blockers.length > 0 && (
+              <p role="status" className="text-sm text-amber-800">
+                {t('intervention.pages.suiviJournalier.form.toComplete', { fields: blockers.join(', ') })}
+              </p>
+            )}
+            <div className="flex flex-col items-stretch gap-1 lg:flex-row-reverse lg:items-center lg:justify-start lg:gap-3">
+              <Button type="submit" disabled={!canSubmit} className="min-h-12 w-full text-base lg:w-auto lg:px-8">
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t('intervention.pages.suiviJournalier.form.save')}
+              </Button>
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isSaving}
+                className="min-h-11 rounded-lg px-4 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 lg:border lg:border-gray-300 lg:bg-white lg:text-gray-700"
+              >
+                {t('intervention.pages.suiviJournalier.form.cancel')}
+              </button>
+            </div>
           </div>
         </form>
       </CardContent>

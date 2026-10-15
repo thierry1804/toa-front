@@ -2211,6 +2211,7 @@
           "etapesExemples": "Exemples d'étapes",
           "risquesTitle": "Signaler un danger",
           "facultatif": "facultatif",
+          "toComplete": "À compléter : {{fields}}",
           "risquesIssue": "Complétez les quatre champs de chaque danger, et l'évaluation finale doit réduire le niveau de risque.",
           "cancel": "Annuler",
           "save": "Enregistrer"
