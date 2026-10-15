@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileDown, FileText, MapPin, Users, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardCheck, ClipboardList, Eye, FileText, ShieldCheck, ShieldX, Lock, AlertTriangle, CheckCircle, XCircle, Pencil, RefreshCw } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { InfoItem, InfoList } from '@/components/ui/InfoList'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { useUiStore } from '@/store/ui.store'
 import Button from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import ExpirationBadge from '@/components/permitTravail/ExpirationBadge'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
@@ -178,14 +178,8 @@ export default function PermitTravailDetailPage() {
       />
 
       {/* Informations générales */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-gray-800">
-            <MapPin className="inline mr-2 h-4 w-4 text-gray-400" />
-            Informations travaux
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CollapsibleSection title="Informations travaux" defaultOpen>
+<div>
           <InfoList>
             <InfoRow label="Référence" value={<span className="font-mono font-semibold text-blue-700">{permit.reference}</span>} />
             {permit.permisOrigineId && (
@@ -256,15 +250,12 @@ export default function PermitTravailDetailPage() {
               />
             )}
           </InfoList>
-        </CardContent>
-      </Card>
+        </div>
+      </CollapsibleSection>
 
       {/* Évaluation des risques */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-gray-800">Évaluation des risques</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CollapsibleSection title="Évaluation des risques">
+<div>
           <div className="space-y-3">
             {(!permit.dangers || permit.dangers.length === 0) && (
               <p className="text-sm italic text-gray-400">Aucun danger évalué.</p>
@@ -325,19 +316,13 @@ export default function PermitTravailDetailPage() {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CollapsibleSection>
 
       {/* Groupe (NOUVEAU_SITE) */}
       {companionPermit && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <Users className="inline mr-2 h-4 w-4 text-gray-400" />
-              Permis associé (Nouveau site)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Permis associé (Nouveau site)">
+<div>
             <div className="flex items-center gap-4">
               <span className="font-mono text-sm font-semibold text-blue-700">{companionPermit.reference}</span>
               <span className="text-sm text-gray-600">{TYPE_PERMIT_LABELS[companionPermit.typePermis]}</span>
@@ -350,19 +335,13 @@ export default function PermitTravailDetailPage() {
                 Voir
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Documents */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-gray-800">
-            <FileText className="inline mr-2 h-4 w-4 text-gray-400" />
-            Documents
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CollapsibleSection title="Documents" summary={`${permit.documents.filter((d) => !d.nonApplicable).length} document(s) joint(s)`}>
+<div>
           <PermitDocumentUploadZone
             permitId={permit.id}
             documentTypes={[...docTypes, ...clotureDocTypes]}
@@ -371,19 +350,13 @@ export default function PermitTravailDetailPage() {
             disabled={true}
             allowDownload={true}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </CollapsibleSection>
 
       {/* Actions HSE */}
       {permit.statut === 'SOUMIS' && (canValider || canRefuser) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <ShieldCheck className="inline mr-2 h-4 w-4 text-gray-400" />
-              Actions HSE
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Actions HSE" defaultOpen>
+<div>
             <div className="flex items-center gap-3">
               {canValider && (
                 <Button onClick={() => setValiderOpen(true)}>
@@ -398,24 +371,14 @@ export default function PermitTravailDetailPage() {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Décision HSE */}
       {latestDecision && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              {latestDecision.decision === 'VALIDE' ? (
-                <ShieldCheck className="inline mr-2 h-4 w-4 text-green-500" />
-              ) : (
-                <ShieldX className="inline mr-2 h-4 w-4 text-red-500" />
-              )}
-              Décision HSE
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Décision HSE" defaultOpen>
+<div>
             <InfoList>
               <InfoRow
                 label="Décision"
@@ -465,20 +428,14 @@ export default function PermitTravailDetailPage() {
                 />
               )}
             </InfoList>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Évaluation des risques */}
       {permit.statut === 'VALIDE_HSE' && (canStartIntervention || canViewIntervention) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <ClipboardList className="inline mr-2 h-4 w-4 text-gray-400" />
-              Évaluation des risques avant intervention
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Évaluation des risques avant intervention">
+<div>
             {permit.interventionId ? (
               <div className="flex items-center gap-3">
                 <Button
@@ -508,35 +465,23 @@ export default function PermitTravailDetailPage() {
                 </span>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* PDF officiel */}
       {permit.statut === 'VALIDE_HSE' && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <FileDown className="inline mr-2 h-4 w-4 text-gray-400" />
-              Document officiel PDF
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Document officiel PDF">
+<div>
             <PermitTravailPdfButton permitId={permit.id} permitStatut={permit.statut} />
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Clôturer */}
       {(permit.statut === 'VALIDE_HSE' || permit.statut === 'EN_COURS') && canCloturer && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <Lock className="inline mr-2 h-4 w-4 text-gray-400" />
-              Clôture du permis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <CollapsibleSection title="Clôture du permis" defaultOpen>
+<div>
             <p className="mb-3 text-sm text-gray-500">
               La demande de clôture est soumise à la validation du chef de projet TOA.
             </p>
@@ -547,20 +492,14 @@ export default function PermitTravailDetailPage() {
               <Lock className="mr-2 h-4 w-4" />
               Soumettre la clôture
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Section CLOTURE / PV */}
       {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <Lock className="inline mr-2 h-4 w-4 text-gray-800" />
-              Permis clôturé
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <CollapsibleSection title="Permis clôturé" defaultOpen>
+<div className="space-y-4">
             {clotureData?.typeCloture === 'AUTOMATIQUE' && (
               <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
@@ -624,20 +563,14 @@ export default function PermitTravailDetailPage() {
               <p className="mb-2 text-xs font-medium text-gray-500">PV de réception</p>
               <PvReceptionButton permitId={permit.id} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Validation PV — Chef de Projet */}
       {['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (canValiderPv || canRefuserPv || !!latestPvDecision) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-800">
-              <ClipboardCheck className="inline mr-2 h-4 w-4 text-gray-400" />
-              Validation PV — Chef de Projet
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <CollapsibleSection title="Validation PV — Chef de Projet" defaultOpen>
+<div className="space-y-4">
             {permit.statut === 'CLOTURE' && (canValiderPv || canRefuserPv) && (
               <div className="flex items-center gap-3">
                 {canValiderPv && (
@@ -716,8 +649,8 @@ export default function PermitTravailDetailPage() {
                 <p className="text-sm text-gray-500">En attente de validation par le Chef de Projet.</p>
               )
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </CollapsibleSection>
       )}
 
       <ValiderPermitModal

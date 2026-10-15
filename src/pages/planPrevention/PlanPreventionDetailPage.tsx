@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { InfoItem, InfoList } from "@/components/ui/InfoList";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import Button from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+
 import PlanReference from "@/components/planPrevention/PlanReference";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
@@ -56,20 +57,19 @@ const STATUTS_EXAMINABLES = ["SOUMIS", "EN_COURS_DE_VALIDATION"] as const;
 
 function SectionCard({
   title,
+  summary,
+  defaultOpen,
   children,
 }: {
   title: string;
+  summary?: string;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-gray-800">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+    <CollapsibleSection title={title} summary={summary} defaultOpen={defaultOpen}>
+      {children}
+    </CollapsibleSection>
   );
 }
 
@@ -272,7 +272,7 @@ export default function PlanPreventionDetailPage() {
       )}
 
       {/* 1. Informations générales */}
-      <SectionCard title={t("planPrevention.detail.sections.generalInfo")}>
+      <SectionCard title={t("planPrevention.detail.sections.generalInfo")} defaultOpen>
         <div className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
             <PlanReference reference={plan.reference} />
@@ -337,7 +337,11 @@ export default function PlanPreventionDetailPage() {
       </SectionCard>
 
       {/* 2. Modes opératoires (risques masqués par défaut, cf. bloc dépliable ci-dessous) */}
-      <SectionCard title="Modes opératoires">
+      <SectionCard
+        title="Modes opératoires"
+        defaultOpen
+        summary={`${planSections(plan).length} phase${planSections(plan).length > 1 ? "s" : ""}`}
+      >
         {planSections(plan).length === 0 ? (
           <p className="text-sm text-gray-400 italic">Aucun mode opératoire renseigné.</p>
         ) : (
@@ -396,7 +400,8 @@ export default function PlanPreventionDetailPage() {
           : rawPlanifSites;
         return (
           <SectionCard
-            title={`Sites concernés${planifSites.length > 0 ? ` (${planifSites.length})` : ''}`}
+            title="Sites concernés"
+            summary={`${planifSites.length} site${planifSites.length > 1 ? "s" : ""}`}
           >
             {planifSites.length === 0 ? (
               <p className="text-sm text-gray-400 italic">Aucun site renseigné.</p>
@@ -434,7 +439,10 @@ export default function PlanPreventionDetailPage() {
 
       {/* 4. Installations & Équipements — only for "Nouveau site" */}
       {plan.typeIntervention === "Nouveau site" && (
-        <SectionCard title="Installations & Équipements">
+        <SectionCard
+          title="Installations & Équipements"
+          summary={`${(plan.installations ?? []).length} installation(s) · ${(plan.equipements ?? []).length} équipement(s)`}
+        >
           <div className="space-y-6">
             <div>
               <p className="mb-2 text-sm font-medium text-gray-600">
@@ -467,7 +475,10 @@ export default function PlanPreventionDetailPage() {
       )}
 
       {/* 5. Documents requis */}
-      <SectionCard title={t("planPrevention.detail.sections.documents")}>
+      <SectionCard
+        title={t("planPrevention.detail.sections.documents")}
+        summary={`${new Set((plan.documents ?? []).map((d) => d.type)).size} / ${ALL_DOCUMENT_TYPES.length} types joints`}
+      >
         <div className="space-y-3">
           {ALL_DOCUMENT_TYPES.map((type) => (
             <DocumentTypeRow
@@ -501,7 +512,10 @@ export default function PlanPreventionDetailPage() {
       </SectionCard>
 
       {/* 6. Historique des examens */}
-      <SectionCard title={t("planPrevention.detail.sections.examenHistory")}>
+      <SectionCard
+        title={t("planPrevention.detail.sections.examenHistory")}
+        summary={`${plan.examens?.length ?? 0} examen(s)`}
+      >
         {(plan.examens?.length ?? 0) === 0 ? (
           <p className="text-sm text-gray-400 italic">
             {t("planPrevention.detail.noExamens")}
@@ -534,7 +548,10 @@ export default function PlanPreventionDetailPage() {
       </SectionCard>
 
       {/* 7. Historique des décisions HSE */}
-      <SectionCard title={t("planPrevention.detail.sections.hseHistory")}>
+      <SectionCard
+        title={t("planPrevention.detail.sections.hseHistory")}
+        summary={`${plan.decisionsHse?.length ?? 0} décision(s)`}
+      >
         {(plan.decisionsHse?.length ?? 0) === 0 ? (
           <p className="text-sm text-gray-400 italic">
             {t("planPrevention.detail.noDecisions")}
@@ -573,7 +590,7 @@ export default function PlanPreventionDetailPage() {
       </SectionCard>
 
       {/* R-13 : permis associés au plan */}
-      <SectionCard title={`Permis associés (${planPermits.length})`}>
+      <SectionCard title="Permis associés" defaultOpen={planPermits.length > 0} summary={`${planPermits.length} permis`}>
         {isLoadingPermits ? (
           <p className="text-sm text-gray-500">Chargement…</p>
         ) : planPermits.length === 0 ? (
