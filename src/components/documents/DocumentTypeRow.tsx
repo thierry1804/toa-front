@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle, XCircle, Eye, Clock, Trash2, Loader2 } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, Trash2, Loader2 } from 'lucide-react'
+import { PressableCard } from '@/components/ui/PressableCard'
 import CaptureButtons, { type CapturedFile } from '@/components/documents/CaptureButtons'
 import DocumentThumb from '@/components/documents/DocumentThumb'
 import { isOfflineQueued } from '@/offline/offlineError'
@@ -178,45 +179,42 @@ export default function DocumentTypeRow({
           {photos.map((doc) => {
             const when = formatCapturedAt(doc.capturedAt, doc.uploadedAt)
             return (
-              <li key={doc.id} className="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-2 py-1.5">
-                <button
-                  type="button"
-                  onClick={() => onView(doc)}
-                  className="flex-shrink-0 cursor-pointer"
-                  title={t('documents.view')}
+              <li key={doc.id} className="sm:col-span-1">
+                {/* Toute la ligne ouvre le document (plus de bouton « Voir ») ; les boutons Télécharger et Supprimer
+                    restent sur leur propre ligne d'actions, sans ouvrir le document. */}
+                <PressableCard
+                  onOpen={() => onView(doc)}
+                  label={`${t('documents.view')} — ${label}`}
+                  chevron={false}
+                  className="items-start gap-3 rounded-md p-2.5"
                 >
-                  <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} />
-                </button>
-                <div className="min-w-0 flex-1">
-                  {when && (
-                    <p className="truncate text-xs text-gray-600">{t('documents.capturedAt', { date: when })}</p>
-                  )}
-                  {showConsulted && (
-                    <p className={`text-xs ${doc.consultedAt ? 'text-green-600' : 'text-amber-600'}`}>
-                      {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onView(doc)}
-                  className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                  {t('documents.view')}
-                </button>
-                {renderExtra?.(doc)}
-                {!disabled && onDelete && (
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(doc.id)}
-                    disabled={busyId === doc.id}
-                    title={t('documents.delete')}
-                    className="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                  >
-                    {busyId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                  </button>
-                )}
+                  <div className="flex items-start gap-3">
+                    <DocumentThumb mimeType={doc.mimeType} loadBlob={() => loadBlob(doc.id)} sizeClass="h-16 w-16" />
+                    <div className="min-w-0 flex-1">
+                      {when && <p className="text-sm text-gray-700">{t('documents.capturedAt', { date: when })}</p>}
+                      {showConsulted && (
+                        <p className={`text-xs ${doc.consultedAt ? 'text-green-600' : 'text-amber-600'}`}>
+                          {doc.consultedAt ? t('documents.consulted') : t('documents.notConsulted')}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {renderExtra?.(doc)}
+                        {!disabled && onDelete && (
+                          <button
+                            type="button"
+                            onClick={() => void handleDelete(doc.id)}
+                            disabled={busyId === doc.id}
+                            title={t('documents.delete')}
+                            aria-label={t('documents.delete')}
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 sm:h-9 sm:w-9"
+                          >
+                            {busyId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </PressableCard>
               </li>
             )
           })}

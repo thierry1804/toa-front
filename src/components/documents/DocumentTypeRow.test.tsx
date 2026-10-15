@@ -42,6 +42,28 @@ describe('DocumentTypeRow', () => {
     expect(na.container.querySelectorAll('input[type="file"]').length).toBe(0)
   })
 
+  it('opens the document when its row is touched, with no separate "view" button', async () => {
+    const onView = vi.fn()
+    const { container } = await render(<DocumentTypeRow {...baseProps} onView={onView} docs={[doc('1')]} />)
+
+    expect([...container.querySelectorAll('button')].some((b) => b.textContent?.includes('documents.view'))).toBe(false)
+    await click(container.querySelector('[role="link"]')!)
+    expect(onView).toHaveBeenCalledWith(expect.objectContaining({ id: '1' }))
+  })
+
+  it('keeps the extra action (download) and the delete button from opening the document', async () => {
+    const onView = vi.fn()
+    const onDelete = vi.fn().mockResolvedValue(undefined)
+    const { container } = await render(
+      <DocumentTypeRow {...baseProps} onView={onView} onDelete={onDelete} docs={[doc('1')]} renderExtra={() => <button type="button">Télécharger</button>} />,
+    )
+
+    await click([...container.querySelectorAll('button')].find((b) => b.textContent === 'Télécharger')!)
+    await click(container.querySelector('button[title="documents.delete"]')!)
+    expect(onView).not.toHaveBeenCalled()
+    expect(onDelete).toHaveBeenCalledWith('1')
+  })
+
   it('deletes a photo and re-enables the button afterwards', async () => {
     const onDelete = vi.fn().mockResolvedValue(undefined)
     const { container } = await render(<DocumentTypeRow {...baseProps} docs={[doc('1')]} onDelete={onDelete} />)

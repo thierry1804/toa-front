@@ -4,9 +4,11 @@ import { FileText } from 'lucide-react'
 interface DocumentThumbProps {
   mimeType: string
   loadBlob: () => Promise<Blob>
+  /** Classes de taille (défaut : 48 px). */
+  sizeClass?: string
 }
 
-export default function DocumentThumb({ mimeType, loadBlob }: DocumentThumbProps) {
+export default function DocumentThumb({ mimeType, loadBlob, sizeClass = 'h-12 w-12' }: DocumentThumbProps) {
   const [src, setSrc] = useState<string | null>(null)
   const isImage = mimeType.startsWith('image/')
 
@@ -31,10 +33,10 @@ export default function DocumentThumb({ mimeType, loadBlob }: DocumentThumbProps
   }, [isImage])
 
   if (isImage && src) {
-    return <img src={src} alt="" className="h-12 w-12 flex-shrink-0 rounded object-cover" />
+    return <img src={src} alt="" className={`${sizeClass} flex-shrink-0 rounded-md object-cover`} />
   }
   return (
-    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded bg-gray-100">
+    <div className={`flex ${sizeClass} flex-shrink-0 items-center justify-center rounded-md bg-gray-100`}>
       <FileText className="h-5 w-5 text-gray-400" />
     </div>
   )

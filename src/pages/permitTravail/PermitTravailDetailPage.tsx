@@ -214,7 +214,7 @@ export default function PermitTravailDetailPage() {
                   : '—'
               }
             />
-            {permit.dateFinPrevue && !['CLOTURE', 'PV_VALIDE', 'PV_REFUSE'].includes(permit.statut) && (
+            {permit.dateFinPrevue && ['VALIDE_HSE', 'EN_COURS', 'VALIDE'].includes(permit.statut) && (
               <InfoRow
                 label="Validité restante"
                 value={<ExpirationBadge expiresAt={permit.dateFinPrevue} />}
