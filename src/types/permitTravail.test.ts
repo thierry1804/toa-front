@@ -7,11 +7,12 @@ import {
 } from './permitTravail'
 
 describe('permit document requirements', () => {
-  it('requires before/after photos at closure for every process', () => {
+  it('requires the before-works photo, and no after-works photo, at closure for every process (R-26)', () => {
     for (const plan of ['Nouveau site', 'Maintenance']) {
       const types = getRequiredClotureDocumentTypes(plan)
       expect(types).toContain('PHOTO_AVANT_TRAVAUX')
-      expect(types).toContain('PHOTO_APRES_TRAVAUX')
+      expect(types).not.toContain('PHOTO_APRES_TRAVAUX')
+      expect(types).not.toContain('PV_FIN_TRAVAUX')
     }
   })
 
@@ -55,7 +56,7 @@ describe('resolveDocumentRequirements', () => {
     const resolved = resolveDocumentRequirements(permit, undefined)
     expect(resolved.apnApi).toBe(false)
     expect(resolved.soumission).toContain('PHOTO_EQUIPEMENTS_ISOLANTS')
-    expect(resolved.cloture).toContain('PHOTO_APRES_TRAVAUX')
+    expect(resolved.cloture).toContain('PHOTO_AVANT_TRAVAUX')
     expect(resolved.cloture).not.toContain('ENV_ENLEVEMENT_DECHETS')
   })
 })

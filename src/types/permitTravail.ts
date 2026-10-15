@@ -207,7 +207,6 @@ export function getRequiredClotureDocumentTypes(
   return [
     ...CLOTURE_DOCUMENT_MATRIX[bucket],
     'PHOTO_AVANT_TRAVAUX',
-    'PHOTO_APRES_TRAVAUX',
     ...(apnApi && typePermis === 'GENERAL' ? ENV_DOCUMENT_MATRIX[bucket].fin : []),
   ]
 }
