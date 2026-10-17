@@ -10,7 +10,7 @@ import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import StatutPermitBadge from '@/components/permitTravail/StatutPermitBadge'
 import SuiviDocumentUploadZone from '@/components/intervention/SuiviDocumentUploadZone'
 import { usePlanPreventionDetail } from '@/features/planPrevention/hooks/usePlanPrevention'
-import { usePermission } from '@/features/auth/usePermission'
+import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useTerrainData } from '@/features/terrain/useTerrainData'
 import { chantierKey, dayState } from '@/features/terrain/model'
 import { useToday } from '@/features/terrain/useToday'
@@ -21,7 +21,7 @@ export default function ChantierNotebookPage() {
   const { t, i18n } = useTranslation()
   const data = useTerrainData()
   const today = useToday()
-  const canCreate = usePermission('suivi_journalier.create')
+  const canCreate = usePermissions('/interventions/suivis')?.canCreate ?? false
   const anchor = data.interventions.find((i) => i.id === id)
   const permit = anchor && data.permitMap.get(anchor.permitTravailId)
   const { data: plan, isLoading: loadingPlan, isError: planError, refetch: refetchPlan } = usePlanPreventionDetail(permit?.planPreventionId ?? '')

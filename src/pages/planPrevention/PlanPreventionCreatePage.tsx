@@ -201,14 +201,15 @@ export default function PlanPreventionCreatePage({
   );
 
   const perms = usePermissions("/prevention");
-  // In edit mode the prestataire is correcting their own refused plan —
-  // authorization is enforced by the backend RESOUMETTRE voter, not menu permissions.
-  // In create mode, can_edit is irrelevant — gate on can_create (PRESTATAIRE has create but not edit).
+  // Création et modification suivent la matrice admin. Le prestataire n'a que
+  // « créer » : cela couvre aussi la correction de son brouillon.
   const menuLoaded = useMenuStore((s) => s.loaded);
-  const canEdit = isEditMode ? true : (perms?.canCreate ?? false);
-  const canSubmit = isEditMode ? true : (perms?.canCreate ?? false);
-  const permsLoading = !isEditMode && perms === null && !menuLoaded;
-  const permsDenied = !isEditMode && !permsLoading && !perms?.canCreate;
+  const canCreate = perms?.canCreate ?? false;
+  const canModify = canCreate || (perms?.canEdit ?? false);
+  const canEdit = canModify;
+  const canSubmit = canCreate;
+  const permsLoading = perms === null && !menuLoaded;
+  const permsDenied = !permsLoading && (isEditMode ? !canModify : !canCreate);
 
   const {
     createPlan,

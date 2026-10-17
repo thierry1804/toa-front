@@ -26,7 +26,7 @@ import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { useInterventionDetail } from '@/features/intervention/hooks/useIntervention'
 import { useInterventionSuivis, useSuiviJournalier } from '@/features/intervention/hooks/useIntervention'
 import { usePermitTravailDetail } from '@/features/permitTravail/hooks/usePermitTravail'
-import { usePermission } from '@/features/auth/usePermission'
+import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { isOfflineQueued } from '@/offline/offlineError'
 import type { SuiviJournalier, SuiviJournalierInput, SuiviJournalierUpdateInput } from '@/types/intervention'
 
@@ -497,9 +497,10 @@ export default function SuiviJournalierPage() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
 
-  const canCreate = usePermission('suivi_journalier.create')
-  const canEdit = usePermission('suivi_journalier.edit')
-  const canDeleteDoc = usePermission('suivi_journalier.delete_document')
+  const suiviPerms = usePermissions('/interventions/suivis')
+  const canCreate = suiviPerms?.canCreate ?? false
+  const canEdit = suiviPerms?.canEdit ?? false
+  const canDeleteDoc = canEdit
 
   const { data: intervention, isLoading: loadingIntervention } = useInterventionDetail(id ?? '')
   const { data: permit, isLoading: loadingPermit } = usePermitTravailDetail(

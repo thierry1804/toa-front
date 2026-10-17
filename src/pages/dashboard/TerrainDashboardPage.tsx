@@ -8,6 +8,7 @@ import { ClickableCard } from '@/components/ui/ClickableCard'
 import Badge from '@/components/ui/Badge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { usePermission } from '@/features/auth/usePermission'
+import { usePermissions } from '@/features/menus/hooks/usePermissions'
 import { useTerrainData } from '@/features/terrain/useTerrainData'
 import { dayState, groupTasks, permitClosureNote, taskTarget, type DayState } from '@/features/terrain/model'
 import { useToday } from '@/features/terrain/useToday'
@@ -46,7 +47,7 @@ function Progress({ value }: { value: number }) {
 
 function TaskCard({ row, today }: { row: TaskRow; today: string }) {
   const { t, i18n } = useTranslation()
-  const canCreate = usePermission('suivi_journalier.create')
+  const canCreate = usePermissions('/interventions/suivis')?.canCreate ?? false
   const canViewSuivi = usePermission('suivi_journalier.view')
   const { intervention, permit, suivis, state } = row
   const embedded = typeof intervention.permitTravail === 'object' ? intervention.permitTravail : null

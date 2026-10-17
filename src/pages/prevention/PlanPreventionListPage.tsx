@@ -86,12 +86,14 @@ function PlanPdfCell({ planId }: { planId: string }) {
 function PlanRow({
   plan,
   canResoumettre,
+  canModify,
   isOwnPlan,
   isPrestataire,
   showWorkflowColumns,
 }: {
   plan: PlanPrevention
   canResoumettre: boolean
+  canModify: boolean
   isOwnPlan: boolean
   isPrestataire: boolean
   showWorkflowColumns: boolean
@@ -106,7 +108,7 @@ function PlanRow({
     hasRefusDecision &&
     canResoumettre
   const isEditable =
-    isOwnPlan && isPrestataire && plan.statut === 'BROUILLON' && !hasRefusDecision
+    canModify && isOwnPlan && plan.statut === 'BROUILLON' && !hasRefusDecision
   const latestExamen = plan.examens?.at(-1)
 
   return (
@@ -177,6 +179,7 @@ export default function PlanPreventionListPage() {
   const { t } = useTranslation()
   const perms = usePermissions('/prevention')
   const canCreate = perms?.canCreate ?? false
+  const canModify = canCreate || (perms?.canEdit ?? false)
   const canExamine = usePermission('plan_prevention.examine')
   const canValiderHse = usePermission('plan_prevention.valider_hse')
   const canRefuserHse = usePermission('plan_prevention.refuser_hse')
@@ -380,6 +383,7 @@ export default function PlanPreventionListPage() {
                         key={plan.id}
                         plan={plan}
                         canResoumettre={canResoumettre}
+                        canModify={canModify}
                         isOwnPlan={!!currentUserId && String(plan.createdBy.id) === currentUserId}
                         isPrestataire={isPrestataire}
                         showWorkflowColumns={showWorkflowColumns}
