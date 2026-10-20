@@ -1,16 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
-  usePermission,
-  useHasPermissions,
-} from "@/features/auth/usePermission";
-import {
   useUser,
   useCreateUser,
   useUpdateUser,
   useUploadSignature,
 } from "@/features/users/hooks/useUsers";
 import { usersApi } from "@/api/usersApi";
+import { usePermissions } from "@/features/menus/hooks/usePermissions";
+import { useMenuStore } from "@/store/menu.store";
 import { useUiStore } from "@/store/ui.store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -58,9 +56,13 @@ const PROPERTY_TO_FIELD: Record<string, string> = {
 export default function UserFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const canEditUsers = usePermission("edit_users");
-  const canCreateUsers = usePermission("create_users");
-  const hasPermissions = useHasPermissions();
+  // Aligné sur UsersListPage / UserVoter : droits menu /users (canCreate/canEdit).
+  // Les clés create_users/edit_users n'existent pas côté API role_action.
+  const perms = usePermissions("/users");
+  const menuLoaded = useMenuStore((s) => s.loaded);
+  const canCreateUsers = perms?.canCreate ?? false;
+  const canEditUsers = perms?.canEdit ?? false;
+  const permsLoading = perms === null && !menuLoaded;
   const { t } = useTranslation();
   const addToast = useUiStore((s) => s.addToast);
   const { data: existingUser } = useUser(id ? Number(id) : 0);
@@ -205,7 +207,8 @@ export default function UserFormPage() {
   }, [existingUser]);
 
   useEffect(() => {
-    if (hasPermissions && !(isEditMode ? canEditUsers : canCreateUsers)) {
+    if (permsLoading) return;
+    if (!(isEditMode ? canEditUsers : canCreateUsers)) {
       navigate("/users");
       addToast({ message: t("users.toast.permissionDenied"), type: "error" });
     }
@@ -215,7 +218,7 @@ export default function UserFormPage() {
     addToast,
     canEditUsers,
     canCreateUsers,
-    hasPermissions,
+    permsLoading,
     t,
   ]);
 
