@@ -114,6 +114,7 @@ function PermitTravailCreateForm() {
     setDocumentNonApplicable,
     soumettrePermit,
     isCreating,
+    isUpdating,
     isSubmitting,
   } = usePermitTravail()
 
@@ -159,13 +160,14 @@ function PermitTravailCreateForm() {
   const isNouveauSite = selectedPlan?.typeIntervention === 'Nouveau site'
   const generalPermitId = selectedPlan?.permitGeneralId ?? null
   const generalRequisAvant = isNouveauSite && !generalPermitId
-  const generalObligatoireAutres = !!selectedPlan && !isNouveauSite && !generalPermitId && typePermis !== 'GENERAL'
+  // Hors Nouveau site : les 3 types sont toujours proposés, sans attendre qu'un
+  // autre permis du même site soit validé. Nouveau site garde Général → binôme.
 
-  const typePermisOptions: TypePermit[] = generalPermitId
-    ? ['ELECTRIQUE', 'HAUTEUR']
-    : isNouveauSite
-      ? ['GENERAL']
-      : ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
+  const typePermisOptions: TypePermit[] = isNouveauSite
+    ? generalPermitId
+      ? ['ELECTRIQUE', 'HAUTEUR']
+      : ['GENERAL']
+    : ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
 
   const matchingCatNames = useMemo(
     () => new Set(allCategories.filter((c) => c.typePermis === typePermis).map((c) => c.nom)),
@@ -277,51 +279,93 @@ function PermitTravailCreateForm() {
   const nonEmptyEvaluations = (list: EvaluationData[]) =>
     list.filter((e) => e.dangers || e.moyensMaitrise || e.evaluationPreliminaire || e.evaluationFinale)
 
+  const isPending = isCreating || isUpdating || isSubmitting
+  const apnApi = requis?.apnApi ?? false
+  const mainDocTypes = permit
+    ? (requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus, apnApi))
+    : []
+  const companionPermit = permit?.permitsGroupe?.[0]
+  const companionDocTypes = companionPermit
+    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE', apnApi)
+    : []
+  const mainMissingDocTypes = permit
+    ? getMissingDocumentTypes(mainDocTypes, permit.documents)
+    : []
+  const companionMissingDocTypes = companionPermit
+    ? getMissingDocumentTypes(companionDocTypes, companionDocs)
+    : []
+  const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0
+  const dangersIssue = dangersMaitrises === 'non' ? getDangersFormIssue(evaluations) : null
+  const canSoumettre =
+    engagementChecked && !hasMissingDocuments && !requisLoading && dangersMaitrises !== null && dangersIssue === null
+  const submitBlockerHint = !engagementChecked
+    ? 'Cochez l\'engagement (étape Documents) avant d\'enregistrer.'
+    : hasMissingDocuments
+      ? 'Joignez tous les documents obligatoires avant d\'enregistrer.'
+      : requisLoading
+        ? 'Vérification des documents en cours…'
+        : dangersMaitrises === null
+          ? 'Répondez à la question « Les dangers sont-ils efficacement maîtrisés ? ».'
+          : dangersIssue !== null
+            ? 'Complétez le formulaire d\'évaluation des dangers.'
+            : null
+  const isGeneralNouveauSiteSansBinome =
+    permit?.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionPermit
+
   const handleSoumettre = async () => {
     if (!permit) return
-    // R-22 : « Oui » → aucune saisie complémentaire ; « Non » → formulaire d'évaluation renseigné.
-    const dangers = dangersMaitrises === 'non' ? nonEmptyEvaluations(evaluations) : []
-    await updatePermit(permit.id, {
-      engagementAccepte: true,
-      dangers: dangers.length > 0 ? dangers : null,
-    })
-
-    const companionId = permit.permitsGroupe?.[0]?.id
-
-    // Nouveau site : le permis Général seul ne peut pas être soumis tant que
-    // son binôme (Électrique/Hauteur) n'existe pas — le backend refuse avec
-    // "deux_permis_requis". On enregistre l'engagement et on enchaîne sur la
-    // création du second permis SANS naviguer : /permits-travail/new est déjà
-    // la route courante, donc react-router ne remonte pas le composant sur un
-    // simple changement de query string — le state du wizard resterait figé.
-    // On réinitialise l'état localement à la place, en gardant le site et le
-    // plan déjà sélectionnés, et on invalide le cache "plans par site" pour
-    // que permitGeneralId reflète le Général qu'on vient de créer.
-    if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
-      const generalDocuments = permit.documents
-      addToast({
-        message: 'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur.',
-        type: 'info',
-      })
-      await queryClient.invalidateQueries({
-        queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
-      })
-      resetPermitDraftState()
-      setCompanionDocs(generalDocuments)
-      setTypePermis('ELECTRIQUE')
-      setStep(0)
+    if (!canSoumettre) {
+      addToast({ message: submitBlockerHint ?? 'Complétez les étapes avant d\'enregistrer.', type: 'warning' })
       return
     }
+    try {
+      // R-22 : « Oui » → aucune saisie complémentaire ; « Non » → formulaire d'évaluation renseigné.
+      const dangers = dangersMaitrises === 'non' ? nonEmptyEvaluations(evaluations) : []
+      await updatePermit(permit.id, {
+        engagementAccepte: true,
+        dangers: dangers.length > 0 ? dangers : null,
+      })
 
-    // Le backend soumet le binôme Nouveau site en un seul appel : soumettre
-    // l'un des deux permis fait aussi passer l'autre à SOUMIS. Un second
-    // appel /soumettre échouerait avec "statut_not_brouillon" puisque le
-    // permis n'est déjà plus en BROUILLON.
-    if (companionId) {
-      await updatePermit(companionId, { engagementAccepte: true })
+      const companionId = permit.permitsGroupe?.[0]?.id
+
+      // Nouveau site : le permis Général seul ne peut pas être soumis tant que
+      // son binôme (Électrique/Hauteur) n'existe pas — le backend refuse avec
+      // "deux_permis_requis". On enregistre l'engagement et on enchaîne sur la
+      // création du second permis SANS naviguer : /permits-travail/new est déjà
+      // la route courante, donc react-router ne remonte pas le composant sur un
+      // simple changement de query string — le state du wizard resterait figé.
+      // On réinitialise l'état localement à la place, en gardant le site et le
+      // plan déjà sélectionnés, et on invalide le cache "plans par site" pour
+      // que permitGeneralId reflète le Général qu'on vient de créer.
+      if (permit.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionId) {
+        const generalDocuments = permit.documents
+        addToast({
+          message: 'Permis Général enregistré. Créez maintenant le permis Électrique ou Hauteur.',
+          type: 'info',
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
+        })
+        resetPermitDraftState()
+        setCompanionDocs(generalDocuments)
+        setTypePermis('ELECTRIQUE')
+        setStep(0)
+        return
+      }
+
+      // Le backend soumet le binôme Nouveau site en un seul appel : soumettre
+      // l'un des deux permis fait aussi passer l'autre à SOUMIS. Un second
+      // appel /soumettre échouerait avec "statut_not_brouillon" puisque le
+      // permis n'est déjà plus en BROUILLON.
+      if (companionId) {
+        await updatePermit(companionId, { engagementAccepte: true })
+      }
+      await soumettrePermit(permit.id)
+      navigate('/permits-travail')
+    } catch {
+      // Toasts déjà émis par usePermitTravail / axios ; éviter un rejet non géré
+      // qui laisse l'impression que le bouton ne répond pas.
     }
-    await soumettrePermit(permit.id)
-    navigate('/permits-travail')
   }
 
   // ── Step 0: search ────────────────────────────────────────────────────────────
@@ -336,7 +380,14 @@ function PermitTravailCreateForm() {
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId)
     const plan = suggestedPlans.find((p) => p.id === planId)
-    setTypePermis(!plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
+    const nouveauSite = plan?.typeIntervention === 'Nouveau site'
+    // Nouveau site : Général d'abord, puis Électrique/Hauteur.
+    // Hors Nouveau site : on laisse Général par défaut, les 3 types restent choisis librement.
+    if (nouveauSite) {
+      setTypePermis(!plan?.permitGeneralId ? 'GENERAL' : 'ELECTRIQUE')
+    } else {
+      setTypePermis('GENERAL')
+    }
   }
 
   // Une fois le plan pré-rempli chargé, sélection automatique — une seule
@@ -397,38 +448,32 @@ function PermitTravailCreateForm() {
   // ── Navigation ────────────────────────────────────────────────────────────────
   const handleNext = async () => {
     if (step === 0) {
-      if (codeSiteSearched && selectedPlanId && !generalObligatoireAutres) setStep(1)
+      if (codeSiteSearched && selectedPlanId) setStep(1)
     } else if (step === 1) {
-      await handleCreatePermit()
+      try {
+        await handleCreatePermit()
+      } catch {
+        // Toast déjà émis par usePermitTravail
+      }
     } else if (step === 2) {
+      if (!engagementChecked) {
+        addToast({ message: 'Cochez l\'engagement avant de continuer.', type: 'warning' })
+        return
+      }
+      if (hasMissingDocuments) {
+        addToast({ message: 'Joignez tous les documents obligatoires avant de continuer.', type: 'warning' })
+        return
+      }
       setStep(3)
     }
   }
 
   const canGoNext =
-    step === 0 ? !!(codeSiteSearched && selectedPlanId && !generalObligatoireAutres) : step < 3
-
-  const isPending = isCreating || isSubmitting
-  const apnApi = requis?.apnApi ?? false
-  const mainDocTypes = permit
-    ? (requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus, apnApi))
-    : []
-  const companionPermit = permit?.permitsGroupe?.[0]
-  const companionDocTypes = companionPermit
-    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE', apnApi)
-    : []
-  const mainMissingDocTypes = permit
-    ? getMissingDocumentTypes(mainDocTypes, permit.documents)
-    : []
-  const companionMissingDocTypes = companionPermit
-    ? getMissingDocumentTypes(companionDocTypes, companionDocs)
-    : []
-  const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0
-  const dangersIssue = dangersMaitrises === 'non' ? getDangersFormIssue(evaluations) : null
-  const canSoumettre =
-    engagementChecked && !hasMissingDocuments && !requisLoading && dangersMaitrises !== null && dangersIssue === null
-  const isGeneralNouveauSiteSansBinome =
-    permit?.processus === 'NOUVEAU_SITE' && permit.typePermis === 'GENERAL' && !companionPermit
+    step === 0
+      ? !!(codeSiteSearched && selectedPlanId)
+      : step === 2
+        ? engagementChecked && !hasMissingDocuments && !requisLoading
+        : step < 3
 
   // ── Render steps ──────────────────────────────────────────────────────────────
   const renderStep = () => {
@@ -543,22 +588,20 @@ function PermitTravailCreateForm() {
                     </p>
                   </div>
                 )}
-                {generalObligatoireAutres && (
-                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800">
-                      Le permis Général doit avoir été créé pour ce site avant tout permis Électrique ou Hauteur.
-                      Il n'est pas nécessaire d'attendre sa validation : chaque permis suit ensuite son propre circuit.
-                    </p>
-                  </div>
-                )}
                 {isNouveauSite && generalPermitId && (
                   <div className="mt-2 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
                     <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-blue-800">
                       Permis Général déjà demandé sur ce plan — complétez avec le permis Électrique ou Hauteur.
+                      Pas besoin d&apos;attendre sa validation.
                     </p>
                   </div>
+                )}
+                {!isNouveauSite && selectedPlanId && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Vous pouvez créer plusieurs types de permis (Général, Électrique, Hauteur) sur ce site
+                    sans attendre la validation des autres.
+                  </p>
                 )}
               </div>
             )}
@@ -863,14 +906,19 @@ function PermitTravailCreateForm() {
           </Button>
         ) : (
           canSubmit && (
-            <Button
-              onClick={handleSoumettre}
-              disabled={isPending || !canSoumettre}
-              loading={isSubmitting}
-              size="lg"
-            >
-              {isGeneralNouveauSiteSansBinome ? 'Enregistrer et créer le second permis' : 'Soumettre le permis'}
-            </Button>
+            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+              {submitBlockerHint && !isPending && (
+                <p className="text-xs text-amber-700 sm:text-right">{submitBlockerHint}</p>
+              )}
+              <Button
+                onClick={handleSoumettre}
+                disabled={isPending || !canSoumettre}
+                loading={isPending}
+                size="lg"
+              >
+                {isGeneralNouveauSiteSansBinome ? 'Enregistrer et créer le second permis' : 'Soumettre le permis'}
+              </Button>
+            </div>
           )
         )}
       </div>
