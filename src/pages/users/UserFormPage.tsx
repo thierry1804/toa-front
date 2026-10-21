@@ -155,10 +155,17 @@ export default function UserFormPage() {
   const selectableEntreprises = isPrestataireScoped && scopedEntrepriseIri
     ? entreprises.filter((ent) => ent["@id"] === scopedEntrepriseIri)
     : entreprises;
-  // R-03 : le bloc Entreprise ne concerne que le rôle Prestataire. Les HSE et
-  // Agent de terrain créés par un prestataire héritent déjà de son entreprise
-  // côté serveur (PrestataireUserScopeProcessor), sans passer par ce bloc.
+  // R-03 : le bloc Entreprise complet (nom libre, RC, siège, signature) ne
+  // concerne que le rôle Prestataire.
   const canHaveEntreprise = (role: string) => role === "ROLE_PRESTATAIRE";
+  // Les membres d'équipe (CP Prestataire, Agent de terrain) sont eux aussi
+  // rattachés à une entreprise : sans elle, ils ne voient rien de leur équipe.
+  // Créés par un prestataire, ils héritent de la sienne côté serveur
+  // (PrestataireUserScopeProcessor) ; créés par un admin, elle se choisit ici.
+  const isTeamRole = (role: string) =>
+    role === "ROLE_CHEF_PROJET_PRESTATAIRE" || role === "ROLE_AGENT_TERRAIN";
+  const belongsToEntreprise = (role: string) =>
+    canHaveEntreprise(role) || isTeamRole(role);
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -307,6 +314,8 @@ export default function UserFormPage() {
 
     if (!formData.role || formData.role === "all")
       newErrors.role = t("users.validation.roleRequired");
+    if (isTeamRole(formData.role) && !isPrestataireScoped && !formData.entrepriseId)
+      newErrors.entrepriseId = t("users.validation.entrepriseRequired");
     if (!formData.name.trim())
       newErrors.name = t("users.validation.nameRequired");
     if (!formData.firstname.trim())
@@ -356,13 +365,14 @@ export default function UserFormPage() {
     // R-30 : le rattachement à un ou plusieurs processus ne concerne que le chef de projet TOA.
     const processus = formData.role === "ROLE_CHEF_PROJET" ? formData.processus : [];
 
-    const hasEntreprise = canHaveEntreprise(formData.role);
-    const entrepriseName = hasEntreprise
-      ? formData.entrepriseName.trim() || null
-      : null;
-    const entreprise = hasEntreprise
+    const entreprise = belongsToEntreprise(formData.role)
       ? formData.entrepriseId || null
       : null;
+    const entrepriseName = canHaveEntreprise(formData.role)
+      ? formData.entrepriseName.trim() || null
+      : isTeamRole(formData.role)
+        ? entreprises.find((ent) => ent["@id"] === entreprise)?.nom ?? null
+        : null;
     const numeroRegistreCommerce =
       formData.role === "ROLE_PRESTATAIRE"
         ? formData.numeroRegistreCommerce.trim() || null
@@ -437,7 +447,7 @@ export default function UserFormPage() {
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRole = e.target.value;
     const isPrestataire = newRole === "ROLE_PRESTATAIRE";
-    const hasEnt = canHaveEntreprise(newRole);
+    const hasEnt = belongsToEntreprise(newRole);
     setFormData({
       ...formData,
       role: newRole,
@@ -584,6 +594,26 @@ export default function UserFormPage() {
               <p className="text-sm text-gray-600">
                 {t("users.form.entrepriseScopeHint", { entreprise: scopedEntrepriseName })}
               </p>
+            )}
+
+            {isTeamRole(formData.role) && !isPrestataireScoped && (
+              <Select
+                label={t("users.form.entreprise")}
+                value={formData.entrepriseId}
+                onChange={(e) => {
+                  setFormData({ ...formData, entrepriseId: e.target.value });
+                  setErrors((prev) => ({ ...prev, entrepriseId: "" }));
+                }}
+                error={errors.entrepriseId}
+                required
+                options={[
+                  { value: "", label: "— Sélectionner une entreprise —" },
+                  ...entreprises.map((ent) => ({
+                    value: ent["@id"],
+                    label: ent.nom,
+                  })),
+                ]}
+              />
             )}
 
             {canHaveEntreprise(formData.role) && (

@@ -260,6 +260,7 @@
       "confirmMismatch": "Tsy mifanaraka ny tenimiafina",
       "roleRequired": "Mifidiana andraikitra iray azafady",
       "roleNotAssignable": "Tsy azon'ny prestataire omena ity andraikitra ity. Fidio ny Chef de projet Prestataire na Agent de terrain.",
+      "entrepriseRequired": "Fidio ny orinasan'ity mpikambana ao amin'ny ekipa ity.",
       "formErrors": "Valio ireo hadisoana amin'ny formulaire"
     },
     "toast": {
@@ -1939,6 +1940,7 @@
         "voir": "Jereo",
         "valider": "Hanamafy",
         "refuser": "Hanilika",
+        "completer": "Fenoy",
         "corriger": "Hanitsy",
         "supprimer": "Hamafa"
       },

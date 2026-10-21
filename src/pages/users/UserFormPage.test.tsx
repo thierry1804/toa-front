@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { cleanup, render } from '@/test/renderHelpers'
 import UserFormPage from './UserFormPage'
 
-const mocks = vi.hoisted(() => ({ createUser: vi.fn(), addToast: vi.fn() }))
+const mocks = vi.hoisted(() => ({ createUser: vi.fn(), addToast: vi.fn(), scoped: true }))
 
 const profile = {
   id: 1,
@@ -34,14 +34,23 @@ vi.mock('@/store/ui.store', () => ({
     selector({ addToast: mocks.addToast }),
 }))
 vi.mock('@/features/roles/hooks/useRoles', () => ({
-  useRoles: () => ({ data: { member: [] }, isLoading: false }),
+  useRoles: () => ({
+    data: {
+      member: [
+        { name: 'ROLE_PRESTATAIRE', label: 'Prestataire' },
+        { name: 'ROLE_AGENT_TERRAIN', label: 'Agent de terrain' },
+        { name: 'ROLE_CHEF_PROJET_PRESTATAIRE', label: 'Chef de projet Prestataire' },
+      ],
+    },
+    isLoading: false,
+  }),
 }))
 vi.mock('@/features/referentiel/hooks/useEntreprises', () => ({
   useEntreprises: () => ({ data: [profile.entreprise] }),
 }))
 vi.mock('@/features/users/hooks/usePrestataireEntrepriseScope', () => ({
   usePrestataireEntrepriseScope: () => ({
-    isScoped: true,
+    isScoped: mocks.scoped,
     profile,
     isProfileLoading: false,
     canManageUser: () => true,
@@ -55,6 +64,7 @@ vi.mock('@/hooks/usePendingUploads', () => ({ usePendingUploads: () => [] }))
 afterEach(() => {
   cleanup()
   mocks.createUser.mockReset()
+  mocks.scoped = true
 })
 
 async function type(input: HTMLInputElement, value: string) {
@@ -64,6 +74,60 @@ async function type(input: HTMLInputElement, value: string) {
     input.dispatchEvent(new Event('input', { bubbles: true }))
   })
 }
+
+async function fillIdentity(container: HTMLElement) {
+  const inputs = [...container.querySelectorAll('input')] as HTMLInputElement[]
+  const byType = (t: string) => inputs.filter((i) => i.type === t)
+  const [name, firstname] = byType('text')
+  await type(name, 'Kernel')
+  await type(firstname, 'John')
+  await type(byType('email')[0], 'john@example.com')
+  const [password, confirm] = byType('password')
+  await type(password, 'secret123')
+  await type(confirm, 'secret123')
+}
+
+async function choose(select: HTMLSelectElement, value: string) {
+  await act(async () => {
+    select.value = value
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+}
+
+async function submit(container: HTMLElement) {
+  await act(async () => {
+    container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  })
+}
+
+describe('team member created by an admin', () => {
+  it('attaches the Agent de terrain to the chosen entreprise', async () => {
+    mocks.scoped = false
+    const { container } = await render(<MemoryRouter><UserFormPage /></MemoryRouter>)
+    await fillIdentity(container)
+    await choose(container.querySelectorAll('select')[0] as HTMLSelectElement, 'ROLE_AGENT_TERRAIN')
+    await choose(container.querySelectorAll('select')[1] as HTMLSelectElement, '/api/entreprises/e1')
+    await submit(container)
+
+    expect(mocks.createUser).toHaveBeenCalledTimes(1)
+    const payload = mocks.createUser.mock.calls[0][0]
+    expect(payload.roles).toEqual(['ROLE_AGENT_TERRAIN'])
+    expect(payload.entreprise).toBe('/api/entreprises/e1')
+    expect(payload.entrepriseName).toBe('Ma Boite')
+    expect(payload.numeroRegistreCommerce).toBeNull()
+  })
+
+  it('refuses a Chef de projet Prestataire without entreprise', async () => {
+    mocks.scoped = false
+    const { container } = await render(<MemoryRouter><UserFormPage /></MemoryRouter>)
+    await fillIdentity(container)
+    await choose(container.querySelectorAll('select')[0] as HTMLSelectElement, 'ROLE_CHEF_PROJET_PRESTATAIRE')
+    await submit(container)
+
+    expect(mocks.createUser).not.toHaveBeenCalled()
+    expect(container.textContent).toContain('users.validation.entrepriseRequired')
+  })
+})
 
 describe('user creation by a scoped prestataire', () => {
   it('submits the Chef de projet Prestataire role shown by default, not Prestataire', async () => {

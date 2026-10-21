@@ -260,6 +260,7 @@
       "confirmMismatch": "Les mots de passe ne correspondent pas",
       "roleRequired": "Veuillez sélectionner un rôle",
       "roleNotAssignable": "Ce rôle ne peut pas être attribué par un prestataire. Choisissez Chef de projet Prestataire ou Agent de terrain.",
+      "entrepriseRequired": "Sélectionnez l'entreprise de ce membre d'équipe.",
       "formErrors": "Veuillez corriger les erreurs du formulaire"
     },
     "toast": {
@@ -1939,6 +1940,7 @@
         "voir": "Voir",
         "valider": "Valider",
         "refuser": "Refuser",
+        "completer": "Compléter",
         "corriger": "Corriger",
         "supprimer": "Supprimer"
       },
