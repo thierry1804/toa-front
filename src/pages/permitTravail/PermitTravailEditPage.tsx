@@ -19,6 +19,7 @@ import {
   usePermitDocumentsRequis,
 } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
+import { canEditDraft } from '@/features/permitTravail/utils/permitDraft'
 import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
 import {
   TYPE_PERMIT_LABELS,
@@ -157,7 +158,9 @@ export default function PermitTravailEditPage() {
     .reverse()
     .find((d) => d.decision === 'REFUSE')
 
-  if (!lastRefus) {
+  // R-24 : tout brouillon modifiable (renouvellement, création interrompue)
+  // s'ouvre ici, pas seulement un permis refusé par le HSE.
+  if (!canEditDraft(permit, { canEdit, canResoumettre })) {
     navigate(`/permits-travail/${permit.id}`)
     return null
   }
@@ -359,18 +362,20 @@ export default function PermitTravailEditPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Motif de correction <span className="text-gray-400 font-normal">(optionnel)</span>
-              </label>
-              <textarea
-                value={motif}
-                onChange={(e) => setMotif(e.target.value)}
-                rows={3}
-                placeholder="Décrivez les corrections apportées suite au refus HSE…"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-              />
-            </div>
+            {lastRefus && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Motif de correction <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <textarea
+                  value={motif}
+                  onChange={(e) => setMotif(e.target.value)}
+                  rows={3}
+                  placeholder="Décrivez les corrections apportées suite au refus HSE…"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                />
+              </div>
+            )}
 
             {inlineError && (
               <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
@@ -399,11 +404,15 @@ export default function PermitTravailEditPage() {
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <PageHeader
-        title="Corriger le permis"
-        description="Apportez les corrections demandées et resoumettez."
+        title={lastRefus ? 'Corriger le permis' : `Compléter le permis ${permit.reference}`}
+        description={
+          lastRefus
+            ? 'Apportez les corrections demandées et resoumettez.'
+            : 'Complétez le brouillon (documents, engagement) puis soumettez-le.'
+        }
         breadcrumb={[
           { label: 'Permis de travail', href: '/permits-travail' },
-          { label: 'Corriger' },
+          { label: lastRefus ? 'Corriger' : 'Compléter' },
         ]}
       />
 

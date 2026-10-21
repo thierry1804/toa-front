@@ -28,6 +28,7 @@ import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravai
 import { usePermission } from '@/features/auth/usePermission'
 import { useAuthStore } from '@/store/auth.store'
 import { canDeletePermit } from '@/features/permitTravail/utils/permitDeletion'
+import { canEditDraft, wasRefused } from '@/features/permitTravail/utils/permitDraft'
 import type { PermitTravail } from '@/types/permitTravail'
 
 function PvDownloadCell({ permitId }: { permitId: string }) {
@@ -51,6 +52,7 @@ interface PermitRowProps {
   canValider: boolean
   canRefuser: boolean
   canResoumettre: boolean
+  canEdit: boolean
   canDelete: boolean
   onValider: (permit: PermitTravail) => void
   onRefuser: (permit: PermitTravail) => void
@@ -63,6 +65,7 @@ function PermitRow({
   canValider,
   canRefuser,
   canResoumettre,
+  canEdit,
   canDelete,
   onValider,
   onRefuser,
@@ -149,11 +152,9 @@ function PermitRow({
               <ShieldX className="h-4 w-4" />
             </TableIconButton>
           )}
-          {permit.statut === 'BROUILLON' &&
-            canResoumettre &&
-            permit.decisionsHse?.some((d) => d.decision === 'REFUSE') && (
+          {canEditDraft(permit, { canEdit, canResoumettre }) && (
               <TableIconButton
-                title={t('permitTravail.list.actions.corriger')}
+                title={t(wasRefused(permit) ? 'permitTravail.list.actions.corriger' : 'permitTravail.list.actions.completer')}
                 variant="warning"
                 onClick={() => navigate(`/permits-travail/${permit.id}/edit`)}
               >
@@ -206,6 +207,7 @@ function PermitTravailListPage() {
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
   const canResoumettre = usePermission('permit_travail.resoumettre')
+  const canEdit = usePermission('permit_travail.edit')
   // R-25 : le compte à rebours de validité est visible pour tous les profils.
   const showHseColumns = true
 
@@ -447,6 +449,7 @@ function PermitTravailListPage() {
                       canValider={canValider}
                       canRefuser={canRefuser}
                       canResoumettre={canResoumettre}
+                      canEdit={canEdit}
                       canDelete={canDeletePermit(permit, currentUserId)}
                       onValider={setSelectedForValider}
                       onRefuser={setSelectedForRefuser}

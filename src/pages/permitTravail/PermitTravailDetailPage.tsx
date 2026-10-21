@@ -20,6 +20,7 @@ import PvRefuserModal from '@/components/permitTravail/PvRefuserModal'
 import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
+import { canEditDraft, wasRefused } from '@/features/permitTravail/utils/permitDraft'
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
@@ -48,6 +49,7 @@ export default function PermitTravailDetailPage() {
   const canValider = usePermission('permit_travail.valider_hse')
   const canRefuser = usePermission('permit_travail.refuser_hse')
   const canResoumettre = usePermission('permit_travail.resoumettre')
+  const canEdit = usePermission('permit_travail.edit')
   const canCloturer = usePermission('permit_travail.cloturer')
   const canCreatePermit = usePermission('permit_travail.create')
   const addToast = useUiStore((s) => s.addToast)
@@ -100,6 +102,8 @@ export default function PermitTravailDetailPage() {
     permit.statut === 'BROUILLON' &&
     canResoumettre &&
     permit.decisionsHse?.some((d) => d.decision === 'REFUSE')
+  // R-24 : un brouillon jamais refusé (renouvellement, création interrompue) se complète puis se soumet.
+  const canCompleterBrouillon = !wasRefused(permit) && canEditDraft(permit, { canEdit, canResoumettre })
 
   const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
     await uploadDocument(permit.id, type, file, capturedAt)
@@ -158,6 +162,15 @@ export default function PermitTravailDetailPage() {
               <Button variant="primary" onClick={handleRenouveler} loading={isRenewing}>
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Renouveler le permis
+              </Button>
+            )}
+            {canCompleterBrouillon && (
+              <Button
+                variant="primary"
+                onClick={() => navigate(`/permits-travail/${permit.id}/edit`)}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Compléter et soumettre
               </Button>
             )}
             {canCorrigerEtResoumettre && (
