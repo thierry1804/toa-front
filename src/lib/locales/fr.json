@@ -259,6 +259,7 @@
       "confirmRequired": "Veuillez confirmer le mot de passe",
       "confirmMismatch": "Les mots de passe ne correspondent pas",
       "roleRequired": "Veuillez sélectionner un rôle",
+      "roleNotAssignable": "Ce rôle ne peut pas être attribué par un prestataire. Choisissez Chef de projet Prestataire ou Agent de terrain.",
       "formErrors": "Veuillez corriger les erreurs du formulaire"
     },
     "toast": {

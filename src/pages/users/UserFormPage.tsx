@@ -108,6 +108,14 @@ export default function UserFormPage() {
   };
 
   const handleApiError = (error: unknown) => {
+    const detail =
+      (error as { response?: { data?: { detail?: string } } })?.response?.data
+        ?.detail ?? "";
+    if (detail.includes("user.role_not_assignable")) {
+      setErrors((prev) => ({ ...prev, role: t("users.validation.roleNotAssignable") }));
+      addToast({ message: t("users.validation.roleNotAssignable"), type: "error" });
+      return;
+    }
     const rawErrors = parseApiFieldErrors(error, PROPERTY_TO_FIELD);
     if (Object.keys(rawErrors).length === 0) {
       addToast({ message: t("users.toast.createError"), type: "error" });
@@ -276,9 +284,11 @@ export default function UserFormPage() {
   useEffect(() => {
     if (!isPrestataireScoped || isEditMode || !prestataireProfile) return;
 
+    // Le rôle n'est pas touché ici : il reste celui choisi plus haut parmi
+    // PRESTATAIRE_ASSIGNABLE_ROLES (le forcer sur ROLE_PRESTATAIRE créait un
+    // Prestataire alors que la liste affichait « Chef de projet Prestataire »).
     setFormData((prev) => ({
       ...prev,
-      role: "ROLE_PRESTATAIRE",
       entrepriseId: prestataireProfile.entreprise?.["@id"] ?? prev.entrepriseId,
       entrepriseName:
         prestataireProfile.entrepriseName ??

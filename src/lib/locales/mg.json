@@ -259,6 +259,7 @@
       "confirmRequired": "Hamafiso ny tenimiafina",
       "confirmMismatch": "Tsy mifanaraka ny tenimiafina",
       "roleRequired": "Mifidiana andraikitra iray azafady",
+      "roleNotAssignable": "Tsy azon'ny prestataire omena ity andraikitra ity. Fidio ny Chef de projet Prestataire na Agent de terrain.",
       "formErrors": "Valio ireo hadisoana amin'ny formulaire"
     },
     "toast": {
