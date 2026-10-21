@@ -32,6 +32,7 @@ export const TYPES_DOCUMENT_LABELS: Record<TypeDocumentPrevention, string> = {
   PHOTOS_EQUIPEMENTS: 'Photos — matériels, équipements et outillages',
 }
 
+/** Documents de l'étape « Documents obligatoires » (tous processus). */
 export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
   'PLAN_URGENCE',
   'FDS',
@@ -39,12 +40,12 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
   'ATTESTATION_HSE',
   'FICHE_CONFORMITE',
   'LISTE_VEHICULES',
-  'PHOTOS_INSTALLATIONS',
-  'PHOTOS_EQUIPEMENTS',
 ]
 
-// R-09 : obligatoires (et non exemptables en N/A, cf. back PlanPreventionDocumentNonApplicableController)
-// uniquement pour le processus "Nouveau site" ; optionnelles et N/A-ables pour les autres processus.
+// R-09 : photos jointes ligne par ligne dans l'onglet « Installations &
+// Équipements » (photoDocumentId de chaque ligne), obligatoires pour le
+// processus "Nouveau site", N/A pour les autres. Elles ne figurent plus à
+// l'étape Documents.
 export const PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE: TypeDocumentPrevention[] = [
   'PHOTOS_INSTALLATIONS',
   'PHOTOS_EQUIPEMENTS',
@@ -53,6 +54,8 @@ export const PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE: TypeDocumentPrevention[] = [
 export interface InstallationRow {
   description: string
   conditionsUtilisation: string
+  /** R-09 : document PHOTOS_INSTALLATIONS du plan, photo de la ligne. */
+  photoDocumentId?: string | null
 }
 
 export interface VehiculeRow {
@@ -65,6 +68,8 @@ export interface EquipementRow {
   conditionsUtilisation: string
   dateVerification?: string | null
   verifiePar?: string | null
+  /** R-09 : document PHOTOS_EQUIPEMENTS du plan, photo de la ligne. */
+  photoDocumentId?: string | null
 }
 
 

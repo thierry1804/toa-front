@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { Plus, Trash2, Search, X, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import type { InstallationRow } from '@/types/planPrevention'
@@ -10,6 +10,8 @@ interface InstallationsTableProps {
   errors?: Record<number, string>
   readonly?: boolean
   emptyLabel?: string
+  /** R-09 : colonne « Photo » (une photo par ligne), affichée si fournie. */
+  renderPhoto?: (row: InstallationRow, index: number) => ReactNode
 }
 
 export default function InstallationsTable({
@@ -17,6 +19,7 @@ export default function InstallationsTable({
   onChange,
   readonly = false,
   emptyLabel = 'Aucune installation ajoutée.',
+  renderPhoto,
 }: InstallationsTableProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -69,7 +72,7 @@ export default function InstallationsTable({
     return () => document.removeEventListener('mousedown', handler)
   }, [dropdownOpen])
 
-  const colSpan = readonly ? 2 : 3
+  const colSpan = (readonly ? 2 : 3) + (renderPhoto ? 1 : 0)
 
   return (
     <div className="space-y-3">
@@ -83,6 +86,9 @@ export default function InstallationsTable({
               <th className="px-3 py-3 text-left font-medium text-gray-700">
                 Conditions d'utilisation
               </th>
+              {renderPhoto && (
+                <th className="px-3 py-3 text-left font-medium text-gray-700 w-48">Photo</th>
+              )}
               {!readonly && <th className="px-3 py-3 w-12" />}
             </tr>
           </thead>
@@ -114,6 +120,7 @@ export default function InstallationsTable({
                     />
                   )}
                 </td>
+                {renderPhoto && <td className="px-3 py-2">{renderPhoto(row, index)}</td>}
                 {!readonly && (
                   <td className="px-3 py-2 text-center">
                     <button

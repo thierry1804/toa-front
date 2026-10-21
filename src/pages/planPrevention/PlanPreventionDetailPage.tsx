@@ -25,6 +25,7 @@ import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
+import RowPhotoCell from "@/components/planPrevention/RowPhotoCell";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
 import StatutPermitBadge from "@/components/permitTravail/StatutPermitBadge";
 import { usePermitsTravail } from "@/features/permitTravail/hooks/usePermitTravail";
@@ -49,6 +50,7 @@ import { planPreventionApi } from "@/api/planPreventionApi";
 import {
   TYPES_DOCUMENT_LABELS,
   ALL_DOCUMENT_TYPES,
+  PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE,
 } from "@/types/planPrevention";
 import type { RisqueRow } from "@/types/planPrevention";
 import { planSections } from "@/utils/planSections";
@@ -187,6 +189,32 @@ export default function PlanPreventionDetailPage() {
   const openDocument = (docId: string, label: string) => {
     setViewingDoc({ id: docId, label });
   };
+
+  // R-09 : les photos se rattachent à chaque ligne installations / équipements.
+  // Les photos jointes avant ce changement (étape Documents, sans ligne) restent
+  // listées avec les documents.
+  const linkedPhotoIds = new Set(
+    [...(plan.installations ?? []), ...(plan.equipements ?? [])]
+      .map((row) => row.photoDocumentId)
+      .filter((id): id is string => !!id),
+  );
+  const isUnlinkedDoc = (doc: { id: string; type: string }) =>
+    !(PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE as string[]).includes(doc.type) || !linkedPhotoIds.has(doc.id);
+  const documentTypesShown = [
+    ...ALL_DOCUMENT_TYPES,
+    ...PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE.filter((type) =>
+      (plan.documents ?? []).some((d) => d.type === type && isUnlinkedDoc(d)),
+    ),
+  ];
+  const renderRowPhoto = (label: string) => (row: { photoDocumentId?: string | null }) => (
+    <RowPhotoCell
+      planId={plan.id}
+      photoDocumentId={row.photoDocumentId}
+      required={plan.typeIntervention === "Nouveau site"}
+      readonly
+      onView={(docId) => openDocument(docId, label)}
+    />
+  );
 
   const risqueRows: RisqueRow[] = (plan.risques ?? []).map((r) => ({
     localId: r.id,
@@ -455,6 +483,7 @@ export default function PlanPreventionDetailPage() {
                 onChange={() => {}}
                 readonly
                 emptyLabel="Aucune installation renseignée."
+                renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_INSTALLATIONS)}
               />
             </div>
             <div>
@@ -468,6 +497,7 @@ export default function PlanPreventionDetailPage() {
                 onChange={() => {}}
                 readonly
                 emptyLabel="Aucun équipement renseigné."
+                renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_EQUIPEMENTS)}
               />
             </div>
           </div>
@@ -477,14 +507,14 @@ export default function PlanPreventionDetailPage() {
       {/* 5. Documents requis */}
       <SectionCard
         title={t("planPrevention.detail.sections.documents")}
-        summary={`${new Set((plan.documents ?? []).map((d) => d.type)).size} / ${ALL_DOCUMENT_TYPES.length} types joints`}
+        summary={`${new Set((plan.documents ?? []).filter((d) => (ALL_DOCUMENT_TYPES as string[]).includes(d.type)).map((d) => d.type)).size} / ${ALL_DOCUMENT_TYPES.length} types joints`}
       >
         <div className="space-y-3">
-          {ALL_DOCUMENT_TYPES.map((type) => (
+          {documentTypesShown.map((type) => (
             <DocumentTypeRow
               key={type}
               label={TYPES_DOCUMENT_LABELS[type]}
-              docs={(plan.documents ?? []).filter((d) => d.type === type)}
+              docs={(plan.documents ?? []).filter((d) => d.type === type && isUnlinkedDoc(d))}
               pending={[]}
               missing
               disabled

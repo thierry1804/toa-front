@@ -12,6 +12,7 @@ import SiteCodeAutocomplete from "@/components/planning/SiteCodeAutocomplete";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
 import InstallationsTable from "@/components/planPrevention/InstallationsTable";
+import RowPhotoCell from "@/components/planPrevention/RowPhotoCell";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import DocumentUploadZone from "@/components/planPrevention/DocumentUploadZone";
 import PlanReference from "@/components/planPrevention/PlanReference";
@@ -38,7 +39,6 @@ import type {
 import {
   TYPES_DOCUMENT_LABELS,
   ALL_DOCUMENT_TYPES,
-  PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE,
 } from "@/types/planPrevention";
 import type { SectionPayload, SectionRow, SectionPlanifieeItem } from "@/types";
 import { ownSections } from "@/utils/planSections";
@@ -245,6 +245,11 @@ export default function PlanPreventionCreatePage({
     Record<number, string>
   >({});
   const [installationsMinError, setInstallationsMinError] = useState(false);
+  // R-09 : lignes (index) sans photo, signalées après une tentative de passage à l'étape suivante.
+  const [photosManquantes, setPhotosManquantes] = useState<{
+    installations: number[];
+    equipements: number[];
+  }>({ installations: [], equipements: [] });
   const [isSavingInstallations, setIsSavingInstallations] = useState(false);
   const [motif, setMotif] = useState("");
   const originalRisqueIds = useRef<Set<string>>(new Set());
@@ -529,6 +534,20 @@ export default function PlanPreventionCreatePage({
     }
     setEquipementsErrors({});
 
+    // R-09 : pour « Nouveau site », chaque ligne des deux listes porte sa photo.
+    if (isNouveauSite) {
+      const sansPhoto = (rows: { photoDocumentId?: string | null }[]) =>
+        rows.flatMap((row, i) => (row.photoDocumentId ? [] : [i]));
+      const manquantes = {
+        installations: sansPhoto(localInstallations),
+        equipements: sansPhoto(localEquipements),
+      };
+      setPhotosManquantes(manquantes);
+      if (manquantes.installations.length > 0 || manquantes.equipements.length > 0) {
+        return;
+      }
+    }
+
     setIsSavingInstallations(true);
     try {
       await updatePlan(activePlan.id, {
@@ -559,8 +578,86 @@ export default function PlanPreventionCreatePage({
       if ((err as { message?: string })?.message === "documents_manquants") {
         setStep(2);
       }
+      if ((err as { message?: string })?.message === "photos_lignes_manquantes") {
+        setStep(3);
+      }
     }
   };
+
+  // ── R-09 : photo de chaque ligne installations / équipements ─────────────────
+  // Les lignes sont enregistrées aussitôt la photo ajoutée ou retirée, pour que
+  // le lien ligne → photo ne se perde pas si l'on quitte l'étape.
+  const saveRows = async (
+    installations: InstallationRow[],
+    equipements: EquipementRow[],
+  ) => {
+    setLocalInstallations(installations);
+    setLocalEquipements(equipements);
+    if (activePlan) await updatePlan(activePlan.id, { installations, equipements });
+  };
+
+  const uploadRowPhoto = async (
+    list: "installations" | "equipements",
+    index: number,
+    file: File,
+    capturedAt: string,
+  ) => {
+    if (!activePlan) return;
+    const type = list === "installations" ? "PHOTOS_INSTALLATIONS" : "PHOTOS_EQUIPEMENTS";
+    const doc = await uploadDocument(activePlan.id, type, file, capturedAt);
+    if (!doc?.id) return;
+    const link = <T extends { photoDocumentId?: string | null }>(rows: T[]) =>
+      rows.map((row, i) => (i === index ? { ...row, photoDocumentId: doc.id } : row));
+    setPhotosManquantes((prev) => ({ ...prev, [list]: prev[list].filter((i) => i !== index) }));
+    await saveRows(
+      list === "installations" ? link(localInstallations) : localInstallations,
+      list === "equipements" ? link(localEquipements) : localEquipements,
+    );
+  };
+
+  const removeRowPhoto = async (list: "installations" | "equipements", index: number) => {
+    if (!activePlan) return;
+    const rows = list === "installations" ? localInstallations : localEquipements;
+    const documentId = rows[index]?.photoDocumentId;
+    if (documentId) await deleteDocument(activePlan.id, documentId).catch(() => undefined);
+    const unlink = <T extends { photoDocumentId?: string | null }>(items: T[]) =>
+      items.map((row, i) => (i === index ? { ...row, photoDocumentId: null } : row));
+    await saveRows(
+      list === "installations" ? unlink(localInstallations) : localInstallations,
+      list === "equipements" ? unlink(localEquipements) : localEquipements,
+    );
+  };
+
+  // Une ligne supprimée emporte sa photo.
+  const deleteRemovedRowPhotos = (
+    before: { photoDocumentId?: string | null }[],
+    after: { photoDocumentId?: string | null }[],
+  ) => {
+    if (!activePlan) return;
+    const kept = new Set(after.map((row) => row.photoDocumentId).filter(Boolean));
+    for (const row of before) {
+      if (row.photoDocumentId && !kept.has(row.photoDocumentId)) {
+        void deleteDocument(activePlan.id, row.photoDocumentId).catch(() => undefined);
+      }
+    }
+  };
+
+  const renderRowPhoto = (
+    list: "installations" | "equipements",
+    row: { photoDocumentId?: string | null },
+    index: number,
+    readonly = false,
+  ) => (
+    <RowPhotoCell
+      planId={activePlan?.id}
+      photoDocumentId={row.photoDocumentId}
+      required={isNouveauSite}
+      readonly={readonly || !canEdit}
+      missing={photosManquantes[list].includes(index)}
+      onUpload={({ file, capturedAt }) => uploadRowPhoto(list, index, file, capturedAt)}
+      onRemove={() => removeRowPhoto(list, index)}
+    />
+  );
 
   const handleDocumentUpload = async (
     type: TypeDocumentPrevention,
@@ -973,9 +1070,6 @@ export default function PlanPreventionCreatePage({
               onToggleNotApplicable={handleDocumentNotApplicable}
               missingTypes={missingDocuments}
               disabled={!canEdit}
-              nonApplicableDisabledTypes={
-                isNouveauSite ? PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE : []
-              }
             />
             {isStep2Invalid && (
               <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
@@ -1016,11 +1110,14 @@ export default function PlanPreventionCreatePage({
                 <InstallationsTable
                   value={localInstallations}
                   onChange={(rows) => {
+                    deleteRemovedRowPhotos(localInstallations, rows);
                     setLocalInstallations(rows);
                     setInstallationsErrors({});
+                    setPhotosManquantes((prev) => ({ ...prev, installations: [] }));
                     if (rows.length > 0) setInstallationsMinError(false);
                   }}
                   errors={installationsErrors}
+                  renderPhoto={(row, index) => renderRowPhoto("installations", row, index)}
                 />
               </div>
             )}
@@ -1030,7 +1127,7 @@ export default function PlanPreventionCreatePage({
                 Liste des matériels, équipements et outillages{" "}
                 {isNouveauSite ? (
                   <span className="text-red-500 font-normal">
-                    (photos obligatoires à l'étape Documents)
+                    (photo obligatoire pour chaque ligne)
                   </span>
                 ) : (
                   <span className="text-gray-400 font-normal">(optionnel)</span>
@@ -1039,11 +1136,20 @@ export default function PlanPreventionCreatePage({
               <EquipementsTable
                 value={localEquipements}
                 onChange={(rows) => {
+                  deleteRemovedRowPhotos(localEquipements, rows);
                   setLocalEquipements(rows);
                   setEquipementsErrors({});
+                  setPhotosManquantes((prev) => ({ ...prev, equipements: [] }));
                 }}
                 errors={equipementsErrors}
+                renderPhoto={(row, index) => renderRowPhoto("equipements", row, index)}
               />
+              {(photosManquantes.installations.length > 0 ||
+                photosManquantes.equipements.length > 0) && (
+                <p className="mt-3 text-sm text-red-600">
+                  Ajoutez une photo pour chaque ligne signalée avant de continuer.
+                </p>
+              )}
             </div>
           </div>
         );
@@ -1207,6 +1313,7 @@ export default function PlanPreventionCreatePage({
                   value={localInstallations}
                   onChange={() => {}}
                   readonly
+                  renderPhoto={(row, index) => renderRowPhoto("installations", row, index, true)}
                 />
               </div>
             )}
@@ -1221,6 +1328,7 @@ export default function PlanPreventionCreatePage({
                   value={localEquipements}
                   onChange={() => {}}
                   readonly
+                  renderPhoto={(row, index) => renderRowPhoto("equipements", row, index, true)}
                 />
               </div>
             )}
@@ -1315,13 +1423,9 @@ export default function PlanPreventionCreatePage({
     step === 1 && (step1PartialRows.length > 0 || apnApiRisqueMissing);
 
   // Step 2: all document types must be uploaded — les photos installations/équipements (R-09)
-  // ne sont obligatoires que pour le processus "Nouveau site".
+  // se joignent ligne par ligne à l'étape Installations & Équipements.
   const uploadedDocTypes = new Set(currentDocuments.map((d) => d.type));
-  const requiredDocTypes = isNouveauSite
-    ? ALL_DOCUMENT_TYPES
-    : ALL_DOCUMENT_TYPES.filter(
-        (t) => !PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE.includes(t),
-      );
+  const requiredDocTypes = ALL_DOCUMENT_TYPES;
   const missingUploadedDocs = requiredDocTypes.filter((t) => !uploadedDocTypes.has(t));
   const isStep2Invalid = step === 2 && missingUploadedDocs.length > 0;
 

@@ -15,6 +15,7 @@ import type {
   KmzImportResult,
   StatutPlanPreventionPdf,
 } from "@/types/planPrevention";
+import { formatMissingRowPhotos } from "@/features/planPrevention/utils/missingRowPhotos";
 
 const PDF_POLL_INTERVAL_MS = 2_000;
 const PDF_POLL_TIMEOUT_MS = 60_000;
@@ -152,6 +153,16 @@ export function usePlanPreventionPdf(
   };
 
   return { pdfStatut, isPolling, pdfMeta, pollError, generatePdf, downloadPdf };
+}
+
+function throwIfMissingRowPhotos(
+  detail: string,
+  addToast: (toast: { message: string; type: "error" }) => void,
+): void {
+  const lines = formatMissingRowPhotos(detail);
+  if (lines === null) return;
+  addToast({ message: `Photo manquante — ${lines}`, type: "error" });
+  throw new Error("photos_lignes_manquantes");
 }
 
 function parseMissingDocuments(errorMessage: string): string[] {
@@ -574,6 +585,7 @@ export function usePlanPrevention() {
         });
         throw err;
       }
+      throwIfMissingRowPhotos(detail, addToast);
       const missing = parseMissingDocuments(detail);
       setMissingDocuments(missing);
       if (missing.length > 0) {
@@ -654,6 +666,7 @@ export function usePlanPrevention() {
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data
           ?.detail ?? "";
+      throwIfMissingRowPhotos(detail, addToast);
       if (detail.includes("documents_manquants")) {
         const missing = parseMissingDocuments(detail);
         setMissingDocuments(missing);

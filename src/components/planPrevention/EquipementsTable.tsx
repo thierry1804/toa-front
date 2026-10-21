@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import type { EquipementRow } from '@/types/planPrevention'
@@ -8,6 +9,8 @@ interface EquipementsTableProps {
   errors?: Record<number, string>
   readonly?: boolean
   emptyLabel?: string
+  /** R-09 : colonne « Photo » (une photo par ligne), affichée si fournie. */
+  renderPhoto?: (row: EquipementRow, index: number) => ReactNode
 }
 
 function createEmptyRow(): EquipementRow {
@@ -20,6 +23,7 @@ export default function EquipementsTable({
   errors = {},
   readonly = false,
   emptyLabel = 'Aucun équipement ajouté.',
+  renderPhoto,
 }: EquipementsTableProps) {
   const handleAdd = () => onChange([...value, createEmptyRow()])
   const handleRemove = (index: number) => onChange(value.filter((_, i) => i !== index))
@@ -27,7 +31,7 @@ export default function EquipementsTable({
     onChange(value.map((row, i) => (i === index ? { ...row, [field]: val } : row)))
   }
 
-  const colSpan = readonly ? 4 : 5
+  const colSpan = (readonly ? 4 : 5) + (renderPhoto ? 1 : 0)
 
   return (
     <div className="space-y-3">
@@ -47,6 +51,9 @@ export default function EquipementsTable({
               <th className="px-3 py-3 text-left font-medium text-gray-700 w-36">
                 Vérifié par
               </th>
+              {renderPhoto && (
+                <th className="px-3 py-3 text-left font-medium text-gray-700 w-48">Photo</th>
+              )}
               {!readonly && <th className="px-3 py-3 w-12" />}
             </tr>
           </thead>
@@ -118,6 +125,7 @@ export default function EquipementsTable({
                     />
                   )}
                 </td>
+                {renderPhoto && <td className="px-3 py-2">{renderPhoto(row, index)}</td>}
                 {!readonly && (
                   <td className="px-3 py-2 text-center">
                     <button
