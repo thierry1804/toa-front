@@ -429,9 +429,10 @@
       "addCodeLabel": "Hanampy kaody toerana",
       "addCodePlaceholder": "Oh: ANK-001",
       "addButton": "Hanampy",
-      "pasteLabel": "Apetaho ireo kaody (misaraka amin'ny « ; »)",
-      "pastePlaceholder": "ANK-001 ; AMP-002 ; ISO-003",
-      "importButton": "Hampiditra"
+      "csvImportLabel": "Hampiditra kaody tobim-pamokarana (rakitra CSV)",
+      "csvImportHint": "Rakitra CSV misy tsanganana iray, kaody tobim-pamokarana iray isaky ny andalana (lohateny tsy voatery).",
+      "csvImportButton": "Mifidy rakitra CSV",
+      "csvEmpty": "Tsy misy kaody tobim-pamokarana ao anatin'ny rakitra."
     },
     "gantt": {
       "title": "Sarintanin'i Gantt",

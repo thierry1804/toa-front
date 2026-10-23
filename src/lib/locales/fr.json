@@ -429,9 +429,10 @@
       "addCodeLabel": "Ajouter un code site",
       "addCodePlaceholder": "Ex: ANK-001",
       "addButton": "Ajouter",
-      "pasteLabel": "Coller des codes (séparés par « ; »)",
-      "pastePlaceholder": "ANK-001 ; AMP-002 ; ISO-003",
-      "importButton": "Importer"
+      "csvImportLabel": "Importer des codes site (fichier CSV)",
+      "csvImportHint": "Un fichier CSV à une seule colonne, un code site par ligne (en-tête facultatif).",
+      "csvImportButton": "Choisir un fichier CSV",
+      "csvEmpty": "Le fichier ne contient aucun code site."
     },
     "gantt": {
       "title": "Diagramme de Gantt",

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trash2, Plus, Clipboard, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Trash2, Plus, Upload, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
@@ -44,8 +44,9 @@ export default function SiteSelectorBlock({
   const isMulti = typeIntervention !== '' && !isNewSite
 
   const [addCode, setAddCode] = useState('')
-  const [pasteText, setPasteText] = useState('')
   const [resolving, setResolving] = useState(false)
+  const [csvError, setCsvError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const interventionTypeOptions = useMemo(
     () => [
@@ -81,23 +82,35 @@ export default function SiteSelectorBlock({
     setAddCode('')
   }
 
-  const handlePasteImport = async () => {
-    const codes = pasteText
-      .split(';')
-      .map((c) => c.trim().toUpperCase())
-      .filter(Boolean)
+  const parseCsvCodes = (content: string): string[] => {
+    const lines = content.split(/\r\n|\r|\n/).map((l) => l.split(',')[0]?.trim() ?? '')
+    const [first, ...rest] = lines
+    const body = /^code.?site$/i.test(first ?? '') ? rest : lines
+    return body.map((c) => c.trim().toUpperCase()).filter(Boolean)
+  }
+
+  const handleCsvFile = async (file: File) => {
+    setCsvError(null)
+    const content = await file.text()
+    const codes = parseCsvCodes(content)
+    if (!codes.length) {
+      setCsvError(t('planning.siteSelector.csvEmpty'))
+      return
+    }
     const newCodes = codes.filter(
       (c) => !planSites.some((s) => s.codeSite.toUpperCase() === c),
     )
-    if (!newCodes.length) {
-      setPasteText('')
-      return
-    }
+    if (!newCodes.length) return
     setResolving(true)
     const rows = await Promise.all(newCodes.map(lookupCode))
     setResolving(false)
     onPlanSitesChange([...planSites, ...rows])
-    setPasteText('')
+  }
+
+  const handleCsvInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) void handleCsvFile(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleRemoveSite = (idx: number) => {
@@ -260,31 +273,34 @@ export default function SiteSelectorBlock({
 
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">
-              {t('planning.siteSelector.pasteLabel')}
+              {t('planning.siteSelector.csvImportLabel')}
             </label>
-            <div className="flex gap-2">
-              <textarea
-                className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                rows={2}
-                value={pasteText}
-                onChange={(e) => setPasteText(e.target.value)}
-                placeholder={t('planning.siteSelector.pastePlaceholder')}
+            <p className="text-xs text-gray-500">{t('planning.siteSelector.csvImportHint')}</p>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                onChange={handleCsvInputChange}
                 disabled={disabled || resolving}
+                className="hidden"
+                id="site-codes-csv-input"
               />
-              <button
-                type="button"
-                onClick={() => void handlePasteImport()}
-                disabled={disabled || resolving || !pasteText.trim()}
-                className="self-end flex items-center gap-1 rounded-lg bg-gray-600 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-40"
+              <label
+                htmlFor="site-codes-csv-input"
+                className={`flex items-center gap-1 rounded-lg bg-gray-600 px-3 py-2 text-sm text-white hover:bg-gray-700 cursor-pointer ${
+                  disabled || resolving ? 'opacity-40 pointer-events-none' : ''
+                }`}
               >
                 {resolving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Clipboard className="h-4 w-4" />
+                  <Upload className="h-4 w-4" />
                 )}
-                {t('planning.siteSelector.importButton')}
-              </button>
+                {t('planning.siteSelector.csvImportButton')}
+              </label>
             </div>
+            {csvError && <p className="text-xs text-red-500">{csvError}</p>}
           </div>
         </div>
       )}
