@@ -1037,6 +1037,21 @@ export default function PlanPreventionCreatePage({
                 </p>
               </div>
             )}
+            {isStep1Invalid && tachesSansRisque.length > 0 && (
+              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-red-800">
+                    Chaque mode opératoire doit avoir au moins un risque identifié :
+                  </p>
+                  <ul className="mt-1 list-disc list-inside text-sm text-red-700">
+                    {tachesSansRisque.map((tache) => (
+                      <li key={tache.id}>{tache.tache}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -1419,8 +1434,15 @@ export default function PlanPreventionCreatePage({
     allCategories,
   );
   const apnApiRisqueMissing = apnApiMissingTypes.length > 0;
+  // R-50 : un mode operatoire sans aucun risque associe laisse le permis de
+  // travail (Electrique/Hauteur) sans rien a prereplir dans "Quels sont les
+  // dangers ?" - on bloque donc la soumission tant qu'il en reste un.
+  const tachesSansRisque = activeSectionsForRisques
+    .flatMap((s) => s.taches ?? [])
+    .filter((tache) => !localRisques.some((r) => r.tachePlanifieeId === tache.id));
   const isStep1Invalid =
-    step === 1 && (step1PartialRows.length > 0 || apnApiRisqueMissing);
+    step === 1 &&
+    (step1PartialRows.length > 0 || apnApiRisqueMissing || tachesSansRisque.length > 0);
 
   // Step 2: all document types must be uploaded — les photos installations/équipements (R-09)
   // se joignent ligne par ligne à l'étape Installations & Équipements.

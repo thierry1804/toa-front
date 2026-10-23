@@ -169,18 +169,19 @@ function PermitTravailCreateForm() {
       : ['GENERAL']
     : ['GENERAL', 'ELECTRIQUE', 'HAUTEUR']
 
-  const matchingCatNames = useMemo(
-    () => new Set(allCategories.filter((c) => c.typePermis === typePermis).map((c) => c.nom)),
+  const matchingCatIds = useMemo(
+    () => new Set(allCategories.filter((c) => c.typePermis === typePermis).map((c) => c.id)),
     [allCategories, typePermis],
   )
 
-  const showAllRisks = isNouveauSite || typePermis === 'GENERAL' || matchingCatNames.size === 0
+  const showAllRisks = isNouveauSite || typePermis === 'GENERAL' || matchingCatIds.size === 0
 
   const allRisqueRows = useMemo((): RisqueRow[] =>
     (selectedPlan?.risques ?? []).map((r) => ({
       localId: r.id,
       tachePlanifieeId: r.tachePlanifieeId ?? null,
       description: r.description ?? '',
+      categorieIds: (r.categoriesRisque ?? []).map((iri) => iri.split('/').pop() ?? iri),
       gravite: r.gravite ?? 1,
       probabilite: r.probabilite ?? 1,
       mesuresPreventives: r.mesuresPreventives ?? '',
@@ -189,21 +190,14 @@ function PermitTravailCreateForm() {
     [selectedPlan],
   )
 
+  // Le filtre porte sur la relation categorieIds (categoriesRisque), pas sur le texte
+  // libre de description : un risque de mode operatoire (Modop) decrit le danger en
+  // prose et ne contient jamais de noms de categorie, donc un filtre texte l'excluait
+  // toujours a tort du prereplissage du permis Electrique/Hauteur (R-50).
   const filteredRisqueRows = useMemo((): RisqueRow[] => {
     if (showAllRisks) return allRisqueRows
-    return allRisqueRows
-      .filter((r) => {
-        const names = r.description.split(', ').filter(Boolean)
-        return names.some((n) => matchingCatNames.has(n))
-      })
-      .map((r) => ({
-        ...r,
-        description: r.description
-          .split(', ')
-          .filter((n) => matchingCatNames.has(n))
-          .join(', '),
-      }))
-  }, [allRisqueRows, showAllRisks, matchingCatNames])
+    return allRisqueRows.filter((r) => (r.categorieIds ?? []).some((id) => matchingCatIds.has(id)))
+  }, [allRisqueRows, showAllRisks, matchingCatIds])
 
   const siteInfo = useMemo(
     () =>
