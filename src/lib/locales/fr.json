@@ -660,6 +660,9 @@
       "alertBody": "Au moins un site de ce plan est situé dans une aire protégée nationale (APN) ou internationale (API). Renseignez les risques associés au type de site.",
       "risqueRequired": "Un risque de catégorie {{types}} est obligatoire pour ce plan : sélectionnez une catégorie de risque de ce type (hors « Autre(s) risque(s) »)."
     },
+    "risque": {
+      "sousRisqueRequired": "Précisez le sous-risque pour chaque risque identifié : sélectionnez au moins une sous-catégorie, pas seulement la catégorie générale."
+    },
     "toast": {
       "refused": "Plan refusé — prestataire notifié",
       "errorValidate": "Erreur lors de la validation HSE du plan",

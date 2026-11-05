@@ -43,6 +43,7 @@ import {
 import type { SectionPayload, SectionRow, SectionPlanifieeItem } from "@/types";
 import { ownSections } from "@/utils/planSections";
 import { missingApnApiRiskTypes } from "@/utils/apnApiRisk";
+import { rowsWithoutSousRisque } from "@/utils/risqueValidation";
 
 function iriToId(iri: string): string {
   return iri.split("/").pop() ?? iri;
@@ -1052,6 +1053,12 @@ export default function PlanPreventionCreatePage({
                 </div>
               </div>
             )}
+            {isStep1Invalid && rowsSansSousRisque.length > 0 && (
+              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{t("planPrevention.risque.sousRisqueRequired")}</p>
+              </div>
+            )}
           </div>
         );
 
@@ -1440,9 +1447,15 @@ export default function PlanPreventionCreatePage({
   const tachesSansRisque = activeSectionsForRisques
     .flatMap((s) => s.taches ?? [])
     .filter((tache) => !localRisques.some((r) => r.tachePlanifieeId === tache.id));
+  // Le sous-risque (catégorie enfant) est obligatoire : la catégorie racine seule
+  // reste trop vague pour pré-remplir les permis de travail.
+  const rowsSansSousRisque = rowsWithoutSousRisque(localRisques, allCategories);
   const isStep1Invalid =
     step === 1 &&
-    (step1PartialRows.length > 0 || apnApiRisqueMissing || tachesSansRisque.length > 0);
+    (step1PartialRows.length > 0 ||
+      apnApiRisqueMissing ||
+      tachesSansRisque.length > 0 ||
+      rowsSansSousRisque.length > 0);
 
   // Step 2: all document types must be uploaded — les photos installations/équipements (R-09)
   // se joignent ligne par ligne à l'étape Installations & Équipements.

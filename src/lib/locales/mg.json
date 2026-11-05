@@ -660,6 +660,9 @@
       "alertBody": "Iray farafahakeliny amin'ireo toerana ao amin'ity drafitra ity dia ao amin'ny faritra arovana nasionaly (APN) na iraisam-pirenena (API). Fenoy ny risika mifandraika amin'ny karazana toerana.",
       "risqueRequired": "Risika iray amin'ny sokajy {{types}} no tsy maintsy ampidirina amin'ity drafitra ity: safidio sokajy risika amin'io karazana io (afa-tsy ny « Autre(s) risque(s) »)."
     },
+    "risque": {
+      "sousRisqueRequired": "Hazavao ny antoko risika (sous-risque) ho an'ny risika tsirairay voafantina: safidio antoko risika iray farafahakeliny, tsy ny sokajy ankapobe fotsiny."
+    },
     "toast": {
       "refused": "Nolanihanina ny drafitra — notifian'ny mpanome tolotra",
       "errorValidate": "Hadisoana tamin'ny fanamarinana HSE ny drafitra",
