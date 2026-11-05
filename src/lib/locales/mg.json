@@ -33,7 +33,9 @@
     "expandSection": "Ahalehibiazo ny fizarana",
     "collapseSection": "Ahakeleo ny fizarana",
     "changeLanguage": "Hanova ny fiteny",
-    "myEntreprise": "Ny orinasako"
+    "myEntreprise": "Ny orinasako",
+    "openUserMenu": "Sokafy ny menio mpampiasa",
+    "myProfile": "Ny mombamomba ahy"
   },
   "auth": {
     "login": "Hiditra",
@@ -2745,5 +2747,32 @@
     },
     "photoPhase": "Hampifandray ny sary amin’ny",
     "generalPhoto": "Fijery ankapobeny"
+  },
+  "profile": {
+    "title": "Ny mombamomba ahy",
+    "identity": {
+      "title": "Mombamomba",
+      "name": "Anarana feno",
+      "email": "Mailaka",
+      "role": "Andraikitra",
+      "entreprise": "Orinasa"
+    },
+    "password": {
+      "title": "Tenimiafina",
+      "current": "Tenimiafina ankehitriny",
+      "new": "Tenimiafina vaovao",
+      "confirm": "Hamarino ny tenimiafina vaovao",
+      "submit": "Havaozina",
+      "success": "Novaina ny tenimiafina",
+      "wrongCurrent": "Diso ny tenimiafina ankehitriny",
+      "error": "Nisy olana teo am-panavaozana ny tenimiafina"
+    },
+    "signature": {
+      "title": "Sonia elektronika",
+      "none": "Tsy misy sonia",
+      "upload": "Alefaso sonia",
+      "success": "Novaina ny sonia",
+      "error": "Nisy olana tamin'ny fandefasana ny sonia"
+    }
   }
 }

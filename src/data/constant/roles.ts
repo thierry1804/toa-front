@@ -82,6 +82,14 @@ export const ROLE_LABELS: Record<string, string> = {
   ROLE_DIRECTION: "Direction",
 };
 
+/** Libellé(s) de rôle complet(s) d'un utilisateur, pour affichage (header, profil…). */
+export function formatRoleLabel(roles: string[]): string {
+  return roles
+    .filter((r) => r !== "ROLE_USER" && r in ROLE_LABELS)
+    .map((r) => ROLE_LABELS[r])
+    .join(", ");
+}
+
 export const ROLES = [
   "ROLE_SUPER_ADMIN",
   "ROLE_ADMIN",

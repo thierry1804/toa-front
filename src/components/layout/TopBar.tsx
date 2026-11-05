@@ -1,16 +1,17 @@
 import { useUiStore } from "@/store/ui.store";
 import { useAuthStore } from "@/store/auth.store";
-import { ROLE_LABELS } from "@/data/constant/roles";
+import { formatRoleLabel } from "@/data/constant/roles";
 import { useLogout } from "@/features/auth/useAuth";
 import { useOnline } from "@/hooks/useOnline";
 import { usePendingSyncCount } from "@/hooks/usePendingSyncCount";
 import { useTranslation } from "react-i18next";
-import { LogOut, ChevronDown, Menu, WifiOff } from "lucide-react";
+import { ChevronDown, Menu, WifiOff } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import { useIsFieldAgent } from "@/features/terrain/useIsFieldAgent";
 import { OfflineSnapshotButton } from "@/components/layout/OfflineSnapshotButton";
+import { UserMenu } from "@/components/layout/UserMenu";
 
 const FlagFR = () => (
   <svg
@@ -40,10 +41,7 @@ export function TopBar() {
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const user = useAuthStore((s) => s.user);
   const roles = useAuthStore((s) => s.roles);
-  const roleLabel = roles
-    .filter((r) => r !== "ROLE_USER" && r in ROLE_LABELS)
-    .map((r) => ROLE_LABELS[r])
-    .join(", ");
+  const roleLabel = formatRoleLabel(roles);
 
   const { mutate: logout } = useLogout();
   const isFieldAgent = useIsFieldAgent();
@@ -162,24 +160,11 @@ export function TopBar() {
             )}
           </div>
 
-          <div className="hidden min-w-0 text-right md:block">
-            <p className="truncate text-sm font-medium text-gray-700">
-              {`${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim()}
-            </p>
-            {roleLabel && (
-              <p className="truncate text-xs text-gray-500">{roleLabel}</p>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogoutClick}
-            title={t("auth.logout")}
-            aria-label={t("auth.logout")}
-            className="touch-target flex shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+          <UserMenu
+            fullName={`${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim()}
+            roleLabel={roleLabel}
+            onLogoutClick={handleLogoutClick}
+          />
         </div>
       </div>
 

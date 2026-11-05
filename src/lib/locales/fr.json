@@ -33,7 +33,9 @@
     "expandSection": "Développer la section",
     "collapseSection": "Réduire la section",
     "changeLanguage": "Changer la langue",
-    "myEntreprise": "Mon entreprise"
+    "myEntreprise": "Mon entreprise",
+    "openUserMenu": "Ouvrir le menu utilisateur",
+    "myProfile": "Mon profil"
   },
   "auth": {
     "login": "Connexion",
@@ -2745,5 +2747,32 @@
     },
     "photoPhase": "Associer les photos à",
     "generalPhoto": "Vue générale du suivi"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "identity": {
+      "title": "Identité",
+      "name": "Nom complet",
+      "email": "Email",
+      "role": "Rôle",
+      "entreprise": "Entreprise"
+    },
+    "password": {
+      "title": "Mot de passe",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "submit": "Mettre à jour",
+      "success": "Mot de passe mis à jour",
+      "wrongCurrent": "Mot de passe actuel incorrect",
+      "error": "Erreur lors de la mise à jour du mot de passe"
+    },
+    "signature": {
+      "title": "Signature électronique",
+      "none": "Aucune signature",
+      "upload": "Téléverser une signature",
+      "success": "Signature mise à jour",
+      "error": "Erreur lors du téléversement de la signature"
+    }
   }
 }

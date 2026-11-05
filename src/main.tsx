@@ -12,6 +12,7 @@ import { RouteGuard } from "@/components/layout/RouteGuard";
 import { PrestataireRouteGuard } from "@/components/layout/PrestataireRouteGuard";
 import LoginPage from "@/pages/auth/LoginPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 import PlanPreventionListPage from "@/pages/prevention/PlanPreventionListPage";
 import UsersListPage from "@/pages/users/UsersListPage";
 import UserFormPage from "@/pages/users/UserFormPage";
@@ -65,6 +66,7 @@ createRoot(document.getElementById("root")!).render(
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/mon-profil" element={<ProfilePage />} />
 
             <Route element={<RouteGuard menuRoute="/prevention" />}>
               <Route path="/prevention" element={<PlanPreventionListPage />} />
