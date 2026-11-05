@@ -164,7 +164,7 @@ export function TopBar() {
 
           <div className="hidden min-w-0 text-right md:block">
             <p className="truncate text-sm font-medium text-gray-700">
-              {user?.nom}
+              {`${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim()}
             </p>
             {roleLabel && (
               <p className="truncate text-xs text-gray-500">{roleLabel}</p>

@@ -66,15 +66,20 @@ export const ROLE_MAP: Record<string, string> = {
   ROLE_DG: "dg",
 };
 
+// Alignés sur le libellé officiel de la table `role` (catalogue back-office) ;
+// /api/roles n'étant lisible que par ROLE_SUPER_ADMIN, le header ne peut pas
+// l'interroger pour chaque utilisateur et recopie donc ces libellés ici.
 export const ROLE_LABELS: Record<string, string> = {
-  ROLE_SUPER_ADMIN: "Super Admin",
-  ROLE_ADMIN: "Admin",
-  ROLE_CHEF_PROJET: "Chef de Projet",
-  ROLE_CHEF_PROJET_PRESTATAIRE: "Chef de Projet Prestataire",
-  ROLE_HSE: "HSE",
-  ROLE_PRESTATAIRE: "Prestataire",
-  ROLE_AGENT_TERRAIN: "Agent de terrain",
+  ROLE_SUPER_ADMIN: "Super Administrateur",
+  ROLE_ADMIN: "Administrateur",
+  ROLE_CHEF_PROJET: "Chef de Projet TOA",
+  ROLE_CHEF_PROJET_PRESTATAIRE: "Chef de projet Prestataire",
+  ROLE_HSE: "HSE TOA",
+  ROLE_PRESTATAIRE: "HSE Prestataire",
+  ROLE_AGENT_TERRAIN: "Agent de terrain / Equipe",
   ROLE_DG: "DG",
+  ROLE_COLLABORATEUR: "Superviseur TOA",
+  ROLE_DIRECTION: "Direction",
 };
 
 export const ROLES = [
