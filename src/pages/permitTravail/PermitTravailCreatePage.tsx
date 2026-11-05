@@ -794,6 +794,24 @@ function PermitTravailCreateForm() {
               </dl>
             </div>
 
+            {/* Résumé des risques issus du plan de prévention — doit rester visible
+                avant la question de maîtrise, pas seulement en cas de réponse « Non »,
+                sinon l'agent répond sans savoir quels risques sont en jeu. */}
+            {nonEmptyEvaluations(evaluations).some((e) => e.dangers) && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <h3 className="mb-2 text-sm font-semibold text-amber-900">Résumé des risques sur site</h3>
+                <ul className="space-y-1">
+                  {nonEmptyEvaluations(evaluations)
+                    .filter((e) => e.dangers)
+                    .map((e, i) => (
+                      <li key={i} className="whitespace-pre-line text-sm text-amber-800">
+                        {e.dangers}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
             {/* Question de contrôle avant soumission (R-22) */}
             <div className="rounded-lg border-2 border-blue-200 bg-blue-50/40 px-4 py-4">
               <p className="mb-3 text-sm font-semibold text-gray-900">Les dangers sont-ils efficacement maîtrisés ?</p>
