@@ -663,7 +663,8 @@
       "risqueRequired": "Un risque de catégorie {{types}} est obligatoire pour ce plan : sélectionnez une catégorie de risque de ce type (hors « Autre(s) risque(s) »)."
     },
     "risque": {
-      "sousRisqueRequired": "Précisez le sous-risque pour chaque risque identifié : sélectionnez au moins une sous-catégorie, pas seulement la catégorie générale."
+      "sousRisqueRequired": "Précisez le sous-risque pour chaque risque identifié : sélectionnez au moins une sous-catégorie, pas seulement la catégorie générale.",
+      "modopRequired": "Au moins un mode opératoire (MODOP) est obligatoire avant de passer à l'étape suivante."
     },
     "toast": {
       "refused": "Plan refusé — prestataire notifié",

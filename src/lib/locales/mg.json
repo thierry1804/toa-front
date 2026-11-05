@@ -663,7 +663,8 @@
       "risqueRequired": "Risika iray amin'ny sokajy {{types}} no tsy maintsy ampidirina amin'ity drafitra ity: safidio sokajy risika amin'io karazana io (afa-tsy ny « Autre(s) risque(s) »)."
     },
     "risque": {
-      "sousRisqueRequired": "Hazavao ny antoko risika (sous-risque) ho an'ny risika tsirairay voafantina: safidio antoko risika iray farafahakeliny, tsy ny sokajy ankapobe fotsiny."
+      "sousRisqueRequired": "Hazavao ny antoko risika (sous-risque) ho an'ny risika tsirairay voafantina: safidio antoko risika iray farafahakeliny, tsy ny sokajy ankapobe fotsiny.",
+      "modopRequired": "Tsy maintsy misy mode opératoire (MODOP) iray farafahakeliny alohan'ny handrosoana amin'ny dingana manaraka."
     },
     "toast": {
       "refused": "Nolanihanina ny drafitra — notifian'ny mpanome tolotra",
