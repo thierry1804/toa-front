@@ -834,15 +834,14 @@ function PermitTravailCreateForm() {
               </div>
             </div>
 
-            {/* Installations */}
-            {(selectedPlan?.installations ?? []).length > 0 && (
+            {showInstallationsBlock && localInstallations.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Wrench className="h-4 w-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-700">Installations et matériels</h3>
+                  <h3 className="text-sm font-semibold text-gray-700">Liste des installations et matériels utilisés</h3>
                 </div>
                 <ul className="space-y-1">
-                  {selectedPlan!.installations.map((inst, i) => (
+                  {localInstallations.map((inst, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                       <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
                       <span className="font-medium">{inst.description}</span>
