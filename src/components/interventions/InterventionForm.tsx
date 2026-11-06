@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useInterventionStore } from '@/store/interventionStore';
 import { interventionApi } from '@/api/interventionApi';
 import { permitTravailApi } from '@/api/permitTravailApi';
+import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravailLabels';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import type { PermitTravail } from '@/types/permitTravail';
@@ -11,6 +12,7 @@ import type { PermitTravail } from '@/types/permitTravail';
 export default function InterventionForm() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { typeLabel } = usePermitTravailLabels();
   const { addIntervention } = useInterventionStore();
 
   const [permits, setPermits] = useState<PermitTravail[]>([]);
@@ -64,7 +66,7 @@ export default function InterventionForm() {
 
   const permitOptions = permits.map((p) => ({
     value: p.id,
-    label: `${p.reference} — ${p.codeSite}`,
+    label: `${p.reference} — ${typeLabel(p.typePermis)} — ${p.codeSite}`,
   }));
 
   return (

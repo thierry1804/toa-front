@@ -9,6 +9,7 @@ import Badge from '@/components/ui/Badge'
 import ListPageSkeleton from '@/components/ui/ListPageSkeleton'
 import { usePermission } from '@/features/auth/usePermission'
 import { usePermissions } from '@/features/menus/hooks/usePermissions'
+import { usePermitTravailLabels } from '@/features/permitTravail/usePermitTravailLabels'
 import { useTerrainData } from '@/features/terrain/useTerrainData'
 import { dayState, groupTasks, permitClosureNote, taskTarget, type DayState } from '@/features/terrain/model'
 import { useToday } from '@/features/terrain/useToday'
@@ -47,12 +48,14 @@ function Progress({ value }: { value: number }) {
 
 function TaskCard({ row, today }: { row: TaskRow; today: string }) {
   const { t, i18n } = useTranslation()
+  const { typeLabel } = usePermitTravailLabels()
   const canCreate = usePermissions('/interventions/suivis')?.canCreate ?? false
   const canViewSuivi = usePermission('suivi_journalier.view')
   const { intervention, permit, suivis, state } = row
   const embedded = typeof intervention.permitTravail === 'object' ? intervention.permitTravail : null
   const site = permit?.codeSite ?? embedded?.codeSite ?? '—'
   const reference = permit?.reference ?? embedded?.reference ?? intervention.id
+  const typeName = permit?.typePermis ? typeLabel(permit.typePermis) : ''
   const entry = suivis?.find((s) => s.date.slice(0, 10) === today)
   const latest = [...(suivis ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]
   const progress = suivis ? latestInterventionProgress(suivis) : null
@@ -71,7 +74,7 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
             : null
 
   return (
-    <ClickableCard to={cta?.to ?? `/interventions/${intervention.id}/carnet`} label={`${site} — ${reference}`} chevron={false} className="block">
+    <ClickableCard to={cta?.to ?? `/interventions/${intervention.id}/carnet`} label={`${site} — ${reference}${typeName ? ` — ${typeName}` : ''}`} chevron={false} className="block">
       <div className="flex items-start justify-between gap-3">
         <h3 className="flex min-w-0 items-center gap-2 text-lg font-semibold text-gray-900">
           <MapPin className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
@@ -83,7 +86,7 @@ function TaskCard({ row, today }: { row: TaskRow; today: string }) {
         </Badge>
       </div>
       <p className="mt-1 text-sm text-gray-800">{permit?.descriptionTravaux || t('terrain.works')}</p>
-      <p className="mt-0.5 break-words text-xs text-gray-500">{reference}{permit?.planProcess ? ` · ${permit.planProcess}` : ''}</p>
+      <p className="mt-0.5 break-words text-xs text-gray-500">{reference}{typeName ? ` · ${typeName}` : ''}{permit?.planProcess ? ` · ${permit.planProcess}` : ''}</p>
 
       {progress !== null && <div className="mt-3"><Progress value={progress} /></div>}
       <p className="mt-2 text-xs text-gray-600">
@@ -141,6 +144,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function TerrainDashboardPage() {
   const { t, i18n } = useTranslation()
   const data = useTerrainData()
+  const { typeLabel } = usePermitTravailLabels()
   const today = useToday()
   const [search, setSearch] = useState('')
 
@@ -161,10 +165,10 @@ export default function TerrainDashboardPage() {
   })
   const open = rows.filter((row) => row.state !== 'closed')
   const q = search.trim().toLocaleLowerCase()
-  // Recherche par code site (et, par commodité, référence du permis ou intitulé des travaux).
+  // Recherche par code site, référence, type de permis ou intitulé des travaux.
   const siteOf = (row: TaskRow) => row.permit?.codeSite ?? (typeof row.intervention.permitTravail === 'object' ? row.intervention.permitTravail.codeSite : '')
   const visible = q
-    ? open.filter((row) => [siteOf(row), row.permit?.reference, row.permit?.descriptionTravaux].join(' ').toLocaleLowerCase().includes(q))
+    ? open.filter((row) => [siteOf(row), row.permit?.reference, row.permit?.typePermis ? typeLabel(row.permit.typePermis) : '', row.permit?.descriptionTravaux].join(' ').toLocaleLowerCase().includes(q))
     : open
   const { todo, waiting, done } = groupTasks(visible)
   const allGroups = groupTasks(open)
