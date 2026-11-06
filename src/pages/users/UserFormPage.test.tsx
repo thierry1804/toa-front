@@ -23,6 +23,10 @@ vi.mock('@/features/users/hooks/useUsers', () => ({
   useUploadSignature: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 vi.mock('@/api/usersApi', () => ({ usersApi: { getSignatureBlob: vi.fn() } }))
+vi.mock('@/api/sousTraitantApi', () => ({
+  sousTraitantApi: { list: () => Promise.resolve([]) },
+  entrepriseIriOf: () => '',
+}))
 vi.mock('@/features/menus/hooks/usePermissions', () => ({
   usePermissions: () => ({ canView: true, canCreate: true, canEdit: true, canDelete: false }),
 }))

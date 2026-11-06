@@ -199,12 +199,21 @@ export default function UsersListPage() {
         description={t("users.description")}
         actions={
           perms?.canCreate && (!isPrestataireScoped || hasEntreprise) ? (
-            <Link to="/users/new" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto">
-                <Plus className="mr-2 h-5 w-5" />
-                {t("users.newUser")}
-              </Button>
-            </Link>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {isPrestataireScoped && hasEntreprise && (
+                <Link to="/users/sous-traitants" className="w-full sm:w-auto">
+                  <Button variant="secondary" className="w-full sm:w-auto">
+                    {t("users.sousTraitant.manage")}
+                  </Button>
+                </Link>
+              )}
+              <Link to="/users/new" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">
+                  <Plus className="mr-2 h-5 w-5" />
+                  {t("users.newUser")}
+                </Button>
+              </Link>
+            </div>
           ) : undefined
         }
       />

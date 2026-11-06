@@ -122,6 +122,24 @@
   "users": {
     "title": "Mpampiasa",
     "newUser": "Mpampiasa vaovao",
+    "sousTraitant": {
+      "manage": "Mpiara-miombon'antoka",
+      "title": "Mpiara-miombon'antoka",
+      "description": "Ny mpandraharaha eny an-kianja dia tsy mahita afa-tsy ny dosie mifandraika amin'ny fandaharam-potoana nomena ny mpiara-miombon'antoka azy.",
+      "listTitle": "Mpiara-miombon'antoka ao amin'ny orinasa",
+      "name": "Anarana",
+      "empty": "Tsy misy mpiara-miombon'antoka",
+      "assignTitle": "Fametrahana amin'ny fandaharam-potoana",
+      "assignHint": "Safidio ny mpiara-miombon'antoka miasa amin'ny fandaharam-potoana tsirairay, dia tehirizo ilay andalana.",
+      "assignDenied": "Ny prestataire sy ny lehiben'ny tetikasa prestataire ihany no mametraka mpiara-miombon'antoka.",
+      "site": "Toerana",
+      "process": "Fomba",
+      "assigned": "Mpiara-miombon'antoka",
+      "noPlan": "Tsy misy fandaharam-potoana ho an'ity orinasa ity",
+      "saved": "Voatahiry ny fametrahana",
+      "saveError": "Tsy voatahiry",
+      "none": "Tsy misy — hitan'ny mpandraharaha ny orinasa iray manontolo"
+    },
     "description": "Fitantanana ny mpampiasa sy ny fidirana amin'ny sehatra",
     "stats": {
       "total": "Totaly",
@@ -221,6 +239,7 @@
       "name": "Anarana *",
       "email": "Mailaka *",
       "role": "Andraikitra *",
+      "sousTraitant": "Mpiara-miombon'antoka",
       "entreprise": "Orinasa *",
       "password": "Tenimiafina",
       "confirmPassword": "Hamafiso ny tenimiafina",

@@ -122,6 +122,24 @@
   "users": {
     "title": "Utilisateurs",
     "newUser": "Nouvel utilisateur",
+    "sousTraitant": {
+      "manage": "Sous-traitants",
+      "title": "Sous-traitants",
+      "description": "Les agents d'un sous-traitant ne voient que les dossiers des planifications qui lui sont affectées.",
+      "listTitle": "Sous-traitants de l'entreprise",
+      "name": "Nom",
+      "empty": "Aucun sous-traitant",
+      "assignTitle": "Affectation aux planifications",
+      "assignHint": "Cochez les sous-traitants qui interviennent sur chaque planification, puis enregistrez la ligne.",
+      "assignDenied": "Seuls le prestataire et le chef de projet prestataire affectent les sous-traitants.",
+      "site": "Site",
+      "process": "Processus",
+      "assigned": "Sous-traitants",
+      "noPlan": "Aucune planification pour cette entreprise",
+      "saved": "Affectation enregistrée",
+      "saveError": "Enregistrement impossible",
+      "none": "Aucun — l'agent voit toute l'entreprise"
+    },
     "description": "Gestion des utilisateurs et des accès à la plateforme",
     "stats": {
       "total": "Total",
@@ -221,6 +239,7 @@
       "name": "Nom *",
       "email": "Email *",
       "role": "Rôle *",
+      "sousTraitant": "Sous-traitant",
       "entreprise": "Entreprise *",
       "password": "Mot de passe",
       "confirmPassword": "Confirmer le mot de passe",

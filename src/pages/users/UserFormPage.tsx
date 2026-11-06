@@ -32,6 +32,7 @@ import { useRoles } from "@/features/roles/hooks/useRoles";
 import { INTERVENTION_TYPES } from "@/data/constant/planning";
 import { useEntreprises } from "@/features/referentiel/hooks/useEntreprises";
 import { usePrestataireEntrepriseScope } from "@/features/users/hooks/usePrestataireEntrepriseScope";
+import { entrepriseIriOf, sousTraitantApi, type SousTraitant } from "@/api/sousTraitantApi";
 import { isOfflineQueued } from "@/offline/offlineError";
 import { usePendingUploads } from "@/hooks/usePendingUploads";
 
@@ -146,6 +147,7 @@ export default function UserFormPage() {
     siegeSocial: "",
     qualiteRepresentant: "",
     processus: [] as string[],
+    sousTraitantId: "",
     actif: true,
     plainPassword: "",
     confirmPassword: "",
@@ -167,6 +169,7 @@ export default function UserFormPage() {
   const belongsToEntreprise = (role: string) =>
     canHaveEntreprise(role) || isTeamRole(role);
 
+  const [sousTraitants, setSousTraitants] = useState<SousTraitant[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
@@ -214,12 +217,32 @@ export default function UserFormPage() {
         siegeSocial: existingUser.siegeSocial ?? "",
         qualiteRepresentant: existingUser.qualiteRepresentant ?? "",
         processus: existingUser.processus ?? [],
+        sousTraitantId:
+          typeof existingUser.sousTraitant === "string"
+            ? existingUser.sousTraitant
+            : existingUser.sousTraitant?.["@id"] ?? "",
         actif: existingUser.isActive,
         plainPassword: "",
         confirmPassword: "",
       });
     }
   }, [existingUser]);
+
+  useEffect(() => {
+    if (formData.role !== "ROLE_AGENT_TERRAIN") return;
+    let cancelled = false;
+    sousTraitantApi
+      .list()
+      .then((items) => {
+        if (!cancelled) setSousTraitants(items);
+      })
+      .catch(() => {
+        if (!cancelled) setSousTraitants([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.role]);
 
   useEffect(() => {
     if (permsLoading) return;
@@ -385,6 +408,8 @@ export default function UserFormPage() {
       formData.role === "ROLE_PRESTATAIRE"
         ? formData.qualiteRepresentant.trim() || null
         : null;
+    const sousTraitant =
+      formData.role === "ROLE_AGENT_TERRAIN" ? formData.sousTraitantId || null : null;
 
     if (isEditMode && existingUser) {
       updateUser(
@@ -402,6 +427,7 @@ export default function UserFormPage() {
             numeroRegistreCommerce,
             siegeSocial,
             qualiteRepresentant,
+            sousTraitant,
             ...(formData.plainPassword
               ? { plainPassword: formData.plainPassword }
               : {}),
@@ -431,6 +457,7 @@ export default function UserFormPage() {
           numeroRegistreCommerce,
           siegeSocial,
           qualiteRepresentant,
+          sousTraitant,
         },
         {
           onSuccess: () =>
@@ -456,6 +483,7 @@ export default function UserFormPage() {
       numeroRegistreCommerce: isPrestataire ? formData.numeroRegistreCommerce : "",
       siegeSocial: isPrestataire ? formData.siegeSocial : "",
       qualiteRepresentant: isPrestataire ? formData.qualiteRepresentant : "",
+      sousTraitantId: newRole === "ROLE_AGENT_TERRAIN" ? formData.sousTraitantId : "",
     });
   };
 
@@ -612,6 +640,23 @@ export default function UserFormPage() {
                     value: ent["@id"],
                     label: ent.nom,
                   })),
+                ]}
+              />
+            )}
+
+            {formData.role === "ROLE_AGENT_TERRAIN" && (
+              <Select
+                label={t("users.form.sousTraitant")}
+                value={formData.sousTraitantId}
+                onChange={(e) => setFormData({ ...formData, sousTraitantId: e.target.value })}
+                options={[
+                  { value: "", label: t("users.sousTraitant.none") },
+                  ...sousTraitants
+                    .filter((item) => {
+                      const iri = entrepriseIriOf(item);
+                      return !formData.entrepriseId || iri === "" || iri === formData.entrepriseId;
+                    })
+                    .map((item) => ({ value: item["@id"], label: item.nom })),
                 ]}
               />
             )}
