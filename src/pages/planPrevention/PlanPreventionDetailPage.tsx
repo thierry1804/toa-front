@@ -23,7 +23,6 @@ import Button from "@/components/ui/Button";
 import PlanReference from "@/components/planPrevention/PlanReference";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
-import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import RowPhotoCell from "@/components/planPrevention/RowPhotoCell";
 import StatutBadge from "@/components/planPrevention/StatutBadge";
@@ -472,43 +471,19 @@ export default function PlanPreventionDetailPage() {
         );
       })()}
 
-      {/* 4. Installations & Équipements — only for "Nouveau site" */}
       {plan.typeIntervention === "Nouveau site" && (
         <SectionCard
-          title="Installations & Équipements"
-          summary={`${(plan.installations ?? []).length} installation(s) · ${(plan.equipements ?? []).length} équipement(s)`}
+          title="Matériels, équipements et outillages"
+          summary={`${(plan.equipements ?? []).length} équipement(s)`}
           defaultOpen
         >
-          <div className="space-y-6">
-            <div>
-              <p className="mb-2 text-sm font-medium text-gray-600">
-                Installations et matériels utilisés
-                {(plan.installations?.length ?? 0) > 0 &&
-                  ` (${plan.installations!.length})`}
-              </p>
-              <InstallationsTable
-                value={plan.installations ?? []}
-                onChange={() => {}}
-                readonly
-                emptyLabel="Aucune installation renseignée."
-                renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_INSTALLATIONS)}
-              />
-            </div>
-            <div>
-              <p className="mb-2 text-sm font-medium text-gray-600">
-                Matériels, équipements et outillages
-                {(plan.equipements?.length ?? 0) > 0 &&
-                  ` (${plan.equipements!.length})`}
-              </p>
-              <EquipementsTable
-                value={plan.equipements ?? []}
-                onChange={() => {}}
-                readonly
-                emptyLabel="Aucun équipement renseigné."
-                renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_EQUIPEMENTS)}
-              />
-            </div>
-          </div>
+          <EquipementsTable
+            value={plan.equipements ?? []}
+            onChange={() => {}}
+            readonly
+            emptyLabel="Aucun équipement renseigné."
+            renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_EQUIPEMENTS)}
+          />
         </SectionCard>
       )}
 

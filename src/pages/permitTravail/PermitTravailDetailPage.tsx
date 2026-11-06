@@ -24,6 +24,7 @@ import { canEditDraft, wasRefused } from '@/features/permitTravail/utils/permitD
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
+  DOCUMENT_TYPE_LABELS,
   resolveDocumentRequirements,
   type TypeDocumentPermitTravail,
 } from '@/types/permitTravail'
@@ -106,7 +107,7 @@ export default function PermitTravailDetailPage() {
   // R-24 : un brouillon jamais refusé (renouvellement, création interrompue) se complète puis se soumet.
   const canCompleterBrouillon = !wasRefused(permit) && canEditDraft(permit, { canEdit, canResoumettre })
 
-  const handleClotureDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
+  const handleClotureDocUpload = async (type: string, file: File, capturedAt?: string) => {
     await uploadDocument(permit.id, type, file, capturedAt)
   }
 
@@ -114,7 +115,7 @@ export default function PermitTravailDetailPage() {
     await deleteDocument(permit.id, documentId)
   }
 
-  const handleClotureDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+  const handleClotureDocNotApplicable = async (type: string, next: boolean) => {
     await setDocumentNonApplicable(permit.id, type, next)
   }
 
@@ -358,7 +359,14 @@ export default function PermitTravailDetailPage() {
 <div>
           <PermitDocumentUploadZone
             permitId={permit.id}
-            documentTypes={[...new Set([...docTypes, ...clotureDocTypes, ...permit.documents.map((d) => d.type)])]}
+            documentTypes={[
+              ...docTypes,
+              ...clotureDocTypes.filter((ligne) => !docTypes.some((item) => item.code === ligne.code)),
+              ...permit.documents
+                .map((d) => d.type)
+                .filter((type, index, all) => all.indexOf(type) === index && !docTypes.some((ligne) => ligne.code === type) && !clotureDocTypes.some((ligne) => ligne.code === type))
+                .map((code) => ({ code, libelle: DOCUMENT_TYPE_LABELS[code as TypeDocumentPermitTravail] ?? code, obligatoire: false, ordre: 0 })),
+            ]}
             uploadedDocuments={permit.documents}
             onUpload={async () => {}}
             disabled={true}

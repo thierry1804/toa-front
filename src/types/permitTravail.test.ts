@@ -45,18 +45,20 @@ describe('resolveDocumentRequirements', () => {
       cloture: ['PV_FIN_TRAVAUX'],
       apnApi: true,
     }
-    expect(resolveDocumentRequirements(permit, requis)).toEqual({
-      soumission: ['TROUSSE_SECOURS'],
-      cloture: ['PV_FIN_TRAVAUX'],
-      apnApi: true,
-    })
+    const resolved = resolveDocumentRequirements(permit, requis)
+    expect(resolved.soumission.map((ligne) => ligne.code)).toEqual(['TROUSSE_SECOURS'])
+    expect(resolved.soumission[0]?.obligatoire).toBe(true)
+    expect(resolved.cloture.map((ligne) => ligne.code)).toEqual(['PV_FIN_TRAVAUX'])
+    expect(resolved.apnApi).toBe(true)
+    expect(resolved.dangers?.code).toBe('PHOTO_DANGERS')
+    expect(resolved.dangers?.obligatoire).toBe(false)
   })
 
   it('falls back to the local matrix, without APN/API pieces, while the server lists are missing', () => {
     const resolved = resolveDocumentRequirements(permit, undefined)
     expect(resolved.apnApi).toBe(false)
-    expect(resolved.soumission).toContain('PHOTO_EQUIPEMENTS_ISOLANTS')
-    expect(resolved.cloture).toContain('PHOTO_AVANT_TRAVAUX')
-    expect(resolved.cloture).not.toContain('ENV_ENLEVEMENT_DECHETS')
+    expect(resolved.soumission.map((ligne) => ligne.code)).toContain('PHOTO_EQUIPEMENTS_ISOLANTS')
+    expect(resolved.cloture.map((ligne) => ligne.code)).toContain('PHOTO_AVANT_TRAVAUX')
+    expect(resolved.cloture.map((ligne) => ligne.code)).not.toContain('ENV_ENLEVEMENT_DECHETS')
   })
 })

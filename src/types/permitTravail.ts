@@ -219,8 +219,9 @@ export function getRequiredClotureDocumentTypes(
 }
 
 export interface ResolvedDocumentRequirements {
-  soumission: TypeDocumentPermitTravail[]
-  cloture: TypeDocumentPermitTravail[]
+  soumission: DocumentRequisLigne[]
+  cloture: DocumentRequisLigne[]
+  dangers: DocumentRequisLigne | null
   apnApi: boolean
 }
 
@@ -233,12 +234,24 @@ export function resolveDocumentRequirements(
   permit: { planProcess?: string | null; typePermis: TypePermit; processus: ProcessusPermit },
   requis: DocumentsRequisResult | undefined,
 ): ResolvedDocumentRequirements {
+  const dangersAbsents: DocumentRequisLigne = {
+    code: 'PHOTO_DANGERS',
+    libelle: DOCUMENT_TYPE_LABELS.PHOTO_DANGERS,
+    obligatoire: false,
+    ordre: 0,
+  }
   if (requis) {
-    return { soumission: requis.soumission, cloture: requis.cloture, apnApi: requis.apnApi }
+    return {
+      soumission: documentRequisLignes(requis.soumission),
+      cloture: documentRequisLignes(requis.cloture),
+      dangers: requis.dangers === undefined ? dangersAbsents : requis.dangers,
+      apnApi: requis.apnApi,
+    }
   }
   return {
-    soumission: getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus, false),
-    cloture: getRequiredClotureDocumentTypes(permit.planProcess, false, permit.typePermis),
+    soumission: documentRequisLignes(getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus, false)),
+    cloture: documentRequisLignes(getRequiredClotureDocumentTypes(permit.planProcess, false, permit.typePermis)),
+    dangers: dangersAbsents,
     apnApi: false,
   }
 }
@@ -257,7 +270,7 @@ export const TYPE_PERMIT_LABELS: Record<TypePermit, string> = {
 
 export interface DocumentPermitTravail {
   id: string
-  type: TypeDocumentPermitTravail
+  type: string
   filePath: string
   mimeType: string
   uploadedAt: string
@@ -266,18 +279,40 @@ export interface DocumentPermitTravail {
   consultedAt?: string | null
 }
 
+export interface DocumentRequisLigne {
+  code: string
+  libelle: string
+  obligatoire: boolean
+  ordre: number
+}
+
+export type DocumentRequisEntree = string | DocumentRequisLigne
+
 export interface DocumentsRequisResult {
-  soumission: TypeDocumentPermitTravail[]
-  cloture: TypeDocumentPermitTravail[]
+  soumission: DocumentRequisEntree[]
+  cloture: DocumentRequisEntree[]
+  dangers?: DocumentRequisLigne | null
   apnApi: boolean
 }
 
+export function documentRequisLignes(entries: DocumentRequisEntree[] | undefined): DocumentRequisLigne[] {
+  return (entries ?? []).map((entry, ordre) =>
+    typeof entry === 'string'
+      ? { code: entry, libelle: DOCUMENT_TYPE_LABELS[entry as TypeDocumentPermitTravail] ?? entry, obligatoire: true, ordre }
+      : entry,
+  )
+}
+
 export function getMissingDocumentTypes(
-  requiredTypes: readonly TypeDocumentPermitTravail[],
-  uploadedDocuments: ReadonlyArray<Pick<DocumentPermitTravail, 'type'>>,
-): TypeDocumentPermitTravail[] {
-  const uploadedTypes = new Set(uploadedDocuments.map((document) => document.type))
-  return requiredTypes.filter((type) => !uploadedTypes.has(type))
+  lignes: readonly DocumentRequisLigne[],
+  uploadedDocuments: ReadonlyArray<Pick<DocumentPermitTravail, 'type' | 'nonApplicable' | 'filePath'>>,
+): string[] {
+  const present = new Set(
+    uploadedDocuments
+      .filter((document) => !document.nonApplicable && document.filePath)
+      .map((document) => document.type),
+  )
+  return lignes.filter((ligne) => ligne.obligatoire && !present.has(ligne.code)).map((ligne) => ligne.code)
 }
 
 export interface DecisionHsePermitTravail {

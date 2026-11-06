@@ -95,8 +95,9 @@ export interface OfflineSnapshot {
 /** Pièces requises d'un permis (GET /permits-travail/{id}/documents-requis), précalculées pour le hors-ligne. */
 export interface OfflineSnapshotPermitDocumentsRequis {
   id: string
-  soumission: string[]
-  cloture: string[]
+  soumission: Array<string | { code: string; libelle: string; obligatoire: boolean; ordre: number }>
+  cloture: Array<string | { code: string; libelle: string; obligatoire: boolean; ordre: number }>
+  dangers?: { code: string; libelle: string; obligatoire: boolean; ordre: number } | null
   apnApi: boolean
 }
 

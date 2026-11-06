@@ -20,11 +20,12 @@ import {
 } from '@/features/permitTravail/hooks/usePermitTravail'
 import { usePermission } from '@/features/auth/usePermission'
 import { canEditDraft } from '@/features/permitTravail/utils/permitDraft'
-import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
+import type { DocumentPermitTravail } from '@/types/permitTravail'
 import {
   TYPE_PERMIT_LABELS,
   PROCESSUS_LABELS,
-  getRequiredDocumentTypes,
+  getMissingDocumentTypes,
+  resolveDocumentRequirements,
 } from '@/types/permitTravail'
 import type { DecisionHsePlanPrevention, VersionPlanPrevention } from '@/types/planPrevention'
 
@@ -104,7 +105,7 @@ export default function PermitTravailEditPage() {
   const [evaluations, setEvaluations] = useState<EvaluationData[]>([emptyEvaluation()])
   const [motif, setMotif] = useState('')
   const [inlineError, setInlineError] = useState<string | null>(null)
-  const [missingDocTypes, setMissingDocTypes] = useState<TypeDocumentPermitTravail[]>([])
+  const [missingDocTypes, setMissingDocTypes] = useState<string[]>([])
   const [localDocs, setLocalDocs] = useState<DocumentPermitTravail[]>([])
   const engagementRef = useRef<HTMLDivElement>(null)
 
@@ -165,9 +166,10 @@ export default function PermitTravailEditPage() {
     return null
   }
 
-  const docTypes = requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess, permit.typePermis, permit.processus, false)
+  const docTypes = resolveDocumentRequirements(permit, requis).soumission
+  const computedMissing = getMissingDocumentTypes(docTypes, localDocs)
 
-  const handleDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
+  const handleDocUpload = async (type: string, file: File, capturedAt?: string) => {
     if (!permit) return
     const saved = await uploadDocument(permit.id, type, file, capturedAt)
     setLocalDocs((prev) => [...prev.filter((d) => !(d.type === type && d.nonApplicable)), saved])
@@ -180,7 +182,7 @@ export default function PermitTravailEditPage() {
     setLocalDocs((prev) => prev.filter((d) => d.id !== documentId))
   }
 
-  const handleDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+  const handleDocNotApplicable = async (type: string, next: boolean) => {
     if (!permit) return
     const marker = await setDocumentNonApplicable(permit.id, type, next)
     setLocalDocs((prev) => [
@@ -213,7 +215,7 @@ export default function PermitTravailEditPage() {
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
       if (detail.includes('documents_manquants')) {
         const raw = detail.replace('documents_manquants:', '').trim()
-        setMissingDocTypes(raw.split(',').map((s: string) => s.trim()) as TypeDocumentPermitTravail[])
+        setMissingDocTypes(raw.split(',').map((s: string) => s.trim()))
         setStep(3)
       } else if (detail.includes('evaluation_sans_reduction')) {
         setInlineError("L'évaluation finale doit réduire le niveau de risque par rapport à l'évaluation préliminaire.")
@@ -236,7 +238,7 @@ export default function PermitTravailEditPage() {
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
       if (detail.includes('documents_manquants')) {
         const raw = detail.replace('documents_manquants:', '').trim()
-        const missing = raw.split(',').map((s: string) => s.trim()) as TypeDocumentPermitTravail[]
+        const missing = raw.split(',').map((s: string) => s.trim())
         setMissingDocTypes(missing)
         setStep(3)
       } else if (detail.includes('engagement_obligatoire')) {
@@ -321,13 +323,13 @@ export default function PermitTravailEditPage() {
       case 3:
         return (
           <div className="space-y-4">
-            {missingDocTypes.length > 0 && (
+            {(computedMissing.length > 0 || missingDocTypes.length > 0) && (
               <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-red-800">
                   <p className="font-medium">Documents manquants :</p>
                   <ul className="mt-1 list-disc list-inside space-y-0.5">
-                    {missingDocTypes.map((t) => <li key={t}>{t}</li>)}
+                    {[...new Set([...computedMissing, ...missingDocTypes])].map((t) => <li key={t}>{docTypes.find((ligne) => ligne.code === t)?.libelle ?? t}</li>)}
                   </ul>
                 </div>
               </div>
@@ -339,6 +341,7 @@ export default function PermitTravailEditPage() {
               onUpload={handleDocUpload}
               onDelete={handleDocDelete}
               onToggleNotApplicable={handleDocNotApplicable}
+              missingTypes={computedMissing}
               allowDownload={true}
             />
           </div>

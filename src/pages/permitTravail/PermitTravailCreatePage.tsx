@@ -30,14 +30,15 @@ import { getDangersFormIssue } from '@/features/permitTravail/utils/dangersEvalu
 import type {
   PermitTravail,
   TypePermit,
-  TypeDocumentPermitTravail,
   DocumentPermitTravail,
 } from '@/types/permitTravail'
 import type { PlanBySiteResult, RisqueRow, InstallationRow } from '@/types/planPrevention'
 import {
   TYPE_PERMIT_LABELS,
+  documentRequisLignes,
   getMissingDocumentTypes,
   getRequiredDocumentTypes,
+  resolveDocumentRequirements,
 } from '@/types/permitTravail'
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
@@ -227,12 +228,12 @@ function PermitTravailCreateForm() {
   )
 
   // ── Document upload handlers ──────────────────────────────────────────────────
-  const withoutMarker = (docs: DocumentPermitTravail[], type: TypeDocumentPermitTravail) =>
+  const withoutMarker = (docs: DocumentPermitTravail[], type: string) =>
     docs.filter((d) => !(d.type === type && d.nonApplicable))
 
   const applyNotApplicable = (
     docs: DocumentPermitTravail[],
-    type: TypeDocumentPermitTravail,
+    type: string,
     next: boolean,
     marker?: DocumentPermitTravail,
   ) => [
@@ -240,7 +241,7 @@ function PermitTravailCreateForm() {
     ...(next && marker ? [marker] : []),
   ]
 
-  const handleMainDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
+  const handleMainDocUpload = async (type: string, file: File, capturedAt?: string) => {
     if (!permit) return
     const saved = await uploadDocument(permit.id, type, file, capturedAt)
     setPermit((prev) => (prev ? { ...prev, documents: [...withoutMarker(prev.documents, type), saved] } : prev))
@@ -252,13 +253,13 @@ function PermitTravailCreateForm() {
     setPermit((prev) => (prev ? { ...prev, documents: prev.documents.filter((d) => d.id !== documentId) } : prev))
   }
 
-  const handleMainDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+  const handleMainDocNotApplicable = async (type: string, next: boolean) => {
     if (!permit) return
     const marker = await setDocumentNonApplicable(permit.id, type, next)
     setPermit((prev) => (prev ? { ...prev, documents: applyNotApplicable(prev.documents, type, next, marker) } : prev))
   }
 
-  const handleCompanionDocUpload = async (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => {
+  const handleCompanionDocUpload = async (type: string, file: File, capturedAt?: string) => {
     const companionId = permit?.permitsGroupe?.[0]?.id
     if (!companionId) return
     const saved = await uploadDocument(companionId, type, file, capturedAt)
@@ -272,7 +273,7 @@ function PermitTravailCreateForm() {
     setCompanionDocs((prev) => prev.filter((d) => d.id !== documentId))
   }
 
-  const handleCompanionDocNotApplicable = async (type: TypeDocumentPermitTravail, next: boolean) => {
+  const handleCompanionDocNotApplicable = async (type: string, next: boolean) => {
     const companionId = permit?.permitsGroupe?.[0]?.id
     if (!companionId) return
     const marker = await setDocumentNonApplicable(companionId, type, next)
@@ -332,13 +333,11 @@ function PermitTravailCreateForm() {
     list.filter((e) => e.dangers || e.moyensMaitrise || e.evaluationPreliminaire || e.evaluationFinale)
 
   const isPending = isCreating || isUpdating || isSubmitting
-  const apnApi = requis?.apnApi ?? false
-  const mainDocTypes = permit
-    ? (requis?.soumission ?? getRequiredDocumentTypes(permit.planProcess ?? selectedPlan?.typeIntervention, permit.typePermis, permit.processus, apnApi))
-    : []
+  const resolvedDocs = permit ? resolveDocumentRequirements(permit, requis) : null
+  const mainDocTypes = resolvedDocs?.soumission ?? []
   const companionPermit = permit?.permitsGroupe?.[0]
   const companionDocTypes = companionPermit
-    ? getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE', apnApi)
+    ? documentRequisLignes(getRequiredDocumentTypes(permit?.planProcess ?? selectedPlan?.typeIntervention, companionPermit.typePermis, permit?.processus ?? 'NOUVEAU_SITE', resolvedDocs?.apnApi ?? false))
     : []
   const mainMissingDocTypes = permit
     ? getMissingDocumentTypes(mainDocTypes, permit.documents)
@@ -346,7 +345,11 @@ function PermitTravailCreateForm() {
   const companionMissingDocTypes = companionPermit
     ? getMissingDocumentTypes(companionDocTypes, companionDocs)
     : []
-  const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0
+  const dangerLigne = dangersMaitrises === 'non' ? resolvedDocs?.dangers ?? null : null
+  const dangerMissing = permit && dangerLigne?.obligatoire
+    ? getMissingDocumentTypes([dangerLigne], permit.documents)
+    : []
+  const hasMissingDocuments = mainMissingDocTypes.length > 0 || companionMissingDocTypes.length > 0 || dangerMissing.length > 0
   const dangersIssue = dangersMaitrises === 'non' ? getDangersFormIssue(evaluations) : null
   const canSoumettre =
     engagementChecked && !hasMissingDocuments && !requisLoading && dangersMaitrises !== null && dangersIssue === null
@@ -954,10 +957,12 @@ function PermitTravailCreateForm() {
                       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Insérer image</p>
                       <PermitDocumentUploadZone
                         permitId={permit.id}
-                        documentTypes={['PHOTO_DANGERS']}
+                        documentTypes={dangerLigne ? [dangerLigne] : []}
                         uploadedDocuments={permit.documents}
+                        missingTypes={dangerMissing}
                         onUpload={handleMainDocUpload}
                         onDelete={handleMainDocDelete}
+                        onToggleNotApplicable={dangerLigne && !dangerLigne.obligatoire ? handleMainDocNotApplicable : undefined}
                       />
                     </div>
                   ) : null

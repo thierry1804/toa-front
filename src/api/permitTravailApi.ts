@@ -108,8 +108,9 @@ export const permitTravailApi = {
         )
         return row
           ? {
-              soumission: row.soumission as DocumentsRequisResult['soumission'],
-              cloture: row.cloture as DocumentsRequisResult['cloture'],
+              soumission: row.soumission,
+              cloture: row.cloture,
+              dangers: row.dangers,
               apnApi: row.apnApi,
             }
           : undefined

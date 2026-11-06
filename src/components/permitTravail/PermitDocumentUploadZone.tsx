@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
-import { DOCUMENT_TYPE_LABELS } from '@/types/permitTravail'
+import type { DocumentPermitTravail, DocumentRequisLigne } from '@/types/permitTravail'
 import { permitTravailApi } from '@/api/permitTravailApi'
 import { usePendingUploads } from '@/hooks/usePendingUploads'
 import DocumentViewerModal from '@/components/documents/DocumentViewerModal'
@@ -10,11 +9,11 @@ import DocumentTypeRow from '@/components/documents/DocumentTypeRow'
 
 interface PermitDocumentUploadZoneProps {
   permitId: string
-  documentTypes: TypeDocumentPermitTravail[]
+  documentTypes: DocumentRequisLigne[]
   uploadedDocuments: DocumentPermitTravail[]
-  onUpload: (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => Promise<void>
+  onUpload: (type: string, file: File, capturedAt?: string) => Promise<void>
   onDelete?: (documentId: string) => Promise<void>
-  onToggleNotApplicable?: (type: TypeDocumentPermitTravail, next: boolean) => Promise<void>
+  onToggleNotApplicable?: (type: string, next: boolean) => Promise<void>
   missingTypes?: string[]
   disabled?: boolean
   allowDownload?: boolean
@@ -45,24 +44,24 @@ export default function PermitDocumentUploadZone({
   return (
     <div className="space-y-3">
       <div className="divide-y divide-gray-200 border-y border-gray-200">
-      {documentTypes.map((type) => {
-        const pending = pendingUploads.filter((item) => item.type === type)
-        const label = DOCUMENT_TYPE_LABELS[type]
+      {documentTypes.map((ligne) => {
+        const pending = pendingUploads.filter((item) => item.type === ligne.code)
+        const label = ligne.libelle || ligne.code
         return (
           <DocumentTypeRow
-            key={type}
+            key={ligne.code}
             label={label}
-            docs={uploadedDocuments.filter((d) => d.type === type)}
+            docs={uploadedDocuments.filter((d) => d.type === ligne.code)}
             pending={pending}
-            missing={missingTypes.includes(type) && pending.length === 0}
+            missing={missingTypes.includes(ligne.code) && pending.length === 0}
             disabled={disabled}
             showConsulted={showConsulted}
             loadBlob={(docId) => permitTravailApi.getDocumentBlob(permitId, docId)}
             onView={(doc) => setViewingDoc({ id: doc.id, label })}
-            onCapture={({ file, capturedAt }) => onUpload(type, file, capturedAt)}
+            onCapture={({ file, capturedAt }) => onUpload(ligne.code, file, capturedAt)}
             onDelete={onDelete}
             onToggleNotApplicable={
-              onToggleNotApplicable ? (next) => onToggleNotApplicable(type, next) : undefined
+              onToggleNotApplicable && !ligne.obligatoire ? (next) => onToggleNotApplicable(ligne.code, next) : undefined
             }
             renderExtra={
               allowDownload
@@ -74,7 +73,7 @@ export default function PermitDocumentUploadZone({
                         void permitTravailApi.downloadDocument(
                           permitId,
                           doc.id,
-                          `${type}.${doc.mimeType === 'application/pdf' ? 'pdf' : 'jpg'}`,
+                          `${ligne.code}.${doc.mimeType === 'application/pdf' ? 'pdf' : 'jpg'}`,
                         )
                       }}
                       title={t('permitTravail.components.documentUploadZone.downloadButton')}

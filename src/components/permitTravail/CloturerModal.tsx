@@ -2,7 +2,7 @@ import { AlertTriangle, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
-import type { TypeDocumentPermitTravail, DocumentPermitTravail } from '@/types/permitTravail'
+import { getMissingDocumentTypes, type DocumentRequisLigne, type DocumentPermitTravail } from '@/types/permitTravail'
 
 interface CloturerModalProps {
   isOpen: boolean
@@ -11,12 +11,12 @@ interface CloturerModalProps {
   isCloturer: boolean
   onClose: () => void
   onCloturer: (id: string, commentaire?: string) => Promise<unknown>
-  requiredDocumentTypes: TypeDocumentPermitTravail[]
+  requiredDocumentTypes: DocumentRequisLigne[]
   requiredDocumentsLoading?: boolean
   uploadedDocuments: DocumentPermitTravail[]
-  onUploadDocument: (type: TypeDocumentPermitTravail, file: File, capturedAt?: string) => Promise<void>
+  onUploadDocument: (type: string, file: File, capturedAt?: string) => Promise<void>
   onDeleteDocument?: (documentId: string) => Promise<void>
-  onToggleNotApplicable?: (type: TypeDocumentPermitTravail, next: boolean) => Promise<void>
+  onToggleNotApplicable?: (type: string, next: boolean) => Promise<void>
 }
 
 export default function CloturerModal({
@@ -34,8 +34,7 @@ export default function CloturerModal({
   onToggleNotApplicable,
 }: CloturerModalProps) {
   const { t } = useTranslation()
-  const uploadedTypes = new Set(uploadedDocuments.map((d) => d.type))
-  const missingTypes = requiredDocumentTypes.filter((type) => !uploadedTypes.has(type))
+  const missingTypes = getMissingDocumentTypes(requiredDocumentTypes, uploadedDocuments)
 
   return (
     <ConfirmActionModal

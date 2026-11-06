@@ -48,6 +48,7 @@ import StatisticsPage from "@/pages/statistics/StatisticsPage";
 import DashboardKpisPage from "@/pages/hse/DashboardKpisPage";
 import GestionSitesPage from "@/pages/referentiel/GestionSitesPage";
 import GestionListesPage from "@/pages/referentiel/GestionListesPage";
+import DocumentsPermisPage from "@/pages/referentiel/DocumentsPermisPage";
 import InstallationsEquipementsPage from "@/pages/referentiel/InstallationsEquipementsPage";
 import EntreprisesPage from "@/pages/referentiel/EntreprisesPage";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -172,6 +173,10 @@ createRoot(document.getElementById("root")!).render(
 
             <Route element={<RouteGuard menuRoute="/referentiel/installations" />}>
               <Route path="/referentiel/installations" element={<InstallationsEquipementsPage />} />
+            </Route>
+
+            <Route element={<RouteGuard menuRoute="/referentiel/documents-permis" />}>
+              <Route path="/referentiel/documents-permis" element={<DocumentsPermisPage />} />
             </Route>
 
             <Route element={<RouteGuard menuRoute="/referentiel/entreprises" />}>
