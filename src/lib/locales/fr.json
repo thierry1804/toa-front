@@ -593,7 +593,7 @@
       "title": "Détail du plan de prévention",
       "description": "Lecture seule — aucune modification possible",
       "back": "Retour",
-      "examinerBtn": "Examiner ce plan",
+      "examinerBtn": "Valider",
       "createPermitBtn": "Créer un permis",
       "notFound": "Plan introuvable",
       "notFoundDesc": "Ce plan de prévention n'existe pas ou vous n'y avez pas accès.",
@@ -671,7 +671,7 @@
       "errorValidate": "Erreur lors de la validation HSE du plan",
       "errorRefuse": "Erreur lors du refus HSE du plan",
       "errorExamine": "Erreur lors de l'examen du plan",
-      "documentsNonConsultes": "Consultez toutes les pièces jointes avant d'examiner, valider ou refuser ce plan",
+      "documentsNonConsultes": "Ouvrez chaque document avant de valider.",
       "risqueApnApiObligatoire": "Au moins un risque lié à l'APN/API est obligatoire : le plan concerne une aire protégée"
     },
     "components": {
@@ -1917,6 +1917,9 @@
       "NOUVEAU_SITE": "Nouveau site",
       "MAINTENANCE": "Maintenance",
       "RENOUVELLEMENT": "Renouvellement"
+    },
+    "toast": {
+      "documentsNonConsultes": "Ouvrez chaque document du permis avant de le valider."
     },
     "list": {
       "title": "Permis de travail",

@@ -593,7 +593,7 @@
       "title": "Antsipirihin'ny drafitry ny fisorohana",
       "description": "Vakiana ihany — tsy misy fanovana azo atao",
       "back": "Hiverina",
-      "examinerBtn": "Hijery ity drafitra ity",
+      "examinerBtn": "Hanamafy",
       "createPermitBtn": "Mamorona alalana",
       "notFound": "Tsy hita ny drafitra",
       "notFoundDesc": "Ity drafitry ny fisorohana ity tsy misy na tsy afaka miditra ianao.",
@@ -671,7 +671,7 @@
       "errorValidate": "Hadisoana tamin'ny fanamarinana HSE ny drafitra",
       "errorRefuse": "Hadisoana tamin'ny fandavana HSE ny drafitra",
       "errorExamine": "Hadisoana tamin'ny fitsirihana ny drafitra",
-      "documentsNonConsultes": "Jereo daholo ny rakitra ampiarahina alohan'ny hijerena, hankatoavana na handavana ity drafitra ity",
+      "documentsNonConsultes": "Sokafy daholo ny rakitra alohan'ny hankatoavana.",
       "risqueApnApiObligatoire": "Farafahakeliny risika iray mifandraika amin'ny APN/API no ilaina : mifandray amin'ny faritra arovana ity drafitra ity"
     },
     "components": {
@@ -1917,6 +1917,9 @@
       "NOUVEAU_SITE": "Toerana vaovao",
       "MAINTENANCE": "Fikojakojana",
       "RENOUVELLEMENT": "Fanavaozana"
+    },
+    "toast": {
+      "documentsNonConsultes": "Sokafy daholo ny rakitra alohan'ny hankatoavana ny permis."
     },
     "list": {
       "title": "Permis asa",

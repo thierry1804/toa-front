@@ -116,6 +116,13 @@ export const permitTravailApi = {
       },
     ),
 
+  consulterDocument: (permitId: string, documentId: string) =>
+    api
+      .post<{ documentId: string; consultedAt: string | null; tousDocumentsConsultes: boolean }>(
+        `/api/permits-travail/${permitId}/documents/${documentId}/consulter`,
+      )
+      .then((r) => r.data),
+
   getDocumentBlob: (permitId: string, documentId: string): Promise<Blob> => {
     const url = `/api/permits-travail/${permitId}/documents/${documentId}/download`
     return withCachedDocumentBlob(url, () =>

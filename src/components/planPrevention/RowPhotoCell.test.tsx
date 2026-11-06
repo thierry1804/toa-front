@@ -4,21 +4,18 @@ import RowPhotoCell from './RowPhotoCell'
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
 vi.mock('@/utils/imageCompression', () => ({ compressImage: async (file: File) => file }))
-vi.mock('@/api/planPreventionApi', () => ({
-  planPreventionApi: { getDocumentBlob: vi.fn(async () => new Blob(['x'], { type: 'image/jpeg' })) },
-}))
 
 afterEach(() => cleanup())
 
 describe('RowPhotoCell (R-09)', () => {
   it('shows N/A when the photo is not required', async () => {
-    const { container } = await render(<RowPhotoCell planId="p1" required={false} onUpload={vi.fn()} />)
+    const { container } = await render(<RowPhotoCell required={false} onUpload={vi.fn()} />)
     expect(container.textContent).toBe('N/A')
   })
 
   it('offers capture when required and uploads the chosen photo', async () => {
     const onUpload = vi.fn(async () => undefined)
-    const { container } = await render(<RowPhotoCell planId="p1" required onUpload={onUpload} missing />)
+    const { container } = await render(<RowPhotoCell required onUpload={onUpload} missing />)
     expect(container.textContent).toContain('Photo obligatoire')
 
     const input = container.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
@@ -29,8 +26,9 @@ describe('RowPhotoCell (R-09)', () => {
 
   it('shows the linked photo with a remove action', async () => {
     const onRemove = vi.fn(async () => undefined)
+    const loadBlob = vi.fn(async () => new Blob(['x'], { type: 'image/jpeg' }))
     const { container } = await render(
-      <RowPhotoCell planId="p1" photoDocumentId="d1" required onUpload={vi.fn()} onRemove={onRemove} />,
+      <RowPhotoCell loadBlob={loadBlob} photoDocumentId="d1" required onUpload={vi.fn()} onRemove={onRemove} />,
     )
     const remove = container.querySelector('button[title="Retirer la photo"]')!
     await click(remove)
@@ -38,7 +36,7 @@ describe('RowPhotoCell (R-09)', () => {
   })
 
   it('flags a missing required photo in read-only mode', async () => {
-    const { container } = await render(<RowPhotoCell planId="p1" required readonly />)
+    const { container } = await render(<RowPhotoCell required readonly />)
     expect(container.textContent).toBe('Photo manquante')
   })
 })

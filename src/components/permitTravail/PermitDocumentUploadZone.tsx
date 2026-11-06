@@ -18,6 +18,9 @@ interface PermitDocumentUploadZoneProps {
   missingTypes?: string[]
   disabled?: boolean
   allowDownload?: boolean
+  /** Affiche l'état consulté / non consulté et enregistre l'ouverture. */
+  showConsulted?: boolean
+  onConsulted?: (documentId: string) => void
 }
 
 export default function PermitDocumentUploadZone({
@@ -30,6 +33,8 @@ export default function PermitDocumentUploadZone({
   missingTypes = [],
   disabled = false,
   allowDownload = false,
+  showConsulted = false,
+  onConsulted,
 }: PermitDocumentUploadZoneProps) {
   const { t } = useTranslation()
   const pendingUploads = usePendingUploads(
@@ -51,6 +56,7 @@ export default function PermitDocumentUploadZone({
             pending={pending}
             missing={missingTypes.includes(type) && pending.length === 0}
             disabled={disabled}
+            showConsulted={showConsulted}
             loadBlob={(docId) => permitTravailApi.getDocumentBlob(permitId, docId)}
             onView={(doc) => setViewingDoc({ id: doc.id, label })}
             onCapture={({ file, capturedAt }) => onUpload(type, file, capturedAt)}
@@ -63,13 +69,14 @@ export default function PermitDocumentUploadZone({
                 ? (doc) => (
                     <button
                       type="button"
-                      onClick={() =>
-                        permitTravailApi.downloadDocument(
+                      onClick={() => {
+                        onConsulted?.(doc.id)
+                        void permitTravailApi.downloadDocument(
                           permitId,
                           doc.id,
                           `${type}.${doc.mimeType === 'application/pdf' ? 'pdf' : 'jpg'}`,
                         )
-                      }
+                      }}
                       title={t('permitTravail.components.documentUploadZone.downloadButton')}
                       aria-label={t('permitTravail.components.documentUploadZone.downloadButton')}
                       className="flex items-center justify-center text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
@@ -92,6 +99,7 @@ export default function PermitDocumentUploadZone({
         onClose={() => setViewingDoc(null)}
         title={viewingDoc?.label ?? ''}
         blob={viewingDoc ? () => permitTravailApi.getDocumentBlob(permitId, viewingDoc.id) : null}
+        onLoaded={viewingDoc && onConsulted ? () => onConsulted(viewingDoc.id) : undefined}
       />
     </div>
   )

@@ -317,6 +317,31 @@ export function usePermitsTravail(
   })
 }
 
+export function useConsulterPermitDocument(permitId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      try {
+        return await permitTravailApi.consulterDocument(permitId, documentId)
+      } catch (err) {
+        if (!isOfflineQueued(err)) throw err
+        return { documentId, consultedAt: new Date().toISOString(), tousDocumentsConsultes: false }
+      }
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData<PermitTravail | undefined>([...PERMIT_TRAVAIL_KEY, permitId], (permit) => {
+        if (!permit) return permit
+        const documents = permit.documents.map((doc) =>
+          doc.id === result.documentId ? { ...doc, consultedAt: result.consultedAt } : doc,
+        )
+        const tousDocumentsConsultes = result.tousDocumentsConsultes
+          || documents.every((doc) => doc.nonApplicable === true || Boolean(doc.consultedAt))
+        return { ...permit, documents, tousDocumentsConsultes }
+      })
+    },
+  })
+}
+
 export function usePermitTravailDetail(id: string) {
   return useQuery({
     queryKey: [...PERMIT_TRAVAIL_KEY, id],
@@ -442,7 +467,13 @@ export function usePermitTravail() {
       addToast({ message: 'Permis validé avec succès', type: 'success' })
     },
     onError: (error) => { if (isOfflineQueued(error)) return
-      addToast({ message: 'Erreur lors de la validation du permis', type: 'error' })
+      const detail = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? ''
+      addToast({
+        message: detail.includes('documents_non_consultes')
+          ? t('permitTravail.toast.documentsNonConsultes')
+          : 'Erreur lors de la validation du permis',
+        type: 'error',
+      })
     },
   })
 

@@ -134,7 +134,7 @@ function PermitRow({
           >
             <Eye className="h-4 w-4" />
           </TableIconButton>
-          {permit.statut === 'SOUMIS' && canValider && (
+          {permit.statut === 'SOUMIS' && canValider && permit.tousDocumentsConsultes === true && (
             <TableIconButton
               title={t('permitTravail.list.actions.valider')}
               variant="success"

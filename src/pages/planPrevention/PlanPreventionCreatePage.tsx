@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import SiteCodeAutocomplete from "@/components/planning/SiteCodeAutocomplete";
 import RisqueMatrice from "@/components/planPrevention/RisqueMatrice";
 import AnalyseRisquesPlanning from "@/components/planPrevention/AnalyseRisquesPlanning";
-import InstallationsTable from "@/components/planPrevention/InstallationsTable";
 import RowPhotoCell from "@/components/planPrevention/RowPhotoCell";
 import EquipementsTable from "@/components/planPrevention/EquipementsTable";
 import DocumentUploadZone from "@/components/planPrevention/DocumentUploadZone";
@@ -19,6 +18,7 @@ import PlanReference from "@/components/planPrevention/PlanReference";
 import BandeauRefus from "@/components/planPrevention/BandeauRefus";
 import HistoriqueVersions from "@/components/planPrevention/HistoriqueVersions";
 import PlanningSectionManager from "@/features/planning/components/PlanningSectionManager";
+import { planPreventionApi } from "@/api/planPreventionApi";
 import {
   usePlanPrevention,
   usePlanPreventionDetail,
@@ -33,7 +33,6 @@ import type {
   PlanPrevention,
   RisqueRow,
   TypeDocumentPrevention,
-  InstallationRow,
   EquipementRow,
 } from "@/types/planPrevention";
 import {
@@ -128,7 +127,7 @@ const STEPS = [
   { title: "Informations générales" },
   { title: "Phases et risques" },
   { title: "Documents obligatoires" },
-  { title: "Installations & Équipements" },
+  { title: "Équipements" },
   { title: "Récapitulatif" },
 ];
 
@@ -235,22 +234,14 @@ export default function PlanPreventionCreatePage({
   const [localRisques, setLocalRisques] = useState<RisqueRow[]>([]);
   const [localSections, setLocalSections] = useState<SectionRow[]>([]);
   const [isSavingRisques, setIsSavingRisques] = useState(false);
-  const [localInstallations, setLocalInstallations] = useState<
-    InstallationRow[]
-  >([]);
   const [localEquipements, setLocalEquipements] = useState<EquipementRow[]>([]);
-  const [installationsErrors, setInstallationsErrors] = useState<
-    Record<number, string>
-  >({});
   const [equipementsErrors, setEquipementsErrors] = useState<
     Record<number, string>
   >({});
-  const [installationsMinError, setInstallationsMinError] = useState(false);
   // R-09 : lignes (index) sans photo, signalées après une tentative de passage à l'étape suivante.
   const [photosManquantes, setPhotosManquantes] = useState<{
-    installations: number[];
     equipements: number[];
-  }>({ installations: [], equipements: [] });
+  }>({ equipements: [] });
   const [isSavingInstallations, setIsSavingInstallations] = useState(false);
   const [motif, setMotif] = useState("");
   const originalRisqueIds = useRef<Set<string>>(new Set());
@@ -366,7 +357,6 @@ export default function PlanPreventionCreatePage({
       originalRisqueIds.current = new Set(
         editPlan.risques?.map((r) => r.id) ?? [],
       );
-      setLocalInstallations(editPlan.installations ?? []);
       setLocalEquipements(editPlan.equipements ?? []);
       const loadedSections = ownSections(editPlan);
       rememberServerSectionIds(loadedSections);
@@ -506,24 +496,9 @@ export default function PlanPreventionCreatePage({
     }
   };
 
-  // ── Step 4: save installations & équipements ──────────────────────────────────
+  // ── Step 4: save équipements ────────────────────────────────────────────────
   const handleStep4Next = async () => {
     if (!activePlan) return;
-
-    const instErrors: Record<number, string> = {};
-    localInstallations.forEach((row, i) => {
-      if (!row.description.trim()) instErrors[i] = "Description requise";
-    });
-    if (isNouveauSite && localInstallations.length === 0) {
-      setInstallationsMinError(true);
-      return;
-    }
-    setInstallationsMinError(false);
-    if (Object.keys(instErrors).length > 0) {
-      setInstallationsErrors(instErrors);
-      return;
-    }
-    setInstallationsErrors({});
 
     const eqErrors: Record<number, string> = {};
     localEquipements.forEach((row, i) => {
@@ -535,16 +510,13 @@ export default function PlanPreventionCreatePage({
     }
     setEquipementsErrors({});
 
-    // R-09 : pour « Nouveau site », chaque ligne des deux listes porte sa photo.
+    // R-09 : pour « Nouveau site », chaque ligne des équipements porte sa photo.
     if (isNouveauSite) {
       const sansPhoto = (rows: { photoDocumentId?: string | null }[]) =>
         rows.flatMap((row, i) => (row.photoDocumentId ? [] : [i]));
-      const manquantes = {
-        installations: sansPhoto(localInstallations),
-        equipements: sansPhoto(localEquipements),
-      };
+      const manquantes = { equipements: sansPhoto(localEquipements) };
       setPhotosManquantes(manquantes);
-      if (manquantes.installations.length > 0 || manquantes.equipements.length > 0) {
+      if (manquantes.equipements.length > 0) {
         return;
       }
     }
@@ -552,7 +524,6 @@ export default function PlanPreventionCreatePage({
     setIsSavingInstallations(true);
     try {
       await updatePlan(activePlan.id, {
-        installations: localInstallations,
         equipements: localEquipements,
       });
       setStep(4);
@@ -585,48 +556,31 @@ export default function PlanPreventionCreatePage({
     }
   };
 
-  // ── R-09 : photo de chaque ligne installations / équipements ─────────────────
+  // ── R-09 : photo de chaque ligne équipements ───────────────────────────────────
   // Les lignes sont enregistrées aussitôt la photo ajoutée ou retirée, pour que
   // le lien ligne → photo ne se perde pas si l'on quitte l'étape.
-  const saveRows = async (
-    installations: InstallationRow[],
-    equipements: EquipementRow[],
-  ) => {
-    setLocalInstallations(installations);
+  const saveRows = async (equipements: EquipementRow[]) => {
     setLocalEquipements(equipements);
-    if (activePlan) await updatePlan(activePlan.id, { installations, equipements });
+    if (activePlan) await updatePlan(activePlan.id, { equipements });
   };
 
-  const uploadRowPhoto = async (
-    list: "installations" | "equipements",
-    index: number,
-    file: File,
-    capturedAt: string,
-  ) => {
+  const uploadRowPhoto = async (index: number, file: File, capturedAt: string) => {
     if (!activePlan) return;
-    const type = list === "installations" ? "PHOTOS_INSTALLATIONS" : "PHOTOS_EQUIPEMENTS";
-    const doc = await uploadDocument(activePlan.id, type, file, capturedAt);
+    const doc = await uploadDocument(activePlan.id, "PHOTOS_EQUIPEMENTS", file, capturedAt);
     if (!doc?.id) return;
     const link = <T extends { photoDocumentId?: string | null }>(rows: T[]) =>
       rows.map((row, i) => (i === index ? { ...row, photoDocumentId: doc.id } : row));
-    setPhotosManquantes((prev) => ({ ...prev, [list]: prev[list].filter((i) => i !== index) }));
-    await saveRows(
-      list === "installations" ? link(localInstallations) : localInstallations,
-      list === "equipements" ? link(localEquipements) : localEquipements,
-    );
+    setPhotosManquantes((prev) => ({ ...prev, equipements: prev.equipements.filter((i) => i !== index) }));
+    await saveRows(link(localEquipements));
   };
 
-  const removeRowPhoto = async (list: "installations" | "equipements", index: number) => {
+  const removeRowPhoto = async (index: number) => {
     if (!activePlan) return;
-    const rows = list === "installations" ? localInstallations : localEquipements;
-    const documentId = rows[index]?.photoDocumentId;
+    const documentId = localEquipements[index]?.photoDocumentId;
     if (documentId) await deleteDocument(activePlan.id, documentId).catch(() => undefined);
     const unlink = <T extends { photoDocumentId?: string | null }>(items: T[]) =>
       items.map((row, i) => (i === index ? { ...row, photoDocumentId: null } : row));
-    await saveRows(
-      list === "installations" ? unlink(localInstallations) : localInstallations,
-      list === "equipements" ? unlink(localEquipements) : localEquipements,
-    );
+    await saveRows(unlink(localEquipements));
   };
 
   // Une ligne supprimée emporte sa photo.
@@ -644,19 +598,18 @@ export default function PlanPreventionCreatePage({
   };
 
   const renderRowPhoto = (
-    list: "installations" | "equipements",
     row: { photoDocumentId?: string | null },
     index: number,
     readonly = false,
   ) => (
     <RowPhotoCell
-      planId={activePlan?.id}
+      loadBlob={activePlan?.id ? (docId) => planPreventionApi.getDocumentBlob(activePlan.id, docId) : undefined}
       photoDocumentId={row.photoDocumentId}
       required={isNouveauSite}
       readonly={readonly || !canEdit}
-      missing={photosManquantes[list].includes(index)}
-      onUpload={({ file, capturedAt }) => uploadRowPhoto(list, index, file, capturedAt)}
-      onRemove={() => removeRowPhoto(list, index)}
+      missing={photosManquantes.equipements.includes(index)}
+      onUpload={({ file, capturedAt }) => uploadRowPhoto(index, file, capturedAt)}
+      onRemove={() => removeRowPhoto(index)}
     />
   );
 
@@ -1122,34 +1075,6 @@ export default function PlanPreventionCreatePage({
           <div className="space-y-6">
             {activePlan && <PlanReference reference={activePlan.reference} />}
 
-            {isNouveauSite && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                  Liste des installations et matériels utilisés{" "}
-                  <span className="text-red-500 font-normal">
-                    (minimum 1 requis)
-                  </span>
-                </h3>
-                {installationsMinError && (
-                  <p className="mb-2 text-xs text-red-600">
-                    Ajoutez au moins une installation pour continuer.
-                  </p>
-                )}
-                <InstallationsTable
-                  value={localInstallations}
-                  onChange={(rows) => {
-                    deleteRemovedRowPhotos(localInstallations, rows);
-                    setLocalInstallations(rows);
-                    setInstallationsErrors({});
-                    setPhotosManquantes((prev) => ({ ...prev, installations: [] }));
-                    if (rows.length > 0) setInstallationsMinError(false);
-                  }}
-                  errors={installationsErrors}
-                  renderPhoto={(row, index) => renderRowPhoto("installations", row, index)}
-                />
-              </div>
-            )}
-
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-1">
                 Liste des matériels, équipements et outillages{" "}
@@ -1170,10 +1095,9 @@ export default function PlanPreventionCreatePage({
                   setPhotosManquantes((prev) => ({ ...prev, equipements: [] }));
                 }}
                 errors={equipementsErrors}
-                renderPhoto={(row, index) => renderRowPhoto("equipements", row, index)}
+                renderPhoto={(row, index) => renderRowPhoto(row, index)}
               />
-              {(photosManquantes.installations.length > 0 ||
-                photosManquantes.equipements.length > 0) && (
+              {photosManquantes.equipements.length > 0 && (
                 <p className="mt-3 text-sm text-red-600">
                   Ajoutez une photo pour chaque ligne signalée avant de continuer.
                 </p>
@@ -1331,21 +1255,6 @@ export default function PlanPreventionCreatePage({
               </div>
             )}
 
-            {/* Installations recap */}
-            {localInstallations.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                  Installations ({localInstallations.length})
-                </h3>
-                <InstallationsTable
-                  value={localInstallations}
-                  onChange={() => {}}
-                  readonly
-                  renderPhoto={(row, index) => renderRowPhoto("installations", row, index, true)}
-                />
-              </div>
-            )}
-
             {/* Équipements recap */}
             {localEquipements.length > 0 && (
               <div>
@@ -1356,7 +1265,7 @@ export default function PlanPreventionCreatePage({
                   value={localEquipements}
                   onChange={() => {}}
                   readonly
-                  renderPhoto={(row, index) => renderRowPhoto("equipements", row, index, true)}
+                  renderPhoto={(row, index) => renderRowPhoto(row, index, true)}
                 />
               </div>
             )}
@@ -1430,10 +1339,7 @@ export default function PlanPreventionCreatePage({
     : isCreating || isSavingRisques || isSavingInstallations || isSubmitting;
 
   const isStep4Invalid =
-    step === 3 &&
-    ((isNouveauSite && localInstallations.length === 0) ||
-      localInstallations.some((r) => !r.description.trim()) ||
-      localEquipements.some((r) => !r.description.trim()));
+    step === 3 && localEquipements.some((r) => !r.description.trim());
 
   // Step 1: block only when categories selected but mesures still empty
   const step1PartialRows = localRisques.filter(

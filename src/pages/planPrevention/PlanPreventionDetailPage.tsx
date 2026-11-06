@@ -43,6 +43,7 @@ import {
   usePlanPreventionDetail,
   usePlanPrevention,
   usePlanPreventionPdf,
+  useConsulterDocument,
 } from "@/features/planPrevention/hooks/usePlanPrevention";
 import { useCategoriesRisqueAll } from "@/features/referentiel/hooks/useCategorieRisque";
 import { usePermission } from "@/features/auth/usePermission";
@@ -104,6 +105,7 @@ export default function PlanPreventionDetailPage() {
   const canCreatePermit = usePermission("permit_travail.create");
 
   const { data: plan, isLoading, isError } = usePlanPreventionDetail(id ?? "");
+  const consulterDocument = useConsulterDocument(id ?? "");
   const {
     examinerPlan,
     isExamining,
@@ -185,6 +187,11 @@ export default function PlanPreventionDetailPage() {
     canExamine &&
     (STATUTS_EXAMINABLES as readonly string[]).includes(plan.statut);
   const isDecidable = plan.statut === "EXAMINE";
+  const hseMustConsult = isDecidable && canValiderHse;
+  const consultationsIncomplete = hseMustConsult && plan.tousDocumentsConsultes !== true;
+  const markConsulted = (documentId: string) => {
+    if (hseMustConsult) consulterDocument.mutate(documentId);
+  };
 
   const openDocument = (docId: string, label: string) => {
     setViewingDoc({ id: docId, label });
@@ -208,7 +215,7 @@ export default function PlanPreventionDetailPage() {
   ];
   const renderRowPhoto = (label: string) => (row: { photoDocumentId?: string | null }) => (
     <RowPhotoCell
-      planId={plan.id}
+      loadBlob={(docId) => planPreventionApi.getDocumentBlob(plan.id, docId)}
       photoDocumentId={row.photoDocumentId}
       required={plan.typeIntervention === "Nouveau site"}
       readonly
@@ -518,6 +525,7 @@ export default function PlanPreventionDetailPage() {
               pending={[]}
               missing
               disabled
+              showConsulted={hseMustConsult}
               loadBlob={(docId) => planPreventionApi.getDocumentBlob(plan.id, docId)}
               onView={(doc) => openDocument(doc.id, TYPES_DOCUMENT_LABELS[type])}
               onCapture={async () => undefined}
@@ -525,6 +533,7 @@ export default function PlanPreventionDetailPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    markConsulted(doc.id);
                     void downloadDocument(
                       doc.id,
                       (plan.documents ?? []).find((d) => d.id === doc.id)?.filePath.split("/").at(-1) ?? "document",
@@ -695,17 +704,23 @@ export default function PlanPreventionDetailPage() {
         onClose={() => setViewingDoc(null)}
         title={viewingDoc?.label ?? ""}
         blob={viewingDoc ? () => planPreventionApi.getDocumentBlob(plan.id, viewingDoc.id) : null}
+        onLoaded={viewingDoc ? () => markConsulted(viewingDoc.id) : undefined}
       />
       {/* Barre de décision HSE — toujours visible en bas d'écran (R-12) */}
       {isDecidable && (canValiderHse || canRefuserHse) && (
         <div className="sticky bottom-0 z-30 -mx-3 -mb-3 sm:-mx-4 sm:-mb-4 lg:-mx-5 lg:-mb-5 border-t border-blue-200 bg-blue-50/95 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] backdrop-blur pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-blue-800">
-              {t("planPrevention.detail.decisionPanel")}
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                {t("planPrevention.detail.decisionPanel")}
+              </p>
+              {consultationsIncomplete && (
+                <p className="mt-1 text-sm text-blue-800">{t("planPrevention.toast.documentsNonConsultes")}</p>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               {canValiderHse && (
-                <Button onClick={() => setValiderOpen(true)}>
+                <Button onClick={() => setValiderOpen(true)} disabled={consultationsIncomplete}>
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   {t("planPrevention.list.actions.valider")}
                 </Button>

@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import CaptureButtons, { type CapturedFile } from '@/components/documents/CaptureButtons'
 import DocumentThumb from '@/components/documents/DocumentThumb'
-import { planPreventionApi } from '@/api/planPreventionApi'
 
 interface RowPhotoCellProps {
-  planId?: string
   photoDocumentId?: string | null
+  /** Récupère le blob de la photo (plan de prévention ou permis de travail selon l'appelant). */
+  loadBlob?: (documentId: string) => Promise<Blob>
   /** R-09 : photo exigée (processus « Nouveau site ») ; sinon la ligne affiche « N/A ». */
   required: boolean
   readonly?: boolean
@@ -17,10 +17,10 @@ interface RowPhotoCellProps {
   onView?: (documentId: string) => void
 }
 
-/** Photo d'une ligne des listes installations / équipements d'un plan de prévention (R-09). */
+/** Photo d'une ligne des listes installations / équipements (plan de prévention ou permis Général). */
 export default function RowPhotoCell({
-  planId,
   photoDocumentId,
+  loadBlob,
   required,
   readonly = false,
   missing = false,
@@ -30,7 +30,7 @@ export default function RowPhotoCell({
 }: RowPhotoCellProps) {
   const [busy, setBusy] = useState(false)
 
-  if (photoDocumentId && planId) {
+  if (photoDocumentId && loadBlob) {
     return (
       <div className="flex items-center gap-2">
         <button
@@ -43,7 +43,7 @@ export default function RowPhotoCell({
           <DocumentThumb
             key={photoDocumentId}
             mimeType="image/jpeg"
-            loadBlob={() => planPreventionApi.getDocumentBlob(planId, photoDocumentId)}
+            loadBlob={() => loadBlob(photoDocumentId)}
             openHint={!!onView}
           />
         </button>

@@ -17,7 +17,7 @@ import CloturerModal from '@/components/permitTravail/CloturerModal'
 import PvReceptionButton from '@/components/permitTravail/PvReceptionButton'
 import PvValiderModal from '@/components/permitTravail/PvValiderModal'
 import PvRefuserModal from '@/components/permitTravail/PvRefuserModal'
-import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
+import { usePermitTravailDetail, usePermitTravail, usePermitTravailCloture, usePvDecision, usePermitDocumentsRequis, useConsulterPermitDocument } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useIntervention } from '@/features/intervention/hooks/useIntervention'
 import { usePermission } from '@/features/auth/usePermission'
 import { canEditDraft, wasRefused } from '@/features/permitTravail/utils/permitDraft'
@@ -36,6 +36,7 @@ export default function PermitTravailDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: permit, isLoading, isError } = usePermitTravailDetail(id ?? '')
+  const consulterDocument = useConsulterPermitDocument(id ?? '')
   const { validerPermit, refuserPermit, cloturerPermit, validerPv, refuserPv, uploadDocument, deleteDocument, setDocumentNonApplicable, isValidating, isRefusing, isCloturer, isValiderPv, isRefuserPv } = usePermitTravail()
   const { data: requis, isLoading: requisLoading } = usePermitDocumentsRequis(id ?? '')
   const { createIntervention, isCreating: isCreatingIntervention } = useIntervention()
@@ -357,11 +358,13 @@ export default function PermitTravailDetailPage() {
 <div>
           <PermitDocumentUploadZone
             permitId={permit.id}
-            documentTypes={[...docTypes, ...clotureDocTypes]}
+            documentTypes={[...new Set([...docTypes, ...clotureDocTypes, ...permit.documents.map((d) => d.type)])]}
             uploadedDocuments={permit.documents}
             onUpload={async () => {}}
             disabled={true}
             allowDownload={true}
+            showConsulted={permit.statut === 'SOUMIS' && canValider}
+            onConsulted={permit.statut === 'SOUMIS' && canValider ? (documentId) => consulterDocument.mutate(documentId) : undefined}
           />
         </div>
       </CollapsibleSection>
@@ -370,9 +373,12 @@ export default function PermitTravailDetailPage() {
       {permit.statut === 'SOUMIS' && (canValider || canRefuser) && (
         <CollapsibleSection title="Actions HSE" defaultOpen>
 <div>
+            {permit.tousDocumentsConsultes !== true && canValider && (
+              <p className="mb-3 text-sm text-amber-800">Ouvrez chaque document du permis avant de le valider.</p>
+            )}
             <div className="flex items-center gap-3">
               {canValider && (
-                <Button onClick={() => setValiderOpen(true)}>
+                <Button onClick={() => setValiderOpen(true)} disabled={permit.tousDocumentsConsultes !== true}>
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   Valider le permis
                 </Button>

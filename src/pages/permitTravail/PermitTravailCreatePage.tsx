@@ -17,11 +17,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import PermitDocumentUploadZone from '@/components/permitTravail/PermitDocumentUploadZone'
 import EngagementSection, { emptyEvaluation, type EvaluationData } from '@/components/permitTravail/EngagementSection'
 import SiteCodeAutocomplete from '@/components/planning/SiteCodeAutocomplete'
+import InstallationsTable from '@/components/planPrevention/InstallationsTable'
+import RowPhotoCell from '@/components/planPrevention/RowPhotoCell'
 import { usePermitTravail, usePermitDocumentsRequis } from '@/features/permitTravail/hooks/usePermitTravail'
 import { useCategoriesRisqueAll } from '@/features/referentiel/hooks/useCategorieRisque'
 import { usePermission, useHasRole } from '@/features/auth/usePermission'
 import { useUiStore } from '@/store/ui.store'
 import { planPreventionApi } from '@/api/planPreventionApi'
+import { permitTravailApi } from '@/api/permitTravailApi'
 import { getPermitCreationTransition } from './permitCreationTransition'
 import { getDangersFormIssue } from '@/features/permitTravail/utils/dangersEvaluation'
 import type {
@@ -30,7 +33,7 @@ import type {
   TypeDocumentPermitTravail,
   DocumentPermitTravail,
 } from '@/types/permitTravail'
-import type { PlanBySiteResult, RisqueRow } from '@/types/planPrevention'
+import type { PlanBySiteResult, RisqueRow, InstallationRow } from '@/types/planPrevention'
 import {
   TYPE_PERMIT_LABELS,
   getMissingDocumentTypes,
@@ -142,6 +145,13 @@ function PermitTravailCreateForm() {
   // R-22 : « Les dangers sont-ils efficacement maîtrisés ? »
   const [dangersMaitrises, setDangersMaitrises] = useState<'oui' | 'non' | null>(null)
 
+  // ── Installations et matériels utilisés (Permis Général, Nouveau site — déplacé
+  // depuis le plan de prévention) ───────────────────────────────────────────────
+  const [localInstallations, setLocalInstallations] = useState<InstallationRow[]>([])
+  const [installationsErrors, setInstallationsErrors] = useState<Record<number, string>>({})
+  const [installationsMinError, setInstallationsMinError] = useState(false)
+  const [installationsPhotosManquantes, setInstallationsPhotosManquantes] = useState<number[]>([])
+
   // ── Plans by site ─────────────────────────────────────────────────────────────
   const { data: plansBySiteData, isLoading: isLoadingPlans } = useQuery({
     queryKey: ['plans-prevention', 'by-site', codeSiteSearched],
@@ -158,6 +168,14 @@ function PermitTravailCreateForm() {
 
   // ── Derived ───────────────────────────────────────────────────────────────────
   const isNouveauSite = selectedPlan?.typeIntervention === 'Nouveau site'
+  // Liste des installations et matériels utilisés : Permis Général, Nouveau site
+  // uniquement (déplacé depuis le plan de prévention).
+  const showInstallationsBlock = permit?.typePermis === 'GENERAL' && isNouveauSite
+  const installationsMissingPhotos = showInstallationsBlock
+    ? localInstallations.flatMap((row, i) => (row.photoDocumentId ? [] : [i]))
+    : []
+  const installationsIncomplete =
+    showInstallationsBlock && (localInstallations.length === 0 || installationsMissingPhotos.length > 0)
   const generalPermitId = selectedPlan?.permitGeneralId ?? null
   const generalRequisAvant = isNouveauSite && !generalPermitId
   // Hors Nouveau site : les 3 types sont toujours proposés, sans attendre qu'un
@@ -261,6 +279,42 @@ function PermitTravailCreateForm() {
     setCompanionDocs((prev) => applyNotApplicable(prev, type, next, marker))
   }
 
+  // ── Installations et matériels utilisés ───────────────────────────────────────
+  const handleInstallationsChange = async (rows: InstallationRow[]) => {
+    if (permit) {
+      const kept = new Set(rows.map((r) => r.photoDocumentId).filter(Boolean))
+      for (const row of localInstallations) {
+        if (row.photoDocumentId && !kept.has(row.photoDocumentId)) {
+          void deleteDocument(permit.id, row.photoDocumentId).catch(() => undefined)
+        }
+      }
+    }
+    setLocalInstallations(rows)
+    setInstallationsErrors({})
+    setInstallationsPhotosManquantes([])
+    if (rows.length > 0) setInstallationsMinError(false)
+    if (permit) await updatePermit(permit.id, { installations: rows })
+  }
+
+  const uploadInstallationPhoto = async (index: number, file: File, capturedAt: string) => {
+    if (!permit) return
+    const doc = await uploadDocument(permit.id, 'PHOTOS_INSTALLATIONS', file, capturedAt)
+    if (!doc?.id) return
+    const rows = localInstallations.map((row, i) => (i === index ? { ...row, photoDocumentId: doc.id } : row))
+    setInstallationsPhotosManquantes((prev) => prev.filter((i) => i !== index))
+    setLocalInstallations(rows)
+    await updatePermit(permit.id, { installations: rows })
+  }
+
+  const removeInstallationPhoto = async (index: number) => {
+    if (!permit) return
+    const documentId = localInstallations[index]?.photoDocumentId
+    if (documentId) await deleteDocument(permit.id, documentId).catch(() => undefined)
+    const rows = localInstallations.map((row, i) => (i === index ? { ...row, photoDocumentId: null } : row))
+    setLocalInstallations(rows)
+    await updatePermit(permit.id, { installations: rows })
+  }
+
   // ── Submit ────────────────────────────────────────────────────────────────────
   const resetPermitDraftState = () => {
     setPermit(null)
@@ -268,6 +322,10 @@ function PermitTravailCreateForm() {
     setEngagementChecked(false)
     setEvaluations([emptyEvaluation()])
     setDangersMaitrises(null)
+    setLocalInstallations([])
+    setInstallationsErrors({})
+    setInstallationsMinError(false)
+    setInstallationsPhotosManquantes([])
   }
 
   const nonEmptyEvaluations = (list: EvaluationData[]) =>
@@ -458,6 +516,12 @@ function PermitTravailCreateForm() {
         addToast({ message: 'Joignez tous les documents obligatoires avant de continuer.', type: 'warning' })
         return
       }
+      if (installationsIncomplete) {
+        setInstallationsMinError(localInstallations.length === 0)
+        setInstallationsPhotosManquantes(installationsMissingPhotos)
+        addToast({ message: 'Complétez la liste des installations et matériels utilisés avant de continuer.', type: 'warning' })
+        return
+      }
       setStep(3)
     }
   }
@@ -466,7 +530,7 @@ function PermitTravailCreateForm() {
     step === 0
       ? !!(codeSiteSearched && selectedPlanId)
       : step === 2
-        ? engagementChecked && !hasMissingDocuments && !requisLoading
+        ? engagementChecked && !hasMissingDocuments && !requisLoading && !installationsIncomplete
         : step < 3
 
   // ── Render steps ──────────────────────────────────────────────────────────────
@@ -635,6 +699,36 @@ function PermitTravailCreateForm() {
       case 2:
         return (
           <div className="space-y-6">
+            {/* Installations et matériels utilisés (Permis Général, Nouveau site) */}
+            {showInstallationsBlock && permit && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  Liste des installations et matériels utilisés{' '}
+                  <span className="text-red-500 font-normal">(minimum 1 requis)</span>
+                </h3>
+                {installationsMinError && (
+                  <p className="mb-2 text-xs text-red-600">
+                    Ajoutez au moins une installation pour continuer.
+                  </p>
+                )}
+                <InstallationsTable
+                  value={localInstallations}
+                  onChange={handleInstallationsChange}
+                  errors={installationsErrors}
+                  renderPhoto={(row, index) => (
+                    <RowPhotoCell
+                      loadBlob={(docId) => permitTravailApi.getDocumentBlob(permit.id, docId)}
+                      photoDocumentId={row.photoDocumentId}
+                      required
+                      missing={installationsPhotosManquantes.includes(index)}
+                      onUpload={({ file, capturedAt }) => uploadInstallationPhoto(index, file, capturedAt)}
+                      onRemove={() => removeInstallationPhoto(index)}
+                    />
+                  )}
+                />
+              </div>
+            )}
+
             {/* Documents */}
             {permit?.processus === 'NOUVEAU_SITE' && companionPermit ? (
               <>

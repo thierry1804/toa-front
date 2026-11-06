@@ -1,3 +1,5 @@
+import type { InstallationRow } from './planPrevention'
+
 export type ProcessusPermit = 'NOUVEAU_SITE' | 'MAINTENANCE' | 'RENOUVELLEMENT'
 export type TypePermit = 'GENERAL' | 'ELECTRIQUE' | 'HAUTEUR'
 export type StatutPermitTravail = 'BROUILLON' | 'SOUMIS' | 'EN_COURS' | 'VALIDE' | 'REJETE' | 'VALIDE_HSE' | 'REFUSE_HSE' | 'CLOTURE' | 'PV_VALIDE' | 'PV_REFUSE'
@@ -69,6 +71,7 @@ export type TypeDocumentPermitTravail =
   | 'PHOTO_AVANT_TRAVAUX'
   | 'PHOTO_APRES_TRAVAUX'
   | 'PHOTO_DANGERS'
+  | 'PHOTOS_INSTALLATIONS'
   | 'ENV_TRI_DECHETS'
   | 'ENV_DELIMITATION_SITE'
   | 'ENV_ACCES_EXISTANT'
@@ -107,6 +110,7 @@ export const DOCUMENT_TYPE_LABELS: Record<TypeDocumentPermitTravail, string> = {
   PHOTO_AVANT_TRAVAUX:         "Photo avant travaux",
   PHOTO_APRES_TRAVAUX:         "Photo après travaux",
   PHOTO_DANGERS:               "Photos des dangers",
+  PHOTOS_INSTALLATIONS:        "Photos — installations et matériels utilisés",
   ENV_TRI_DECHETS:             "Mise en place du tri des déchets",
   ENV_DELIMITATION_SITE:       "Délimitation du site avant travaux",
   ENV_ACCES_EXISTANT:          "Accès déjà existant sur site avant chantier",
@@ -259,6 +263,7 @@ export interface DocumentPermitTravail {
   uploadedAt: string
   capturedAt?: string | null
   nonApplicable?: boolean
+  consultedAt?: string | null
 }
 
 export interface DocumentsRequisResult {
@@ -303,6 +308,8 @@ export interface PermitTravailInput {
   dateFinPrevue?: string
   engagementAccepte?: boolean
   dangers?: DangerEntry[] | null
+  /** Permis Général, Nouveau site uniquement — déplacé depuis le plan de prévention. */
+  installations?: InstallationRow[] | null
 }
 
 export type StatutPermitTravailPdf = 'EN_COURS' | 'GENERE' | 'ERREUR'
@@ -376,12 +383,15 @@ export interface PermitTravail {
   statut: StatutPermitTravail
   engagementAccepte: boolean
   dangers?: DangerEntry[] | null
+  /** Permis Général, Nouveau site uniquement — déplacé depuis le plan de prévention. */
+  installations?: InstallationRow[]
   createdBy: { id: number; email: string; name: string; firstname?: string }
   nomPrestataire?: string | null
   soumisAt?: string | null
   validatedAt?: string | null
   createdAt: string
   documents: DocumentPermitTravail[]
+  tousDocumentsConsultes?: boolean
   decisionsHse?: DecisionHsePermitTravail[]
   groupeId?: string | null
   /** R-24 : permis renouvelé (si ce permis est un renouvellement) et rang du renouvellement (R1 → 1). */
