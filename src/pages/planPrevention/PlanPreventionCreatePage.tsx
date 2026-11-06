@@ -687,12 +687,11 @@ export default function PlanPreventionCreatePage({
   const recapSections = ownSections(activePlan).length
     ? ownSections(activePlan)
     : activeSectionsForRisques;
-  // Step 3 (Installations & Équipements) is shown only for "Nouveau site" interventions.
-  // If no planning is linked (no planificationId), default to showing it.
-  const isNouveauSite =
-    activePlanifId == null
-      ? true
-      : activePlanif?.typeIntervention === 'Nouveau site';
+  // Le processus du plan prime. La planification liée quitte la liste des
+  // planifications disponibles, donc on ne peut pas s'en servir pour décider
+  // ensuite : sinon un Nouveau site déjà créé n'exige plus sa photo.
+  const processus = activePlan?.typeIntervention ?? activePlanif?.typeIntervention ?? null;
+  const isNouveauSite = processus ? processus === 'Nouveau site' : activePlanifId == null;
 
   // ── Derived state for edit mode UI ───────────────────────────────────────────
   const lastRefusDecision = isEditMode

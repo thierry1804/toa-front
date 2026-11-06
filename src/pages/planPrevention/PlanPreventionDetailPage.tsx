@@ -477,6 +477,7 @@ export default function PlanPreventionDetailPage() {
         <SectionCard
           title="Installations & Équipements"
           summary={`${(plan.installations ?? []).length} installation(s) · ${(plan.equipements ?? []).length} équipement(s)`}
+          defaultOpen
         >
           <div className="space-y-6">
             <div>
