@@ -964,6 +964,8 @@
       "searchButton": "Rechercher",
       "clearButton": "Effacer",
       "noResults": "Aucun document trouvé",
+      "filterAllProcessus": "Tous les processus",
+      "filterAllTypes": "Tous les types de permis",
       "fields": {
         "code": "Code",
         "libelle": "Libellé",
@@ -974,7 +976,9 @@
         "demande": "Demande",
         "ordre": "Ordre",
         "obligatoire": "Obligatoire",
-        "actif": "Actif"
+        "actif": "Actif",
+        "apnApi": "APN/API",
+        "autoriseNA": "N/A"
       },
       "moments": { "SOUMISSION": "Soumission", "CLOTURE": "Clôture", "DANGERS": "Dangers" },
       "processus": { "NOUVEAU_SITE": "Nouveau site", "AUTRES": "Autres", "TOUS": "Tous" },

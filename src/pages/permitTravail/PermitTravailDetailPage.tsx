@@ -365,7 +365,7 @@ export default function PermitTravailDetailPage() {
               ...permit.documents
                 .map((d) => d.type)
                 .filter((type, index, all) => all.indexOf(type) === index && !docTypes.some((ligne) => ligne.code === type) && !clotureDocTypes.some((ligne) => ligne.code === type))
-                .map((code) => ({ code, libelle: DOCUMENT_TYPE_LABELS[code as TypeDocumentPermitTravail] ?? code, obligatoire: false, ordre: 0 })),
+                .map((code) => ({ code, libelle: DOCUMENT_TYPE_LABELS[code as TypeDocumentPermitTravail] ?? code, obligatoire: false, autoriseNA: false, ordre: 0 })),
             ]}
             uploadedDocuments={permit.documents}
             onUpload={async () => {}}

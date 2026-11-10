@@ -11,6 +11,7 @@ export interface DocumentPermisRegle {
   demande: 'PREMIERE' | 'RENOUVELLEMENT' | 'TOUTES'
   apnApiUniquement: boolean
   obligatoire: boolean
+  autoriseNA: boolean
   ordre: number
   actif: boolean
 }

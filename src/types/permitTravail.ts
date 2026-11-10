@@ -238,6 +238,7 @@ export function resolveDocumentRequirements(
     code: 'PHOTO_DANGERS',
     libelle: DOCUMENT_TYPE_LABELS.PHOTO_DANGERS,
     obligatoire: false,
+    autoriseNA: true,
     ordre: 0,
   }
   if (requis) {
@@ -283,6 +284,8 @@ export interface DocumentRequisLigne {
   code: string
   libelle: string
   obligatoire: boolean
+  /** Autorise la case N/A même si le document est obligatoire. */
+  autoriseNA: boolean
   ordre: number
 }
 
@@ -298,7 +301,7 @@ export interface DocumentsRequisResult {
 export function documentRequisLignes(entries: DocumentRequisEntree[] | undefined): DocumentRequisLigne[] {
   return (entries ?? []).map((entry, ordre) =>
     typeof entry === 'string'
-      ? { code: entry, libelle: DOCUMENT_TYPE_LABELS[entry as TypeDocumentPermitTravail] ?? entry, obligatoire: true, ordre }
+      ? { code: entry, libelle: DOCUMENT_TYPE_LABELS[entry as TypeDocumentPermitTravail] ?? entry, obligatoire: true, autoriseNA: false, ordre }
       : entry,
   )
 }
@@ -307,12 +310,18 @@ export function getMissingDocumentTypes(
   lignes: readonly DocumentRequisLigne[],
   uploadedDocuments: ReadonlyArray<Pick<DocumentPermitTravail, 'type' | 'nonApplicable' | 'filePath'>>,
 ): string[] {
-  const present = new Set(
+  const withFile = new Set(
     uploadedDocuments
       .filter((document) => !document.nonApplicable && document.filePath)
       .map((document) => document.type),
   )
-  return lignes.filter((ligne) => ligne.obligatoire && !present.has(ligne.code)).map((ligne) => ligne.code)
+  const markedNA = new Set(
+    uploadedDocuments.filter((document) => document.nonApplicable).map((document) => document.type),
+  )
+  // Une case N/A ne remplace pas un document obligatoire, sauf si sa règle autorise explicitement le contournement.
+  return lignes
+    .filter((ligne) => ligne.obligatoire && !withFile.has(ligne.code) && !(ligne.autoriseNA && markedNA.has(ligne.code)))
+    .map((ligne) => ligne.code)
 }
 
 export interface DecisionHsePermitTravail {

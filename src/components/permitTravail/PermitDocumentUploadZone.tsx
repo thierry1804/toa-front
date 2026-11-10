@@ -61,7 +61,7 @@ export default function PermitDocumentUploadZone({
             onCapture={({ file, capturedAt }) => onUpload(ligne.code, file, capturedAt)}
             onDelete={onDelete}
             onToggleNotApplicable={
-              onToggleNotApplicable && !ligne.obligatoire ? (next) => onToggleNotApplicable(ligne.code, next) : undefined
+              onToggleNotApplicable && ligne.autoriseNA ? (next) => onToggleNotApplicable(ligne.code, next) : undefined
             }
             renderExtra={
               allowDownload

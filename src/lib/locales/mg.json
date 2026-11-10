@@ -964,6 +964,8 @@
       "searchButton": "Karohy",
       "clearButton": "Hofafana",
       "noResults": "Tsy misy antontan-taratasy hita",
+      "filterAllProcessus": "Dingana rehetra",
+      "filterAllTypes": "Karazana fahazoan-dàlana rehetra",
       "fields": {
         "code": "Kaody",
         "libelle": "Anarana",
@@ -974,7 +976,9 @@
         "demande": "Fangatahana",
         "ordre": "Filaharana",
         "obligatoire": "Tsy maintsy",
-        "actif": "Miasa"
+        "actif": "Miasa",
+        "apnApi": "APN/API",
+        "autoriseNA": "N/A"
       },
       "moments": { "SOUMISSION": "Fandefasana", "CLOTURE": "Famaranana", "DANGERS": "Loza" },
       "processus": { "NOUVEAU_SITE": "Toerana vaovao", "AUTRES": "Hafa", "TOUS": "Rehetra" },

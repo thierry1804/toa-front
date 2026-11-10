@@ -25,6 +25,7 @@ const emptyForm = (): DocumentPermisInput => ({
   demande: 'TOUTES',
   apnApiUniquement: false,
   obligatoire: true,
+  autoriseNA: false,
   ordre: 0,
   actif: true,
 })
@@ -45,15 +46,18 @@ export default function DocumentsPermisPage() {
   const [form, setForm] = useState<DocumentPermisInput | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
+  const [processusFilter, setProcessusFilter] = useState<'' | (typeof PROCESSUS)[number]>('')
+  const [typeFilter, setTypeFilter] = useState<'' | (typeof TYPES)[number]>('')
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents-permis'] })
-  const filtered = search
-    ? data.filter(
-        (regle) =>
-          regle.libelle.toLowerCase().includes(search.toLowerCase()) ||
-          regle.code.toLowerCase().includes(search.toLowerCase()),
-      )
-    : data
+  const filtered = data.filter(
+    (regle) =>
+      (!search ||
+        regle.libelle.toLowerCase().includes(search.toLowerCase()) ||
+        regle.code.toLowerCase().includes(search.toLowerCase())) &&
+      (!processusFilter || regle.processus === processusFilter) &&
+      (!typeFilter || regle.typePermis === typeFilter),
+  )
   const handleSearch = () => setSearch(searchInput)
   const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') handleSearch()
@@ -93,6 +97,16 @@ export default function DocumentsPermisPage() {
     onSuccess: refresh,
     onError: () => addToast({ message: t('referentiel.documentsPermis.toggleError'), type: 'error' }),
   })
+  const toggleApnApi = useMutation({
+    mutationFn: (regle: DocumentPermisRegle) => documentPermisApi.update(regle.id, { apnApiUniquement: !regle.apnApiUniquement }),
+    onSuccess: refresh,
+    onError: () => addToast({ message: t('referentiel.documentsPermis.toggleError'), type: 'error' }),
+  })
+  const toggleAutoriseNA = useMutation({
+    mutationFn: (regle: DocumentPermisRegle) => documentPermisApi.update(regle.id, { autoriseNA: !regle.autoriseNA }),
+    onSuccess: refresh,
+    onError: () => addToast({ message: t('referentiel.documentsPermis.toggleError'), type: 'error' }),
+  })
 
   return (
     <div className="space-y-4">
@@ -119,6 +133,24 @@ export default function DocumentsPermisPage() {
               <Button onClick={handleSearchClear} variant="secondary">{t('referentiel.documentsPermis.clearButton')}</Button>
             )}
           </div>
+          <div className="mt-3 flex gap-2">
+            <select
+              className="border border-gray-300 px-2 py-2 text-sm rounded-md"
+              value={processusFilter}
+              onChange={(event) => setProcessusFilter(event.target.value as typeof processusFilter)}
+            >
+              <option value="">{t('referentiel.documentsPermis.filterAllProcessus')}</option>
+              {PROCESSUS.map((value) => <option key={value} value={value}>{t(`referentiel.documentsPermis.processus.${value}`)}</option>)}
+            </select>
+            <select
+              className="border border-gray-300 px-2 py-2 text-sm rounded-md"
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value as typeof typeFilter)}
+            >
+              <option value="">{t('referentiel.documentsPermis.filterAllTypes')}</option>
+              {TYPES.map((value) => <option key={value} value={value}>{t(`referentiel.documentsPermis.types.${value}`)}</option>)}
+            </select>
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -128,16 +160,20 @@ export default function DocumentsPermisPage() {
               <tr className="border-b border-gray-200 text-left">
                 <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.libelle')}</th>
                 <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.moment')}</th>
-                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.cas')}</th>
+                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.processus')}</th>
+                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.type')}</th>
+                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.demande')}</th>
+                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.apnApi')}</th>
                 <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.obligatoire')}</th>
+                <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.autoriseNA')}</th>
                 <th className="px-3 py-2 font-medium">{t('referentiel.documentsPermis.fields.actif')}</th>
                 <th className="px-3 py-2" />
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td className="px-3 py-4" colSpan={6}>{t('referentiel.documentsPermis.loading')}</td></tr>}
+              {isLoading && <tr><td className="px-3 py-4" colSpan={10}>{t('referentiel.documentsPermis.loading')}</td></tr>}
               {!isLoading && filtered.length === 0 && (
-                <tr><td className="px-3 py-4 text-center text-gray-500" colSpan={6}>{t('referentiel.documentsPermis.noResults')}</td></tr>
+                <tr><td className="px-3 py-4 text-center text-gray-500" colSpan={10}>{t('referentiel.documentsPermis.noResults')}</td></tr>
               )}
               {filtered.map((regle) => (
                 <tr key={regle.id} className="border-b border-gray-100">
@@ -146,9 +182,18 @@ export default function DocumentsPermisPage() {
                     <div className="text-xs text-gray-500">{regle.code}</div>
                   </td>
                   <td className="px-3 py-2">{t(`referentiel.documentsPermis.moments.${regle.moment}`)}</td>
+                  <td className="px-3 py-2">{t(`referentiel.documentsPermis.processus.${regle.processus}`)}</td>
+                  <td className="px-3 py-2">{t(`referentiel.documentsPermis.types.${regle.typePermis}`)}</td>
+                  <td className="px-3 py-2">{t(`referentiel.documentsPermis.demandes.${regle.demande}`)}</td>
                   <td className="px-3 py-2">
-                    {t(`referentiel.documentsPermis.processus.${regle.processus}`)} · {t(`referentiel.documentsPermis.types.${regle.typePermis}`)} · {t(`referentiel.documentsPermis.demandes.${regle.demande}`)}
-                    {regle.apnApiUniquement ? ` · ${t('referentiel.documentsPermis.apn')}` : ''}
+                    <input
+                      type="checkbox"
+                      checked={regle.apnApiUniquement}
+                      disabled={!canEdit || toggleApnApi.isPending}
+                      onChange={() => toggleApnApi.mutate(regle)}
+                      aria-label={t('referentiel.documentsPermis.fields.apnApi')}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
                   </td>
                   <td className="px-3 py-2">
                     <input
@@ -157,6 +202,16 @@ export default function DocumentsPermisPage() {
                       disabled={!canEdit || toggleObligatoire.isPending}
                       onChange={() => toggleObligatoire.mutate(regle)}
                       aria-label={t('referentiel.documentsPermis.fields.obligatoire')}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={regle.autoriseNA}
+                      disabled={!canEdit || toggleAutoriseNA.isPending}
+                      onChange={() => toggleAutoriseNA.mutate(regle)}
+                      aria-label={t('referentiel.documentsPermis.fields.autoriseNA')}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </td>
@@ -233,6 +288,7 @@ export default function DocumentsPermisPage() {
             </label>
             <Input label={t('referentiel.documentsPermis.fields.ordre')} type="number" value={String(form.ordre)} onChange={(event) => setForm({ ...form, ordre: Number(event.target.value) })} />
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.obligatoire} onChange={(event) => setForm({ ...form, obligatoire: event.target.checked })} />{t('referentiel.documentsPermis.fields.obligatoire')}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.autoriseNA} onChange={(event) => setForm({ ...form, autoriseNA: event.target.checked })} />{t('referentiel.documentsPermis.fields.autoriseNA')}</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.apnApiUniquement} onChange={(event) => setForm({ ...form, apnApiUniquement: event.target.checked })} />{t('referentiel.documentsPermis.apn')}</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.actif} onChange={(event) => setForm({ ...form, actif: event.target.checked })} />{t('referentiel.documentsPermis.fields.actif')}</label>
             <div className="flex justify-end gap-2">

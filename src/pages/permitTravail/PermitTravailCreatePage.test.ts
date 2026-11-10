@@ -33,8 +33,8 @@ describe('getPermitCreationTransition', () => {
 
 describe('getMissingDocumentTypes', () => {
   const required: DocumentRequisLigne[] = [
-    { code: 'TROUSSE_SECOURS', libelle: 'Trousse', obligatoire: true, ordre: 0 },
-    { code: 'PHOTO_EPI_BASE', libelle: 'EPI', obligatoire: true, ordre: 1 },
+    { code: 'TROUSSE_SECOURS', libelle: 'Trousse', obligatoire: true, autoriseNA: false, ordre: 0 },
+    { code: 'PHOTO_EPI_BASE', libelle: 'EPI', obligatoire: true, autoriseNA: false, ordre: 1 },
   ]
 
   it('returns every required type when no document is uploaded', () => {
@@ -58,5 +58,18 @@ describe('getMissingDocumentTypes', () => {
     expect(
       getMissingDocumentTypes(required, [{ type: 'TROUSSE_SECOURS', filePath: '', nonApplicable: true }]),
     ).toEqual(['TROUSSE_SECOURS', 'PHOTO_EPI_BASE'])
+  })
+
+  it('accepts a not-applicable marker when the rule allows it (autoriseNA)', () => {
+    const withNAOverride: DocumentRequisLigne[] = [
+      { ...required[0], autoriseNA: true },
+      required[1],
+    ]
+    expect(
+      getMissingDocumentTypes(withNAOverride, [
+        { type: 'TROUSSE_SECOURS', filePath: '', nonApplicable: true },
+        { type: 'PHOTO_EPI_BASE', filePath: 'b.pdf' },
+      ]),
+    ).toEqual([])
   })
 })
