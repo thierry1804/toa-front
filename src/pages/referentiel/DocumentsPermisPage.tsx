@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Edit, Search, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -42,8 +43,25 @@ export default function DocumentsPermisPage() {
   })
   const [editing, setEditing] = useState<DocumentPermisRegle | null>(null)
   const [form, setForm] = useState<DocumentPermisInput | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents-permis'] })
+  const filtered = search
+    ? data.filter(
+        (regle) =>
+          regle.libelle.toLowerCase().includes(search.toLowerCase()) ||
+          regle.code.toLowerCase().includes(search.toLowerCase()),
+      )
+    : data
+  const handleSearch = () => setSearch(searchInput)
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') handleSearch()
+  }
+  const handleSearchClear = () => {
+    setSearchInput('')
+    setSearch('')
+  }
   const save = useMutation({
     mutationFn: async () => {
       if (!form) return
@@ -65,9 +83,15 @@ export default function DocumentsPermisPage() {
     },
     onError: () => addToast({ message: t('referentiel.documentsPermis.deleteUsed'), type: 'error' }),
   })
-  const toggle = useMutation({
+  const toggleActif = useMutation({
     mutationFn: (regle: DocumentPermisRegle) => documentPermisApi.update(regle.id, { actif: !regle.actif }),
     onSuccess: refresh,
+    onError: () => addToast({ message: t('referentiel.documentsPermis.toggleError'), type: 'error' }),
+  })
+  const toggleObligatoire = useMutation({
+    mutationFn: (regle: DocumentPermisRegle) => documentPermisApi.update(regle.id, { obligatoire: !regle.obligatoire }),
+    onSuccess: refresh,
+    onError: () => addToast({ message: t('referentiel.documentsPermis.toggleError'), type: 'error' }),
   })
 
   return (
@@ -77,6 +101,26 @@ export default function DocumentsPermisPage() {
         description={t('referentiel.documentsPermis.subtitle')}
         actions={canCreate ? <Button onClick={() => { setEditing(null); setForm(emptyForm()) }}>{t('referentiel.documentsPermis.add')}</Button> : undefined}
       />
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                className="pl-9"
+                placeholder={t('referentiel.documentsPermis.searchPlaceholder')}
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                onKeyDown={handleSearchKeyDown}
+              />
+            </div>
+            <Button onClick={handleSearch} variant="outline">{t('referentiel.documentsPermis.searchButton')}</Button>
+            {search && (
+              <Button onClick={handleSearchClear} variant="secondary">{t('referentiel.documentsPermis.clearButton')}</Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardContent className="p-0">
           <table className="w-full text-sm">
@@ -92,7 +136,10 @@ export default function DocumentsPermisPage() {
             </thead>
             <tbody>
               {isLoading && <tr><td className="px-3 py-4" colSpan={6}>{t('referentiel.documentsPermis.loading')}</td></tr>}
-              {data.map((regle) => (
+              {!isLoading && filtered.length === 0 && (
+                <tr><td className="px-3 py-4 text-center text-gray-500" colSpan={6}>{t('referentiel.documentsPermis.noResults')}</td></tr>
+              )}
+              {filtered.map((regle) => (
                 <tr key={regle.id} className="border-b border-gray-100">
                   <td className="px-3 py-2">
                     <div>{regle.libelle}</div>
@@ -103,12 +150,50 @@ export default function DocumentsPermisPage() {
                     {t(`referentiel.documentsPermis.processus.${regle.processus}`)} · {t(`referentiel.documentsPermis.types.${regle.typePermis}`)} · {t(`referentiel.documentsPermis.demandes.${regle.demande}`)}
                     {regle.apnApiUniquement ? ` · ${t('referentiel.documentsPermis.apn')}` : ''}
                   </td>
-                  <td className="px-3 py-2">{regle.obligatoire ? t('referentiel.documentsPermis.yes') : t('referentiel.documentsPermis.no')}</td>
-                  <td className="px-3 py-2">{regle.actif ? t('referentiel.documentsPermis.yes') : t('referentiel.documentsPermis.no')}</td>
-                  <td className="px-3 py-2 text-right space-x-2">
-                    {canEdit && <Button size="sm" variant="outline" onClick={() => { setEditing(regle); setForm({ ...regle }) }}>{t('referentiel.documentsPermis.edit')}</Button>}
-                    {canEdit && <Button size="sm" variant="outline" onClick={() => toggle.mutate(regle)}>{regle.actif ? t('referentiel.documentsPermis.deactivate') : t('referentiel.documentsPermis.activate')}</Button>}
-                    {canDelete && <Button size="sm" variant="outline" onClick={() => remove.mutate(regle.id)}>{t('referentiel.documentsPermis.delete')}</Button>}
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={regle.obligatoire}
+                      disabled={!canEdit || toggleObligatoire.isPending}
+                      onChange={() => toggleObligatoire.mutate(regle)}
+                      aria-label={t('referentiel.documentsPermis.fields.obligatoire')}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={regle.actif}
+                      disabled={!canEdit || toggleActif.isPending}
+                      onChange={() => toggleActif.mutate(regle)}
+                      aria-label={t('referentiel.documentsPermis.fields.actif')}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <div className="flex justify-end gap-1">
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setEditing(regle); setForm({ ...regle }) }}
+                          title={t('referentiel.documentsPermis.edit')}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => remove.mutate(regle.id)}
+                          title={t('referentiel.documentsPermis.delete')}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

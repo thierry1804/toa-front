@@ -959,6 +959,11 @@
       "yes": "Oui",
       "no": "Non",
       "apn": "Sites APN/API seulement",
+      "toggleError": "Mise à jour impossible",
+      "searchPlaceholder": "Rechercher par code ou libellé...",
+      "searchButton": "Rechercher",
+      "clearButton": "Effacer",
+      "noResults": "Aucun document trouvé",
       "fields": {
         "code": "Code",
         "libelle": "Libellé",

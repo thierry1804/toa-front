@@ -959,6 +959,11 @@
       "yes": "Eny",
       "no": "Tsia",
       "apn": "Toerana APN/API ihany",
+      "toggleError": "Tsy voatahiry",
+      "searchPlaceholder": "Karohy amin'ny kaody na ny lohateny...",
+      "searchButton": "Karohy",
+      "clearButton": "Hofafana",
+      "noResults": "Tsy misy antontan-taratasy hita",
       "fields": {
         "code": "Kaody",
         "libelle": "Anarana",
