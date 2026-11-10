@@ -25,12 +25,19 @@ export default function DocumentViewerModal({
   // Référence : la fonction change à chaque rendu du parent et ne doit pas relancer le chargement.
   const onLoadedRef = useRef(onLoaded)
   onLoadedRef.current = onLoaded
+  // Même chose pour `blob` : c'est aussi une fonction recréée à chaque rendu du parent
+  // (ex. `blob={() => api.getDocumentBlob(...)}`). La mettre dans les deps du useEffect
+  // ci-dessous relançait l'effet à chaque rendu — le cleanup révoquait alors l'URL blob
+  // en cours de chargement/affichage, d'où le net::ERR_FILE_NOT_FOUND vu dans la console.
+  const blobRef = useRef(blob)
+  blobRef.current = blob
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [mimeType, setMimeType] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
 
   useEffect(() => {
+    const blob = blobRef.current
     if (!isOpen || !blob) return
     let cancelled = false
     let url: string | null = null
@@ -58,7 +65,7 @@ export default function DocumentViewerModal({
       if (url) URL.revokeObjectURL(url)
       setObjectUrl(null)
     }
-  }, [isOpen, blob])
+  }, [isOpen])
 
   const isImage = mimeType.startsWith('image/')
   const isPdf = mimeType === 'application/pdf'
