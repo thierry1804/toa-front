@@ -8,9 +8,27 @@ vi.mock('@/utils/imageCompression', () => ({ compressImage: async (file: File) =
 afterEach(() => cleanup())
 
 describe('RowPhotoCell (R-09)', () => {
-  it('shows N/A when the photo is not required', async () => {
-    const { container } = await render(<RowPhotoCell required={false} onUpload={vi.fn()} />)
+  it('shows N/A in read-only mode when the photo is not required', async () => {
+    const { container } = await render(<RowPhotoCell required={false} readonly />)
     expect(container.textContent).toBe('N/A')
+  })
+
+  it('offers an optional capture with a N/A toggle when not required', async () => {
+    const onUpload = vi.fn(async () => undefined)
+    const onToggleNonApplicable = vi.fn(async () => undefined)
+    const { container } = await render(
+      <RowPhotoCell
+        required={false}
+        onUpload={onUpload}
+        onToggleNonApplicable={onToggleNonApplicable}
+      />,
+    )
+    expect(container.querySelector('input[type="file"]:not([capture])')).toBeTruthy()
+
+    const naCheckbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement
+    expect(naCheckbox).toBeTruthy()
+    await click(naCheckbox)
+    expect(onToggleNonApplicable).toHaveBeenCalledWith(true)
   })
 
   it('offers capture when required and uploads the chosen photo', async () => {

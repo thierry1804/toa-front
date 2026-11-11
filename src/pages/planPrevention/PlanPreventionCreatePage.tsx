@@ -583,6 +583,12 @@ export default function PlanPreventionCreatePage({
     await saveRows(unlink(localEquipements));
   };
 
+  const toggleRowPhotoNonApplicable = async (index: number, next: boolean) => {
+    await saveRows(
+      localEquipements.map((row, i) => (i === index ? { ...row, photoNonApplicable: next } : row)),
+    );
+  };
+
   // Une ligne supprimée emporte sa photo.
   const deleteRemovedRowPhotos = (
     before: { photoDocumentId?: string | null }[],
@@ -598,7 +604,7 @@ export default function PlanPreventionCreatePage({
   };
 
   const renderRowPhoto = (
-    row: { photoDocumentId?: string | null },
+    row: { photoDocumentId?: string | null; photoNonApplicable?: boolean | null },
     index: number,
     readonly = false,
   ) => (
@@ -608,8 +614,10 @@ export default function PlanPreventionCreatePage({
       required={isNouveauSite}
       readonly={readonly || !canEdit}
       missing={photosManquantes.equipements.includes(index)}
+      nonApplicable={!!row.photoNonApplicable}
       onUpload={({ file, capturedAt }) => uploadRowPhoto(index, file, capturedAt)}
       onRemove={() => removeRowPhoto(index)}
+      onToggleNonApplicable={(next) => toggleRowPhotoNonApplicable(index, next)}
     />
   );
 

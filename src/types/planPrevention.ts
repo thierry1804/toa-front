@@ -44,8 +44,8 @@ export const ALL_DOCUMENT_TYPES: TypeDocumentPrevention[] = [
 
 // R-09 : photos jointes ligne par ligne dans l'onglet « Installations &
 // Équipements » (photoDocumentId de chaque ligne), obligatoires pour le
-// processus "Nouveau site", N/A pour les autres. Elles ne figurent plus à
-// l'étape Documents.
+// processus "Nouveau site", optionnelles pour les autres (upload possible,
+// mais N/A accepté). Elles ne figurent plus à l'étape Documents.
 export const PHOTO_DOCUMENT_TYPES_NOUVEAU_SITE: TypeDocumentPrevention[] = [
   'PHOTOS_INSTALLATIONS',
   'PHOTOS_EQUIPEMENTS',
@@ -70,6 +70,8 @@ export interface EquipementRow {
   verifiePar?: string | null
   /** R-09 : document PHOTOS_EQUIPEMENTS du plan, photo de la ligne. */
   photoDocumentId?: string | null
+  /** R-09 (hors "Nouveau site") : photo marquée explicitement non applicable pour cette ligne. */
+  photoNonApplicable?: boolean | null
 }
 
 

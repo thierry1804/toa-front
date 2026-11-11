@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Textarea from '@/components/ui/Textarea'
 import type { EquipementRow } from '@/types/planPrevention'
 
 interface EquipementsTableProps {
@@ -9,7 +11,7 @@ interface EquipementsTableProps {
   errors?: Record<number, string>
   readonly?: boolean
   emptyLabel?: string
-  /** R-09 : colonne « Photo » (une photo par ligne), affichée si fournie. */
+  /** R-09 : bloc « Photo » (une photo par ligne), affiché si fourni. */
   renderPhoto?: (row: EquipementRow, index: number) => ReactNode
 }
 
@@ -31,117 +33,122 @@ export default function EquipementsTable({
     onChange(value.map((row, i) => (i === index ? { ...row, [field]: val } : row)))
   }
 
-  const colSpan = (readonly ? 4 : 5) + (renderPhoto ? 1 : 0)
+  if (value.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm italic text-gray-400">
+          {emptyLabel}
+        </div>
+        {!readonly && (
+          <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Ajouter un équipement
+          </Button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-3 py-3 text-left font-medium text-gray-700 w-1/3">
-                Description du matériel/équipement/outillage <span className="text-red-500">*</span>
-              </th>
-              <th className="px-3 py-3 text-left font-medium text-gray-700">
-                Conditions d'utilisation
-              </th>
-              <th className="px-3 py-3 text-left font-medium text-gray-700 w-36">
-                Date de vérification
-              </th>
-              <th className="px-3 py-3 text-left font-medium text-gray-700 w-36">
-                Vérifié par
-              </th>
-              {renderPhoto && (
-                <th className="px-3 py-3 text-left font-medium text-gray-700 w-48">Photo</th>
+      <div className="space-y-4">
+        {value.map((row, index) => (
+          <div key={index} className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                Équipement {index + 1}
+              </span>
+              {!readonly && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="rounded p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+                  title="Supprimer"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               )}
-              {!readonly && <th className="px-3 py-3 w-12" />}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {value.length === 0 && (
-              <tr>
-                <td colSpan={colSpan} className="px-4 py-8 text-center text-gray-400 italic">
-                  {emptyLabel}
-                </td>
-              </tr>
-            )}
-            {value.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50 align-top">
-                <td className="px-3 py-2">
+            </div>
+
+            <div className="space-y-4">
+              {readonly ? (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Description du matériel/équipement/outillage
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-900">
+                    {row.description || '—'}
+                  </p>
+                </div>
+              ) : (
+                <Input
+                  label="Description du matériel/équipement/outillage"
+                  required
+                  value={row.description}
+                  onChange={(e) => handleChange(index, 'description', e.target.value)}
+                  placeholder="Ex. : Perceuse sans fil + mèches Ø10"
+                  error={errors[index]}
+                />
+              )}
+
+              {readonly ? (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Conditions d'utilisation</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                    {row.conditionsUtilisation || '—'}
+                  </p>
+                </div>
+              ) : (
+                <Textarea
+                  label="Conditions d'utilisation"
+                  value={row.conditionsUtilisation}
+                  onChange={(e) => handleChange(index, 'conditionsUtilisation', e.target.value)}
+                  placeholder="Ex. : Vérification avant chaque utilisation"
+                  rows={2}
+                />
+              )}
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
                   {readonly ? (
-                    <p className="text-sm text-gray-900 whitespace-pre-wrap">{row.description || '—'}</p>
-                  ) : (
                     <>
-                      <input
-                        type="text"
-                        value={row.description}
-                        onChange={(e) => handleChange(index, 'description', e.target.value)}
-                        placeholder="Ex. : Perceuse sans fil + mèches Ø10"
-                        className={`w-full rounded border px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                          errors[index] ? 'border-red-400 bg-red-50' : 'border-gray-300'
-                        }`}
-                      />
-                      {errors[index] && (
-                        <p className="mt-0.5 text-xs text-red-600">{errors[index]}</p>
-                      )}
+                      <p className="text-sm font-medium text-gray-700">Date de vérification</p>
+                      <p className="mt-1 text-sm text-gray-700">{row.dateVerification || '—'}</p>
                     </>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  {readonly ? (
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{row.conditionsUtilisation || '—'}</p>
                   ) : (
-                    <textarea
-                      value={row.conditionsUtilisation}
-                      onChange={(e) => handleChange(index, 'conditionsUtilisation', e.target.value)}
-                      placeholder="Ex. : Vérification avant chaque utilisation"
-                      rows={2}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-                    />
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  {readonly ? (
-                    <p className="text-sm text-gray-700">{row.dateVerification || '—'}</p>
-                  ) : (
-                    <input
+                    <Input
                       type="date"
+                      label="Date de vérification"
                       value={row.dateVerification ?? ''}
                       onChange={(e) => handleChange(index, 'dateVerification', e.target.value || null)}
-                      className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
-                </td>
-                <td className="px-3 py-2">
+                </div>
+                <div>
                   {readonly ? (
-                    <p className="text-sm text-gray-700">{row.verifiePar || '—'}</p>
+                    <>
+                      <p className="text-sm font-medium text-gray-700">Vérifié par</p>
+                      <p className="mt-1 text-sm text-gray-700">{row.verifiePar || '—'}</p>
+                    </>
                   ) : (
-                    <input
-                      type="text"
+                    <Input
+                      label="Vérifié par"
                       value={row.verifiePar ?? ''}
                       onChange={(e) => handleChange(index, 'verifiePar', e.target.value || null)}
                       placeholder="Nom du vérificateur"
-                      className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
-                </td>
-                {renderPhoto && <td className="px-3 py-2">{renderPhoto(row, index)}</td>}
-                {!readonly && (
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(index)}
-                      className="rounded p-1 text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
+                </div>
+                {renderPhoto && (
+                  <div>
+                    <p className="mb-1 text-sm font-medium text-gray-700">Photo</p>
+                    {renderPhoto(row, index)}
+                  </div>
                 )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {!readonly && (
