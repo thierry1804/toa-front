@@ -15,6 +15,8 @@ export interface PlanificationAffectation {
   process: string | null
   typeIntervention: string | null
   sousTraitantIds: string[]
+  planPreventionReference: string | null
+  activitePlanifiee: string | null
 }
 
 export const sousTraitantApi = {

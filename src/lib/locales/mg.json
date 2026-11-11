@@ -134,8 +134,12 @@
       "assignDenied": "Ny prestataire sy ny lehiben'ny tetikasa prestataire ihany no mametraka mpiara-miombon'antoka.",
       "site": "Toerana",
       "process": "Fomba",
+      "planification": "Fandaharam-potoana",
+      "noPlanPrevention": "Tsy misy plan de prévention",
+      "search": "Katsahy araka ny toerana, ny fomba na ny famantarana...",
       "assigned": "Mpiara-miombon'antoka",
       "noPlan": "Tsy misy fandaharam-potoana ho an'ity orinasa ity",
+      "noPlanMatch": "Tsy misy fandaharam-potoana mifanaraka amin'ny fikarohana",
       "saved": "Voatahiry ny fametrahana",
       "saveError": "Tsy voatahiry",
       "none": "Tsy misy — hitan'ny mpandraharaha ny orinasa iray manontolo"

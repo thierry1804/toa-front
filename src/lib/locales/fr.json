@@ -134,8 +134,12 @@
       "assignDenied": "Seuls le prestataire et le chef de projet prestataire affectent les sous-traitants.",
       "site": "Site",
       "process": "Processus",
+      "planification": "Planification",
+      "noPlanPrevention": "Aucun plan de prévention",
+      "search": "Rechercher par site, processus ou référence...",
       "assigned": "Sous-traitants",
       "noPlan": "Aucune planification pour cette entreprise",
+      "noPlanMatch": "Aucune planification ne correspond à la recherche",
       "saved": "Affectation enregistrée",
       "saveError": "Enregistrement impossible",
       "none": "Aucun — l'agent voit toute l'entreprise"
