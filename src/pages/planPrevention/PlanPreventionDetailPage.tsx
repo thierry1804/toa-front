@@ -471,21 +471,19 @@ export default function PlanPreventionDetailPage() {
         );
       })()}
 
-      {plan.typeIntervention === "Nouveau site" && (
-        <SectionCard
-          title="Matériels, équipements et outillages"
-          summary={`${(plan.equipements ?? []).length} équipement(s)`}
-          defaultOpen
-        >
-          <EquipementsTable
-            value={plan.equipements ?? []}
-            onChange={() => {}}
-            readonly
-            emptyLabel="Aucun équipement renseigné."
-            renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_EQUIPEMENTS)}
-          />
-        </SectionCard>
-      )}
+      <SectionCard
+        title="Matériels, équipements et outillages"
+        summary={`${(plan.equipements ?? []).length} équipement(s)`}
+        defaultOpen
+      >
+        <EquipementsTable
+          value={plan.equipements ?? []}
+          onChange={() => {}}
+          readonly
+          emptyLabel="Aucun équipement renseigné."
+          renderPhoto={renderRowPhoto(TYPES_DOCUMENT_LABELS.PHOTOS_EQUIPEMENTS)}
+        />
+      </SectionCard>
 
       {/* 5. Documents requis */}
       <SectionCard
